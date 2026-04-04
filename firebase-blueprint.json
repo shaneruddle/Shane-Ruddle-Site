@@ -1,0 +1,121 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents an employee or admin in the system.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "nickname": { "type": "string" },
+        "roles": { "type": "array", "items": { "type": "string", "enum": ["admin", "employee", "manager", "accounts"] } },
+        "active": { "type": "boolean", "description": "Whether the user is currently active and allowed to login." },
+        "employeeId": { "type": "string" },
+        "discountCode": { "type": "string" },
+        "discountIds": { "type": "array", "items": { "type": "string" } },
+        "bio": { "type": "string" },
+        "birthday": { "type": "string" },
+        "company": { "type": "string", "description": "Legacy company name string" },
+        "companyId": { "type": "string", "description": "ID of the company from the companies collection" },
+        "contractLink": { "type": "string" },
+        "employedFrom": { "type": "string" },
+        "finishWork": { "type": "string" },
+        "mobile": { "type": "string" },
+        "position": { "type": "string" },
+        "preferredLanguage": { "type": "string" },
+        "profileImage": { "type": "string" },
+        "tempPass": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "roles"]
+    },
+    "Company": {
+      "title": "Company",
+      "description": "Represents a company that employs users.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "website": { "type": "string" },
+        "logo": { "type": "string", "description": "URL to the company logo" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name"]
+    },
+    "Discount": {
+      "title": "Discount",
+      "description": "Represents a discount offer at a restaurant.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "percentage": { "type": "number" },
+        "restaurantId": { "type": "string" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["name", "percentage", "restaurantId"]
+    },
+    "UsageLog": {
+      "title": "UsageLog",
+      "description": "Tracks when an employee uses a discount.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userCompany": { "type": "string" },
+        "discountId": { "type": "string" },
+        "discountName": { "type": "string" },
+        "restaurantId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "discountId", "timestamp"]
+    },
+    "BlogPost": {
+      "title": "BlogPost",
+      "description": "Represents a blog post in the system.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "metaDescription": { "type": "string" },
+        "keywords": { "type": "string" },
+        "body": { "type": "string" },
+        "category": { "type": "string", "enum": ["My Advice", "Property", "Car Rental", "Pattaya News"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "published": { "type": "boolean" }
+      },
+      "required": ["title", "body", "category"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and roles."
+    },
+    "/discounts/{discountId}": {
+      "schema": "Discount",
+      "description": "Available discounts."
+    },
+    "/companies/{companyId}": {
+      "schema": "Company",
+      "description": "Companies that employ users."
+    },
+    "/usage_logs/{logId}": {
+      "schema": "UsageLog",
+      "description": "Usage history for analytics."
+    },
+    "/blog/{postId}": {
+      "schema": "BlogPost",
+      "description": "Blog posts for the website."
+    }
+  }
+}

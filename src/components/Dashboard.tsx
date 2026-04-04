@@ -1,0 +1,2952 @@
+import React, { useState, useEffect } from 'react';
+import Papa from 'papaparse';
+import { db, auth, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog, DBCompany, BlogPost, FinanceTransaction } from '../firebase';
+import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy } from 'firebase/firestore';
+import { Users, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search } from 'lucide-react';
+import { migrateData } from '../services/migrationService';
+import { getBusinessInfo, saveBusinessInfo } from '../services/businessService';
+import { BusinessInfo } from '../types';
+import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
+import { cn } from '@/src/lib/utils';
+
+interface DashboardProps {
+  userProfile: UserProfile;
+  onBack: () => void;
+}
+
+export default function Dashboard({ userProfile, onBack }: DashboardProps) {
+  const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'users' | 'finance'>('employees');
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [employees, setEmployees] = useState<UserProfile[]>([]);
+  const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [logs, setLogs] = useState<UsageLog[]>([]);
+  const [companies, setCompanies] = useState<DBCompany[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [financeTransactions, setFinanceTransactions] = useState<FinanceTransaction[]>([]);
+  const [businessInfo, setBusinessInfo] = useState<BusinessInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  // Finance states
+  const [financeSubTab, setFinanceSubTab] = useState<'ABPC' | 'ECRE' | 'Performance'>('ABPC');
+  const [showAddTransaction, setShowAddTransaction] = useState(false);
+  const [isSavingTransaction, setIsSavingTransaction] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<FinanceTransaction | null>(null);
+  const [confirmDeleteTransaction, setConfirmDeleteTransaction] = useState<FinanceTransaction | null>(null);
+  const [financeMonthFilter, setFinanceMonthFilter] = useState<string>('all');
+  const [financeAgentFilter, setFinanceAgentFilter] = useState<string>('all');
+  const [financeAccountFilter, setFinanceAccountFilter] = useState<string>('trading');
+  const [financeSearchTerm, setFinanceSearchTerm] = useState('');
+  const [newTransaction, setNewTransaction] = useState<Partial<FinanceTransaction> & { fromAccount?: 'trading' | 'savings', toAccount?: 'trading' | 'savings' }>({
+    type: 'income',
+    dealType: 'new',
+    account: 'trading',
+    date: new Date().toISOString().split('T')[0]
+  });
+
+  // Search and Sort states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [companyFilter, setCompanyFilter] = useState<string>('all');
+
+  // Form states
+  const [showEditEmployee, setShowEditEmployee] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<UserProfile | null>(null);
+  const [showEditCompany, setShowEditCompany] = useState(false);
+  const [editingCompany, setEditingCompany] = useState<Partial<DBCompany> | null>(null);
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [empSeedStatus, setEmpSeedStatus] = useState<'idle' | 'confirming' | 'success' | 'error'>('idle');
+  const [isUploadingCSV, setIsUploadingCSV] = useState(false);
+  const [isSeedingDiscounts, setIsSeedingDiscounts] = useState(false);
+  const [discSeedStatus, setDiscSeedStatus] = useState<'idle' | 'confirming' | 'success' | 'error'>('idle');
+  const [isSeedingCompanies, setIsSeedingCompanies] = useState(false);
+  const [compSeedStatus, setCompSeedStatus] = useState<'idle' | 'confirming' | 'success' | 'error'>('idle');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  const [showEditBlog, setShowEditBlog] = useState(false);
+  const [editingBlog, setEditingBlog] = useState<Partial<BlogPost> | null>(null);
+  const [isSavingBlog, setIsSavingBlog] = useState(false);
+  const [isStandardizing, setIsStandardizing] = useState(false);
+
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string, type: 'employee' | 'company', name: string } | null>(null);
+
+  const COMPANY_DATA: Record<string, { logo: string, shorthand: string, color: string }> = {
+    "Cajun Life Cafe": { logo: "https://picsum.photos/seed/cajun/100/100", shorthand: "CLC", color: "bg-orange-500" },
+    "Hemingways Lakeside": { logo: "https://picsum.photos/seed/lake/100/100", shorthand: "HL", color: "bg-blue-500" },
+    "Hemingways Jomtien": { logo: "https://picsum.photos/seed/jomtien/100/100", shorthand: "HJ", color: "bg-teal-500" },
+    "Hemingways Pattaya": { logo: "https://picsum.photos/seed/pattaya/100/100", shorthand: "HP", color: "bg-cyan-500" },
+    "Pattaya Rent a Car": { logo: "https://picsum.photos/seed/car/100/100", shorthand: "PRC", color: "bg-red-500" },
+    "Alan Bolton Property Consultants": { logo: "https://picsum.photos/seed/property/100/100", shorthand: "AB", color: "bg-indigo-500" },
+    "East Coast Real Estate": { logo: "https://picsum.photos/seed/east/100/100", shorthand: "EC", color: "bg-emerald-500" }
+  };
+
+  const getLogoSrc = (logo: string | undefined) => {
+    if (!logo) return "https://picsum.photos/seed/generic/100/100";
+    const trimmed = logo.trim();
+    if (trimmed.startsWith('data:')) return trimmed.replace(/\s/g, '');
+    if (trimmed.startsWith('http')) return trimmed;
+    return `/${trimmed}`;
+  };
+
+  const getUrlHref = (url: string | undefined) => {
+    if (!url) return undefined;
+    const trimmed = url.trim();
+    if (trimmed === '' || trimmed === '#') return undefined;
+    if (trimmed.startsWith('http')) return trimmed;
+    return `https://${trimmed}`;
+  };
+
+  const getCompanyInfo = (companyName: string, companyId?: string) => {
+    if (companyId) {
+      const company = companies.find(c => c.id === companyId);
+      if (company) {
+        return { 
+          logo: getLogoSrc(company.logo), 
+          shorthand: company.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 3), 
+          color: "bg-white" 
+        };
+      }
+    }
+    const company = companies.find(c => c.name === companyName);
+    if (company) {
+      return { 
+        logo: getLogoSrc(company.logo), 
+        shorthand: company.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 3), 
+        color: "bg-white" 
+      };
+    }
+    const info = COMPANY_DATA[companyName];
+    if (info) {
+      return { ...info, logo: getLogoSrc(info.logo) };
+    }
+    return { logo: "https://picsum.photos/seed/generic/100/100", shorthand: "??", color: "bg-gray-400" };
+  };
+
+  const initialEmployees = [
+    { firstName: "Shane", lastName: "Ruddle", email: "shaneruddle@gmail.com", roles: ["admin"], uid: "1738205631116x904859022843725700" },
+    { firstName: "Phinthip", lastName: "Suphaphon", email: "suphaphon8484@gmail.com", roles: ["employee"], company: "Pattaya Rent a Car", position: "Manager", mobile: "088-445-1577", uid: "1738212581168x222718087382245860" },
+    { firstName: "Irina", lastName: "Breslavtseva", email: "irina.breslavtseva1987@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Sales Agent", mobile: "086-754-5850", uid: "1738213561205x839566948050539300" },
+    { firstName: "Robert", lastName: "Cameron", email: "ractdi@me.com", roles: ["manager", "accounts"], company: "Hemingways Jomtien", position: "Manager", mobile: "083-792-2379", uid: "1738214615807x539816467958273800" },
+    { firstName: "Gavin", lastName: "Perfect", email: "gav.perfect@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", position: "Partner", mobile: "081-761-3238", uid: "1738215293020x963636533625276200" },
+    { firstName: "Chris", lastName: "Brett", email: "nirun1109@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", position: "Partner", mobile: "06", uid: "1738240744070x213581431522885440" },
+    { firstName: "Linda", lastName: "Perfect", email: "lindaperfect@uwclub.net", roles: ["employee"], company: "Hemingways Jomtien", mobile: "0", uid: "1738246339747x980521358119640300" },
+    { firstName: "Waraporn", lastName: "Perfect", email: "george.dao1991@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "8", uid: "1738291651405x322553869001737800" },
+    { firstName: "Shane", lastName: "Ruddle", email: "info@cajunlifecafe.com", roles: ["admin"], company: "Cajun Life Cafe", position: "Partner", uid: "1738300537896x320007663338649000" },
+    { firstName: "Paola", lastName: "Pastacaldi", email: "paoolam@live.fr", roles: ["employee"], company: "Cajun Life Cafe", position: "Manager", mobile: "098", uid: "1738302108130x423377338011485100" },
+    { firstName: "Lewis", lastName: "Perfect", email: "perfectlewisashton@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "007", uid: "1738490718350x851705520968406400" },
+    { firstName: "Chutikarn", lastName: "Phetcharoen", email: "jusfirstchutikarn@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", mobile: "009", uid: "1743649995469x635691858452828200" },
+    { firstName: "Shane", lastName: "Puddle", email: "info@pattayarentacar.com", roles: ["employee"], company: "Pattaya Rent a Car", mobile: "0830776928", uid: "1754096406865x512038928260660800" },
+    { firstName: "Noel", lastName: "Magold", email: "noel.magold@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Management", mobile: "0950247546", uid: "1754730171383x441187517623218050" },
+    { firstName: "Aiden Scott", lastName: "Gray", email: "aidenscottgray@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0923879169", uid: "1756263259346x562607146057934900" },
+    { firstName: "Jo", lastName: "Barbosa", email: "jobarbosa5555@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Real Estate Agent", mobile: "0613903936", uid: "1756263281490x915847737785749200" },
+    { firstName: "Arnon", lastName: "Surison", email: "arnonsurison@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0979247477", uid: "1756263288531x762119080127496000" },
+    { firstName: "Lee", lastName: "Knights", email: "knightslee983@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Senior Sales Agent", mobile: "+66 096287916", uid: "1756263332719x951012836427739500" },
+    { firstName: "Panida", lastName: "Tongwinya", email: "panida220131@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Real Estate Agent", mobile: "0942241929", uid: "1756263336304x625006180080648100" },
+    { firstName: "Sajiga", lastName: "Suwan", email: "beau_jung@msn.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Real Estate Agent", mobile: "0983297886", uid: "1756263366590x959412417623900300" },
+    { firstName: "Oranoot", lastName: "Totong", email: "par_ok11@hotmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Management team", mobile: "0924554498", uid: "1756263594664x877842564163702300" },
+    { firstName: "Alex", lastName: "Stein", email: "alexstein530@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Manager", mobile: "0614701505", uid: "1756263672131x259238773781960350" },
+    { firstName: "Supich", lastName: "Limpkul", email: "supich0632049020@gmail.com", roles: ["employee"], company: "East Coast Real Estate", mobile: "0632049020", uid: "1756264011757x839849911564250000" },
+    { firstName: "Aunt", lastName: "Srisawat", email: "auntamp1502@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0918892331", uid: "1756264032695x733195673910481700" },
+    { firstName: "Kanokporn", lastName: "Piromsuksakul", email: "kanokporn.1999@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0994540194", uid: "1756264410126x242009150200741980" },
+    { firstName: "Vee", lastName: "Samdangfai", email: "vthailander322@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Real Estate Agent", mobile: "0897531783", uid: "1756268451972x807974387457137600" },
+    { firstName: "Amornrat", lastName: "Khongpennit", email: "annbtk789@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Office Manager", mobile: "0646232956", uid: "1756268572517x514449734029142300" },
+    { firstName: "Frederic", lastName: "von Keller Szepesi", email: "fredericvonkeller@gmail.com", roles: ["employee"], company: "Hemingways Lakeside", position: "Fred", mobile: "+66645401483", uid: "1756271584315x737558423889835600" },
+    { firstName: "Nalee", lastName: "Munsters", email: "nalisa1985@hotmail.com", roles: ["employee"], company: "Hemingways Jomtien", position: "Manager", mobile: "0821641500", uid: "1756286355453x589421305831364600" },
+    { firstName: "Siriprapha", lastName: "Misim", email: "jinxingyea@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "0800299529", uid: "1756286368553x991741457464602600" },
+    { firstName: "Napaporn", lastName: "Puntee", email: "napapornpuntee@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "0888707099", uid: "1756288122521x180957553812111100" },
+    { firstName: "Jonathon", lastName: "Levy", email: "jonathonedwardlxvy@gmail.com", roles: ["employee"], company: "Pattaya Rent a Car", mobile: "0615656942", uid: "1756288283985x444297866225356500" },
+    { firstName: "Nangnoi", lastName: "Thamniyom", email: "pattaya53761@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", position: "Head Cashier", mobile: "0950620222", uid: "1756288314545x362582933400462460" },
+    { firstName: "Patsarapron", lastName: "Frongsieng", email: "a0ypatsarapron@gmaill.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "0923214689", uid: "1756288810602x771229014759674400" },
+    { firstName: "Warisara", lastName: "Phiongoen", email: "numaoywrisara1995@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "0922911525", uid: "1756288931681x839066566400483700" },
+    { firstName: "Sorasak", lastName: "Wongsaket", email: "sorasuk77@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "0843766074", uid: "1756289848887x313850991691934340" },
+    { firstName: "Thanyalak", lastName: "Aran", email: "tanyalak1991@hotmail.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "0984048514", uid: "1756292057951x859281302957366700" },
+    { firstName: "Jamroonsri", lastName: "Yangnoi", email: "jamroonsri17@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "0879079969", uid: "1756298435434x820512233706869100" },
+    { firstName: "Warida", lastName: "Pasawanang", email: "warida1809@gmail.com", roles: ["employee"], company: "Hemingways Lakeside", mobile: "0943593966", uid: "1756308453195x534339594871870800" },
+    { firstName: "Ms.Tawan", lastName: "Majaroen", email: "tawanmajaroen42@gmail.com", roles: ["employee"], company: "Hemingways Lakeside", position: "Manager", mobile: "0934725347", uid: "1756339660536x785526488596316300" },
+    { firstName: "Rob", lastName: "Tomlin", email: "robptomlin@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", position: "Partner", mobile: "+61434171483", uid: "1756340176674x285218234087396560" },
+    { firstName: "Ms.Kanjana", lastName: "inchamnan", email: "namtanaajj91@gmail.com", roles: ["employee"], company: "Hemingways Lakeside", position: "Helper", mobile: "0944587063", uid: "1756347060950x733895328116686800" },
+    { firstName: "Ms.Ployphailin", lastName: "Thimaping", email: "namfon.luma@gmail.com", roles: ["employee"], company: "Hemingways Lakeside", mobile: "0969093907", uid: "1756349232145x298334947592502800" },
+    { firstName: "Somchay", lastName: "Saipan", email: "somchay.it@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "0983107366", uid: "1756363241916x646254621671369000" },
+    { firstName: "Thanawat", lastName: "Srijanngam", email: "luciokung@hotmail.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "0917101093", uid: "1756363287953x662873641002042000" },
+    { firstName: "Leon", lastName: "Weightman", email: "weightman17@googlemail.com", roles: ["employee"], company: "Hemingways Pattaya", position: "Partner", mobile: "07931961800", uid: "1756364559073x521162911720893800" },
+    { firstName: "Sangthong", lastName: "Nongnut", email: "khun.ying32@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "0926687817", uid: "1756452778234x285483836816500930" },
+    { firstName: "Thepharak", lastName: "Somboon", email: "thepharaksomboon@gmail.com", roles: ["employee"], company: "Pattaya Rent a Car", mobile: "0861450121", uid: "1756788660413x445722180121408830" },
+    { firstName: "Patsorn", lastName: "Phonrachom", email: "eanarak8888@gmail.com", roles: ["employee"], mobile: "0927645776", uid: "1756797352676x904919519560570100" },
+    { firstName: "sommai", lastName: "keawchan", email: "somaii0510@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", position: "Supervisor", mobile: "098t813571", uid: "1756797467530x249119940572800420" },
+    { firstName: "Khanittha", lastName: "Soranet", email: "skywatersoranet@gmail.com", roles: ["employee"], company: "Hemingways Pattaya", mobile: "0983969629", uid: "1756828586616x513005560142739700" },
+    { firstName: "Nigel", lastName: "Flanagan", email: "nigelflap@msn.com", roles: ["employee"], mobile: "0811165146", uid: "1756883960619x675842814246387100" },
+    { firstName: "Akanittha", lastName: "Suriyawong", email: "akanittha1990@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "service", mobile: "+66935799611", uid: "1756904185743x244983017544803780" },
+    { firstName: "Scott", lastName: "Smith", email: "scottsmithcall89@gmail.com", roles: ["employee"], company: "East Coast Real Estate", mobile: "0610737568", uid: "1762229321453x250879529230273020" },
+    { firstName: "Rattiya", lastName: "Suedej", email: "rattiyasuedej@gmail.com", roles: ["employee"], position: "Not an employee", mobile: "0984721683", uid: "1763547261844x102058649974796640" },
+    { firstName: "Porntip", lastName: "Van Vliet", email: "tipvlie999@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Real Estate Professional", mobile: "0890127205", uid: "1764741492760x819100824946806800" },
+    { firstName: "Annipa", lastName: "Phasawat", email: "roselovelyno1@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0845674066", uid: "1765533220686x121275735073274720" },
+    { firstName: "Sangthong", lastName: "Nongnut", email: "khunying32@gmail.com", roles: ["employee"], position: "Not an employee", mobile: "092-668-7817", uid: "1765537326758x574896350378373300" },
+    { firstName: "Chonlatee", lastName: "Seema", email: "iam.chonlatee@gmail.com", roles: ["admin"], company: "Cajun Life Cafe", mobile: "0808032832", uid: "1767753686962x907925546658813800" },
+    { firstName: "Ms.Suphatson", lastName: "Promjan", email: "-@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Ass. Manager", mobile: "-", uid: "1769235201148x300813861270191600" },
+    { firstName: "Ms.Rungnapa", lastName: "Aritit", email: "--@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "service", mobile: "-", uid: "1769244928700x243422525857856160" },
+    { firstName: "Ms.Wannakon", lastName: "Kirisee", email: "---@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Service", mobile: "-", uid: "1769245573895x530969906960634600" },
+    { firstName: "Mr.Jetsada", lastName: "Muaddee", email: "----@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Service", mobile: "-", uid: "1769245807475x378018135647546500" },
+    { firstName: "Ms.Pharpilai", lastName: "Meeoatman", email: "-----@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Service", mobile: "-", uid: "1769246155454x752079501919451000" },
+    { firstName: "Ms.Oranong", lastName: "Sullivan", email: "------@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Service", mobile: "-", uid: "1769246348566x369676230000030300" },
+    { firstName: "Worawut", lastName: "Meeklin", email: "-------@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Driver", mobile: "-", uid: "1769246449384x303996918730429000" },
+    { firstName: "Ms.Janthima", lastName: "Butthong", email: "--------@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Head Bar", mobile: "-", uid: "1769247047016x828735216147769900" },
+    { firstName: "Ms.Jantana", lastName: "Sukdoung", email: "---------@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Bartender", mobile: "-", uid: "1769247195505x734866205018978700" },
+    { firstName: "Kronwikar", lastName: "Kraeduangngam", email: "-1@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Bartender", mobile: "-", uid: "1769247341608x995342744987759500" },
+    { firstName: "Chonlatee", lastName: "Seema", email: "--1@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Head chef", mobile: "-", uid: "1769247487156x458257946035409700" },
+    { firstName: "Naing Naing Aung", lastName: "", email: "-01@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Cook", mobile: "-", uid: "1769247668590x453878942930850750" },
+    { firstName: "Mr.Nattakorn", lastName: "Raiphimai", email: "-02@gmil.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Cook", mobile: "-", uid: "1769247954287x592895641660265300" },
+    { firstName: "Ms.Thidarat", lastName: "Hirankerd", email: "-03@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Helper", mobile: "-", uid: "1769248165139x279291823594765020" },
+    { firstName: "Jaruwan", lastName: "Sikanin", email: "-04@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Helper", mobile: "-", uid: "1769248286850x599412748517665300" },
+    { firstName: "Ms.Bang- On", lastName: "Honfghachat", email: "-05@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "helper", mobile: "-", uid: "1769248432325x706873459867654500" },
+    { firstName: "Talay (Part time)", lastName: "", email: "-07@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Cook", mobile: "-", uid: "1769248554558x452137438511340160" },
+    { firstName: "Aye (Part Time)", lastName: "", email: "-08@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Helper", mobile: "-", uid: "1769248650932x815833989269641000" },
+    { firstName: "Ms.Thidarat", lastName: "kaisang", email: "-010@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Cashier", mobile: "-", uid: "1769250319556x645002604944655500" },
+    { firstName: "Mr.Trairat", lastName: "Mungkung", email: "01@gmail.com", roles: ["employee"], company: "Hemingways Lakeside", position: "Eurpean Chef", mobile: "-", uid: "1769312422852x637976922578144000" },
+    { firstName: "Mr.Chiraphat", lastName: "Mitsaeng", email: "03@gmail.com", roles: ["employee"], company: "Hemingways Lakeside", position: "Helper", mobile: "-", uid: "1769312624036x766143065385680300" },
+    { firstName: "Ms.Nantiya", lastName: "Smith", email: "04@gmail.com", roles: ["employee"], company: "Hemingways Lakeside", position: "Maid", mobile: "-", uid: "1769312770593x854157154955296600" },
+    { firstName: "Ms.Sunita", lastName: "Ketthong", email: "05@gmail.com", roles: ["employee"], company: "Hemingways Lakeside", position: "Cashier", mobile: "-", uid: "1769313033978x456741043882770800" },
+    { firstName: "Nuthida", lastName: "Jobsri", email: "06@gmail.com", roles: ["employee"], company: "Hemingways Lakeside", position: "Service", mobile: "-", uid: "1769313164118x309104604041160900" },
+    { firstName: "Ms.Piyanun", lastName: "Seewiset", email: "07@gmail.com", roles: ["employee"], company: "Hemingways Lakeside", position: "Service", mobile: "-", uid: "1769313282142x555791353065313600" },
+    { firstName: "Ms.Jindawan", lastName: "Ni-arvorn (Part Time)", email: "08@gmail.com", roles: ["employee"], company: "Hemingways Lakeside", position: "Helper Part Time", mobile: "-", uid: "1769313428072x133156497742650030" },
+    { firstName: "Ms.Orathai", lastName: "Jittasiri", email: "09@gmail.com", roles: ["employee"], company: "Hemingways Lakeside", position: "Thai Chef", mobile: "-", uid: "1769313537807x214847755714327800" },
+    { firstName: "Jenny", lastName: "Noppawan", email: "jenny.noppawan@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Real Estate Agent", mobile: "+66643388899", uid: "1769841277064x131046324935928160" },
+    { firstName: "Supatsorn", lastName: "Promjan", email: "supatsorn5608@gmail.com", roles: ["employee"], position: "Mina", mobile: "0969180648", uid: "1769929352111x424941184445595260" },
+    { firstName: "Chonlatee", lastName: "Seema", email: "ccchonlatee@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", mobile: "0808032832", uid: "1772870306288x750398126506102200" }
+  ];
+
+  const initialCompanies = [
+    { id: "1738205845983x133278946946635600", name: "Hemingways Lakeside", website: "https://www.hemingwayslakeside.com", logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1738212898520x975271367815164900/Hemingways%20Lakeside%20Logo.png", description: "Pattaya's premier lakeside dining experience." },
+    { id: "1738205872133x974561263972349600", name: "Hemingways Jomtien", website: "https://www.hemingwaysjomtien.com", logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1738212884463x913848644166320500/Hemingways_Logo_Jomtien.png", description: "Beachfront dining and drinks in Jomtien." },
+    { id: "1738205896138x392922605002832260", name: "Hemingways Pattaya", website: "https://www.hemingwayspattaya.com", logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1738212870086x950453333007466100/Hemingways_Logo_Pattaya.png", description: "The classic Hemingways experience in central Pattaya." },
+    { id: "1738205917380x500848660954293900", name: "Cajun Life Cafe", website: "https://www.cajunlifecafe.com", logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1738213128930x606471510321622700/IMG_8895.jpeg", description: "Authentic Cajun flavors in the heart of Thailand." },
+    { id: "1738205961941x778371290817771100", name: "Pattaya Rent a Car", website: "https://www.pattayarentacar.com", logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1738212991154x209166829233646600/PRAC-Logo-2.png", description: "Reliable car rental services in Pattaya." },
+    { id: "1743650798995x890056624649797600", name: "Alan Bolton Property Consultants", website: "https://www.pattaya-property.net", logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1743650655076x516386056352589040/IMG_7020.jpeg", description: "Expert real estate advice and property management." },
+    { id: "1754730951328x835361149003133100", name: "East Coast Real Estate", website: "https://www.thaiproperty.com", logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1754730947495x779512689180206200/LOGO-Square%202016%203.5x3.jpg", description: "Leading real estate agency on the Eastern Seaboard." }
+  ];
+
+  const initialDiscounts = [
+    { name: "Free F & B Cajun Life", restaurantId: "Cajun Life Cafe", percentage: 100, id: "1738206063593x538668695501224960" },
+    { name: "30% Discount Cajun Life Cafe", restaurantId: "Cajun Life Cafe", percentage: 30, id: "1738210744788x416384304719806800" },
+    { name: "50% Discount Cajun Life Cafe", restaurantId: "Cajun Life Cafe", percentage: 50, id: "1738210795835x644427956726645500" },
+    { name: "Free F & B Hemingways Lakeside", restaurantId: "Hemingways Lakeside", percentage: 100, id: "1738210821382x320887693735932400" },
+    { name: "Free F & B Hemingways Jomtien", restaurantId: "Hemingways Jomtien", percentage: 100, id: "1738210858117x543270289803819300" },
+    { name: "30% Discount Hemingways Jomtien", restaurantId: "Hemingways Jomtien", percentage: 30, id: "1738210887845x867350189793486700" },
+    { name: "30% Discount Hemingways Lakeside", restaurantId: "Hemingways Lakeside", percentage: 30, id: "1738210924316x118819076155189710" },
+    { name: "30% Discount Hemingways Pattaya", restaurantId: "Hemingways Pattaya", percentage: 30, id: "1738210947854x640414287193534100" },
+    { name: "10% Discount From Website Price", restaurantId: "Pattaya Rent a Car", percentage: 10, id: "1738210973293x920962507673391400" },
+    { name: "5% Discount From Website Price", restaurantId: "Pattaya Rent a Car", percentage: 5, id: "1738210996676x583106575539503200" },
+    { name: "10% Discount Cajun Life Cafe", restaurantId: "Cajun Life Cafe", percentage: 10, id: "1738211022127x378149214695672640" },
+    { name: "10% Discount Hemingways Lakeside", restaurantId: "Hemingways Lakeside", percentage: 10, id: "1738211050837x845528297216272800" },
+    { name: "20% Discount Hemingways Lakeside", restaurantId: "Hemingways Lakeside", percentage: 20, id: "1738211082740x204350974544571970" },
+    { name: "20% Discount Hemingways Pattaya", restaurantId: "Hemingways Pattaya", percentage: 20, id: "1738211118158x724340589269782900" },
+    { name: "Free Vehicle When Available", restaurantId: "Pattaya Rent a Car", percentage: 100, id: "1738212315244x377403431312962370" },
+    { name: "20% Discount Cajun Life Cafe", restaurantId: "Cajun Life Cafe", percentage: 20, id: "1738213306881x522738045396156300" },
+    { name: "20% Discount From Website Price", restaurantId: "Pattaya Rent a Car", percentage: 20, id: "1738216059581x255847715996071940" },
+    { name: "20% Discount Hemingways Jomtien", restaurantId: "Hemingways Jomtien", percentage: 20, id: "1738217260587x187019259097684480" }
+  ];
+
+  const handleSeedDiscounts = async () => {
+    if (discSeedStatus === 'idle') {
+      setDiscSeedStatus('confirming');
+      setTimeout(() => setDiscSeedStatus('idle'), 3000);
+      return;
+    }
+    
+    setIsSeedingDiscounts(true);
+    try {
+      for (const disc of initialDiscounts) {
+        await setDoc(doc(db, 'discounts', disc.id), {
+          ...disc,
+          active: true,
+          createdAt: serverTimestamp()
+        });
+      }
+      setDiscSeedStatus('success');
+      setTimeout(() => setDiscSeedStatus('idle'), 3000);
+    } catch (err) {
+      setDiscSeedStatus('error');
+      handleFirestoreError(err, OperationType.CREATE, 'discounts/seed');
+    } finally {
+      setIsSeedingDiscounts(false);
+    }
+  };
+
+  const handleSeedCompanies = async () => {
+    if (compSeedStatus === 'idle') {
+      setCompSeedStatus('confirming');
+      setTimeout(() => setCompSeedStatus('idle'), 3000);
+      return;
+    }
+    
+    setIsSeedingCompanies(true);
+    try {
+      for (const comp of initialCompanies) {
+        await setDoc(doc(db, 'companies', comp.id), {
+          ...comp,
+          createdAt: serverTimestamp()
+        });
+      }
+      setCompSeedStatus('success');
+      setTimeout(() => setCompSeedStatus('idle'), 3000);
+    } catch (err) {
+      setCompSeedStatus('error');
+      handleFirestoreError(err, OperationType.CREATE, 'companies/seed');
+    } finally {
+      setIsSeedingCompanies(false);
+    }
+  };
+
+  const handleSeedEmployees = async () => {
+    if (empSeedStatus === 'idle') {
+      setEmpSeedStatus('confirming');
+      setTimeout(() => setEmpSeedStatus('idle'), 3000);
+      return;
+    }
+    
+    setIsSeeding(true);
+    try {
+      for (const emp of initialEmployees) {
+        const exists = employees.some(existing => existing.email.toLowerCase() === emp.email.toLowerCase());
+        
+        if (!exists) {
+          // Find matching companyId
+          const matchingCompany = initialCompanies.find(c => c.name.trim() === (emp.company || '').trim());
+          
+          // Assign discounts based on company
+          const companyDiscounts = initialDiscounts
+            .filter(d => d.restaurantId === emp.company)
+            .map(d => d.id);
+          
+          // Generate a simple discount code if not present
+          const discountCode = emp.firstName.substring(0, 3).toUpperCase() + Math.floor(100 + Math.random() * 900);
+          
+          await setDoc(doc(db, 'users', emp.uid), {
+            ...emp,
+            name: `${emp.firstName} ${emp.lastName}`.trim(),
+            discountCode,
+            companyId: matchingCompany?.id || '',
+            discountIds: companyDiscounts,
+            createdAt: serverTimestamp()
+          });
+        }
+      }
+      setEmpSeedStatus('success');
+      setTimeout(() => setEmpSeedStatus('idle'), 3000);
+    } catch (err) {
+      setEmpSeedStatus('error');
+      handleFirestoreError(err, OperationType.CREATE, 'users/seed');
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
+  const handleMigrate = async () => {
+    setIsMigrating(true);
+    try {
+      const results = await migrateData();
+      console.log("Migration results:", results);
+      setMigrationStatus('success');
+      setTimeout(() => setMigrationStatus('idle'), 5000);
+    } catch (err) {
+      setMigrationStatus('error');
+      console.error("Migration failed:", err);
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!userProfile.roles?.includes('admin') && !userProfile.roles?.includes('accounts') && auth.currentUser?.email !== 'shaneruddle@gmail.com') return;
+
+    const unsubEmployees = onSnapshot(collection(db, 'users'), (snapshot) => {
+      const allUsers = snapshot.docs.map(doc => ({ ...doc.data() } as UserProfile));
+      setEmployees(allUsers);
+      setUsers(allUsers);
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'users'));
+
+    const unsubDiscounts = onSnapshot(collection(db, 'discounts'), (snapshot) => {
+      setDiscounts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Discount)));
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'discounts'));
+
+    const unsubLogs = onSnapshot(collection(db, 'usage_logs'), (snapshot) => {
+      setLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UsageLog)));
+      setLoading(false);
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'usage_logs'));
+
+    const unsubCompanies = onSnapshot(collection(db, 'companies'), (snapshot) => {
+      setCompanies(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DBCompany)));
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'companies'));
+
+    const unsubBlog = onSnapshot(query(collection(db, 'blog'), orderBy('createdAt', 'desc')), (snapshot) => {
+      setBlogPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BlogPost)));
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'blog'));
+
+    const unsubFinance = onSnapshot(query(collection(db, 'finance'), orderBy('date', 'desc')), (snapshot) => {
+      setFinanceTransactions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FinanceTransaction)));
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'finance'));
+
+    return () => {
+      unsubEmployees();
+      unsubDiscounts();
+      unsubLogs();
+      unsubCompanies();
+      unsubBlog();
+      unsubFinance();
+    };
+  }, [userProfile]);
+
+  const handleUpdateUserRoles = async (userId: string, newRoles: UserProfile['roles']) => {
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        roles: newRoles,
+        updatedAt: serverTimestamp()
+      });
+      toast.success(`User roles updated`);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${userId}`);
+      toast.error('Failed to update user roles');
+    }
+  };
+
+  const handleStandardizeRoles = async () => {
+    if (!window.confirm('This will set ALL users (except shaneruddle@gmail.com) to the "employee" role. Are you sure?')) return;
+    
+    setIsStandardizing(true);
+    try {
+      let updatedCount = 0;
+      for (const user of users) {
+        if (user.email !== 'shaneruddle@gmail.com' && (!user.roles || !user.roles.includes('employee'))) {
+          await updateDoc(doc(db, 'users', user.uid), {
+            roles: ['employee'],
+            updatedAt: serverTimestamp()
+          });
+          updatedCount++;
+        }
+      }
+      toast.success(`Standardized ${updatedCount} user roles to "employee"`);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, 'users/standardize');
+      toast.error('Failed to standardize roles');
+    } finally {
+      setIsStandardizing(false);
+    }
+  };
+
+  const handleSaveTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTransaction.description || !newTransaction.amount || !newTransaction.agent) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (newTransaction.isTransfer && (!newTransaction.fromAccount || !newTransaction.toAccount)) {
+      toast.error('Please select both from and to accounts for transfer');
+      return;
+    }
+
+    if (newTransaction.isTransfer && newTransaction.fromAccount === newTransaction.toAccount) {
+      toast.error('Source and destination accounts must be different');
+      return;
+    }
+
+    setIsSavingTransaction(true);
+    try {
+      // Helper to remove undefined fields
+      const sanitize = (obj: any) => {
+        const result = { ...obj };
+        Object.keys(result).forEach(key => {
+          if (result[key] === undefined) {
+            delete result[key];
+          }
+        });
+        return result;
+      };
+
+      if (editingTransaction) {
+        // Sanitize data for update
+        const updateData = sanitize({ ...newTransaction });
+        delete (updateData as any).fromAccount;
+        delete (updateData as any).toAccount;
+
+        await updateDoc(doc(db, 'finance', editingTransaction.id), {
+          ...updateData,
+          updatedAt: serverTimestamp()
+        });
+
+        if (editingTransaction.transferGroupId) {
+          // Find the other transaction in the group
+          const otherTx = financeTransactions.find(t => t.transferGroupId === editingTransaction.transferGroupId && t.id !== editingTransaction.id);
+          if (otherTx) {
+            await updateDoc(doc(db, 'finance', otherTx.id), {
+              date: newTransaction.date,
+              description: newTransaction.description,
+              amount: newTransaction.amount,
+              agent: newTransaction.agent,
+              dealType: newTransaction.dealType,
+              updatedAt: serverTimestamp()
+            });
+          }
+        }
+        toast.success('Transaction updated successfully');
+      } else {
+        if (newTransaction.isTransfer) {
+          const transferGroupId = `transfer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          
+          // 1. Expense from source account
+          const sourceTx = sanitize({
+            ...newTransaction,
+            type: 'expense' as const,
+            account: newTransaction.fromAccount!,
+            section: financeSubTab,
+            transferGroupId,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            createdBy: auth.currentUser?.uid
+          });
+          delete (sourceTx as any).fromAccount;
+          delete (sourceTx as any).toAccount;
+
+          // 2. Income to destination account
+          const destTx = sanitize({
+            ...newTransaction,
+            type: 'income' as const,
+            account: newTransaction.toAccount!,
+            section: financeSubTab,
+            transferGroupId,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            createdBy: auth.currentUser?.uid
+          });
+          delete (destTx as any).fromAccount;
+          delete (destTx as any).toAccount;
+
+          await addDoc(collection(db, 'finance'), sourceTx);
+          await addDoc(collection(db, 'finance'), destTx);
+          toast.success('Transfer recorded successfully');
+        } else {
+          const transactionData = sanitize({
+            ...newTransaction,
+            section: financeSubTab,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            createdBy: auth.currentUser?.uid
+          });
+          delete (transactionData as any).fromAccount;
+          delete (transactionData as any).toAccount;
+
+          await addDoc(collection(db, 'finance'), transactionData);
+          toast.success('Transaction saved successfully');
+        }
+      }
+      
+      setShowAddTransaction(false);
+      setEditingTransaction(null);
+      setNewTransaction({
+        type: 'income',
+        dealType: 'new',
+        account: 'trading',
+        date: new Date().toISOString().split('T')[0]
+      });
+    } catch (err) {
+      handleFirestoreError(err, editingTransaction ? OperationType.UPDATE : OperationType.CREATE, editingTransaction ? `finance/${editingTransaction.id}` : 'finance');
+      toast.error(`Failed to ${editingTransaction ? 'update' : 'save'} transaction`);
+    } finally {
+      setIsSavingTransaction(false);
+    }
+  };
+
+  const handleEditTransaction = (transaction: FinanceTransaction) => {
+    setEditingTransaction(transaction);
+    const isTransfer = !!transaction.transferGroupId;
+    let fromAccount = transaction.account;
+    let toAccount = transaction.account;
+
+    if (isTransfer) {
+      const otherTx = financeTransactions.find(t => t.transferGroupId === transaction.transferGroupId && t.id !== transaction.id);
+      if (otherTx) {
+        fromAccount = transaction.type === 'expense' ? transaction.account : otherTx.account;
+        toAccount = transaction.type === 'income' ? transaction.account : otherTx.account;
+      }
+    }
+
+    setNewTransaction({
+      type: transaction.type,
+      dealType: transaction.dealType,
+      account: transaction.account || 'trading',
+      date: transaction.date,
+      description: transaction.description,
+      amount: transaction.amount,
+      agent: transaction.agent,
+      isTransfer,
+      fromAccount: fromAccount as any,
+      toAccount: toAccount as any
+    });
+    setShowAddTransaction(true);
+  };
+
+  const handleDeleteTransaction = async (id: string) => {
+    try {
+      const transaction = financeTransactions.find(t => t.id === id);
+      await deleteDoc(doc(db, 'finance', id));
+      
+      if (transaction?.transferGroupId) {
+        const otherTx = financeTransactions.find(t => t.transferGroupId === transaction.transferGroupId && t.id !== id);
+        if (otherTx) {
+          await deleteDoc(doc(db, 'finance', otherTx.id));
+          toast.success('Transfer deleted (both entries)');
+        } else {
+          toast.success('Transaction deleted');
+        }
+      } else {
+        toast.success('Transaction deleted');
+      }
+      setConfirmDeleteTransaction(null);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `finance/${id}`);
+      toast.error('Failed to delete transaction');
+    }
+  };
+
+  const handleEditEmployee = (employee: UserProfile) => {
+    setEditingEmployee(employee);
+    setShowEditEmployee(true);
+  };
+
+  const toggleEmployeeDiscount = (discountId: string) => {
+    if (!editingEmployee) return;
+    const currentDiscounts = editingEmployee.discountIds || [];
+    const newDiscounts = currentDiscounts.includes(discountId)
+      ? currentDiscounts.filter(id => id !== discountId)
+      : [...currentDiscounts, discountId];
+    setEditingEmployee({ ...editingEmployee, discountIds: newDiscounts });
+  };
+
+  const handleUpdateEmployee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEmployee) return;
+    try {
+      await updateDoc(doc(db, 'users', editingEmployee.uid), {
+        ...editingEmployee,
+        updatedAt: serverTimestamp()
+      });
+      setShowEditEmployee(false);
+      setEditingEmployee(null);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${editingEmployee.uid}`);
+    }
+  };
+
+  const handleEditCompany = (company: DBCompany | null) => {
+    setEditingCompany(company || { name: '', website: '', logo: '', description: '' });
+    setShowEditCompany(true);
+  };
+
+  const handleUpdateCompany = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCompany || !editingCompany.name) return;
+    
+    // Ensure logo is cleaned up if it's a data URI
+    const cleanLogo = editingCompany.logo?.trim();
+    const finalLogo = cleanLogo?.startsWith('data:') ? cleanLogo.replace(/\s/g, '') : cleanLogo;
+
+    try {
+      if (editingCompany.id) {
+        await updateDoc(doc(db, 'companies', editingCompany.id), {
+          ...editingCompany,
+          logo: finalLogo,
+          updatedAt: serverTimestamp()
+        });
+        toast.success('Company updated successfully');
+      } else {
+        const newId = Date.now().toString();
+        await setDoc(doc(db, 'companies', newId), {
+          ...editingCompany,
+          logo: finalLogo,
+          id: newId,
+          createdAt: serverTimestamp()
+        });
+        toast.success('Company added successfully');
+      }
+      
+      // Clear the business info cache to reflect changes immediately
+      localStorage.removeItem("shane_ruddle_business_info_v3");
+      
+      setShowEditCompany(false);
+      setEditingCompany(null);
+    } catch (err) {
+      handleFirestoreError(err, editingCompany.id ? OperationType.UPDATE : OperationType.CREATE, 'companies');
+    }
+  };
+
+  const handleDeleteCompany = async (id: string, name: string) => {
+    setConfirmDelete({ id, type: 'company', name });
+  };
+
+  const executeDeleteCompany = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'companies', id));
+      toast.success('Company deleted successfully');
+      setConfirmDelete(null);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `companies/${id}`);
+      toast.error('Failed to delete company');
+    }
+  };
+
+  useEffect(() => {
+    const fetchBusinessInfo = async () => {
+      try {
+        const info = await getBusinessInfo();
+        setBusinessInfo(info);
+      } catch (e) {
+        handleFirestoreError(e, OperationType.GET, "settings/business_info");
+      }
+    };
+    fetchBusinessInfo();
+  }, []);
+
+  const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingCSV(true);
+    const toastId = toast.loading('Parsing CSV data...');
+
+    Papa.parse(file, {
+      complete: async (results) => {
+        try {
+          // Skip header and empty rows (first 2 rows)
+          const dataRows = results.data.slice(2) as string[][];
+          let importedCount = 0;
+          let errorCount = 0;
+
+          for (const row of dataRows) {
+            // Basic validation: must have at least date and description
+            if (!row[1] || !row[2]) continue;
+
+            const dateStr = row[1].trim();
+            const description = row[2].trim();
+            const dealTypeRaw = row[3]?.trim().toLowerCase();
+            const agent = row[4]?.trim() || 'System';
+            const expenseRaw = row[5]?.trim().replace(/,/g, '').replace(/"/g, '');
+            const incomeRaw = row[6]?.trim().replace(/,/g, '').replace(/"/g, '');
+
+            const expense = parseFloat(expenseRaw) || 0;
+            const income = parseFloat(incomeRaw) || 0;
+
+            if (expense === 0 && income === 0) continue;
+
+            const type = income > 0 ? 'income' : 'expense';
+            const amount = income > 0 ? income : expense;
+            const dealType = dealTypeRaw?.includes('new') ? 'new' : 'renewal';
+
+            // Convert date from D/M/YYYY to YYYY-MM-DD for consistency if possible
+            let formattedDate = dateStr;
+            const dateParts = dateStr.split('/');
+            if (dateParts.length === 3) {
+              const day = dateParts[0].padStart(2, '0');
+              const month = dateParts[1].padStart(2, '0');
+              const year = dateParts[2];
+              formattedDate = `${year}-${month}-${day}`;
+            }
+
+            try {
+              await addDoc(collection(db, 'finance'), {
+                section: 'ECRE',
+                type,
+                account: 'trading',
+                date: formattedDate,
+                description,
+                amount,
+                agent,
+                dealType,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                createdBy: auth.currentUser?.uid
+              });
+              importedCount++;
+            } catch (err) {
+              console.error('Error importing row:', row, err);
+              errorCount++;
+            }
+          }
+
+          toast.success(`Import complete: ${importedCount} entries added`, { id: toastId });
+          if (errorCount > 0) {
+            toast.error(`${errorCount} entries failed to import`);
+          }
+        } catch (err) {
+          console.error('CSV Import failed:', err);
+          toast.error('Failed to process CSV file', { id: toastId });
+        } finally {
+          setIsUploadingCSV(false);
+          if (e.target) e.target.value = '';
+        }
+      },
+      error: (err) => {
+        console.error('Papa Parse error:', err);
+        toast.error('Error reading CSV file', { id: toastId });
+        setIsUploadingCSV(false);
+      }
+    });
+  };
+
+  const handleUpdateBusinessInfo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!businessInfo) return;
+
+    setSavingProfile(true);
+    try {
+      await saveBusinessInfo(businessInfo);
+      toast.success("Profile updated successfully");
+    } catch (e) {
+      toast.error("Failed to update profile");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleSaveBlog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBlog) return;
+
+    setIsSavingBlog(true);
+    try {
+      const blogData = {
+        title: editingBlog.title,
+        metaDescription: editingBlog.metaDescription || '',
+        keywords: editingBlog.keywords || '',
+        body: editingBlog.body,
+        category: editingBlog.category,
+        imageUrl: editingBlog.imageUrl || '',
+        published: editingBlog.published || false,
+        updatedAt: serverTimestamp(),
+        authorId: auth.currentUser?.uid,
+        authorName: userProfile.name || `${userProfile.firstName} ${userProfile.lastName}`
+      };
+
+      if (editingBlog.id) {
+        await updateDoc(doc(db, 'blog', editingBlog.id), blogData);
+        toast.success('Blog post updated');
+      } else {
+        await addDoc(collection(db, 'blog'), {
+          ...blogData,
+          createdAt: serverTimestamp()
+        });
+        toast.success('Blog post created');
+      }
+      setShowEditBlog(false);
+      setEditingBlog(null);
+    } catch (err) {
+      handleFirestoreError(err, editingBlog.id ? OperationType.UPDATE : OperationType.CREATE, 'blog');
+      toast.error('Failed to save blog post');
+    } finally {
+      setIsSavingBlog(false);
+    }
+  };
+
+  const handleOwnerPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !businessInfo) return;
+
+    if (file.size > 1024 * 1024) {
+      toast.error("Image size must be less than 1MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      const updatedPhotos = [...(businessInfo.ownerPhotos || []), base64String];
+      setBusinessInfo({ ...businessInfo, ownerPhotos: updatedPhotos });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeOwnerPhoto = (index: number) => {
+    if (!businessInfo || !businessInfo.ownerPhotos) return;
+    const updatedPhotos = businessInfo.ownerPhotos.filter((_, i) => i !== index);
+    setBusinessInfo({ ...businessInfo, ownerPhotos: updatedPhotos });
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 500 * 1024) {
+      toast.error('Logo file size must be less than 500KB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (editingCompany) {
+        const result = reader.result as string;
+        // Clean up the base64 string immediately
+        const cleanResult = result.replace(/\s/g, '');
+        setEditingCompany({ ...editingCompany, logo: cleanResult });
+        toast.success('Logo uploaded successfully');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleBlogImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingBlog) return;
+
+    if (file.size > 1024 * 1024) {
+      toast.error('Image size must be less than 1MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setEditingBlog({ ...editingBlog, imageUrl: base64String });
+      toast.success('Blog image uploaded');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uniqueEmployees: UserProfile[] = Array.from(
+    employees.reduce((acc: Map<string, UserProfile>, emp: UserProfile) => {
+      const existing = acc.get(emp.email);
+      // Prefer real UIDs (no 'x') over seeded ones (contain 'x')
+      const isSeeded = emp.uid.includes('x');
+      if (!existing || (!isSeeded && existing.uid.includes('x'))) {
+        acc.set(emp.email, emp);
+      }
+      return acc;
+    }, new Map<string, UserProfile>()).values()
+  );
+
+  const financeAgents = Array.from(new Set(financeTransactions.map(t => t.agent))).sort();
+  const financeMonths = Array.from(new Set(financeTransactions.map(t => t.date.substring(0, 7)))).sort().reverse();
+
+  const getAgentPerformance = (months: number) => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    const startOfCurrentMonth = new Date(currentYear, currentMonth, 1);
+    const periodEnd = new Date(startOfCurrentMonth.getTime() - 1);
+    const periodStart = new Date(currentYear, currentMonth - months, 1);
+    
+    const startDateStr = periodStart.toISOString().split('T')[0];
+    const endDateStr = periodEnd.toISOString().split('T')[0];
+    
+    const periodTransactions = financeTransactions.filter(t => 
+      t.type === 'income' && 
+      t.date >= startDateStr && 
+      t.date <= endDateStr
+    );
+    
+    const agentIncome: Record<string, number> = {};
+    periodTransactions.forEach(t => {
+      agentIncome[t.agent] = (agentIncome[t.agent] || 0) + t.amount;
+    });
+    
+    const performance = Object.entries(agentIncome).map(([agent, total]) => ({
+      agent,
+      total,
+      average: total / months
+    })).sort((a, b) => b.average - a.average);
+    
+    return { performance, startDateStr, endDateStr };
+  };
+
+  const performance3m = getAgentPerformance(3);
+  const performance6m = getAgentPerformance(6);
+
+  const filteredFinanceTransactions = financeTransactions.filter(t => {
+    const matchesSection = financeSubTab === 'Performance' ? true : t.section === financeSubTab;
+    const matchesAgent = financeAgentFilter === 'all' || t.agent === financeAgentFilter;
+    const matchesMonth = financeMonthFilter === 'all' || t.date.startsWith(financeMonthFilter);
+    const matchesAccount = (t.account || 'trading') === financeAccountFilter;
+    const matchesSearch = !financeSearchTerm || t.description.toLowerCase().includes(financeSearchTerm.toLowerCase());
+    return matchesSection && matchesAgent && matchesMonth && matchesAccount && matchesSearch;
+  });
+
+  const filteredEmployees = uniqueEmployees
+    .filter(emp => {
+      const searchStr = `${emp.firstName} ${emp.lastName} ${emp.email} ${emp.company} ${emp.position}`.toLowerCase();
+      const matchesSearch = searchStr.includes(searchTerm.toLowerCase());
+      const matchesCompany = companyFilter === 'all' || (companyFilter === 'Unassigned' ? !emp.company : emp.company === companyFilter);
+      return matchesSearch && matchesCompany;
+    })
+    .sort((a, b) => {
+      const dateA = (a.createdAt as any)?.seconds || 0;
+      const dateB = (b.createdAt as any)?.seconds || 0;
+      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+
+  if (!userProfile.roles?.includes('admin') && !userProfile.roles?.includes('accounts') && auth.currentUser?.email !== 'shaneruddle@gmail.com') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 text-center">
+        <div>
+          <h2 className="text-2xl font-serif mb-4">Access Denied</h2>
+          <p className="text-black/60 mb-8">You do not have administrative or accounting privileges.</p>
+          <button onClick={onBack} className="text-gold font-bold uppercase tracking-widest text-xs">Back to Portfolio</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FDFDFD] flex flex-col md:flex-row">
+      {/* Sidebar Navigation */}
+      <motion.aside 
+        initial={false}
+        animate={{ 
+          width: isSidebarCollapsed ? 80 : 288,
+          padding: isSidebarCollapsed ? '24px 12px' : '32px'
+        }}
+        className="hidden md:flex bg-white border-r border-black/5 flex-col h-screen sticky top-0 z-50 overflow-hidden"
+      >
+        <div className={`mb-12 transition-all duration-300 ${isSidebarCollapsed ? 'opacity-0 invisible h-0 mb-0' : 'opacity-100 visible'}`}>
+          <button onClick={onBack} className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-black/40 hover:text-gold transition-colors mb-8 whitespace-nowrap">
+            <ArrowLeft className="w-4 h-4" /> Back to Portfolio
+          </button>
+          <h1 className="text-3xl font-serif leading-tight whitespace-nowrap">Admin <br /><span className="italic">Dashboard</span></h1>
+          <p className="text-[10px] uppercase tracking-widest font-bold text-black/20 mt-4 whitespace-nowrap">Management Suite</p>
+        </div>
+
+        <div className={`mb-8 flex justify-center transition-all duration-300 ${isSidebarCollapsed ? 'opacity-100 visible' : 'opacity-0 invisible h-0 mb-0'}`}>
+          <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center text-gold font-serif text-xl">A</div>
+        </div>
+
+        <nav className="flex flex-col gap-2 flex-grow overflow-y-auto pr-2 custom-scrollbar overflow-x-hidden">
+          <button 
+            onClick={() => setActiveTab('employees')}
+            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'employees' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+          >
+            <Users className="w-4 h-4 shrink-0" />
+            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Employees</span>
+            {isSidebarCollapsed && (
+              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                Employees
+              </div>
+            )}
+          </button>
+          <button 
+            onClick={() => setActiveTab('companies')}
+            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'companies' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+          >
+            <Database className="w-4 h-4 shrink-0" />
+            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Companies</span>
+            {isSidebarCollapsed && (
+              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                Companies
+              </div>
+            )}
+          </button>
+          <button 
+            onClick={() => setActiveTab('blog')}
+            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'blog' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+          >
+            <FileText className="w-4 h-4 shrink-0" />
+            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Blog</span>
+            {isSidebarCollapsed && (
+              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                Blog
+              </div>
+            )}
+          </button>
+          <button 
+            onClick={() => setActiveTab('logs')}
+            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'logs' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+          >
+            <History className="w-4 h-4 shrink-0" />
+            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Usage Logs</span>
+            {isSidebarCollapsed && (
+              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                Usage Logs
+              </div>
+            )}
+          </button>
+          <button 
+            onClick={() => setActiveTab('users')}
+            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'users' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+          >
+            <ShieldCheck className="w-4 h-4 shrink-0" />
+            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Users</span>
+            {isSidebarCollapsed && (
+              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                Users
+              </div>
+            )}
+          </button>
+          <button 
+            onClick={() => setActiveTab('finance')}
+            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'finance' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+          >
+            <DollarSign className="w-4 h-4 shrink-0" />
+            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Finance</span>
+            {isSidebarCollapsed && (
+              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                Finance
+              </div>
+            )}
+          </button>
+          <button 
+            onClick={() => setActiveTab('profile')}
+            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'profile' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+          >
+            <Settings className="w-4 h-4 shrink-0" />
+            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Profile</span>
+            {isSidebarCollapsed && (
+              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                Profile
+              </div>
+            )}
+          </button>
+        </nav>
+
+        <div className="mt-auto pt-8 border-t border-black/5 flex flex-col gap-2">
+          <button 
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-black/40 hover:bg-black/5 hover:text-black transition-all w-full relative group"
+          >
+            {isSidebarCollapsed ? <ChevronRight className="w-4 h-4 shrink-0" /> : <ChevronLeft className="w-4 h-4 shrink-0" />}
+            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Collapse</span>
+          </button>
+          <button 
+            onClick={() => auth.signOut()}
+            className="flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all w-full relative group"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Sign Out</span>
+            {isSidebarCollapsed && (
+              <div className="absolute left-full ml-4 px-3 py-2 bg-red-500 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                Sign Out
+              </div>
+            )}
+          </button>
+        </div>
+      </motion.aside>
+
+      {/* Mobile Header (Visible only on small screens) */}
+      <div className="md:hidden bg-white border-b border-black/5 p-4 flex items-center justify-between sticky top-0 z-50">
+        <h1 className="text-xl font-serif italic text-gold">Dashboard</h1>
+        <div className="flex gap-2">
+          <button onClick={onBack} className="p-2 text-black/40 hover:text-gold transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <button onClick={() => auth.signOut()} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all">
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation (Bottom Bar) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-black/5 p-2 flex justify-around items-center z-50">
+        <button onClick={() => setActiveTab('employees')} className={`p-3 rounded-xl transition-all ${activeTab === 'employees' ? 'bg-gold text-white' : 'text-black/40'}`}>
+          <Users className="w-5 h-5" />
+        </button>
+        <button onClick={() => setActiveTab('companies')} className={`p-3 rounded-xl transition-all ${activeTab === 'companies' ? 'bg-gold text-white' : 'text-black/40'}`}>
+          <Database className="w-5 h-5" />
+        </button>
+        <button onClick={() => setActiveTab('blog')} className={`p-3 rounded-xl transition-all ${activeTab === 'blog' ? 'bg-gold text-white' : 'text-black/40'}`}>
+          <FileText className="w-5 h-5" />
+        </button>
+        <button onClick={() => setActiveTab('finance')} className={`p-3 rounded-xl transition-all ${activeTab === 'finance' ? 'bg-gold text-white' : 'text-black/40'}`}>
+          <DollarSign className="w-5 h-5" />
+        </button>
+        <button onClick={() => setActiveTab('profile')} className={`p-3 rounded-xl transition-all ${activeTab === 'profile' ? 'bg-gold text-white' : 'text-black/40'}`}>
+          <Settings className="w-5 h-5" />
+        </button>
+      </nav>
+
+      {/* Main Content Area */}
+      <main className="flex-1 p-8 md:p-16 overflow-y-auto">
+        <div className="max-w-6xl mx-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-24">
+              <Loader2 className="w-8 h-8 animate-spin text-gold" />
+            </div>
+          ) : (
+            <AnimatePresence mode="wait">
+            {activeTab === 'employees' && (
+              <motion.div 
+                key="employees"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                {/* Stats Breakdown */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
+                  <div className="glass p-6 rounded-3xl flex flex-col justify-center">
+                    <div className="text-[10px] uppercase tracking-widest font-bold text-black/40 mb-1">Total Employees</div>
+                    <div className="text-4xl font-serif text-gold">{employees.length}</div>
+                  </div>
+                  <div className="lg:col-span-3 glass p-8 rounded-[2.5rem]">
+                    <div className="flex items-center justify-between mb-8">
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.4em] font-bold text-gold mb-1">Company Distribution</div>
+                        <div className="text-black/40 text-xs font-light">Employee allocation across your portfolio</div>
+                      </div>
+                      <div className="text-2xl font-serif text-black/20">{companies.length} <span className="text-xs uppercase tracking-widest font-sans font-bold ml-1">Companies</span></div>
+                    </div>
+                    <div className="space-y-6">
+                      {Object.entries(
+                        employees.reduce((acc: Record<string, { count: number, id?: string }>, emp) => {
+                          const company = emp.company || 'Unassigned';
+                          acc[company] = { 
+                            count: (acc[company]?.count || 0) + 1,
+                            id: emp.companyId
+                          };
+                          return acc;
+                        }, {} as Record<string, { count: number, id?: string }>)
+                      ).sort((a: [string, any], b: [string, any]) => b[1].count - a[1].count).map(([company, data]: [string, any]) => {
+                        const info = getCompanyInfo(company, data.id);
+                        const percentage = (data.count / employees.length) * 100;
+                        return (
+                          <div key={company} className="group">
+                            <div className="flex justify-between items-center mb-2">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-2 h-2 rounded-full ${info.color === 'bg-white' ? 'bg-gold' : info.color}`} />
+                                <span className="text-sm font-medium text-black group-hover:text-gold transition-colors">{company}</span>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="text-[10px] text-black/40 font-mono font-bold">{data.count} {data.count === 1 ? 'Employee' : 'Employees'}</span>
+                                <span className="text-[10px] text-gold font-bold w-8 text-right">{Math.round(percentage)}%</span>
+                              </div>
+                            </div>
+                            <div className="w-full h-2 bg-black/5 rounded-full overflow-hidden">
+                              <motion.div 
+                                initial={{ width: 0 }}
+                                whileInView={{ width: `${percentage}%` }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 1.2, ease: "circOut" }}
+                                className={`h-full rounded-full ${info.color === 'bg-white' ? 'bg-gold' : info.color} shadow-sm`}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                  <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                    <h3 className="text-xl font-serif">Employee Directory</h3>
+                    <div className="relative">
+                      <input 
+                        type="text"
+                        placeholder="Search employees..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="bg-black/5 border-none rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none w-full md:w-64"
+                      />
+                    </div>
+                    <select 
+                      value={sortOrder}
+                      onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                      className="bg-black/5 border-none rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none"
+                    >
+                      <option value="newest">Newest First</option>
+                      <option value="oldest">Oldest First</option>
+                    </select>
+                    <select 
+                      value={companyFilter}
+                      onChange={(e) => setCompanyFilter(e.target.value)}
+                      className="bg-black/5 border-none rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none"
+                    >
+                      <option value="all">All Companies</option>
+                      <option value="Unassigned">Unassigned</option>
+                      {Object.keys(COMPANY_DATA).map(company => (
+                        <option key={company} value={company}>{company}</option>
+                      ))}
+                      {companies.filter(c => !COMPANY_DATA[c.name]).map(c => (
+                        <option key={c.id} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="glass rounded-3xl overflow-hidden">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-bottom border-black/5 bg-black/2">
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Employee</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Status</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Company</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Position</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Mobile</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Discounts</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Code</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredEmployees.map((emp) => (
+                        <tr 
+                          key={emp.uid} 
+                          onClick={() => handleEditEmployee(emp)}
+                          className="border-bottom border-black/5 hover:bg-black/2 transition-colors cursor-pointer group/row"
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              {emp.profileImage ? (
+                                <img src={emp.profileImage} alt={emp.name} className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold font-bold text-[10px]">
+                                  {emp.firstName?.[0]}{emp.lastName?.[0]}
+                                </div>
+                              )}
+                              <div>
+                                <div className="font-medium flex items-center gap-2">
+                                  {emp.name || 'Unnamed'}
+                                  {emp.active === false && (
+                                    <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-[8px] font-bold uppercase rounded tracking-tighter">Inactive</span>
+                                  )}
+                                </div>
+                                <div className="text-[10px] text-black/40">{emp.email || emp.mobile}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className={cn(
+                              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                              emp.active !== false ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
+                            )}>
+                              <div className={cn("w-1.5 h-1.5 rounded-full", emp.active !== false ? "bg-green-500" : "bg-red-500")} />
+                              {emp.active !== false ? 'Active' : 'Inactive'}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              {emp.company ? (
+                                <>
+                                  <div className={`w-6 h-6 rounded-lg ${getCompanyInfo(emp.company, emp.companyId).color} flex items-center justify-center ${getCompanyInfo(emp.company, emp.companyId).color === 'bg-white' ? 'text-black' : 'text-white'} font-bold text-[8px] shadow-sm shrink-0 overflow-hidden`}>
+                                    {getCompanyInfo(emp.company, emp.companyId).logo && getCompanyInfo(emp.company, emp.companyId).logo !== "https://picsum.photos/seed/generic/100/100" ? (
+                                      <img src={getCompanyInfo(emp.company, emp.companyId).logo} alt={emp.company} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                    ) : getCompanyInfo(emp.company, emp.companyId).shorthand}
+                                  </div>
+                                  <span className="text-xs text-black/60 truncate max-w-[120px]">{emp.company}</span>
+                                </>
+                              ) : (
+                                <span className="text-xs text-black/20 italic">Unassigned</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-xs text-black/60">{emp.position || '-'}</td>
+                          <td className="px-6 py-4 text-xs text-black/60">{emp.mobile || '-'}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-wrap gap-1 max-w-[120px]">
+                              {(emp.discountIds || []).length > 0 ? (
+                                emp.discountIds?.map(id => {
+                                  const d = discounts.find(disc => disc.id === id);
+                                  if (!d) return null;
+                                  const info = getCompanyInfo(d.restaurantId);
+                                  return (
+                                    <div 
+                                      key={id} 
+                                      className={`w-5 h-5 rounded-md ${info.color} ${info.color === 'bg-white' ? 'text-black' : 'text-white'} flex items-center justify-center text-[8px] font-bold shadow-sm`}
+                                      title={d.name}
+                                    >
+                                      {info.shorthand}
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <span className="text-[10px] text-black/20 italic">None</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm font-mono text-gold font-bold">{emp.discountCode || 'N/A'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {filteredEmployees.length === 0 && (
+                    <div className="py-12 text-center text-black/40 text-sm italic">No employees found matching your search.</div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'companies' && (
+              <motion.div 
+                key="companies"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                  <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-serif">Company Management</h3>
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => handleEditCompany(null)}
+                      className="bg-gold text-black px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gold-dark transition-all"
+                    >
+                      Add Company
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {companies.map((company) => {
+                    const companyEmployees = employees.filter(e => e.companyId === company.id || e.company === company.name);
+                    return (
+                      <motion.div 
+                        key={company.id}
+                        layout
+                        className="glass p-6 rounded-3xl flex flex-col group"
+                      >
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 rounded-xl bg-white shadow-sm border border-black/5 flex items-center justify-center overflow-hidden">
+                            {company.logo ? (
+                              <img src={getLogoSrc(company.logo)} alt={company.name} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                            ) : (
+                              <Database className="w-6 h-6 text-black/20" />
+                            )}
+                          </div>
+                          <div className="flex-grow">
+                            <h4 className="font-serif text-lg">{company.name}</h4>
+                            {company.website && (
+                              <a href={getUrlHref(company.website)} target="_blank" rel="noopener noreferrer" className="text-[10px] text-gold hover:underline uppercase tracking-widest font-bold">
+                                {company.website.replace(/^https?:\/\//, '')}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-black/60 font-light mb-6 line-clamp-2">
+                          {company.description || 'No description provided.'}
+                        </p>
+                        
+                        <div className="mb-6">
+                          <div className="text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Employees ({companyEmployees.length})</div>
+                          <div className="flex -space-x-2 overflow-hidden">
+                            {companyEmployees.slice(0, 5).map((emp) => (
+                              <div key={emp.uid} className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-gold/10 flex items-center justify-center text-[8px] font-bold text-gold overflow-hidden">
+                                {emp.profileImage ? (
+                                  <img src={emp.profileImage} alt={emp.name} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                                ) : (
+                                  <span>{emp.firstName?.[0]}{emp.lastName?.[0]}</span>
+                                )}
+                              </div>
+                            ))}
+                            {companyEmployees.length > 5 && (
+                              <div className="flex items-center justify-center h-6 w-6 rounded-full ring-2 ring-white bg-black/5 text-[8px] font-bold text-black/40">
+                                +{companyEmployees.length - 5}
+                              </div>
+                            )}
+                            {companyEmployees.length === 0 && (
+                              <span className="text-[10px] text-black/20 italic">No employees assigned</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 mt-auto">
+                          <button 
+                            onClick={() => handleEditCompany(company)}
+                            className="flex-1 bg-black/5 text-black py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black/10 transition-all flex items-center justify-center gap-2"
+                          >
+                            <Edit2 className="w-3 h-3" /> Edit
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteCompany(company.id, company.name)}
+                            className="px-3 bg-red-50 text-red-500 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-100 transition-all"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+                {companies.length === 0 && (
+                  <div className="py-24 text-center">
+                    <Database className="w-12 h-12 text-black/5 mx-auto mb-4" />
+                    <p className="text-black/40 italic">No companies added yet. Click "Add Company" to get started.</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {activeTab === 'users' && (
+              <motion.div 
+                key="users"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h3 className="text-xl font-serif">User Management</h3>
+                    <p className="text-black/40 text-xs">Manage user roles and permissions</p>
+                  </div>
+                  {(auth.currentUser?.email === 'shaneruddle@gmail.com') && (
+                    <button 
+                      onClick={handleStandardizeRoles}
+                      disabled={isStandardizing}
+                      className="bg-black/5 text-black px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black/10 transition-all flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {isStandardizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />}
+                      Standardize All Roles
+                    </button>
+                  )}
+                </div>
+
+                <div className="glass rounded-3xl overflow-hidden">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-bottom border-black/5 bg-black/2">
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">User</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Current Role</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Change Role</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((user) => (
+                        <tr key={user.uid} className="border-bottom border-black/5 hover:bg-black/2 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              {user.profileImage ? (
+                                <img src={user.profileImage} alt={user.name} className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold font-bold text-[10px]">
+                                  {user.firstName?.[0]}{user.lastName?.[0]}
+                                </div>
+                              )}
+                              <div>
+                                <div className="font-medium">{user.name || 'Unnamed'}</div>
+                                <div className="text-[10px] text-black/40">{user.email}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-wrap gap-1">
+                              {(user.roles || []).map(role => (
+                                <span key={role} className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                                  role === 'admin' ? 'bg-red-100 text-red-600' :
+                                  role === 'manager' ? 'bg-blue-100 text-blue-600' :
+                                  role === 'accounts' ? 'bg-green-100 text-green-600' :
+                                  'bg-gray-100 text-gray-600'
+                                }`}>
+                                  {role}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col gap-1">
+                              {['employee', 'manager', 'accounts', 'admin'].map(role => {
+                                if (role === 'admin' && auth.currentUser?.email !== 'shaneruddle@gmail.com') return null;
+                                const isSelected = (user.roles || []).includes(role as any);
+                                return (
+                                  <label key={role} className="flex items-center gap-2 cursor-pointer group">
+                                    <input 
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      disabled={user.email === 'shaneruddle@gmail.com'}
+                                      onChange={(e) => {
+                                        const currentRoles = user.roles || [];
+                                        const newRoles = e.target.checked 
+                                          ? [...currentRoles, role as any]
+                                          : currentRoles.filter(r => r !== role);
+                                        handleUpdateUserRoles(user.uid, newRoles);
+                                      }}
+                                      className="w-3 h-3 rounded border-black/10 text-gold focus:ring-gold/20"
+                                    />
+                                    <span className="text-[10px] uppercase tracking-widest font-bold text-black/40 group-hover:text-black transition-colors capitalize">
+                                      {role}
+                                    </span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'finance' && (
+              <motion.div 
+                key="finance"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
+                  <div>
+                    <h3 className="text-2xl font-serif">Finance Management</h3>
+                    <p className="text-black/40 text-xs">Track incomes and expenses for ABPC and ECRE</p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex bg-black/5 p-1 rounded-xl">
+                      <button 
+                        onClick={() => setFinanceSubTab('ABPC')}
+                        className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ABPC' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
+                      >
+                        ABPC
+                      </button>
+                      <button 
+                        onClick={() => setFinanceSubTab('ECRE')}
+                        className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ECRE' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
+                      >
+                        ECRE
+                      </button>
+                      <button 
+                        onClick={() => setFinanceSubTab('Performance')}
+                        className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'Performance' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
+                      >
+                        Performance
+                      </button>
+                    </div>
+                    
+                    {financeSubTab !== 'Performance' && (
+                      <div className="flex gap-2">
+                        <div className="relative">
+                          <Search className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-black/20" />
+                          <input 
+                            type="text"
+                            placeholder="Search descriptions..."
+                            value={financeSearchTerm}
+                            onChange={(e) => setFinanceSearchTerm(e.target.value)}
+                            className="bg-black/5 border-none rounded-xl pl-8 pr-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none w-48"
+                          />
+                        </div>
+                        <select 
+                          value={financeMonthFilter}
+                          onChange={(e) => setFinanceMonthFilter(e.target.value)}
+                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                        >
+                          <option value="all">All Months</option>
+                          {financeMonths.map(month => (
+                            <option key={month} value={month}>{new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</option>
+                          ))}
+                        </select>
+                        <select 
+                          value={financeAgentFilter}
+                          onChange={(e) => setFinanceAgentFilter(e.target.value)}
+                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                        >
+                          <option value="all">All Agents</option>
+                          {financeAgents.map(agent => (
+                            <option key={agent} value={agent}>{agent}</option>
+                          ))}
+                        </select>
+                        <select 
+                          value={financeAccountFilter}
+                          onChange={(e) => setFinanceAccountFilter(e.target.value)}
+                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                        >
+                          <option value="trading">Trading</option>
+                          <option value="savings">Savings</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {financeSubTab === 'Performance' ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="glass p-8 rounded-[2.5rem]">
+                      <div className="flex justify-between items-center mb-6">
+                        <div>
+                          <h4 className="text-lg font-serif">3-Month Performance</h4>
+                          <p className="text-[10px] text-black/40 uppercase tracking-widest">
+                            {new Date(performance3m.startDateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - {new Date(performance3m.endDateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                          </p>
+                        </div>
+                        <div className="bg-gold/10 text-gold px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                          Avg Income / Month
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        {performance3m.performance.map((p, idx) => (
+                          <div key={p.agent} className="flex items-center justify-between p-4 bg-black/2 rounded-2xl border border-black/5">
+                            <div className="flex items-center gap-4">
+                              <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-xs">
+                                {idx + 1}
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium">{p.agent}</div>
+                                <div className="text-[10px] text-black/40 uppercase tracking-widest">Total: {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.total)}</div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-bold text-gold">
+                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.average)}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        {performance3m.performance.length === 0 && (
+                          <div className="py-12 text-center text-black/40 italic text-sm">No data for this period.</div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="glass p-8 rounded-[2.5rem]">
+                      <div className="flex justify-between items-center mb-6">
+                        <div>
+                          <h4 className="text-lg font-serif">6-Month Performance</h4>
+                          <p className="text-[10px] text-black/40 uppercase tracking-widest">
+                            {new Date(performance6m.startDateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - {new Date(performance6m.endDateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                          </p>
+                        </div>
+                        <div className="bg-gold/10 text-gold px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                          Avg Income / Month
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        {performance6m.performance.map((p, idx) => (
+                          <div key={p.agent} className="flex items-center justify-between p-4 bg-black/2 rounded-2xl border border-black/5">
+                            <div className="flex items-center gap-4">
+                              <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-xs">
+                                {idx + 1}
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium">{p.agent}</div>
+                                <div className="text-[10px] text-black/40 uppercase tracking-widest">Total: {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.total)}</div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-bold text-gold">
+                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.average)}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        {performance6m.performance.length === 0 && (
+                          <div className="py-12 text-center text-black/40 italic text-sm">No data for this period.</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : financeSubTab === 'ABPC' ? (
+                  <div className="space-y-8">
+                    <div className="flex justify-end gap-3">
+                      <button 
+                        onClick={() => {
+                          setEditingTransaction(null);
+                          setNewTransaction({
+                            type: 'expense',
+                            isTransfer: true,
+                            fromAccount: 'trading',
+                            toAccount: 'savings',
+                            dealType: 'new',
+                            date: new Date().toISOString().split('T')[0]
+                          });
+                          setShowAddTransaction(true);
+                        }}
+                        className="bg-black text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/90 transition-all flex items-center gap-2 shadow-lg shadow-black/20"
+                      >
+                        <ArrowLeftRight className="w-4 h-4" /> Transfer Funds
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setEditingTransaction(null);
+                          setNewTransaction({
+                            type: 'income',
+                            dealType: 'new',
+                            account: 'trading',
+                            date: new Date().toISOString().split('T')[0]
+                          });
+                          setShowAddTransaction(true);
+                        }}
+                        className="bg-gold text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gold/90 transition-all flex items-center gap-2 shadow-lg shadow-gold/20"
+                      >
+                        <Plus className="w-4 h-4" /> Add Transaction
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      <div className="lg:col-span-2 space-y-6">
+                        <div className="glass rounded-[2.5rem] overflow-hidden">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="border-bottom border-black/5 bg-black/2">
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 w-[80%]">Description</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Agent</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Account</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Type</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Amount</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {filteredFinanceTransactions.map((t) => (
+                                <tr key={t.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
+                                  <td className="px-6 py-4 text-xs font-mono">{t.date}</td>
+                                  <td className="px-6 py-4 w-[80%]">
+                                    <div className="text-sm font-medium">{t.description}</div>
+                                    <div className="text-[10px] text-black/40 uppercase tracking-widest">
+                                      {t.dealType === '-' ? '-' : `${t.dealType} deal`}
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 text-xs">
+                                    {t.agent.toLowerCase() === 'system' ? '-' : t.agent}
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">
+                                      {t.account || 'trading'}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`px-2 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${t.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                        {t.type}
+                                      </span>
+                                      {t.transferGroupId && (
+                                        <ArrowLeftRight className="w-3 h-3 text-black/20" />
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                                    {t.type === 'income' ? '+' : '-'}{new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(t.amount)}
+                                  </td>
+                                  <td className="px-6 py-4 text-right">
+                                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button 
+                                        onClick={() => handleEditTransaction(t)}
+                                        className="p-2 text-black/20 hover:text-gold transition-colors"
+                                      >
+                                        <Edit2 className="w-4 h-4" />
+                                      </button>
+                                      <button 
+                                        onClick={() => setConfirmDeleteTransaction(t)}
+                                        className="p-2 text-black/20 hover:text-red-500 transition-colors"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                              {filteredFinanceTransactions.length === 0 && (
+                                <tr>
+                                  <td colSpan={6} className="px-6 py-12 text-center text-black/40 italic text-sm">
+                                    No transactions found matching your filters.
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        <div className="glass p-8 rounded-[2.5rem]">
+                          <h4 className="text-sm font-serif mb-6">Summary <span className="italic">ABPC</span></h4>
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center p-4 bg-green-50 rounded-2xl border border-green-100">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">
+                                  <TrendingUp className="w-4 h-4" />
+                                </div>
+                                <div className="text-[10px] uppercase tracking-widest font-bold text-green-600">Total Income</div>
+                              </div>
+                              <div className="text-lg font-serif text-green-700">
+                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                  filteredFinanceTransactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0)
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center p-4 bg-red-50 rounded-2xl border border-red-100">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white">
+                                  <TrendingDown className="w-4 h-4" />
+                                </div>
+                                <div className="text-[10px] uppercase tracking-widest font-bold text-red-600">Total Expenses</div>
+                              </div>
+                              <div className="text-lg font-serif text-red-700">
+                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                  filteredFinanceTransactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0)
+                                )}
+                              </div>
+                            </div>
+                            <div className="pt-4 border-t border-black/5">
+                              <div className="flex justify-between items-center">
+                                <div className="text-[10px] uppercase tracking-widest font-bold text-black/40">Net Balance</div>
+                                <div className={`text-xl font-serif ${
+                                  filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? t.amount : -t.amount), 0) >= 0 
+                                  ? 'text-gold' : 'text-red-500'
+                                }`}>
+                                  {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                    filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? t.amount : -t.amount), 0)
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-8">
+                    <div className="flex justify-end gap-3">
+                      <button 
+                        onClick={() => {
+                          setEditingTransaction(null);
+                          setNewTransaction({
+                            type: 'expense',
+                            isTransfer: true,
+                            fromAccount: 'trading',
+                            toAccount: 'savings',
+                            dealType: 'new',
+                            date: new Date().toISOString().split('T')[0]
+                          });
+                          setShowAddTransaction(true);
+                        }}
+                        className="bg-black text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/90 transition-all flex items-center gap-2 shadow-lg shadow-black/20"
+                      >
+                        <ArrowLeftRight className="w-4 h-4" /> Transfer Funds
+                      </button>
+                      <label className="bg-black/5 text-black px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/10 transition-all flex items-center gap-2 cursor-pointer">
+                        {isUploadingCSV ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                        Upload CSV
+                        <input 
+                          type="file" 
+                          accept=".csv" 
+                          className="hidden" 
+                          onChange={handleCSVUpload}
+                          disabled={isUploadingCSV}
+                        />
+                      </label>
+                      <button 
+                        onClick={() => {
+                          setEditingTransaction(null);
+                          setNewTransaction({
+                            type: 'income',
+                            dealType: 'new',
+                            account: 'trading',
+                            date: new Date().toISOString().split('T')[0]
+                          });
+                          setShowAddTransaction(true);
+                        }}
+                        className="bg-gold text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gold/90 transition-all flex items-center gap-2 shadow-lg shadow-gold/20"
+                      >
+                        <Plus className="w-4 h-4" /> Add Transaction
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      <div className="lg:col-span-2 space-y-6">
+                        <div className="glass rounded-[2.5rem] overflow-hidden">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="border-bottom border-black/5 bg-black/2">
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 w-[80%]">Description</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Agent</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Account</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Type</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Amount</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {filteredFinanceTransactions.map((t) => (
+                                <tr key={t.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
+                                  <td className="px-6 py-4 text-xs font-mono">{t.date}</td>
+                                  <td className="px-6 py-4 w-[80%]">
+                                    <div className="text-sm font-medium">{t.description}</div>
+                                    <div className="text-[10px] text-black/40 uppercase tracking-widest">
+                                      {t.dealType === '-' ? '-' : `${t.dealType} deal`}
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 text-xs">
+                                    {t.agent.toLowerCase() === 'system' ? '-' : t.agent}
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">
+                                      {t.account || 'trading'}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`px-2 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${t.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                        {t.type}
+                                      </span>
+                                      {t.transferGroupId && (
+                                        <ArrowLeftRight className="w-3 h-3 text-black/20" />
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                                    {t.type === 'income' ? '+' : '-'}{new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(t.amount)}
+                                  </td>
+                                  <td className="px-6 py-4 text-right">
+                                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button 
+                                        onClick={() => handleEditTransaction(t)}
+                                        className="p-2 text-black/20 hover:text-gold transition-colors"
+                                      >
+                                        <Edit2 className="w-4 h-4" />
+                                      </button>
+                                      <button 
+                                        onClick={() => setConfirmDeleteTransaction(t)}
+                                        className="p-2 text-black/20 hover:text-red-500 transition-colors"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                              {filteredFinanceTransactions.length === 0 && (
+                                <tr>
+                                  <td colSpan={7} className="px-6 py-12 text-center text-black/40 italic text-sm">
+                                    No transactions found matching your filters.
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        <div className="glass p-8 rounded-[2.5rem]">
+                          <h4 className="text-sm font-serif mb-6">Summary <span className="italic">ECRE</span></h4>
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center p-4 bg-green-50 rounded-2xl border border-green-100">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">
+                                  <TrendingUp className="w-4 h-4" />
+                                </div>
+                                <div className="text-[10px] uppercase tracking-widest font-bold text-green-600">Total Income</div>
+                              </div>
+                              <div className="text-lg font-serif text-green-700">
+                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                  filteredFinanceTransactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0)
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center p-4 bg-red-50 rounded-2xl border border-red-100">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white">
+                                  <TrendingDown className="w-4 h-4" />
+                                </div>
+                                <div className="text-[10px] uppercase tracking-widest font-bold text-red-600">Total Expenses</div>
+                              </div>
+                              <div className="text-lg font-serif text-red-700">
+                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                  filteredFinanceTransactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0)
+                                )}
+                              </div>
+                            </div>
+                            <div className="pt-4 border-t border-black/5">
+                              <div className="flex justify-between items-center">
+                                <div className="text-[10px] uppercase tracking-widest font-bold text-black/40">Net Balance</div>
+                                <div className={`text-xl font-serif ${
+                                  filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? t.amount : -t.amount), 0) >= 0 
+                                  ? 'text-gold' : 'text-red-500'
+                                }`}>
+                                  {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                    filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? t.amount : -t.amount), 0)
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {activeTab === 'profile' && businessInfo && (
+              <motion.div 
+                key="profile"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="max-w-4xl mx-auto"
+              >
+                <div className="glass rounded-[40px] p-10">
+                  <div className="flex items-center justify-between mb-10">
+                    <div>
+                      <h3 className="text-2xl font-serif">Public <span className="italic">Profile</span></h3>
+                      <p className="text-black/40 text-sm">Manage your personal brand and site content</p>
+                    </div>
+                    <button 
+                      onClick={handleUpdateBusinessInfo}
+                      disabled={savingProfile}
+                      className="bg-black text-white px-8 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-gold transition-all flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {savingProfile ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
+                      Save Changes
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <div className="space-y-8">
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">Full Name</label>
+                        <input 
+                          type="text" 
+                          value={businessInfo.name}
+                          onChange={e => setBusinessInfo({...businessInfo, name: e.target.value})}
+                          className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">Tagline</label>
+                        <input 
+                          type="text" 
+                          value={businessInfo.tagline}
+                          onChange={e => setBusinessInfo({...businessInfo, tagline: e.target.value})}
+                          className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">About / Bio</label>
+                        <textarea 
+                          rows={6}
+                          value={businessInfo.about}
+                          onChange={e => setBusinessInfo({...businessInfo, about: e.target.value})}
+                          className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none resize-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-6">Personal Photos</label>
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        {businessInfo.ownerPhotos?.map((photo, idx) => (
+                          <div key={idx} className="relative aspect-[3/4] rounded-2xl overflow-hidden group">
+                            <img src={photo} alt={`Owner ${idx}`} className="w-full h-full object-cover" />
+                            <button 
+                              onClick={() => removeOwnerPhoto(idx)}
+                              className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                        <label className="aspect-[3/4] rounded-2xl border-2 border-dashed border-black/10 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-gold/40 hover:bg-gold/5 transition-all">
+                          <Plus className="w-6 h-6 text-black/20" />
+                          <span className="text-[10px] uppercase tracking-widest font-bold text-black/40">Add Photo</span>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={handleOwnerPhotoUpload}
+                          />
+                        </label>
+                      </div>
+                      <p className="text-[10px] text-black/30 italic">Upload high-quality portrait photos. Max 1MB each.</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'blog' && (
+              <motion.div 
+                key="blog"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-serif">Blog Management</h3>
+                  <button 
+                    onClick={() => {
+                      setEditingBlog({
+                        title: '',
+                        metaDescription: '',
+                        keywords: '',
+                        body: '',
+                        category: 'My Advice',
+                        published: false
+                      });
+                      setShowEditBlog(true);
+                    }}
+                    className="bg-gold text-black px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gold-dark transition-all flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" /> Add Post
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {blogPosts.map((post) => (
+                    <div key={post.id} className="glass p-6 rounded-3xl flex items-center justify-between group">
+                      <div className="flex-grow">
+                        <div className="flex items-center gap-3 mb-1">
+                          <span className="text-[10px] bg-gold/10 text-gold px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
+                            {post.category}
+                          </span>
+                          {!post.published && (
+                            <span className="text-[10px] bg-black/5 text-black/40 px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
+                              Draft
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-serif text-lg">{post.title}</h4>
+                        <p className="text-sm text-black/40 line-clamp-1">{post.metaDescription || 'No description'}</p>
+                      </div>
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => {
+                            setEditingBlog(post);
+                            setShowEditBlog(true);
+                          }}
+                          className="p-2 bg-black/5 text-black rounded-lg hover:bg-black/10 transition-all"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={async () => {
+                            if (window.confirm('Are you sure you want to delete this post?')) {
+                              try {
+                                await deleteDoc(doc(db, 'blog', post.id));
+                                toast.success('Post deleted');
+                              } catch (err) {
+                                handleFirestoreError(err, OperationType.DELETE, `blog/${post.id}`);
+                              }
+                            }
+                          }}
+                          className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {blogPosts.length === 0 && (
+                    <div className="py-24 text-center">
+                      <FileText className="w-12 h-12 text-black/5 mx-auto mb-4" />
+                      <p className="text-black/40 italic">No blog posts yet. Click "Add Post" to get started.</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
+      </div>
+    </main>
+
+      {/* Add Transaction Modal */}
+      <AnimatePresence>
+        {showAddTransaction && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAddTransaction(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg glass p-8 rounded-[2.5rem] shadow-2xl overflow-hidden"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h3 className="text-2xl font-serif">{editingTransaction ? 'Edit' : 'Add'} <span className="italic">Transaction</span></h3>
+                  <p className="text-black/40 text-xs">{editingTransaction ? 'Update existing' : 'Record a new'} financial entry for {financeSubTab}</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setShowAddTransaction(false);
+                    setEditingTransaction(null);
+                  }} 
+                  className="p-2 hover:bg-black/5 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveTransaction} className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Type</label>
+                    <select 
+                      value={newTransaction.isTransfer ? 'transfer' : newTransaction.type}
+                      onChange={(e) => {
+                        if (e.target.value === 'transfer') {
+                          setNewTransaction({ 
+                            ...newTransaction, 
+                            isTransfer: true, 
+                            type: 'expense',
+                            fromAccount: 'trading',
+                            toAccount: 'savings'
+                          });
+                        } else {
+                          setNewTransaction({ 
+                            ...newTransaction, 
+                            isTransfer: false, 
+                            type: e.target.value as any 
+                          });
+                        }
+                      }}
+                      className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    >
+                      <option value="income">Income</option>
+                      <option value="expense">Expense</option>
+                      <option value="transfer">Transfer</option>
+                    </select>
+                  </div>
+                  {!newTransaction.isTransfer ? (
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Account</label>
+                      <select 
+                        value={newTransaction.account || 'trading'}
+                        onChange={(e) => setNewTransaction({ ...newTransaction, account: e.target.value as any })}
+                        className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                      >
+                        <option value="trading">Trading</option>
+                        <option value="savings">Savings</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">From Account</label>
+                      <select 
+                        value={newTransaction.fromAccount || 'trading'}
+                        onChange={(e) => setNewTransaction({ ...newTransaction, fromAccount: e.target.value as any })}
+                        className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                      >
+                        <option value="trading">Trading</option>
+                        <option value="savings">Savings</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {newTransaction.isTransfer && (
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">To Account</label>
+                    <select 
+                      value={newTransaction.toAccount || 'savings'}
+                      onChange={(e) => setNewTransaction({ ...newTransaction, toAccount: e.target.value as any })}
+                      className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    >
+                      <option value="trading">Trading</option>
+                      <option value="savings">Savings</option>
+                    </select>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Deal Type</label>
+                  <select 
+                    value={newTransaction.dealType}
+                    onChange={(e) => setNewTransaction({ ...newTransaction, dealType: e.target.value as any })}
+                    className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                  >
+                    <option value="new">New Deal</option>
+                    <option value="renewal">Renewal</option>
+                    <option value="-">-</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Date</label>
+                  <input 
+                    type="date"
+                    value={newTransaction.date}
+                    onChange={(e) => setNewTransaction({ ...newTransaction, date: e.target.value })}
+                    className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Description</label>
+                  <input 
+                    type="text"
+                    placeholder="e.g. Monthly Rent Payment"
+                    value={newTransaction.description}
+                    onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
+                    className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Amount (THB)</label>
+                    <input 
+                      type="number"
+                      placeholder="0.00"
+                      value={newTransaction.amount}
+                      onChange={(e) => setNewTransaction({ ...newTransaction, amount: parseFloat(e.target.value) })}
+                      className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Agent</label>
+                    <input 
+                      type="text"
+                      placeholder="Agent Name"
+                      value={newTransaction.agent}
+                      onChange={(e) => setNewTransaction({ ...newTransaction, agent: e.target.value })}
+                      className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={isSavingTransaction}
+                  className="w-full bg-gold text-white py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gold/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-gold/20 disabled:opacity-50"
+                >
+                  {isSavingTransaction ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                  {editingTransaction ? 'Update' : 'Save'} Transaction
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Employee Modal */}
+      <AnimatePresence>
+        {showEditEmployee && editingEmployee && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowEditEmployee(false)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-2xl bg-white rounded-[40px] p-10 shadow-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <h3 className="text-2xl font-serif mb-6">Edit Employee <span className="italic">Details</span></h3>
+              <form onSubmit={handleUpdateEmployee} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">First Name</label>
+                    <input 
+                      type="text" 
+                      value={editingEmployee.firstName || ''}
+                      onChange={e => setEditingEmployee({...editingEmployee, firstName: e.target.value, name: `${e.target.value} ${editingEmployee.lastName || ''}`.trim()})}
+                      className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Last Name</label>
+                    <input 
+                      type="text" 
+                      value={editingEmployee.lastName || ''}
+                      onChange={e => setEditingEmployee({...editingEmployee, lastName: e.target.value, name: `${editingEmployee.firstName || ''} ${e.target.value}`.trim()})}
+                      className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Company</label>
+                    <select 
+                      value={editingEmployee.companyId || ''}
+                      onChange={e => {
+                        const selectedCompany = companies.find(c => c.id === e.target.value);
+                        setEditingEmployee({
+                          ...editingEmployee, 
+                          companyId: e.target.value,
+                          company: selectedCompany ? selectedCompany.name : ''
+                        });
+                      }}
+                      className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    >
+                      <option value="">Select Company</option>
+                      {companies.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Position</label>
+                    <input 
+                      type="text" 
+                      value={editingEmployee.position || ''}
+                      onChange={e => setEditingEmployee({...editingEmployee, position: e.target.value})}
+                      className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Mobile</label>
+                    <input 
+                      type="text" 
+                      value={editingEmployee.mobile || ''}
+                      onChange={e => setEditingEmployee({...editingEmployee, mobile: e.target.value})}
+                      className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Roles</label>
+                    <div className="flex flex-wrap gap-2 p-3 bg-black/5 rounded-2xl">
+                      {['employee', 'manager', 'accounts', 'admin'].map(role => {
+                        const isSelected = (editingEmployee.roles || []).includes(role as any);
+                        return (
+                          <label key={role} className="flex items-center gap-2 cursor-pointer group">
+                            <input 
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                const currentRoles = editingEmployee.roles || [];
+                                const newRoles = e.target.checked 
+                                  ? [...currentRoles, role as any]
+                                  : currentRoles.filter(r => r !== role);
+                                setEditingEmployee({...editingEmployee, roles: newRoles});
+                              }}
+                              className="w-4 h-4 rounded border-black/10 text-gold focus:ring-gold/20"
+                            />
+                            <span className="text-xs font-bold text-black/60 group-hover:text-black transition-colors capitalize">
+                              {role}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Account Status</label>
+                    <button
+                      type="button"
+                      onClick={() => setEditingEmployee({ ...editingEmployee, active: !editingEmployee.active })}
+                      className={cn(
+                        "w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 border-2",
+                        editingEmployee.active !== false 
+                          ? "bg-green-50 border-green-100 text-green-700" 
+                          : "bg-red-50 border-red-100 text-red-700"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-2 h-2 rounded-full animate-pulse",
+                          editingEmployee.active !== false ? "bg-green-500" : "bg-red-500"
+                        )} />
+                        <span className="text-xs font-bold uppercase tracking-widest">
+                          {editingEmployee.active !== false ? 'Active Account' : 'Inactive Account'}
+                        </span>
+                      </div>
+                      <div className={cn(
+                        "w-10 h-5 rounded-full relative transition-colors duration-300",
+                        editingEmployee.active !== false ? "bg-green-500" : "bg-red-300"
+                      )}>
+                        <div className={cn(
+                          "absolute top-1 w-3 h-3 bg-white rounded-full transition-all duration-300",
+                          editingEmployee.active !== false ? "right-1" : "left-1"
+                        )} />
+                      </div>
+                    </button>
+                    <p className="mt-2 text-[10px] text-black/40 italic px-4">
+                      {editingEmployee.active !== false 
+                        ? "User can log in and access their profile." 
+                        : "User will be blocked from logging in."}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-4">Assigned Discounts</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto p-2 bg-black/2 rounded-2xl">
+                    {discounts.map(discount => (
+                      <button
+                        key={discount.id}
+                        type="button"
+                        onClick={() => toggleEmployeeDiscount(discount.id)}
+                        className={`flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition-all ${
+                          (editingEmployee.discountIds || []).includes(discount.id)
+                            ? 'bg-gold text-black'
+                            : 'bg-black/5 text-black/40 hover:bg-black/10'
+                        }`}
+                      >
+                        <div className="text-left">
+                          <div>{discount.name}</div>
+                          <div className="text-[10px] opacity-60 uppercase">{discount.restaurantId}</div>
+                        </div>
+                        {(editingEmployee.discountIds || []).includes(discount.id) && <CheckCircle className="w-4 h-4" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button 
+                    type="button"
+                    onClick={() => setShowEditEmployee(false)}
+                    className="flex-1 bg-black/5 text-black py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/10 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    className="flex-1 bg-gold text-black py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gold-dark transition-all"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Transaction Confirmation Modal */}
+      <AnimatePresence>
+        {confirmDeleteTransaction && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setConfirmDeleteTransaction(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-white rounded-[32px] p-8 shadow-2xl text-center"
+            >
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Trash2 className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-xl font-serif mb-2">Confirm Deletion</h3>
+              <p className="text-black/40 text-sm mb-8">
+                Are you sure you want to delete this transaction for <span className="font-bold text-black">{confirmDeleteTransaction.description}</span>? This action cannot be undone.
+              </p>
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setConfirmDeleteTransaction(null)}
+                  className="flex-1 bg-black/5 text-black py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/10 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => handleDeleteTransaction(confirmDeleteTransaction.id)}
+                  className="flex-1 bg-red-500 text-white py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {confirmDelete && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setConfirmDelete(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-white rounded-[32px] p-8 shadow-2xl text-center"
+            >
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Trash2 className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-xl font-serif mb-2">Confirm Deletion</h3>
+              <p className="text-black/40 text-sm mb-8">
+                Are you sure you want to delete <span className="font-bold text-black">{confirmDelete.name}</span>? This action cannot be undone.
+              </p>
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setConfirmDelete(null)}
+                  className="flex-1 bg-black/5 text-black py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/10 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => {
+                    if (confirmDelete.type === 'company') {
+                      executeDeleteCompany(confirmDelete.id);
+                    }
+                  }}
+                  className="flex-1 bg-red-500 text-white py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Company Modal */}
+      <AnimatePresence>
+        {showEditCompany && editingCompany && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowEditCompany(false)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-xl bg-white rounded-[40px] p-10 shadow-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <h3 className="text-2xl font-serif mb-6">{editingCompany.id ? 'Edit' : 'Add'} Company <span className="italic">Details</span></h3>
+              <form onSubmit={handleUpdateCompany} className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Company Name</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={editingCompany.name || ''}
+                      onChange={e => setEditingCompany({...editingCompany, name: e.target.value})}
+                      className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                      placeholder="e.g. Pattaya Rent a Car"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Website URL</label>
+                    <input 
+                      type="url" 
+                      value={editingCompany.website || ''}
+                      onChange={e => setEditingCompany({...editingCompany, website: e.target.value})}
+                      className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                      placeholder="https://www.example.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Company Logo</label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-20 h-20 rounded-2xl bg-black/5 flex items-center justify-center overflow-hidden shrink-0 border-2 border-dashed border-black/10">
+                        {editingCompany.logo ? (
+                          <img src={getLogoSrc(editingCompany.logo)} alt="Preview" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                        ) : (
+                          <Upload className="w-6 h-6 text-black/20" />
+                        )}
+                      </div>
+                      <div className="flex-grow">
+                        <label className="inline-block bg-black/5 hover:bg-black/10 text-black px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest cursor-pointer transition-all">
+                          {editingCompany.logo ? 'Change Logo' : 'Upload Logo'}
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={handleLogoUpload}
+                            className="hidden"
+                          />
+                        </label>
+                        {editingCompany.logo && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingCompany({ ...editingCompany, logo: '' });
+                              toast.info('Logo removed');
+                            }}
+                            className="ml-2 inline-block bg-red-50 hover:bg-red-100 text-red-500 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest cursor-pointer transition-all"
+                          >
+                            Remove
+                          </button>
+                        )}
+                        <p className="text-[9px] text-black/30 mt-2 uppercase tracking-wider font-medium">Max size: 500KB. Recommended: Square PNG/SVG.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Description</label>
+                    <textarea 
+                      value={editingCompany.description || ''}
+                      onChange={e => setEditingCompany({...editingCompany, description: e.target.value})}
+                      rows={4}
+                      className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none resize-none"
+                      placeholder="Briefly describe the company..."
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button 
+                    type="button"
+                    onClick={() => setShowEditCompany(false)}
+                    className="flex-1 bg-black/5 text-black py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/10 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    className="flex-1 bg-gold text-black py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gold-dark transition-all"
+                  >
+                    {editingCompany.id ? 'Save Changes' : 'Add Company'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Blog Modal */}
+      <AnimatePresence>
+        {showEditBlog && editingBlog && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowEditBlog(false)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-3xl bg-white rounded-[40px] p-10 shadow-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <h3 className="text-2xl font-serif mb-6">{editingBlog.id ? 'Edit' : 'Add'} Blog <span className="italic">Post</span></h3>
+              <form onSubmit={handleSaveBlog} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Title</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={editingBlog.title || ''}
+                        onChange={e => setEditingBlog({...editingBlog, title: e.target.value})}
+                        className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                        placeholder="Post Title"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Category</label>
+                      <select 
+                        required
+                        value={editingBlog.category || 'My Advice'}
+                        onChange={e => setEditingBlog({...editingBlog, category: e.target.value as any})}
+                        className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none appearance-none"
+                      >
+                        <option value="My Advice">My Advice</option>
+                        <option value="Property">Property</option>
+                        <option value="Car Rental">Car Rental</option>
+                        <option value="Pattaya News">Pattaya News</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Featured Image</label>
+                      <div className="flex items-center gap-4">
+                        <div className="w-24 h-24 rounded-2xl bg-black/5 flex items-center justify-center overflow-hidden shrink-0 border-2 border-dashed border-black/10">
+                          {editingBlog.imageUrl ? (
+                            <img src={editingBlog.imageUrl} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                          ) : (
+                            <Upload className="w-6 h-6 text-black/20" />
+                          )}
+                        </div>
+                        <div className="flex-grow">
+                          <label className="inline-block bg-black/5 hover:bg-black/10 text-black px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest cursor-pointer transition-all">
+                            {editingBlog.imageUrl ? 'Change Image' : 'Upload Image'}
+                            <input 
+                              type="file" 
+                              accept="image/*"
+                              onChange={handleBlogImageUpload}
+                              className="hidden"
+                            />
+                          </label>
+                          {editingBlog.imageUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setEditingBlog({ ...editingBlog, imageUrl: '' })}
+                              className="ml-2 inline-block bg-red-50 hover:bg-red-100 text-red-500 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest cursor-pointer transition-all"
+                            >
+                              Remove
+                            </button>
+                          )}
+                          <p className="text-[9px] text-black/30 mt-2 uppercase tracking-wider font-medium">Max size: 1MB. Recommended: 16:9 ratio.</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Meta Description</label>
+                      <textarea 
+                        value={editingBlog.metaDescription || ''}
+                        onChange={e => setEditingBlog({...editingBlog, metaDescription: e.target.value})}
+                        rows={3}
+                        className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none resize-none"
+                        placeholder="SEO Meta Description"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Keywords</label>
+                      <input 
+                        type="text" 
+                        value={editingBlog.keywords || ''}
+                        onChange={e => setEditingBlog({...editingBlog, keywords: e.target.value})}
+                        className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                        placeholder="SEO Keywords (comma separated)"
+                      />
+                    </div>
+                    <div className="flex items-center gap-3 pt-2">
+                      <button 
+                        type="button"
+                        onClick={() => setEditingBlog({...editingBlog, published: !editingBlog.published})}
+                        className={`w-12 h-6 rounded-full transition-all relative ${editingBlog.published ? 'bg-gold' : 'bg-black/10'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editingBlog.published ? 'left-7' : 'left-1'}`} />
+                      </button>
+                      <span className="text-xs font-bold uppercase tracking-widest text-black/60">Published</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Body Content (Markdown)</label>
+                      <textarea 
+                        required
+                        value={editingBlog.body || ''}
+                        onChange={e => setEditingBlog({...editingBlog, body: e.target.value})}
+                        rows={15}
+                        className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm font-mono focus:ring-2 focus:ring-gold/20 outline-none resize-none"
+                        placeholder="Write your post content here..."
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button 
+                    type="button"
+                    onClick={() => setShowEditBlog(false)}
+                    className="flex-1 bg-black/5 text-black py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/10 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={isSavingBlog}
+                    className="flex-1 bg-gold text-black py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gold-dark transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isSavingBlog ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                    {editingBlog.id ? 'Save Changes' : 'Add Post'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+            )}
+          </AnimatePresence>
+        </div>
+      );
+    }
