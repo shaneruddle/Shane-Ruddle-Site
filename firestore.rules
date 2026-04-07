@@ -116,17 +116,17 @@ service cloud.firestore {
 
     function isValidUser(data) {
       return (!('uid' in data) || data.uid is string) &&
-             (!('roles' in data) || (data.roles is list && data.roles.all(r, r in ['admin', 'employee', 'manager', 'accounts']))) &&
+             (!('roles' in data) || data.roles is list) &&
              (!('active' in data) || data.active is bool) &&
-             (!('email' in data) || data.email == null || data.email == "" || isValidEmail(data.email)) &&
+             (!('email' in data) || data.email == null || data.email is string) &&
              (!('mobile' in data) || data.mobile == null || data.mobile is string) &&
-             (!('name' in data) || data.name == null || (data.name is string && data.name.size() < 100)) &&
+             (!('name' in data) || data.name == null || data.name is string) &&
              (!('firstName' in data) || data.firstName == null || data.firstName is string) &&
              (!('lastName' in data) || data.lastName == null || data.lastName is string) &&
              (!('nickname' in data) || data.nickname == null || data.nickname is string) &&
              (!('profileImage' in data) || data.profileImage == null || data.profileImage is string) &&
-             (!('employeeId' in data) || data.employeeId == null || (data.employeeId is string && data.employeeId.size() < 50)) &&
-             (!('discountCode' in data) || data.discountCode == null || (data.discountCode is string && data.discountCode.size() < 20)) &&
+             (!('employeeId' in data) || data.employeeId == null || data.employeeId is string) &&
+             (!('discountCode' in data) || data.discountCode == null || data.discountCode is string) &&
              (!('company' in data) || data.company == null || data.company is string) &&
              (!('companyId' in data) || data.companyId == null || data.companyId is string) &&
              (!('position' in data) || data.position == null || data.position is string) &&
@@ -138,8 +138,9 @@ service cloud.firestore {
              (!('preferredLanguage' in data) || data.preferredLanguage == null || data.preferredLanguage is string) &&
              (!('tempPass' in data) || data.tempPass == null || data.tempPass is string) &&
              (!('discountIds' in data) || data.discountIds == null || data.discountIds is list) &&
-             (!('createdAt' in data) || data.createdAt == null || data.createdAt is timestamp) &&
-             (!('updatedAt' in data) || data.updatedAt == null || data.updatedAt is timestamp);
+             (!('createdAt' in data) || data.createdAt == null || data.createdAt is timestamp || data.createdAt is string) &&
+             (!('updatedAt' in data) || data.updatedAt == null || data.updatedAt is timestamp || data.updatedAt is string) &&
+             (!('id' in data) || data.id is string);
     }
 
     function isValidDiscount(data) {
@@ -150,14 +151,18 @@ service cloud.firestore {
     }
 
     function isValidUsageLog(data) {
-      return data.keys().hasAll(['userId', 'discountId', 'timestamp']) &&
+      let allowedFields = ['userId', 'timestamp', 'type', 'userName', 'userEmail', 'userCompany', 'discountId', 'discountName', 'restaurantId'];
+      return data.keys().hasAll(['userId', 'timestamp']) &&
+             data.keys().hasOnly(allowedFields) &&
              data.userId == request.auth.uid &&
-             data.discountId is string &&
              data.timestamp is timestamp &&
-             (!('userName' in data) || data.userName == null || (data.userName is string && data.userName.size() < 100)) &&
-             (!('userCompany' in data) || data.userCompany == null || (data.userCompany is string && data.userCompany.size() < 100)) &&
-             (!('discountName' in data) || data.discountName == null || (data.discountName is string && data.discountName.size() < 100)) &&
-             (!('restaurantId' in data) || data.restaurantId == null || (data.restaurantId is string && data.restaurantId.size() < 100));
+             (!('type' in data) || data.type in ['redemption', 'login']) &&
+             (!('userName' in data) || data.userName == null || (data.userName is string && data.userName.size() < 200)) &&
+             (!('userEmail' in data) || data.userEmail == null || (data.userEmail is string && data.userEmail.size() < 200)) &&
+             (!('userCompany' in data) || data.userCompany == null || (data.userCompany is string && data.userCompany.size() < 200)) &&
+             (!('discountId' in data) || data.discountId is string) &&
+             (!('discountName' in data) || data.discountName == null || (data.discountName is string && data.discountName.size() < 200)) &&
+             (!('restaurantId' in data) || data.restaurantId == null || (data.restaurantId is string && data.restaurantId.size() < 200));
     }
 
     function isValidCompany(data) {
@@ -170,17 +175,18 @@ service cloud.firestore {
 
     function isValidBlogPost(data) {
       return data.keys().hasAll(['title', 'body', 'category']) &&
-             data.keys().hasOnly(['title', 'body', 'category', 'metaDescription', 'keywords', 'authorId', 'authorName', 'published', 'createdAt', 'updatedAt', 'id']) &&
              data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
              data.body is string && data.body.size() > 0 &&
              data.category in ["My Advice", "Property", "Car Rental", "Pattaya News"] &&
              (!('metaDescription' in data) || (data.metaDescription is string && data.metaDescription.size() < 500)) &&
              (!('keywords' in data) || (data.keywords is string && data.keywords.size() < 500)) &&
+             (!('imageUrl' in data) || data.imageUrl is string) &&
              (!('authorId' in data) || data.authorId is string) &&
              (!('authorName' in data) || data.authorName is string) &&
              (!('published' in data) || data.published is bool) &&
              (!('createdAt' in data) || data.createdAt is timestamp) &&
-             (!('updatedAt' in data) || data.updatedAt is timestamp);
+             (!('updatedAt' in data) || data.updatedAt is timestamp) &&
+             (!('id' in data) || data.id is string);
     }
 
     // ===============================================================

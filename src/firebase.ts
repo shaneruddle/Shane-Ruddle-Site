@@ -120,8 +120,13 @@ export interface Discount {
 export interface UsageLog {
   id: string;
   userId: string;
-  discountId: string;
-  restaurantId: string;
+  userName?: string;
+  userEmail?: string;
+  userCompany?: string;
+  discountId?: string;
+  discountName?: string;
+  restaurantId?: string;
+  type?: 'redemption' | 'login';
   timestamp: Timestamp;
 }
 

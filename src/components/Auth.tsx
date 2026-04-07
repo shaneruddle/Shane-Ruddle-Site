@@ -49,11 +49,34 @@ export default function Auth({ user, loading }: AuthProps) {
 
   useEffect(() => {
     console.log("Auth Modal State Changed:", showModal, "Instance:", user ? 'Logged In' : 'Logged Out');
-    if (showModal && mode === 'phone' && !window.recaptchaVerifier) {
-      setupRecaptcha();
+    
+    if (showModal && mode === 'phone') {
+      // Ensure we have a fresh recaptcha verifier every time we enter phone mode
+      // This prevents the "reCAPTCHA client element has been removed" error
+      if (window.recaptchaVerifier) {
+        try {
+          window.recaptchaVerifier.clear();
+        } catch (e) {
+          console.error("Error clearing recaptcha:", e);
+        }
+      }
+      // Small delay to ensure the DOM element 'recaptcha-container' is rendered
+      const timer = setTimeout(() => {
+        setupRecaptcha();
+      }, 100);
+      return () => clearTimeout(timer);
     }
+
     if (!showModal) {
       // Reset state when modal closes
+      if (window.recaptchaVerifier) {
+        try {
+          window.recaptchaVerifier.clear();
+          window.recaptchaVerifier = undefined as any;
+        } catch (e) {
+          console.error("Error clearing recaptcha on close:", e);
+        }
+      }
       setMode('login');
       setAuthError(null);
       setResetSent(false);
@@ -64,10 +87,7 @@ export default function Auth({ user, loading }: AuthProps) {
       setVerificationCode('');
       setVerificationId(null);
     }
-    if (showModal && !document.body) {
-      console.error("CRITICAL: document.body is null during modal open!");
-    }
-  }, [showModal, mode, user]);
+  }, [showModal, mode]);
 
   const setupRecaptcha = () => {
     try {

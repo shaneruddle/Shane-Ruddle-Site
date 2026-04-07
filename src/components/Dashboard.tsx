@@ -126,7 +126,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   };
 
   const initialEmployees = [
-    { firstName: "Shane", lastName: "Ruddle", email: "shaneruddle@gmail.com", roles: ["admin"], uid: "1738205631116x904859022843725700" },
+    { firstName: "Shane", lastName: "Ruddle", email: "shaneruddle@gmail.com", roles: ["admin", "accounts", "manager"], uid: "1738205631116x904859022843725700" },
     { firstName: "Phinthip", lastName: "Suphaphon", email: "suphaphon8484@gmail.com", roles: ["employee"], company: "Pattaya Rent a Car", position: "Manager", mobile: "088-445-1577", uid: "1738212581168x222718087382245860" },
     { firstName: "Irina", lastName: "Breslavtseva", email: "irina.breslavtseva1987@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Sales Agent", mobile: "086-754-5850", uid: "1738213561205x839566948050539300" },
     { firstName: "Robert", lastName: "Cameron", email: "ractdi@me.com", roles: ["manager", "accounts"], company: "Hemingways Jomtien", position: "Manager", mobile: "083-792-2379", uid: "1738214615807x539816467958273800" },
@@ -359,7 +359,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   };
 
   useEffect(() => {
-    if (!userProfile.roles?.includes('admin') && !userProfile.roles?.includes('accounts') && auth.currentUser?.email !== 'shaneruddle@gmail.com') return;
+    if (!userProfile.roles?.includes('admin') && !userProfile.roles?.includes('accounts') && !userProfile.roles?.includes('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com') return;
 
     const unsubEmployees = onSnapshot(collection(db, 'users'), (snapshot) => {
       const allUsers = snapshot.docs.map(doc => ({ ...doc.data() } as UserProfile));
@@ -914,11 +914,13 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
   const uniqueEmployees: UserProfile[] = Array.from(
     employees.reduce((acc: Map<string, UserProfile>, emp: UserProfile) => {
-      const existing = acc.get(emp.email);
+      // Use email as key if available, otherwise use UID to prevent overwriting Phone Auth users
+      const key = emp.email || emp.uid;
+      const existing = acc.get(key);
       // Prefer real UIDs (no 'x') over seeded ones (contain 'x')
       const isSeeded = emp.uid.includes('x');
       if (!existing || (!isSeeded && existing.uid.includes('x'))) {
-        acc.set(emp.email, emp);
+        acc.set(key, emp);
       }
       return acc;
     }, new Map<string, UserProfile>()).values()
@@ -984,7 +986,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
-  if (!userProfile.roles?.includes('admin') && !userProfile.roles?.includes('accounts') && auth.currentUser?.email !== 'shaneruddle@gmail.com') {
+  if (!userProfile.roles?.includes('admin') && !userProfile.roles?.includes('accounts') && !userProfile.roles?.includes('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com') {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 text-center">
         <div>
@@ -1018,6 +1020,14 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         <div className={`mb-8 flex justify-center transition-all duration-300 ${isSidebarCollapsed ? 'opacity-100 visible' : 'opacity-0 invisible h-0 mb-0'}`}>
           <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center text-gold font-serif text-xl">A</div>
         </div>
+
+        <button 
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          className={`flex items-center justify-center w-10 h-10 rounded-xl bg-black/5 hover:bg-black/10 text-black/40 hover:text-black transition-all mb-6 ${isSidebarCollapsed ? 'mx-auto' : 'ml-4'}`}
+          title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          {isSidebarCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+        </button>
 
         <nav className="flex flex-col gap-2 flex-grow overflow-y-auto pr-2 custom-scrollbar overflow-x-hidden">
           <button 
@@ -1080,18 +1090,20 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               </div>
             )}
           </button>
-          <button 
-            onClick={() => setActiveTab('finance')}
-            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'finance' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-          >
-            <DollarSign className="w-4 h-4 shrink-0" />
-            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Finance</span>
-            {isSidebarCollapsed && (
-              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                Finance
-              </div>
-            )}
-          </button>
+          {userProfile.roles?.includes('accounts') && (
+            <button 
+              onClick={() => setActiveTab('finance')}
+              className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'finance' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+            >
+              <DollarSign className="w-4 h-4 shrink-0" />
+              <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Finance</span>
+              {isSidebarCollapsed && (
+                <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                  Finance
+                </div>
+              )}
+            </button>
+          )}
           <button 
             onClick={() => setActiveTab('profile')}
             className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'profile' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
@@ -1107,13 +1119,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         </nav>
 
         <div className="mt-auto pt-8 border-t border-black/5 flex flex-col gap-2">
-          <button 
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-black/40 hover:bg-black/5 hover:text-black transition-all w-full relative group"
-          >
-            {isSidebarCollapsed ? <ChevronRight className="w-4 h-4 shrink-0" /> : <ChevronLeft className="w-4 h-4 shrink-0" />}
-            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Collapse</span>
-          </button>
           <button 
             onClick={() => auth.signOut()}
             className="flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all w-full relative group"
@@ -1153,9 +1158,11 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         <button onClick={() => setActiveTab('blog')} className={`p-3 rounded-xl transition-all ${activeTab === 'blog' ? 'bg-gold text-white' : 'text-black/40'}`}>
           <FileText className="w-5 h-5" />
         </button>
-        <button onClick={() => setActiveTab('finance')} className={`p-3 rounded-xl transition-all ${activeTab === 'finance' ? 'bg-gold text-white' : 'text-black/40'}`}>
-          <DollarSign className="w-5 h-5" />
-        </button>
+        {userProfile.roles?.includes('accounts') && (
+          <button onClick={() => setActiveTab('finance')} className={`p-3 rounded-xl transition-all ${activeTab === 'finance' ? 'bg-gold text-white' : 'text-black/40'}`}>
+            <DollarSign className="w-5 h-5" />
+          </button>
+        )}
         <button onClick={() => setActiveTab('profile')} className={`p-3 rounded-xl transition-all ${activeTab === 'profile' ? 'bg-gold text-white' : 'text-black/40'}`}>
           <Settings className="w-5 h-5" />
         </button>
@@ -1469,6 +1476,99 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               </motion.div>
             )}
 
+            {activeTab === 'logs' && (
+              <motion.div 
+                key="logs"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-serif">Usage Logs</h3>
+                  <div className="flex gap-2">
+                    <div className="relative">
+                      <Search className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-black/20" />
+                      <input 
+                        type="text"
+                        placeholder="Search logs..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="bg-black/5 border-none rounded-xl pl-8 pr-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none w-48"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="glass rounded-[2.5rem] overflow-hidden">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-bottom border-black/5 bg-black/2">
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date & Time</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Employee</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Event Type</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {logs
+                        .filter(log => {
+                          const searchStr = `${log.userName} ${log.userEmail} ${log.type} ${log.discountName}`.toLowerCase();
+                          return searchStr.includes(searchTerm.toLowerCase());
+                        })
+                        .sort((a, b) => {
+                          const timeA = a.timestamp?.seconds || 0;
+                          const timeB = b.timestamp?.seconds || 0;
+                          return timeB - timeA;
+                        })
+                        .map((log) => (
+                        <tr key={log.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors">
+                          <td className="px-6 py-4 text-xs font-mono">
+                            {log.timestamp?.seconds 
+                              ? new Date(log.timestamp.seconds * 1000).toLocaleString('en-US', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })
+                              : 'Pending...'}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm font-medium">{log.userName || 'Unknown User'}</div>
+                            <div className="text-[10px] text-black/40">{log.userEmail}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                              log.type === 'login' ? 'bg-blue-100 text-blue-600' : 'bg-gold/10 text-gold'
+                            }`}>
+                              {log.type || 'redemption'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-xs">
+                            {log.type === 'login' ? (
+                              <span className="text-black/60 italic">User logged in to the application</span>
+                            ) : (
+                              <div>
+                                <div className="font-medium text-gold">{log.discountName}</div>
+                                <div className="text-[10px] text-black/40 uppercase tracking-widest">{log.restaurantId}</div>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                      {logs.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="py-24 text-center text-black/40 italic text-sm">
+                            No usage logs found.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </motion.div>
+            )}
+
             {activeTab === 'users' && (
               <motion.div 
                 key="users"
@@ -1516,7 +1616,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               )}
                               <div>
                                 <div className="font-medium">{user.name || 'Unnamed'}</div>
-                                <div className="text-[10px] text-black/40">{user.email}</div>
+                                <div className="text-[10px] text-black/40">{user.email || user.mobile || 'No contact info'}</div>
                               </div>
                             </div>
                           </td>
@@ -1570,7 +1670,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               </motion.div>
             )}
 
-            {activeTab === 'finance' && (
+            {activeTab === 'finance' && userProfile.roles?.includes('accounts') && (
               <motion.div 
                 key="finance"
                 initial={{ opacity: 0, y: 10 }}
@@ -2243,14 +2343,17 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setShowAddTransaction(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => {
+                setShowAddTransaction(false);
+                setEditingTransaction(null);
+              }}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg glass p-8 rounded-[2.5rem] shadow-2xl overflow-hidden"
+              className="relative w-full max-w-lg bg-white p-8 rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
               <div className="flex justify-between items-center mb-8">
                 <div>
@@ -2610,7 +2713,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setConfirmDeleteTransaction(null)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+              className="absolute inset-0 bg-black/40 backdrop-blur-md"
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -2651,7 +2754,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setConfirmDelete(null)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+              className="absolute inset-0 bg-black/40 backdrop-blur-md"
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}

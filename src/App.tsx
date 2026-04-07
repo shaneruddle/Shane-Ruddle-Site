@@ -38,7 +38,7 @@ import TermsOfService from "./components/TermsOfService";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { auth, db, handleFirestoreError, OperationType, UserProfile } from "./firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
-import { doc, getDoc, setDoc, onSnapshot, query, collection, where, getDocs, serverTimestamp, updateDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, onSnapshot, query, collection, where, getDocs, serverTimestamp, updateDoc, deleteDoc, addDoc } from "firebase/firestore";
 import { Toaster, toast } from "sonner";
 
 const icons = {
@@ -289,6 +289,7 @@ export default function App() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const loginLogged = useRef(false);
 
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -366,6 +367,7 @@ export default function App() {
       if (!firebaseUser) {
         setUserProfile(null);
         setAuthLoading(false);
+        loginLogged.current = false;
       }
     });
 
@@ -498,19 +500,23 @@ export default function App() {
           return;
         }
 
-        // Ensure admin has admin role
-        if (user.email === "shaneruddle@gmail.com" && (!data.roles || !data.roles.includes('admin'))) {
-          console.log("Ensuring admin role for shaneruddle@gmail.com");
+        // Ensure admin has required roles
+        if (user.email === "shaneruddle@gmail.com") {
           const currentRoles = data.roles || [];
-          if (!currentRoles.includes('admin')) {
+          const requiredRoles = ['admin', 'accounts', 'manager'];
+          const missingRoles = requiredRoles.filter(role => !currentRoles.includes(role as any));
+          
+          if (missingRoles.length > 0) {
+            console.log("Ensuring roles for shaneruddle@gmail.com:", missingRoles);
             await updateDoc(userRef, {
-              roles: [...currentRoles, 'admin'],
+              roles: [...currentRoles, ...missingRoles],
               updatedAt: serverTimestamp()
             });
+            // Don't log login yet, wait for the next snapshot with updated roles
             return;
           }
         }
-        
+
         // Check if we need to merge seeded data (if no discounts assigned yet)
         if (!data.discountIds || data.discountIds.length === 0) {
           console.log("Profile has no discounts, checking for seeded data...");
@@ -543,6 +549,27 @@ export default function App() {
             }
           }
         }
+
+        // Log login event if not already logged for this session
+        if (!loginLogged.current) {
+          try {
+            console.log("Logging login for:", user.email || user.phoneNumber);
+            const name = data.name || (data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : data.firstName || data.lastName) || user.email || user.phoneNumber || 'Unknown';
+            await addDoc(collection(db, 'usage_logs'), {
+              userId: user.uid,
+              userName: name,
+              userEmail: user.email || null,
+              userCompany: data.company || null,
+              type: 'login',
+              timestamp: serverTimestamp()
+            });
+            loginLogged.current = true;
+          } catch (err) {
+            console.error("Error logging login:", err);
+            handleFirestoreError(err, OperationType.WRITE, 'usage_logs');
+          }
+        }
+        
         setUserProfile(data);
         setAuthLoading(false);
       } else {
@@ -593,16 +620,18 @@ export default function App() {
             name: user.displayName || "",
             roles: user.email === "shaneruddle@gmail.com" ? ["admin"] : ["employee"],
             active: true,
-            discountCode: `SR-EMP-${Math.floor(1000 + Math.random() * 9000)}`
+            discountCode: `SR-EMP-${Math.floor(1000 + Math.random() * 9000)}`,
+            createdAt: serverTimestamp() as any,
+            updatedAt: serverTimestamp() as any
           };
           try {
             await setDoc(userRef, newProfile);
+            console.log("Successfully created fresh profile for:", user.uid);
           } catch (err) {
             console.error("Error creating profile:", err);
           }
           // onSnapshot will pick this up
         }
-        setAuthLoading(false);
       }
     }, (error) => {
       // Ignore permission errors if the user is logging out or not authenticated
@@ -731,7 +760,7 @@ export default function App() {
                       
                       {userProfile && (
                         <>
-                          {(userProfile.roles?.includes('admin') || user?.email === 'shaneruddle@gmail.com') && (
+                          {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || user?.email === 'shaneruddle@gmail.com') && (
                             <button 
                               onClick={() => setView('dashboard')}
                               className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold hover:text-gold-dark transition-colors"
