@@ -607,8 +607,11 @@ export default function App() {
             // Clean up the seeded document
             await deleteDoc(doc(db, "users", seededDoc.id));
             console.log("Successfully claimed and deleted seeded profile:", seededDoc.id);
+            toast.success("Profile claimed successfully");
           } catch (err) {
             console.error("Error claiming profile:", err);
+            handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`);
+            toast.error("Failed to claim profile. Please contact support.");
           }
           // onSnapshot will pick this up
         } else {
@@ -618,7 +621,7 @@ export default function App() {
             email: user.email || "",
             mobile: user.phoneNumber || "",
             name: user.displayName || "",
-            roles: user.email === "shaneruddle@gmail.com" ? ["admin"] : ["employee"],
+            roles: user.email === "shaneruddle@gmail.com" ? ["admin", "accounts", "manager"] : ["employee"],
             active: true,
             discountCode: `SR-EMP-${Math.floor(1000 + Math.random() * 9000)}`,
             createdAt: serverTimestamp() as any,
@@ -627,8 +630,11 @@ export default function App() {
           try {
             await setDoc(userRef, newProfile);
             console.log("Successfully created fresh profile for:", user.uid);
+            toast.success("Account registered successfully");
           } catch (err) {
             console.error("Error creating profile:", err);
+            handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`);
+            toast.error("Failed to create profile. Please contact support.");
           }
           // onSnapshot will pick this up
         }
@@ -760,7 +766,7 @@ export default function App() {
                       
                       {userProfile && (
                         <>
-                          {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || user?.email === 'shaneruddle@gmail.com') && (
+                          {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.roles?.includes('employee') || user?.email === 'shaneruddle@gmail.com') && (
                             <button 
                               onClick={() => setView('dashboard')}
                               className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold hover:text-gold-dark transition-colors"

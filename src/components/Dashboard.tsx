@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 import { db, auth, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog, DBCompany, BlogPost, FinanceTransaction } from '../firebase';
 import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy } from 'firebase/firestore';
-import { Users, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search } from 'lucide-react';
+import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search } from 'lucide-react';
 import { migrateData } from '../services/migrationService';
 import { getBusinessInfo, saveBusinessInfo } from '../services/businessService';
 import { BusinessInfo } from '../types';
@@ -16,7 +16,10 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ userProfile, onBack }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'users' | 'finance'>('employees');
+  const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'users' | 'finance' | 'settings'>(
+    userProfile.roles?.includes('admin') ? 'employees' : 
+    userProfile.roles?.includes('accounts') ? 'finance' : 'profile'
+  );
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [employees, setEmployees] = useState<UserProfile[]>([]);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
@@ -25,8 +28,10 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [financeTransactions, setFinanceTransactions] = useState<FinanceTransaction[]>([]);
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo | null>(null);
+  const [personalProfile, setPersonalProfile] = useState<Partial<UserProfile>>(userProfile);
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPersonalProfile, setSavingPersonalProfile] = useState(false);
 
   // Finance states
   const [financeSubTab, setFinanceSubTab] = useState<'ABPC' | 'ECRE' | 'Performance'>('ABPC');
@@ -697,6 +702,10 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   };
 
   useEffect(() => {
+    setPersonalProfile(userProfile);
+  }, [userProfile]);
+
+  useEffect(() => {
     const fetchBusinessInfo = async () => {
       try {
         const info = await getBusinessInfo();
@@ -707,6 +716,45 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     };
     fetchBusinessInfo();
   }, []);
+
+  const handlePersonalPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 1024 * 1024) {
+      toast.error("Image size must be less than 1MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setPersonalProfile(prev => ({ ...prev, profileImage: base64String }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUpdatePersonalProfile = async () => {
+    if (!auth.currentUser) return;
+    setSavingPersonalProfile(true);
+    try {
+      const updateData = {
+        name: personalProfile.name || '',
+        firstName: personalProfile.firstName || '',
+        lastName: personalProfile.lastName || '',
+        mobile: personalProfile.mobile || '',
+        profileImage: personalProfile.profileImage || '',
+        updatedAt: serverTimestamp()
+      };
+      await updateDoc(doc(db, 'users', auth.currentUser.uid), updateData);
+      toast.success("Personal profile updated successfully");
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${auth.currentUser.uid}`);
+      toast.error("Failed to update personal profile");
+    } finally {
+      setSavingPersonalProfile(false);
+    }
+  };
 
   const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -981,9 +1029,17 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       return matchesSearch && matchesCompany;
     })
     .sort((a, b) => {
-      const dateA = (a.createdAt as any)?.seconds || 0;
-      const dateB = (b.createdAt as any)?.seconds || 0;
-      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+      const getTime = (val: any) => {
+        if (!val) return 0;
+        if (typeof val.toMillis === 'function') return val.toMillis();
+        if (val.seconds) return val.seconds * 1000;
+        if (val instanceof Date) return val.getTime();
+        if (typeof val === 'string') return new Date(val).getTime();
+        return 0;
+      };
+      const timeA = getTime(a.createdAt);
+      const timeB = getTime(b.createdAt);
+      return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
     });
 
   if (!userProfile.roles?.includes('admin') && !userProfile.roles?.includes('accounts') && !userProfile.roles?.includes('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com') {
@@ -1030,67 +1086,71 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         </button>
 
         <nav className="flex flex-col gap-2 flex-grow overflow-y-auto pr-2 custom-scrollbar overflow-x-hidden">
-          <button 
-            onClick={() => setActiveTab('employees')}
-            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'employees' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-          >
-            <Users className="w-4 h-4 shrink-0" />
-            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Employees</span>
-            {isSidebarCollapsed && (
-              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                Employees
-              </div>
-            )}
-          </button>
-          <button 
-            onClick={() => setActiveTab('companies')}
-            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'companies' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-          >
-            <Database className="w-4 h-4 shrink-0" />
-            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Companies</span>
-            {isSidebarCollapsed && (
-              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                Companies
-              </div>
-            )}
-          </button>
-          <button 
-            onClick={() => setActiveTab('blog')}
-            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'blog' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-          >
-            <FileText className="w-4 h-4 shrink-0" />
-            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Blog</span>
-            {isSidebarCollapsed && (
-              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                Blog
-              </div>
-            )}
-          </button>
-          <button 
-            onClick={() => setActiveTab('logs')}
-            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'logs' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-          >
-            <History className="w-4 h-4 shrink-0" />
-            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Usage Logs</span>
-            {isSidebarCollapsed && (
-              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                Usage Logs
-              </div>
-            )}
-          </button>
-          <button 
-            onClick={() => setActiveTab('users')}
-            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'users' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-          >
-            <ShieldCheck className="w-4 h-4 shrink-0" />
-            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Users</span>
-            {isSidebarCollapsed && (
-              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                Users
-              </div>
-            )}
-          </button>
-          {userProfile.roles?.includes('accounts') && (
+          {userProfile.roles?.includes('admin') && (
+            <>
+              <button 
+                onClick={() => setActiveTab('employees')}
+                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'employees' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+              >
+                <Users className="w-4 h-4 shrink-0" />
+                <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Employees</span>
+                {isSidebarCollapsed && (
+                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                    Employees
+                  </div>
+                )}
+              </button>
+              <button 
+                onClick={() => setActiveTab('companies')}
+                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'companies' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+              >
+                <Database className="w-4 h-4 shrink-0" />
+                <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Companies</span>
+                {isSidebarCollapsed && (
+                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                    Companies
+                  </div>
+                )}
+              </button>
+              <button 
+                onClick={() => setActiveTab('blog')}
+                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'blog' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+              >
+                <FileText className="w-4 h-4 shrink-0" />
+                <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Blog</span>
+                {isSidebarCollapsed && (
+                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                    Blog
+                  </div>
+                )}
+              </button>
+              <button 
+                onClick={() => setActiveTab('logs')}
+                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'logs' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+              >
+                <History className="w-4 h-4 shrink-0" />
+                <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Usage Logs</span>
+                {isSidebarCollapsed && (
+                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                    Usage Logs
+                  </div>
+                )}
+              </button>
+              <button 
+                onClick={() => setActiveTab('users')}
+                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'users' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+              >
+                <ShieldCheck className="w-4 h-4 shrink-0" />
+                <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Users</span>
+                {isSidebarCollapsed && (
+                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                    Users
+                  </div>
+                )}
+              </button>
+            </>
+          )}
+          {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts')) && (
             <button 
               onClick={() => setActiveTab('finance')}
               className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'finance' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
@@ -1108,14 +1168,28 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
             onClick={() => setActiveTab('profile')}
             className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'profile' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
           >
-            <Settings className="w-4 h-4 shrink-0" />
-            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Profile</span>
+            <User className="w-4 h-4 shrink-0" />
+            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>My Profile</span>
             {isSidebarCollapsed && (
               <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                Profile
+                My Profile
               </div>
             )}
           </button>
+          {userProfile.roles?.includes('admin') && (
+            <button 
+              onClick={() => setActiveTab('settings')}
+              className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'settings' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+            >
+              <Settings className="w-4 h-4 shrink-0" />
+              <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Site Settings</span>
+              {isSidebarCollapsed && (
+                <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                  Site Settings
+                </div>
+              )}
+            </button>
+          )}
         </nav>
 
         <div className="mt-auto pt-8 border-t border-black/5 flex flex-col gap-2">
@@ -1516,8 +1590,16 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           return searchStr.includes(searchTerm.toLowerCase());
                         })
                         .sort((a, b) => {
-                          const timeA = a.timestamp?.seconds || 0;
-                          const timeB = b.timestamp?.seconds || 0;
+                          const getTime = (val: any) => {
+                            if (!val) return 0;
+                            if (typeof val.toMillis === 'function') return val.toMillis();
+                            if (val.seconds) return val.seconds * 1000;
+                            if (val instanceof Date) return val.getTime();
+                            if (typeof val === 'string') return new Date(val).getTime();
+                            return 0;
+                          };
+                          const timeA = getTime(a.timestamp);
+                          const timeB = getTime(b.timestamp);
                           return timeB - timeA;
                         })
                         .map((log) => (
@@ -1603,7 +1685,21 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {users.map((user) => (
+                      {users
+                        .sort((a, b) => {
+                          const getTime = (val: any) => {
+                            if (!val) return 0;
+                            if (typeof val.toMillis === 'function') return val.toMillis();
+                            if (val.seconds) return val.seconds * 1000;
+                            if (val instanceof Date) return val.getTime();
+                            if (typeof val === 'string') return new Date(val).getTime();
+                            return 0;
+                          };
+                          const timeA = getTime(a.createdAt);
+                          const timeB = getTime(b.createdAt);
+                          return timeB - timeA; // Always newest first for User Management
+                        })
+                        .map((user) => (
                         <tr key={user.uid} className="border-bottom border-black/5 hover:bg-black/2 transition-colors">
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
@@ -2162,9 +2258,106 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               </motion.div>
             )}
 
-            {activeTab === 'profile' && businessInfo && (
+            {activeTab === 'profile' && (
               <motion.div 
                 key="profile"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="max-w-4xl mx-auto space-y-12"
+              >
+                {/* Personal Profile Section */}
+                <div className="glass rounded-[40px] p-10">
+                  <div className="flex items-center justify-between mb-10">
+                    <div>
+                      <h3 className="text-2xl font-serif">Personal <span className="italic">Profile</span></h3>
+                      <p className="text-black/40 text-sm">Manage your account details and contact information</p>
+                    </div>
+                    <button 
+                      onClick={handleUpdatePersonalProfile}
+                      disabled={savingPersonalProfile}
+                      className="bg-black text-white px-8 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-gold transition-all flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {savingPersonalProfile ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
+                      Save Profile
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <div className="space-y-8">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">First Name</label>
+                          <input 
+                            type="text" 
+                            value={personalProfile.firstName || ''}
+                            onChange={e => setPersonalProfile({...personalProfile, firstName: e.target.value})}
+                            className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">Last Name</label>
+                          <input 
+                            type="text" 
+                            value={personalProfile.lastName || ''}
+                            onChange={e => setPersonalProfile({...personalProfile, lastName: e.target.value})}
+                            className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">Display Name</label>
+                        <input 
+                          type="text" 
+                          value={personalProfile.name || ''}
+                          onChange={e => setPersonalProfile({...personalProfile, name: e.target.value})}
+                          className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">Mobile Number</label>
+                        <input 
+                          type="tel" 
+                          value={personalProfile.mobile || ''}
+                          onChange={e => setPersonalProfile({...personalProfile, mobile: e.target.value})}
+                          className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                          placeholder="e.g. 088-445-1577"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-center">
+                      <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-6 self-start w-full text-left">Profile Image</label>
+                      <div className="relative group">
+                        <div className="w-48 h-48 rounded-[2.5rem] overflow-hidden bg-black/5 border-2 border-dashed border-black/10 flex items-center justify-center">
+                          {personalProfile.profileImage ? (
+                            <img src={personalProfile.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                          ) : (
+                            <Users className="w-12 h-12 text-black/10" />
+                          )}
+                        </div>
+                        <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-[2.5rem]">
+                          <Upload className="w-6 h-6 text-white" />
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={handlePersonalPhotoUpload}
+                          />
+                        </label>
+                      </div>
+                      <p className="mt-4 text-[10px] text-black/30 italic">Click to upload a new profile photo. Max 1MB.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Public Profile Section removed from here, moved to settings tab */}
+              </motion.div>
+            )}
+
+            {activeTab === 'settings' && userProfile.roles?.includes('admin') && businessInfo && (
+              <motion.div 
+                key="settings"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
@@ -2173,8 +2366,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 <div className="glass rounded-[40px] p-10">
                   <div className="flex items-center justify-between mb-10">
                     <div>
-                      <h3 className="text-2xl font-serif">Public <span className="italic">Profile</span></h3>
-                      <p className="text-black/40 text-sm">Manage your personal brand and site content</p>
+                      <h3 className="text-2xl font-serif">Public <span className="italic">Portfolio Profile</span></h3>
+                      <p className="text-black/40 text-sm">Manage the global brand and site content for the portfolio</p>
                     </div>
                     <button 
                       onClick={handleUpdateBusinessInfo}

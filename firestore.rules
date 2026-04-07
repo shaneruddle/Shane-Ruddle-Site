@@ -210,7 +210,7 @@ service cloud.firestore {
       );
       allow create: if isAuthenticated() && (request.auth.uid == userId || isAdmin()) && 
                     isValidUser(request.resource.data) &&
-                    (!('admin' in request.resource.data.roles) || request.auth.token.email == "shaneruddle@gmail.com");
+                    (!('admin' in request.resource.data.get('roles', [])) || request.auth.token.email == "shaneruddle@gmail.com");
       allow update: if isAuthenticated() && (
         isAdmin() || 
         isManager() ||

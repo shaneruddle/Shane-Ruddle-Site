@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog } from '../firebase';
 import { collection, onSnapshot, query, where, doc, setDoc, addDoc, serverTimestamp, getDoc, Timestamp } from 'firebase/firestore';
-import { Tag, History, QrCode, ArrowLeft, Loader2, CheckCircle, Sparkles, Ticket, LogOut } from 'lucide-react';
+import { Tag, History, QrCode, ArrowLeft, Loader2, CheckCircle, Sparkles, Ticket, LogOut, Settings, User, Upload, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { updateDoc } from 'firebase/firestore';
+import { toast } from 'sonner';
 
 interface EmployeePortalProps {
   userProfile: UserProfile;
@@ -16,6 +18,13 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
   const [redeeming, setRedeeming] = useState<string | null>(null);
   const [selectedDiscount, setSelectedDiscount] = useState<Discount | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<'offers' | 'profile'>('offers');
+  const [personalProfile, setPersonalProfile] = useState<Partial<UserProfile>>(userProfile);
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  useEffect(() => {
+    setPersonalProfile(userProfile);
+  }, [userProfile]);
 
   useEffect(() => {
     const unsubDiscounts = onSnapshot(query(collection(db, 'discounts'), where('active', '==', true)), (snapshot) => {
@@ -83,6 +92,45 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
     }
   };
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 1024 * 1024) {
+      toast.error("Image size must be less than 1MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setPersonalProfile(prev => ({ ...prev, profileImage: base64String }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUpdateProfile = async () => {
+    if (!auth.currentUser) return;
+    setSavingProfile(true);
+    try {
+      const updateData = {
+        name: personalProfile.name || '',
+        firstName: personalProfile.firstName || '',
+        lastName: personalProfile.lastName || '',
+        mobile: personalProfile.mobile || '',
+        profileImage: personalProfile.profileImage || '',
+        updatedAt: serverTimestamp()
+      };
+      await updateDoc(doc(db, 'users', auth.currentUser.uid), updateData);
+      toast.success("Profile updated successfully");
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${auth.currentUser.uid}`);
+      toast.error("Failed to update profile");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FDFDFD] py-24 px-6 md:px-12">
       <div className="max-w-4xl mx-auto">
@@ -107,6 +155,21 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
             </div>
           </div>
 
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setActiveTab('offers')}
+              className={`px-6 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'offers' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'bg-black/5 text-black/40 hover:bg-black/10'}`}
+            >
+              <Ticket className="w-3 h-3" /> Offers
+            </button>
+            <button 
+              onClick={() => setActiveTab('profile')}
+              className={`px-6 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'profile' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'bg-black/5 text-black/40 hover:bg-black/10'}`}
+            >
+              <User className="w-3 h-3" /> Profile
+            </button>
+          </div>
+
           <div className="glass px-6 py-4 rounded-3xl flex items-center gap-4">
             <div className="p-3 bg-gold/10 rounded-2xl text-gold">
               <QrCode className="w-6 h-6" />
@@ -122,7 +185,7 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
           <div className="flex items-center justify-center py-24">
             <Loader2 className="w-8 h-8 animate-spin text-gold" />
           </div>
-        ) : (
+        ) : activeTab === 'offers' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div>
               <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
@@ -262,6 +325,95 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
               </AnimatePresence>
             </div>
           </div>
+        ) : (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-2xl mx-auto"
+          >
+            <div className="glass rounded-[40px] p-10">
+              <div className="flex items-center justify-between mb-10">
+                <div>
+                  <h3 className="text-2xl font-serif">Personal <span className="italic">Profile</span></h3>
+                  <p className="text-black/40 text-sm">Update your personal information</p>
+                </div>
+                <button 
+                  onClick={handleUpdateProfile}
+                  disabled={savingProfile}
+                  className="bg-black text-white px-8 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-gold transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  {savingProfile ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
+                  Save Profile
+                </button>
+              </div>
+
+              <div className="space-y-8">
+                <div className="flex flex-col items-center mb-10">
+                  <div className="relative group">
+                    <div className="w-32 h-32 rounded-[2rem] overflow-hidden bg-black/5 border-2 border-dashed border-black/10 flex items-center justify-center">
+                      {personalProfile.profileImage ? (
+                        <img src={personalProfile.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <Users className="w-10 h-10 text-black/10" />
+                      )}
+                    </div>
+                    <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-[2rem]">
+                      <Upload className="w-5 h-5 text-white" />
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={handlePhotoUpload}
+                      />
+                    </label>
+                  </div>
+                  <p className="mt-4 text-[10px] text-black/30 italic uppercase tracking-widest font-bold">Change Photo</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">First Name</label>
+                    <input 
+                      type="text" 
+                      value={personalProfile.firstName || ''}
+                      onChange={e => setPersonalProfile({...personalProfile, firstName: e.target.value})}
+                      className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">Last Name</label>
+                    <input 
+                      type="text" 
+                      value={personalProfile.lastName || ''}
+                      onChange={e => setPersonalProfile({...personalProfile, lastName: e.target.value})}
+                      className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">Display Name</label>
+                  <input 
+                    type="text" 
+                    value={personalProfile.name || ''}
+                    onChange={e => setPersonalProfile({...personalProfile, name: e.target.value})}
+                    className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">Mobile Number</label>
+                  <input 
+                    type="tel" 
+                    value={personalProfile.mobile || ''}
+                    onChange={e => setPersonalProfile({...personalProfile, mobile: e.target.value})}
+                    className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    placeholder="e.g. 088-445-1577"
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
         )}
       </div>
 
