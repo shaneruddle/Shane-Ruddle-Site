@@ -126,7 +126,8 @@ export interface UsageLog {
   discountId?: string;
   discountName?: string;
   restaurantId?: string;
-  type?: 'redemption' | 'login';
+  type?: 'redemption' | 'login' | 'finance_create' | 'finance_update' | 'finance_delete';
+  details?: string;
   timestamp: Timestamp;
 }
 

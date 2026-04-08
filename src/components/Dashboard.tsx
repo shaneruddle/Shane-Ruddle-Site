@@ -373,7 +373,27 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   useEffect(() => {
     if (!userProfile.roles?.includes('admin') && !userProfile.roles?.includes('accounts') && !userProfile.roles?.includes('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com') return;
 
-    const unsubEmployees = onSnapshot(collection(db, 'users'), (snapshot) => {
+    const usersCollection = collection(db, 'users');
+    let usersQuery;
+
+    if (userProfile.roles?.includes('admin')) {
+      usersQuery = usersCollection;
+    } else if (userProfile.roles?.includes('manager')) {
+      // Filter by companyId or company name
+      if (userProfile.companyId) {
+        usersQuery = query(usersCollection, where('companyId', '==', userProfile.companyId));
+      } else if (userProfile.company) {
+        usersQuery = query(usersCollection, where('company', '==', userProfile.company));
+      } else {
+        // Fallback to just themselves if no company info
+        usersQuery = query(usersCollection, where('uid', '==', userProfile.uid));
+      }
+    } else {
+      // Fallback for other roles
+      usersQuery = query(usersCollection, where('uid', '==', userProfile.uid));
+    }
+
+    const unsubEmployees = onSnapshot(usersQuery, (snapshot) => {
       const allUsers = snapshot.docs.map(doc => ({ ...doc.data() } as UserProfile));
       setEmployees(allUsers);
       setUsers(allUsers);
@@ -498,6 +518,17 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
           updatedAt: serverTimestamp()
         });
 
+        // Log usage
+        await addDoc(collection(db, 'usage_logs'), {
+          userId: auth.currentUser?.uid,
+          userName: userProfile.name || 'Unknown',
+          userEmail: auth.currentUser?.email || 'Unknown',
+          userCompany: userProfile.company || 'Unknown',
+          type: 'finance_update',
+          details: `Updated transaction: ${newTransaction.description} (${newTransaction.amount} THB)`,
+          timestamp: serverTimestamp()
+        });
+
         if (editingTransaction.transferGroupId) {
           // Find the other transaction in the group
           const otherTx = financeTransactions.find(t => t.transferGroupId === editingTransaction.transferGroupId && t.id !== editingTransaction.id);
@@ -547,6 +578,18 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
           await addDoc(collection(db, 'finance'), sourceTx);
           await addDoc(collection(db, 'finance'), destTx);
+
+          // Log usage
+          await addDoc(collection(db, 'usage_logs'), {
+            userId: auth.currentUser?.uid,
+            userName: userProfile.name || 'Unknown',
+            userEmail: auth.currentUser?.email || 'Unknown',
+            userCompany: userProfile.company || 'Unknown',
+            type: 'finance_create',
+            details: `Created transfer: ${newTransaction.description} (${newTransaction.amount} THB) from ${newTransaction.fromAccount} to ${newTransaction.toAccount}`,
+            timestamp: serverTimestamp()
+          });
+
           toast.success('Transfer recorded successfully');
         } else {
           const transactionData = sanitize({
@@ -560,6 +603,18 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
           delete (transactionData as any).toAccount;
 
           await addDoc(collection(db, 'finance'), transactionData);
+
+          // Log usage
+          await addDoc(collection(db, 'usage_logs'), {
+            userId: auth.currentUser?.uid,
+            userName: userProfile.name || 'Unknown',
+            userEmail: auth.currentUser?.email || 'Unknown',
+            userCompany: userProfile.company || 'Unknown',
+            type: 'finance_create',
+            details: `Created transaction: ${newTransaction.description} (${newTransaction.amount} THB)`,
+            timestamp: serverTimestamp()
+          });
+
           toast.success('Transaction saved successfully');
         }
       }
@@ -616,6 +671,17 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     try {
       const transaction = financeTransactions.find(t => t.id === id);
       await deleteDoc(doc(db, 'finance', id));
+
+      // Log usage
+      await addDoc(collection(db, 'usage_logs'), {
+        userId: auth.currentUser?.uid,
+        userName: userProfile.name || 'Unknown',
+        userEmail: auth.currentUser?.email || 'Unknown',
+        userCompany: userProfile.company || 'Unknown',
+        type: 'finance_delete',
+        details: `Deleted transaction: ${transaction?.description} (${transaction?.amount} THB)`,
+        timestamp: serverTimestamp()
+      });
       
       if (transaction?.transferGroupId) {
         const otherTx = financeTransactions.find(t => t.transferGroupId === transaction.transferGroupId && t.id !== id);
@@ -1268,20 +1334,22 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         </button>
 
         <nav className="flex flex-col gap-2 flex-grow overflow-y-auto pr-2 custom-scrollbar overflow-x-hidden">
+          {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('manager')) && (
+            <button 
+              onClick={() => setActiveTab('employees')}
+              className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'employees' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+            >
+              <Users className="w-4 h-4 shrink-0" />
+              <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Employees</span>
+              {isSidebarCollapsed && (
+                <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                  Employees
+                </div>
+              )}
+            </button>
+          )}
           {userProfile.roles?.includes('admin') && (
             <>
-              <button 
-                onClick={() => setActiveTab('employees')}
-                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'employees' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-              >
-                <Users className="w-4 h-4 shrink-0" />
-                <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Employees</span>
-                {isSidebarCollapsed && (
-                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                    Employees
-                  </div>
-                )}
-              </button>
               <button 
                 onClick={() => setActiveTab('companies')}
                 className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'companies' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
@@ -1405,22 +1473,28 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
       {/* Mobile Navigation (Bottom Bar) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-black/5 p-2 flex justify-around items-center z-50">
-        <button onClick={() => setActiveTab('employees')} className={`p-3 rounded-xl transition-all ${activeTab === 'employees' ? 'bg-gold text-white' : 'text-black/40'}`}>
-          <Users className="w-5 h-5" />
-        </button>
-        <button onClick={() => setActiveTab('companies')} className={`p-3 rounded-xl transition-all ${activeTab === 'companies' ? 'bg-gold text-white' : 'text-black/40'}`}>
-          <Database className="w-5 h-5" />
-        </button>
-        <button onClick={() => setActiveTab('blog')} className={`p-3 rounded-xl transition-all ${activeTab === 'blog' ? 'bg-gold text-white' : 'text-black/40'}`}>
-          <FileText className="w-5 h-5" />
-        </button>
-        {userProfile.roles?.includes('accounts') && (
+        {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('manager')) && (
+          <button onClick={() => setActiveTab('employees')} className={`p-3 rounded-xl transition-all ${activeTab === 'employees' ? 'bg-gold text-white' : 'text-black/40'}`}>
+            <Users className="w-5 h-5" />
+          </button>
+        )}
+        {userProfile.roles?.includes('admin') && (
+          <>
+            <button onClick={() => setActiveTab('companies')} className={`p-3 rounded-xl transition-all ${activeTab === 'companies' ? 'bg-gold text-white' : 'text-black/40'}`}>
+              <Database className="w-5 h-5" />
+            </button>
+            <button onClick={() => setActiveTab('blog')} className={`p-3 rounded-xl transition-all ${activeTab === 'blog' ? 'bg-gold text-white' : 'text-black/40'}`}>
+              <FileText className="w-5 h-5" />
+            </button>
+          </>
+        )}
+        {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts')) && (
           <button onClick={() => setActiveTab('finance')} className={`p-3 rounded-xl transition-all ${activeTab === 'finance' ? 'bg-gold text-white' : 'text-black/40'}`}>
             <DollarSign className="w-5 h-5" />
           </button>
         )}
         <button onClick={() => setActiveTab('profile')} className={`p-3 rounded-xl transition-all ${activeTab === 'profile' ? 'bg-gold text-white' : 'text-black/40'}`}>
-          <Settings className="w-5 h-5" />
+          <User className="w-5 h-5" />
         </button>
       </nav>
 
@@ -1776,7 +1850,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                     <tbody>
                       {logs
                         .filter(log => {
-                          const searchStr = `${log.userName} ${log.userEmail} ${log.type} ${log.discountName}`.toLowerCase();
+                          const searchStr = `${log.userName} ${log.userEmail} ${log.type} ${log.discountName} ${log.details}`.toLowerCase();
                           return searchStr.includes(searchTerm.toLowerCase());
                         })
                         .sort((a, b) => {
@@ -1811,14 +1885,18 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           </td>
                           <td className="px-6 py-4">
                             <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                              log.type === 'login' ? 'bg-blue-100 text-blue-600' : 'bg-gold/10 text-gold'
+                              log.type === 'login' ? 'bg-blue-100 text-blue-600' : 
+                              log.type?.startsWith('finance_') ? 'bg-purple-100 text-purple-600' :
+                              'bg-gold/10 text-gold'
                             }`}>
-                              {log.type || 'redemption'}
+                              {(log.type || 'redemption').replace('_', ' ')}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-xs">
                             {log.type === 'login' ? (
                               <span className="text-black/60 italic">User logged in to the application</span>
+                            ) : log.type?.startsWith('finance_') ? (
+                              <span className="text-black/60">{log.details}</span>
                             ) : (
                               <div>
                                 <div className="font-medium text-gold">{log.discountName}</div>
