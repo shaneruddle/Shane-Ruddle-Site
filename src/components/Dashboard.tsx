@@ -34,7 +34,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [savingPersonalProfile, setSavingPersonalProfile] = useState(false);
 
   // Finance states
-  const [financeSubTab, setFinanceSubTab] = useState<'ABPC' | 'ECRE' | 'Performance'>('ABPC');
+  const [financeSubTab, setFinanceSubTab] = useState<'ABPC' | 'ECRE' | 'ABPC Agents' | 'ECRE Agents'>('ABPC');
+  const [selectedIndividualAgent, setSelectedIndividualAgent] = useState<string>('');
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [isSavingTransaction, setIsSavingTransaction] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<FinanceTransaction | null>(null);
@@ -42,12 +43,16 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [financeMonthFilter, setFinanceMonthFilter] = useState<string>('all');
   const [financeAgentFilter, setFinanceAgentFilter] = useState<string>('all');
   const [financeAccountFilter, setFinanceAccountFilter] = useState<string>('trading');
+  const [financeTypeFilter, setFinanceTypeFilter] = useState<string>('all');
   const [financeSearchTerm, setFinanceSearchTerm] = useState('');
   const [newTransaction, setNewTransaction] = useState<Partial<FinanceTransaction> & { fromAccount?: 'trading' | 'savings', toAccount?: 'trading' | 'savings' }>({
     type: 'income',
     dealType: 'new',
     account: 'trading',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    description: '',
+    amount: 0,
+    agent: '-'
   });
 
   // Search and Sort states
@@ -144,17 +149,18 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     { firstName: "Lewis", lastName: "Perfect", email: "perfectlewisashton@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "007", uid: "1738490718350x851705520968406400" },
     { firstName: "Chutikarn", lastName: "Phetcharoen", email: "jusfirstchutikarn@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", mobile: "009", uid: "1743649995469x635691858452828200" },
     { firstName: "Shane", lastName: "Puddle", email: "info@pattayarentacar.com", roles: ["employee"], company: "Pattaya Rent a Car", mobile: "0830776928", uid: "1754096406865x512038928260660800" },
-    { firstName: "Noel", lastName: "Magold", email: "noel.magold@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Management", mobile: "0950247546", uid: "1754730171383x441187517623218050" },
-    { firstName: "Aiden Scott", lastName: "Gray", email: "aidenscottgray@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0923879169", uid: "1756263259346x562607146057934900" },
+    { firstName: "Noel", lastName: "Magold", nickname: "Noel", email: "noel.magold@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Management", mobile: "0950247546", uid: "1754730171383x441187517623218050" },
+    { firstName: "Aiden Scott", lastName: "Gray", nickname: "Aiden", email: "aidenscottgray@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0923879169", uid: "1756263259346x562607146057934900" },
     { firstName: "Jo", lastName: "Barbosa", email: "jobarbosa5555@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Real Estate Agent", mobile: "0613903936", uid: "1756263281490x915847737785749200" },
-    { firstName: "Arnon", lastName: "Surison", email: "arnonsurison@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0979247477", uid: "1756263288531x762119080127496000" },
+    { firstName: "Arnon", lastName: "Surison", nickname: "Cap", email: "arnonsurison@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0979247477", uid: "1756263288531x762119080127496000" },
     { firstName: "Lee", lastName: "Knights", email: "knightslee983@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Senior Sales Agent", mobile: "+66 096287916", uid: "1756263332719x951012836427739500" },
+    { firstName: "Management", lastName: "Pot", nickname: "MP", email: "managementpot@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Management", uid: "1756263332719x951012836427739501" },
     { firstName: "Panida", lastName: "Tongwinya", email: "panida220131@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Real Estate Agent", mobile: "0942241929", uid: "1756263336304x625006180080648100" },
     { firstName: "Sajiga", lastName: "Suwan", email: "beau_jung@msn.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Real Estate Agent", mobile: "0983297886", uid: "1756263366590x959412417623900300" },
-    { firstName: "Oranoot", lastName: "Totong", email: "par_ok11@hotmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Management team", mobile: "0924554498", uid: "1756263594664x877842564163702300" },
+    { firstName: "Oranoot", lastName: "Totong", nickname: "Pang", email: "par_ok11@hotmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Management team", mobile: "0924554498", uid: "1756263594664x877842564163702300" },
     { firstName: "Alex", lastName: "Stein", email: "alexstein530@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Manager", mobile: "0614701505", uid: "1756263672131x259238773781960350" },
     { firstName: "Supich", lastName: "Limpkul", email: "supich0632049020@gmail.com", roles: ["employee"], company: "East Coast Real Estate", mobile: "0632049020", uid: "1756264011757x839849911564250000" },
-    { firstName: "Aunt", lastName: "Srisawat", email: "auntamp1502@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0918892331", uid: "1756264032695x733195673910481700" },
+    { firstName: "Aunt", lastName: "Srisawat", nickname: "Aunt", email: "auntamp1502@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0918892331", uid: "1756264032695x733195673910481700" },
     { firstName: "Kanokporn", lastName: "Piromsuksakul", email: "kanokporn.1999@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0994540194", uid: "1756264410126x242009150200741980" },
     { firstName: "Vee", lastName: "Samdangfai", email: "vthailander322@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Real Estate Agent", mobile: "0897531783", uid: "1756268451972x807974387457137600" },
     { firstName: "Amornrat", lastName: "Khongpennit", email: "annbtk789@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Office Manager", mobile: "0646232956", uid: "1756268572517x514449734029142300" },
@@ -184,10 +190,11 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     { firstName: "Khanittha", lastName: "Soranet", email: "skywatersoranet@gmail.com", roles: ["employee"], company: "Hemingways Pattaya", mobile: "0983969629", uid: "1756828586616x513005560142739700" },
     { firstName: "Nigel", lastName: "Flanagan", email: "nigelflap@msn.com", roles: ["employee"], mobile: "0811165146", uid: "1756883960619x675842814246387100" },
     { firstName: "Akanittha", lastName: "Suriyawong", email: "akanittha1990@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "service", mobile: "+66935799611", uid: "1756904185743x244983017544803780" },
-    { firstName: "Scott", lastName: "Smith", email: "scottsmithcall89@gmail.com", roles: ["employee"], company: "East Coast Real Estate", mobile: "0610737568", uid: "1762229321453x250879529230273020" },
+    { firstName: "Scott", lastName: "Smith", nickname: "Scott", email: "scottsmithcall89@gmail.com", roles: ["employee"], company: "East Coast Real Estate", mobile: "0610737568", uid: "1762229321453x250879529230273020" },
+    { firstName: "Sho", lastName: "", nickname: "Sho", email: "sho@noemail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "-", uid: "1762229321453x250879529230273021" },
     { firstName: "Rattiya", lastName: "Suedej", email: "rattiyasuedej@gmail.com", roles: ["employee"], position: "Not an employee", mobile: "0984721683", uid: "1763547261844x102058649974796640" },
     { firstName: "Porntip", lastName: "Van Vliet", email: "tipvlie999@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Real Estate Professional", mobile: "0890127205", uid: "1764741492760x819100824946806800" },
-    { firstName: "Annipa", lastName: "Phasawat", email: "roselovelyno1@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0845674066", uid: "1765533220686x121275735073274720" },
+    { firstName: "Annipa", lastName: "Phasawat", nickname: "Anni", email: "roselovelyno1@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0845674066", uid: "1765533220686x121275735073274720" },
     { firstName: "Sangthong", lastName: "Nongnut", email: "khunying32@gmail.com", roles: ["employee"], position: "Not an employee", mobile: "092-668-7817", uid: "1765537326758x574896350378373300" },
     { firstName: "Chonlatee", lastName: "Seema", email: "iam.chonlatee@gmail.com", roles: ["admin"], company: "Cajun Life Cafe", mobile: "0808032832", uid: "1767753686962x907925546658813800" },
     { firstName: "Ms.Suphatson", lastName: "Promjan", email: "-@gmail.com", roles: ["employee"], company: "Cajun Life Cafe", position: "Ass. Manager", mobile: "-", uid: "1769235201148x300813861270191600" },
@@ -403,6 +410,16 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     };
   }, [userProfile]);
 
+  useEffect(() => {
+    if (userProfile.roles?.includes('accounts') && !userProfile.roles?.includes('admin')) {
+      if (userProfile.company === 'Alan Bolton Property Consultants') {
+        setFinanceSubTab('ABPC');
+      } else if (userProfile.company === 'East Coast Real Estate') {
+        setFinanceSubTab('ECRE');
+      }
+    }
+  }, [userProfile]);
+
   const handleUpdateUserRoles = async (userId: string, newRoles: UserProfile['roles']) => {
     try {
       await updateDoc(doc(db, 'users', userId), {
@@ -505,7 +522,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
             ...newTransaction,
             type: 'expense' as const,
             account: newTransaction.fromAccount!,
-            section: financeSubTab,
+            section: (financeSubTab === 'ABPC' || financeSubTab === 'ABPC Agents') ? 'ABPC' : 'ECRE',
             transferGroupId,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
@@ -519,7 +536,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
             ...newTransaction,
             type: 'income' as const,
             account: newTransaction.toAccount!,
-            section: financeSubTab,
+            section: (financeSubTab === 'ABPC' || financeSubTab === 'ABPC Agents') ? 'ABPC' : 'ECRE',
             transferGroupId,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
@@ -534,7 +551,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         } else {
           const transactionData = sanitize({
             ...newTransaction,
-            section: financeSubTab,
+            section: (financeSubTab === 'ABPC' || financeSubTab === 'ABPC Agents') ? 'ABPC' : 'ECRE',
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             createdBy: auth.currentUser?.uid
@@ -553,7 +570,10 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         type: 'income',
         dealType: 'new',
         account: 'trading',
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        description: '',
+        amount: 0,
+        agent: '-'
       });
     } catch (err) {
       handleFirestoreError(err, editingTransaction ? OperationType.UPDATE : OperationType.CREATE, editingTransaction ? `finance/${editingTransaction.id}` : 'finance');
@@ -615,8 +635,26 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     }
   };
 
-  const handleEditEmployee = (employee: UserProfile) => {
-    setEditingEmployee(employee);
+  const handleEditEmployee = (employee: UserProfile | null) => {
+    if (employee) {
+      setEditingEmployee(employee);
+    } else {
+      const isManagerOnly = userProfile.roles?.includes('manager') && !userProfile.roles?.includes('admin');
+      setEditingEmployee({
+        uid: `temp_${Date.now()}`,
+        firstName: '',
+        lastName: '',
+        email: '',
+        roles: ['employee'],
+        active: true,
+        company: isManagerOnly ? userProfile.company : '',
+        companyId: isManagerOnly ? userProfile.companyId : '',
+        discountIds: [],
+        discountCode: `SR-EMP-${Math.floor(1000 + Math.random() * 9000)}`,
+        position: '',
+        mobile: ''
+      });
+    }
     setShowEditEmployee(true);
   };
 
@@ -632,15 +670,31 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const handleUpdateEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingEmployee) return;
+    
+    const isNew = editingEmployee.uid.startsWith('temp_');
+    const finalUid = isNew ? Date.now().toString() + 'x' + Math.floor(Math.random() * 1000000000000000000).toString() : editingEmployee.uid;
+
     try {
-      await updateDoc(doc(db, 'users', editingEmployee.uid), {
-        ...editingEmployee,
-        updatedAt: serverTimestamp()
-      });
+      if (isNew) {
+        await setDoc(doc(db, 'users', finalUid), {
+          ...editingEmployee,
+          uid: finalUid,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        toast.success('Employee added successfully');
+      } else {
+        await updateDoc(doc(db, 'users', editingEmployee.uid), {
+          ...editingEmployee,
+          updatedAt: serverTimestamp()
+        });
+        toast.success('Employee updated successfully');
+      }
       setShowEditEmployee(false);
       setEditingEmployee(null);
     } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `users/${editingEmployee.uid}`);
+      handleFirestoreError(err, isNew ? OperationType.CREATE : OperationType.UPDATE, `users/${finalUid}`);
+      toast.error(`Failed to ${isNew ? 'add' : 'update'} employee`);
     }
   };
 
@@ -974,10 +1028,51 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     }, new Map<string, UserProfile>()).values()
   );
 
-  const financeAgents = Array.from(new Set(financeTransactions.map(t => t.agent))).sort();
-  const financeMonths = Array.from(new Set(financeTransactions.map(t => t.date.substring(0, 7)))).sort().reverse();
+  const financeAgents = Array.from(new Set(financeTransactions.filter(t => {
+    if (t.agent?.toLowerCase() === 'system') return false;
+    if (userProfile.roles?.includes('admin')) return true;
+    if (userProfile.company === 'Alan Bolton Property Consultants') return t.section === 'ABPC';
+    if (userProfile.company === 'East Coast Real Estate') return t.section === 'ECRE';
+    return false;
+  }).map(t => {
+    // Normalize "Cap" to "Arnon Surison" and "MP" to "Management Pot"
+    if (t.agent === 'Cap') return 'Arnon Surison';
+    if (t.agent === 'MP') return 'Management Pot';
+    if (t.agent === 'Pang') return 'Oranoot Totong';
+    if (t.agent === 'Aiden') return 'Aiden Scott Gray';
+    if (t.agent === 'Scott') return 'Scott Smith';
+    if (t.agent === 'Anni') return 'Annipa Phasawat';
+    if (t.agent === 'Noel') return 'Noel Magold';
+    if (t.agent === 'Aunt') return 'Aunt Srisawat';
+    if (t.agent === 'Sho') return 'Sho';
+    return t.agent;
+  }))).sort();
 
-  const getAgentPerformance = (months: number) => {
+  const getAgentDisplayName = (agentName: string) => {
+    if (agentName?.toLowerCase() === 'system') return '-';
+    
+    // Find employee by name (full name or nickname)
+    const agentUser = uniqueEmployees.find(u => {
+      const fullName = `${u.firstName} ${u.lastName}`.trim();
+      return fullName === agentName || u.nickname === agentName || u.name === agentName;
+    });
+
+    if (agentUser) {
+      const fullName = `${agentUser.firstName} ${agentUser.lastName}`.trim() || agentUser.name || agentName;
+      return agentUser.nickname ? `${fullName} (${agentUser.nickname})` : fullName;
+    }
+    
+    return agentName;
+  };
+
+  const financeMonths = Array.from(new Set(financeTransactions.filter(t => {
+    if (userProfile.roles?.includes('admin')) return true;
+    if (userProfile.company === 'Alan Bolton Property Consultants') return t.section === 'ABPC';
+    if (userProfile.company === 'East Coast Real Estate') return t.section === 'ECRE';
+    return false;
+  }).map(t => t.date.substring(0, 7)))).sort().reverse();
+
+  const getAgentPerformance = (months: number, section: 'ABPC' | 'ECRE') => {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
@@ -989,40 +1084,127 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     const startDateStr = periodStart.toISOString().split('T')[0];
     const endDateStr = periodEnd.toISOString().split('T')[0];
     
-    const periodTransactions = financeTransactions.filter(t => 
-      t.type === 'income' && 
-      t.date >= startDateStr && 
-      t.date <= endDateStr
-    );
+    const periodTransactions = financeTransactions.filter(t => {
+      const isCorrectSection = t.section === section;
+
+      return isCorrectSection &&
+        t.agent?.toLowerCase() !== 'system' &&
+        t.agent !== '-' &&
+        t.agent !== '' &&
+        t.type === 'income' && 
+        t.date >= startDateStr && 
+        t.date <= endDateStr;
+    });
     
     const agentIncome: Record<string, number> = {};
     periodTransactions.forEach(t => {
-      agentIncome[t.agent] = (agentIncome[t.agent] || 0) + t.amount;
+      let normalizedAgent = t.agent;
+      if (t.agent === 'Cap') normalizedAgent = 'Arnon Surison';
+      if (t.agent === 'MP') normalizedAgent = 'Management Pot';
+      if (t.agent === 'Pang') normalizedAgent = 'Oranoot Totong';
+      if (t.agent === 'Aiden') normalizedAgent = 'Aiden Scott Gray';
+      if (t.agent === 'Scott') normalizedAgent = 'Scott Smith';
+      if (t.agent === 'Anni') normalizedAgent = 'Annipa Phasawat';
+      if (t.agent === 'Noel') normalizedAgent = 'Noel Magold';
+      if (t.agent === 'Aunt') normalizedAgent = 'Aunt Srisawat';
+      if (t.agent === 'Sho') normalizedAgent = 'Sho';
+      agentIncome[normalizedAgent] = (agentIncome[normalizedAgent] || 0) + t.amount;
     });
     
-    const performance = Object.entries(agentIncome).map(([agent, total]) => ({
-      agent,
-      total,
-      average: total / months
-    })).sort((a, b) => b.average - a.average);
+    const performance = Object.entries(agentIncome)
+      .map(([agent, total]) => {
+        // Find employee by name (full name or nickname)
+        const agentUser = uniqueEmployees.find(u => {
+          const fullName = `${u.firstName} ${u.lastName}`.trim();
+          return fullName === agent || u.nickname === agent || u.name === agent;
+        });
+        
+        return {
+          agent,
+          nickname: agentUser?.nickname,
+          total,
+          average: total / months,
+          isActive: !agentUser || agentUser.active !== false
+        };
+      })
+      .filter(p => p.isActive)
+      .sort((a, b) => b.average - a.average);
     
     return { performance, startDateStr, endDateStr };
   };
 
-  const performance3m = getAgentPerformance(3);
-  const performance6m = getAgentPerformance(6);
+  const performance3mABPC = getAgentPerformance(3, 'ABPC');
+  const performance6mABPC = getAgentPerformance(6, 'ABPC');
+  const performance3mECRE = getAgentPerformance(3, 'ECRE');
+  const performance6mECRE = getAgentPerformance(6, 'ECRE');
+
+  const getIndividualAgentReport = (agentName: string) => {
+    if (!agentName) return [];
+    
+    const now = new Date();
+    const months = [];
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push(d.toISOString().split('T')[0].substring(0, 7));
+    }
+    
+    return months.map(month => {
+      const income = financeTransactions.filter(t => {
+        let normalizedAgent = t.agent;
+        if (t.agent === 'Cap') normalizedAgent = 'Arnon Surison';
+        if (t.agent === 'MP') normalizedAgent = 'Management Pot';
+        if (t.agent === 'Pang') normalizedAgent = 'Oranoot Totong';
+        if (t.agent === 'Aiden') normalizedAgent = 'Aiden Scott Gray';
+        if (t.agent === 'Scott') normalizedAgent = 'Scott Smith';
+        if (t.agent === 'Anni') normalizedAgent = 'Annipa Phasawat';
+        if (t.agent === 'Noel') normalizedAgent = 'Noel Magold';
+        if (t.agent === 'Aunt') normalizedAgent = 'Aunt Srisawat';
+        if (t.agent === 'Sho') normalizedAgent = 'Sho';
+        
+        return normalizedAgent === agentName && t.type === 'income' && t.date.startsWith(month);
+      }).reduce((acc, t) => acc + t.amount, 0);
+      
+      return { month, income };
+    });
+  };
 
   const filteredFinanceTransactions = financeTransactions.filter(t => {
-    const matchesSection = financeSubTab === 'Performance' ? true : t.section === financeSubTab;
-    const matchesAgent = financeAgentFilter === 'all' || t.agent === financeAgentFilter;
+    const isCorrectSection = userProfile.roles?.includes('admin') || 
+      (userProfile.company === 'Alan Bolton Property Consultants' && t.section === 'ABPC') ||
+      (userProfile.company === 'East Coast Real Estate' && t.section === 'ECRE');
+
+    if (!isCorrectSection) return false;
+
+    const matchesSection = (financeSubTab === 'ABPC' || financeSubTab === 'ABPC Agents') ? t.section === 'ABPC' : t.section === 'ECRE';
+    const matchesAgent = financeAgentFilter === 'all' || 
+                        t.agent === financeAgentFilter || 
+                        (financeAgentFilter === 'Arnon Surison' && t.agent === 'Cap') ||
+                        (financeAgentFilter === 'Management Pot' && t.agent === 'MP') ||
+                        (financeAgentFilter === 'Oranoot Totong' && t.agent === 'Pang') ||
+                        (financeAgentFilter === 'Aiden Scott Gray' && t.agent === 'Aiden') ||
+                        (financeAgentFilter === 'Scott Smith' && t.agent === 'Scott') ||
+                        (financeAgentFilter === 'Annipa Phasawat' && t.agent === 'Anni') ||
+                        (financeAgentFilter === 'Noel Magold' && t.agent === 'Noel') ||
+                        (financeAgentFilter === 'Aunt Srisawat' && t.agent === 'Aunt') ||
+                        (financeAgentFilter === 'Sho' && t.agent === 'Sho');
     const matchesMonth = financeMonthFilter === 'all' || t.date.startsWith(financeMonthFilter);
     const matchesAccount = (t.account || 'trading') === financeAccountFilter;
+    const matchesType = financeTypeFilter === 'all' || 
+                       (financeTypeFilter === 'transfer' ? !!t.transferGroupId : 
+                       (financeTypeFilter === t.type && !t.transferGroupId));
     const matchesSearch = !financeSearchTerm || t.description.toLowerCase().includes(financeSearchTerm.toLowerCase());
-    return matchesSection && matchesAgent && matchesMonth && matchesAccount && matchesSearch;
+    return matchesSection && matchesAgent && matchesMonth && matchesAccount && matchesType && matchesSearch;
   });
 
   const filteredEmployees = uniqueEmployees
     .filter(emp => {
+      // If manager, only show employees from their company
+      const isManagerOnly = userProfile.roles?.includes('manager') && !userProfile.roles?.includes('admin');
+      if (isManagerOnly) {
+        const matchesManagerCompany = emp.companyId === userProfile.companyId || emp.company === userProfile.company;
+        if (!matchesManagerCompany) return false;
+      }
+
       const searchStr = `${emp.firstName} ${emp.lastName} ${emp.email} ${emp.company} ${emp.position}`.toLowerCase();
       const matchesSearch = searchStr.includes(searchTerm.toLowerCase());
       const matchesCompany = companyFilter === 'all' || (companyFilter === 'Unassigned' ? !emp.company : emp.company === companyFilter);
@@ -1348,6 +1530,14 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       ))}
                     </select>
                   </div>
+                  {(userProfile?.roles?.includes('admin') || userProfile?.roles?.includes('manager')) && (
+                    <button 
+                      onClick={() => handleEditEmployee(null)}
+                      className="bg-gold text-white px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gold/90 transition-all shadow-lg shadow-gold/20 flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" /> Add Employee
+                    </button>
+                  )}
                 </div>
 
                 <div className="glass rounded-3xl overflow-hidden">
@@ -1780,27 +1970,53 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
                     <div className="flex bg-black/5 p-1 rounded-xl">
-                      <button 
-                        onClick={() => setFinanceSubTab('ABPC')}
-                        className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ABPC' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
-                      >
-                        ABPC
-                      </button>
-                      <button 
-                        onClick={() => setFinanceSubTab('ECRE')}
-                        className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ECRE' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
-                      >
-                        ECRE
-                      </button>
-                      <button 
-                        onClick={() => setFinanceSubTab('Performance')}
-                        className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'Performance' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
-                      >
-                        Performance
-                      </button>
+                      {(userProfile.roles?.includes('admin') || userProfile.company === 'Alan Bolton Property Consultants') && (
+                        <>
+                          <button 
+                            onClick={() => {
+                              setFinanceSubTab('ABPC');
+                              setSelectedIndividualAgent('');
+                            }}
+                            className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ABPC' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
+                          >
+                            ABPC
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setFinanceSubTab('ABPC Agents');
+                              setSelectedIndividualAgent('');
+                            }}
+                            className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ABPC Agents' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
+                          >
+                            ABPC Agents
+                          </button>
+                        </>
+                      )}
+                      {(userProfile.roles?.includes('admin') || userProfile.company === 'East Coast Real Estate') && (
+                        <>
+                          <button 
+                            onClick={() => {
+                              setFinanceSubTab('ECRE');
+                              setSelectedIndividualAgent('');
+                            }}
+                            className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ECRE' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
+                          >
+                            ECRE
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setFinanceSubTab('ECRE Agents');
+                              setSelectedIndividualAgent('');
+                            }}
+                            className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ECRE Agents' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
+                          >
+                            ECRE Agents
+                          </button>
+                        </>
+                      )}
                     </div>
                     
-                    {financeSubTab !== 'Performance' && (
+                    {(financeSubTab === 'ABPC' || financeSubTab === 'ECRE') && (
                       <div className="flex gap-2">
                         <div className="relative">
                           <Search className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-black/20" />
@@ -1809,13 +2025,13 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                             placeholder="Search descriptions..."
                             value={financeSearchTerm}
                             onChange={(e) => setFinanceSearchTerm(e.target.value)}
-                            className="bg-black/5 border-none rounded-xl pl-8 pr-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none w-48"
+                            className="bg-black/5 border-none rounded-xl pl-8 pr-4 py-2 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none w-[200px]"
                           />
                         </div>
                         <select 
                           value={financeMonthFilter}
                           onChange={(e) => setFinanceMonthFilter(e.target.value)}
-                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
                         >
                           <option value="all">All Months</option>
                           {financeMonths.map(month => (
@@ -1825,100 +2041,182 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         <select 
                           value={financeAgentFilter}
                           onChange={(e) => setFinanceAgentFilter(e.target.value)}
-                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
                         >
                           <option value="all">All Agents</option>
                           {financeAgents.map(agent => (
-                            <option key={agent} value={agent}>{agent}</option>
+                            <option key={agent} value={agent}>{getAgentDisplayName(agent)}</option>
                           ))}
                         </select>
                         <select 
                           value={financeAccountFilter}
                           onChange={(e) => setFinanceAccountFilter(e.target.value)}
-                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
                         >
                           <option value="trading">Trading</option>
                           <option value="savings">Savings</option>
+                        </select>
+                        <select 
+                          value={financeTypeFilter}
+                          onChange={(e) => setFinanceTypeFilter(e.target.value)}
+                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                        >
+                          <option value="all">All Types</option>
+                          <option value="income">Income</option>
+                          <option value="expense">Expense</option>
+                          <option value="transfer">Transfer</option>
                         </select>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {financeSubTab === 'Performance' ? (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="glass p-8 rounded-[2.5rem]">
-                      <div className="flex justify-between items-center mb-6">
-                        <div>
-                          <h4 className="text-lg font-serif">3-Month Performance</h4>
-                          <p className="text-[10px] text-black/40 uppercase tracking-widest">
-                            {new Date(performance3m.startDateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - {new Date(performance3m.endDateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                          </p>
+                {(financeSubTab === 'ABPC Agents' || financeSubTab === 'ECRE Agents') ? (
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {/* 3-Month Performance */}
+                      <div className="glass p-8 rounded-[2.5rem]">
+                        <div className="flex justify-between items-center mb-6">
+                          <div>
+                            <h4 className="text-lg font-serif">3-Month Performance</h4>
+                            <p className="text-[10px] text-black/40 uppercase tracking-widest">
+                              {new Date(financeSubTab === 'ABPC Agents' ? performance3mABPC.startDateStr : performance3mECRE.startDateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - {new Date(financeSubTab === 'ABPC Agents' ? performance3mABPC.endDateStr : performance3mECRE.endDateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                            </p>
+                          </div>
+                          <div className="bg-gold/10 text-gold px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                            Avg Income / Month
+                          </div>
                         </div>
-                        <div className="bg-gold/10 text-gold px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                          Avg Income / Month
+                        <div className="space-y-4">
+                          {(financeSubTab === 'ABPC Agents' ? performance3mABPC.performance : performance3mECRE.performance).map((p, idx) => (
+                            <div key={p.agent} className="flex items-center justify-between p-4 bg-black/2 rounded-2xl border border-black/5">
+                              <div className="flex items-center gap-4">
+                                <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-xs">
+                                  {idx + 1}
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium">
+                                    {p.agent} {p.nickname && p.nickname !== p.agent && `(${p.nickname})`}
+                                  </div>
+                                  <div className="text-[10px] text-black/40 uppercase tracking-widest">Total: {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.total)}</div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm font-bold text-gold">
+                                  {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.average)}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {(financeSubTab === 'ABPC Agents' ? performance3mABPC.performance : performance3mECRE.performance).length === 0 && (
+                            <div className="py-12 text-center text-black/40 italic text-sm">No data for this period.</div>
+                          )}
                         </div>
                       </div>
-                      <div className="space-y-4">
-                        {performance3m.performance.map((p, idx) => (
-                          <div key={p.agent} className="flex items-center justify-between p-4 bg-black/2 rounded-2xl border border-black/5">
-                            <div className="flex items-center gap-4">
-                              <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-xs">
-                                {idx + 1}
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium">{p.agent}</div>
-                                <div className="text-[10px] text-black/40 uppercase tracking-widest">Total: {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.total)}</div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm font-bold text-gold">
-                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.average)}
-                              </div>
-                            </div>
+
+                      {/* 6-Month Performance */}
+                      <div className="glass p-8 rounded-[2.5rem]">
+                        <div className="flex justify-between items-center mb-6">
+                          <div>
+                            <h4 className="text-lg font-serif">6-Month Performance</h4>
+                            <p className="text-[10px] text-black/40 uppercase tracking-widest">
+                              {new Date(financeSubTab === 'ABPC Agents' ? performance6mABPC.startDateStr : performance6mECRE.startDateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - {new Date(financeSubTab === 'ABPC Agents' ? performance6mABPC.endDateStr : performance6mECRE.endDateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                            </p>
                           </div>
-                        ))}
-                        {performance3m.performance.length === 0 && (
-                          <div className="py-12 text-center text-black/40 italic text-sm">No data for this period.</div>
-                        )}
+                          <div className="bg-gold/10 text-gold px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                            Avg Income / Month
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          {(financeSubTab === 'ABPC Agents' ? performance6mABPC.performance : performance6mECRE.performance).map((p, idx) => (
+                            <div key={p.agent} className="flex items-center justify-between p-4 bg-black/2 rounded-2xl border border-black/5">
+                              <div className="flex items-center gap-4">
+                                <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-xs">
+                                  {idx + 1}
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium">
+                                    {p.agent} {p.nickname && p.nickname !== p.agent && `(${p.nickname})`}
+                                  </div>
+                                  <div className="text-[10px] text-black/40 uppercase tracking-widest">Total: {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.total)}</div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm font-bold text-gold">
+                                  {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.average)}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {(financeSubTab === 'ABPC Agents' ? performance6mABPC.performance : performance6mECRE.performance).length === 0 && (
+                            <div className="py-12 text-center text-black/40 italic text-sm">No data for this period.</div>
+                          )}
+                        </div>
                       </div>
                     </div>
 
+                    {/* Individual Agent Monthly Income Report */}
                     <div className="glass p-8 rounded-[2.5rem]">
-                      <div className="flex justify-between items-center mb-6">
-                        <div>
-                          <h4 className="text-lg font-serif">6-Month Performance</h4>
-                          <p className="text-[10px] text-black/40 uppercase tracking-widest">
-                            {new Date(performance6m.startDateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - {new Date(performance6m.endDateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                          </p>
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                        <div className="w-[700px]">
+                          <h4 className="text-lg font-serif">Individual Agent <span className="italic">Monthly Income</span></h4>
+                          <p className="text-[10px] text-black/40 uppercase tracking-widest">Select an agent to view their 6-month performance breakdown</p>
                         </div>
-                        <div className="bg-gold/10 text-gold px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                          Avg Income / Month
+                        <select 
+                          value={selectedIndividualAgent}
+                          onChange={(e) => setSelectedIndividualAgent(e.target.value)}
+                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none min-w-[200px]"
+                        >
+                          <option value="">Select Agent...</option>
+                          {financeAgents.filter(agent => {
+                            const section = financeSubTab === 'ABPC Agents' ? 'ABPC' : 'ECRE';
+                            return financeTransactions.some(t => {
+                              let normalizedAgent = t.agent;
+                              if (t.agent === 'Cap') normalizedAgent = 'Arnon Surison';
+                              if (t.agent === 'MP') normalizedAgent = 'Management Pot';
+                              if (t.agent === 'Pang') normalizedAgent = 'Oranoot Totong';
+                              if (t.agent === 'Aiden') normalizedAgent = 'Aiden Scott Gray';
+                              if (t.agent === 'Scott') normalizedAgent = 'Scott Smith';
+                              if (t.agent === 'Anni') normalizedAgent = 'Annipa Phasawat';
+                              if (t.agent === 'Noel') normalizedAgent = 'Noel Magold';
+                              if (t.agent === 'Aunt') normalizedAgent = 'Aunt Srisawat';
+                              if (t.agent === 'Sho') normalizedAgent = 'Sho';
+                              return normalizedAgent === agent && t.section === section;
+                            });
+                          }).map(agent => (
+                            <option key={agent} value={agent}>{getAgentDisplayName(agent)}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {selectedIndividualAgent ? (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="border-bottom border-black/5 bg-black/2">
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Month</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Total Income</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {getIndividualAgentReport(selectedIndividualAgent).map((item) => (
+                                <tr key={item.month} className="border-bottom border-black/5 hover:bg-black/2 transition-colors">
+                                  <td className="px-6 py-4 text-sm font-medium">
+                                    {new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                  </td>
+                                  <td className="px-6 py-4 text-sm font-bold text-right text-gold">
+                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(item.income)}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
-                      </div>
-                      <div className="space-y-4">
-                        {performance6m.performance.map((p, idx) => (
-                          <div key={p.agent} className="flex items-center justify-between p-4 bg-black/2 rounded-2xl border border-black/5">
-                            <div className="flex items-center gap-4">
-                              <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-xs">
-                                {idx + 1}
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium">{p.agent}</div>
-                                <div className="text-[10px] text-black/40 uppercase tracking-widest">Total: {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.total)}</div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm font-bold text-gold">
-                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.average)}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                        {performance6m.performance.length === 0 && (
-                          <div className="py-12 text-center text-black/40 italic text-sm">No data for this period.</div>
-                        )}
-                      </div>
+                      ) : (
+                        <div className="py-12 text-center text-black/40 italic text-sm border-2 border-dashed border-black/5 rounded-3xl">
+                          Please select an agent to view their monthly report.
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : financeSubTab === 'ABPC' ? (
@@ -1933,6 +2231,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                             fromAccount: 'trading',
                             toAccount: 'savings',
                             dealType: 'new',
+                            agent: '-',
                             date: new Date().toISOString().split('T')[0]
                           });
                           setShowAddTransaction(true);
@@ -1948,6 +2247,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                             type: 'income',
                             dealType: 'new',
                             account: 'trading',
+                            agent: '-',
                             date: new Date().toISOString().split('T')[0]
                           });
                           setShowAddTransaction(true);
@@ -1960,8 +2260,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       <div className="lg:col-span-2 space-y-6">
-                        <div className="glass rounded-[2.5rem] overflow-hidden">
-                          <table className="w-full text-left border-collapse">
+                        <div className="glass rounded-[2.5rem] overflow-x-auto">
+                          <table className="w-full text-left border-collapse min-w-[800px]">
                             <thead>
                               <tr className="border-bottom border-black/5 bg-black/2">
                                 <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date</th>
@@ -1984,7 +2284,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                     </div>
                                   </td>
                                   <td className="px-6 py-4 text-xs">
-                                    {t.agent.toLowerCase() === 'system' ? '-' : t.agent}
+                                    {getAgentDisplayName(t.agent)}
                                   </td>
                                   <td className="px-6 py-4">
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">
@@ -1993,11 +2293,14 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                   </td>
                                   <td className="px-6 py-4">
                                     <div className="flex items-center gap-2">
-                                      <span className={`px-2 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${t.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                                        {t.type}
+                                      <span className={`px-2 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${
+                                        t.transferGroupId ? 'bg-blue-100 text-blue-600' :
+                                        t.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                                      }`}>
+                                        {t.transferGroupId ? 'transfer' : t.type}
                                       </span>
                                       {t.transferGroupId && (
-                                        <ArrowLeftRight className="w-3 h-3 text-black/20" />
+                                        <ArrowLeftRight className="w-3 h-3 text-blue-400" />
                                       )}
                                     </div>
                                   </td>
@@ -2005,16 +2308,16 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                     {t.type === 'income' ? '+' : '-'}{new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(t.amount)}
                                   </td>
                                   <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex justify-end gap-1 transition-opacity">
                                       <button 
                                         onClick={() => handleEditTransaction(t)}
-                                        className="p-2 text-black/20 hover:text-gold transition-colors"
+                                        className="p-2 text-black/10 hover:text-gold transition-colors"
                                       >
                                         <Edit2 className="w-4 h-4" />
                                       </button>
                                       <button 
                                         onClick={() => setConfirmDeleteTransaction(t)}
-                                        className="p-2 text-black/20 hover:text-red-500 transition-colors"
+                                        className="p-2 text-black/10 hover:text-red-500 transition-colors"
                                       >
                                         <Trash2 className="w-4 h-4" />
                                       </button>
@@ -2024,7 +2327,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               ))}
                               {filteredFinanceTransactions.length === 0 && (
                                 <tr>
-                                  <td colSpan={6} className="px-6 py-12 text-center text-black/40 italic text-sm">
+                                  <td colSpan={7} className="px-6 py-12 text-center text-black/40 italic text-sm">
                                     No transactions found matching your filters.
                                   </td>
                                 </tr>
@@ -2047,7 +2350,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               </div>
                               <div className="text-lg font-serif text-green-700">
                                 {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                  filteredFinanceTransactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0)
+                                  filteredFinanceTransactions.filter(t => t.type === 'income' && !t.transferGroupId).reduce((acc, t) => acc + t.amount, 0)
                                 )}
                               </div>
                             </div>
@@ -2060,7 +2363,20 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               </div>
                               <div className="text-lg font-serif text-red-700">
                                 {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                  filteredFinanceTransactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0)
+                                  filteredFinanceTransactions.filter(t => t.type === 'expense' && !t.transferGroupId).reduce((acc, t) => acc + t.amount, 0)
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                                  <ArrowLeftRight className="w-4 h-4" />
+                                </div>
+                                <div className="text-[10px] uppercase tracking-widest font-bold text-blue-600">Total Transfers</div>
+                              </div>
+                              <div className="text-lg font-serif text-blue-700">
+                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                  filteredFinanceTransactions.filter(t => !!t.transferGroupId).reduce((acc, t) => acc + t.amount, 0)
                                 )}
                               </div>
                             </div>
@@ -2094,6 +2410,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                             fromAccount: 'trading',
                             toAccount: 'savings',
                             dealType: 'new',
+                            agent: '-',
                             date: new Date().toISOString().split('T')[0]
                           });
                           setShowAddTransaction(true);
@@ -2120,6 +2437,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                             type: 'income',
                             dealType: 'new',
                             account: 'trading',
+                            agent: '-',
                             date: new Date().toISOString().split('T')[0]
                           });
                           setShowAddTransaction(true);
@@ -2132,8 +2450,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       <div className="lg:col-span-2 space-y-6">
-                        <div className="glass rounded-[2.5rem] overflow-hidden">
-                          <table className="w-full text-left border-collapse">
+                        <div className="glass rounded-[2.5rem] overflow-x-auto">
+                          <table className="w-full text-left border-collapse min-w-[800px]">
                             <thead>
                               <tr className="border-bottom border-black/5 bg-black/2">
                                 <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date</th>
@@ -2156,7 +2474,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                     </div>
                                   </td>
                                   <td className="px-6 py-4 text-xs">
-                                    {t.agent.toLowerCase() === 'system' ? '-' : t.agent}
+                                    {getAgentDisplayName(t.agent)}
                                   </td>
                                   <td className="px-6 py-4">
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">
@@ -2165,11 +2483,14 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                   </td>
                                   <td className="px-6 py-4">
                                     <div className="flex items-center gap-2">
-                                      <span className={`px-2 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${t.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                                        {t.type}
+                                      <span className={`px-2 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${
+                                        t.transferGroupId ? 'bg-blue-100 text-blue-600' :
+                                        t.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                                      }`}>
+                                        {t.transferGroupId ? 'transfer' : t.type}
                                       </span>
                                       {t.transferGroupId && (
-                                        <ArrowLeftRight className="w-3 h-3 text-black/20" />
+                                        <ArrowLeftRight className="w-3 h-3 text-blue-400" />
                                       )}
                                     </div>
                                   </td>
@@ -2177,16 +2498,16 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                     {t.type === 'income' ? '+' : '-'}{new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(t.amount)}
                                   </td>
                                   <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex justify-end gap-1 transition-opacity">
                                       <button 
                                         onClick={() => handleEditTransaction(t)}
-                                        className="p-2 text-black/20 hover:text-gold transition-colors"
+                                        className="p-2 text-black/10 hover:text-gold transition-colors"
                                       >
                                         <Edit2 className="w-4 h-4" />
                                       </button>
                                       <button 
                                         onClick={() => setConfirmDeleteTransaction(t)}
-                                        className="p-2 text-black/20 hover:text-red-500 transition-colors"
+                                        className="p-2 text-black/10 hover:text-red-500 transition-colors"
                                       >
                                         <Trash2 className="w-4 h-4" />
                                       </button>
@@ -2219,7 +2540,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               </div>
                               <div className="text-lg font-serif text-green-700">
                                 {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                  filteredFinanceTransactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0)
+                                  filteredFinanceTransactions.filter(t => t.type === 'income' && !t.transferGroupId).reduce((acc, t) => acc + t.amount, 0)
                                 )}
                               </div>
                             </div>
@@ -2232,7 +2553,20 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               </div>
                               <div className="text-lg font-serif text-red-700">
                                 {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                  filteredFinanceTransactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0)
+                                  filteredFinanceTransactions.filter(t => t.type === 'expense' && !t.transferGroupId).reduce((acc, t) => acc + t.amount, 0)
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                                  <ArrowLeftRight className="w-4 h-4" />
+                                </div>
+                                <div className="text-[10px] uppercase tracking-widest font-bold text-blue-600">Total Transfers</div>
+                              </div>
+                              <div className="text-lg font-serif text-blue-700">
+                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                  filteredFinanceTransactions.filter(t => !!t.transferGroupId).reduce((acc, t) => acc + t.amount, 0)
                                 )}
                               </div>
                             </div>
@@ -2385,7 +2719,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">Full Name</label>
                         <input 
                           type="text" 
-                          value={businessInfo.name}
+                          value={businessInfo.name || ''}
                           onChange={e => setBusinessInfo({...businessInfo, name: e.target.value})}
                           className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
                         />
@@ -2394,7 +2728,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">Tagline</label>
                         <input 
                           type="text" 
-                          value={businessInfo.tagline}
+                          value={businessInfo.tagline || ''}
                           onChange={e => setBusinessInfo({...businessInfo, tagline: e.target.value})}
                           className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
                         />
@@ -2403,7 +2737,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">About / Bio</label>
                         <textarea 
                           rows={6}
-                          value={businessInfo.about}
+                          value={businessInfo.about || ''}
                           onChange={e => setBusinessInfo({...businessInfo, about: e.target.value})}
                           className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none resize-none"
                         />
@@ -2569,7 +2903,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Type</label>
                     <select 
-                      value={newTransaction.isTransfer ? 'transfer' : newTransaction.type}
+                      value={newTransaction.isTransfer ? 'transfer' : (newTransaction.type || 'income')}
                       onChange={(e) => {
                         if (e.target.value === 'transfer') {
                           setNewTransaction({ 
@@ -2638,7 +2972,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Deal Type</label>
                   <select 
-                    value={newTransaction.dealType}
+                    value={newTransaction.dealType || 'new'}
                     onChange={(e) => setNewTransaction({ ...newTransaction, dealType: e.target.value as any })}
                     className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
                   >
@@ -2652,7 +2986,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                   <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Date</label>
                   <input 
                     type="date"
-                    value={newTransaction.date}
+                    value={newTransaction.date || ''}
                     onChange={(e) => setNewTransaction({ ...newTransaction, date: e.target.value })}
                     className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
                     required
@@ -2664,7 +2998,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                   <input 
                     type="text"
                     placeholder="e.g. Monthly Rent Payment"
-                    value={newTransaction.description}
+                    value={newTransaction.description || ''}
                     onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
                     className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
                     required
@@ -2677,22 +3011,38 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                     <input 
                       type="number"
                       placeholder="0.00"
-                      value={newTransaction.amount}
-                      onChange={(e) => setNewTransaction({ ...newTransaction, amount: parseFloat(e.target.value) })}
+                      value={newTransaction.amount || ''}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        setNewTransaction({ ...newTransaction, amount: isNaN(val) ? 0 : val });
+                      }}
                       className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
                       required
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Agent</label>
-                    <input 
-                      type="text"
-                      placeholder="Agent Name"
-                      value={newTransaction.agent}
+                    <select 
+                      value={newTransaction.agent || ''}
                       onChange={(e) => setNewTransaction({ ...newTransaction, agent: e.target.value })}
                       className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
                       required
-                    />
+                    >
+                      <option value="-">-</option>
+                      {employees
+                        .filter(emp => {
+                          const targetCompany = financeSubTab === 'ABPC' ? 'Alan Bolton Property Consultants' : 'East Coast Real Estate';
+                          return emp.company === targetCompany;
+                        })
+                        .map((emp) => {
+                          const displayName = emp.name || `${emp.firstName} ${emp.lastName}`;
+                          return (
+                            <option key={emp.uid} value={displayName}>
+                              {displayName}{emp.nickname ? ` (${emp.nickname})` : ''}
+                            </option>
+                          );
+                        })}
+                    </select>
                   </div>
                 </div>
 
@@ -2727,7 +3077,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-2xl bg-white rounded-[40px] p-10 shadow-2xl max-h-[90vh] overflow-y-auto"
             >
-              <h3 className="text-2xl font-serif mb-6">Edit Employee <span className="italic">Details</span></h3>
+              <h3 className="text-2xl font-serif mb-6">{editingEmployee.uid.startsWith('temp_') ? 'Add' : 'Edit'} Employee <span className="italic">Details</span></h3>
               <form onSubmit={handleUpdateEmployee} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -2737,6 +3087,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       value={editingEmployee.firstName || ''}
                       onChange={e => setEditingEmployee({...editingEmployee, firstName: e.target.value, name: `${e.target.value} ${editingEmployee.lastName || ''}`.trim()})}
                       className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                      required
                     />
                   </div>
                   <div>
@@ -2746,7 +3097,31 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       value={editingEmployee.lastName || ''}
                       onChange={e => setEditingEmployee({...editingEmployee, lastName: e.target.value, name: `${editingEmployee.firstName || ''} ${e.target.value}`.trim()})}
                       className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                      required
                     />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Nickname</label>
+                    <input 
+                      type="text" 
+                      value={editingEmployee.nickname || ''}
+                      onChange={e => setEditingEmployee({...editingEmployee, nickname: e.target.value})}
+                      className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Email Address</label>
+                    <input 
+                      type="email" 
+                      value={editingEmployee.email || ''}
+                      onChange={e => setEditingEmployee({...editingEmployee, email: e.target.value})}
+                      className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                      required
+                      disabled={!editingEmployee.uid.startsWith('temp_')}
+                    />
+                    {!editingEmployee.uid.startsWith('temp_') && (
+                      <p className="mt-1 text-[8px] text-black/20 italic">Email cannot be changed once the account is created.</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Company</label>
@@ -2760,13 +3135,17 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           company: selectedCompany ? selectedCompany.name : ''
                         });
                       }}
-                      className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                      className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none disabled:opacity-50"
+                      disabled={userProfile.roles?.includes('manager') && !userProfile.roles?.includes('admin')}
                     >
                       <option value="">Select Company</option>
                       {companies.map(c => (
                         <option key={c.id} value={c.id}>{c.name}</option>
                       ))}
                     </select>
+                    {userProfile.roles?.includes('manager') && !userProfile.roles?.includes('admin') && (
+                      <p className="mt-1 text-[8px] text-black/20 italic">Managers can only manage employees within their own company.</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Position</label>
@@ -2791,11 +3170,19 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                     <div className="flex flex-wrap gap-2 p-3 bg-black/5 rounded-2xl">
                       {['employee', 'manager', 'accounts', 'admin'].map(role => {
                         const isSelected = (editingEmployee.roles || []).includes(role as any);
+                        const isAdminOnly = role === 'admin' || role === 'accounts';
+                        const isManagerOnly = userProfile.roles?.includes('manager') && !userProfile.roles?.includes('admin');
+                        const isDisabled = isManagerOnly && isAdminOnly;
+
                         return (
-                          <label key={role} className="flex items-center gap-2 cursor-pointer group">
+                          <label key={role} className={cn(
+                            "flex items-center gap-2 cursor-pointer group",
+                            isDisabled && "opacity-50 cursor-not-allowed"
+                          )}>
                             <input 
                               type="checkbox"
                               checked={isSelected}
+                              disabled={isDisabled}
                               onChange={(e) => {
                                 const currentRoles = editingEmployee.roles || [];
                                 const newRoles = e.target.checked 
@@ -2888,7 +3275,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                     type="submit"
                     className="flex-1 bg-gold text-black py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gold-dark transition-all"
                   >
-                    Save Changes
+                    {editingEmployee.uid.startsWith('temp_') ? 'Create Account' : 'Save Changes'}
                   </button>
                 </div>
               </form>

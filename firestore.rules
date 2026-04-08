@@ -107,7 +107,7 @@ service cloud.firestore {
              data.description is string &&
              data.amount is number &&
              data.agent is string &&
-             data.dealType in ['new', 'renewal'];
+             data.dealType in ['new', 'renewal', '-'];
     }
 
     function isValidEmail(email) {
@@ -202,18 +202,38 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (
         request.auth.uid == userId || 
         isAdmin() || 
-        isManager() ||
+        (isManager() && (
+          resource == null || 
+          resource.data.get('companyId', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('companyId', '---') ||
+          resource.data.get('company', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('company', '---')
+        )) ||
         (resource != null && (
           (request.auth.token.email != null && resource.data.email == request.auth.token.email) || 
           (request.auth.token.phone_number != null && resource.data.mobile == request.auth.token.phone_number)
         ))
       );
-      allow create: if isAuthenticated() && (request.auth.uid == userId || isAdmin()) && 
-                    isValidUser(request.resource.data) &&
-                    (!('admin' in request.resource.data.get('roles', [])) || request.auth.token.email == "shaneruddle@gmail.com");
+      allow create: if isAuthenticated() && (
+        request.auth.uid == userId || 
+        isAdmin() || 
+        (isManager() && (
+          request.resource.data.get('companyId', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('companyId', '---') ||
+          request.resource.data.get('company', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('company', '---')
+        ) && 
+        !('admin' in request.resource.data.get('roles', [])) && 
+        !('accounts' in request.resource.data.get('roles', [])))
+      ) && isValidUser(request.resource.data) &&
+      (!('admin' in request.resource.data.get('roles', [])) || request.auth.token.email == "shaneruddle@gmail.com");
+      
       allow update: if isAuthenticated() && (
         isAdmin() || 
-        isManager() ||
+        (isManager() && (
+          resource.data.get('companyId', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('companyId', '---') ||
+          resource.data.get('company', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('company', '---')
+        ) && 
+        request.resource.data.get('companyId', '') == resource.data.get('companyId', '') &&
+        request.resource.data.get('company', '') == resource.data.get('company', '') &&
+        !('admin' in request.resource.data.get('roles', [])) && 
+        !('accounts' in request.resource.data.get('roles', []))) ||
         (request.auth.uid == userId && 
          request.resource.data.get('roles', []) == resource.data.get('roles', []) && 
          request.resource.data.get('active', true) == resource.data.get('active', true))
@@ -221,6 +241,7 @@ service cloud.firestore {
       (request.resource.data.get('roles', []) == resource.data.get('roles', []) || isAdmin()) &&
       (request.resource.data.get('active', true) == resource.data.get('active', true) || isAdmin() || isManager()) &&
       (!('admin' in request.resource.data.get('roles', [])) || request.auth.token.email == "shaneruddle@gmail.com");
+      
       allow delete: if isAdmin() || (
         isAuthenticated() && resource != null && (
           (request.auth.token.email != null && resource.data.email == request.auth.token.email) || 

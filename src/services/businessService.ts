@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { fallbackData, BusinessInfo, Company } from "../types";
 import { db, handleFirestoreError, OperationType } from "../firebase";
 import { collection, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
@@ -73,16 +73,30 @@ export async function getBusinessInfo(): Promise<BusinessInfo> {
       contents: `Research Shane Ruddle's background and core values in Pattaya. 
       
       Provide a concise summary of his background, tagline, and core values. 
-      Write it in the first person (from Shane Ruddle's perspective).
-      
-      Output JSON: { "name": string, "tagline": string, "about": string, "values": string[] }`,
+      Write it in the first person (from Shane Ruddle's perspective).`,
       config: {
         tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            name: { type: Type.STRING },
+            tagline: { type: Type.STRING },
+            about: { type: Type.STRING },
+            values: { type: Type.ARRAY, items: { type: Type.STRING } }
+          },
+          required: ["name", "tagline", "about", "values"]
+        }
       },
     });
 
-    const result = JSON.parse(response.text);
+    let jsonStr = response.text || "";
+    // Clean up potential markdown or extra text
+    const jsonMatch = jsonStr.match(/```json\s*([\s\S]*?)\s*```/) || jsonStr.match(/```\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1];
+    }
+    const result = JSON.parse(jsonStr.trim());
     
     // Merge with Firestore companies or use fallbacks if Firestore was empty
     const finalData: BusinessInfo = {
