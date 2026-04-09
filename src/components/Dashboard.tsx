@@ -2532,8 +2532,177 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                     </div>
                   </div>
                 ) : financeSubTab === 'ABPC' ? (
-                  <div className="flex flex-col lg:flex-row gap-8 items-start">
-                    <div className="flex-1 w-full space-y-8">
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      {/* Filters Panel */}
+                      <div className="lg:col-span-1 glass p-6 rounded-3xl space-y-4">
+                        <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-black/40 mb-2">Filters</h4>
+                        <div className="space-y-3">
+                          <div className="relative">
+                            <Search className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-black/20" />
+                            <input 
+                              type="text"
+                              placeholder="Search descriptions..."
+                              value={financeSearchTerm}
+                              onChange={(e) => setFinanceSearchTerm(e.target.value)}
+                              className="w-full bg-black/5 border-none rounded-xl pl-8 pr-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <select 
+                              value={financeYearFilter}
+                              onChange={(e) => {
+                                setFinanceYearFilter(e.target.value);
+                                setFinanceMonthFilter('all');
+                              }}
+                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            >
+                              <option value="all">All Years</option>
+                              {financeYears.map(year => (
+                                <option key={year} value={year}>{year}</option>
+                              ))}
+                            </select>
+                            <select 
+                              value={financeMonthFilter}
+                              onChange={(e) => setFinanceMonthFilter(e.target.value)}
+                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            >
+                              <option value="all">All Months</option>
+                              {financeMonths.map(month => (
+                                <option key={month} value={month}>{new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <select 
+                            value={financeAgentFilter}
+                            onChange={(e) => setFinanceAgentFilter(e.target.value)}
+                            className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                          >
+                            <option value="all">All Agents</option>
+                            {financeAgents.map(agent => (
+                              <option key={agent} value={agent}>{getAgentDisplayName(agent)}</option>
+                            ))}
+                          </select>
+                          <div className="grid grid-cols-2 gap-2">
+                            <select 
+                              value={financeAccountFilter}
+                              onChange={(e) => setFinanceAccountFilter(e.target.value)}
+                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            >
+                              <option value="trading">Trading</option>
+                              {!financeSubTab.startsWith('ABPC') && <option value="savings">Savings</option>}
+                            </select>
+                            <select 
+                              value={financeTypeFilter}
+                              onChange={(e) => setFinanceTypeFilter(e.target.value)}
+                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            >
+                              <option value="all">All Types</option>
+                              <option value="income">Income</option>
+                              <option value="expense">Expense</option>
+                              {!financeSubTab.startsWith('ABPC') && <option value="transfer">Transfer</option>}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Summary Panel */}
+                      <div className="lg:col-span-2 glass p-6 rounded-3xl">
+                        <div className="flex items-center justify-between mb-6">
+                          <div>
+                            <h4 className="text-lg font-serif text-black">Financial Summary</h4>
+                            <p className="text-[9px] text-black/40 uppercase tracking-widest mt-0.5">{financeSubTab}</p>
+                          </div>
+                          <div className="px-3 py-1 bg-black/5 rounded-lg border border-black/5">
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-black/40">
+                              {financeMonthFilter === 'all' ? 'All Time' : new Date(financeMonthFilter + '-01').toLocaleString('default', { month: 'short', year: 'numeric' })}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                          {/* Income */}
+                          <div className="flex items-center justify-between p-3 bg-green-50/50 rounded-xl border border-green-100/50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center text-white shadow-sm">
+                                <TrendingUp className="w-4 h-4" />
+                              </div>
+                              <span className="text-xs font-bold text-green-700 uppercase tracking-wider">Income</span>
+                            </div>
+                            <span className="text-sm font-serif text-green-700">
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.filter(t => t.type === 'income' && !t.transferGroupId).reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Expenses */}
+                          <div className="flex items-center justify-between p-3 bg-red-50/50 rounded-xl border border-red-100/50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center text-white shadow-sm">
+                                <TrendingDown className="w-4 h-4" />
+                              </div>
+                              <span className="text-xs font-bold text-red-700 uppercase tracking-wider">Expenses</span>
+                            </div>
+                            <span className="text-sm font-serif text-red-700">
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.filter(t => t.type === 'expense' && !t.transferGroupId).reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Transfers In */}
+                          <div className="flex items-center justify-between p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white shadow-sm">
+                                <ArrowDownLeft className="w-4 h-4" />
+                              </div>
+                              <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Transfers In</span>
+                            </div>
+                            <span className="text-sm font-serif text-blue-700">
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'income').reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Transfers Out */}
+                          <div className="flex items-center justify-between p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white shadow-sm">
+                                <ArrowUpRight className="w-4 h-4" />
+                              </div>
+                              <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Transfers Out</span>
+                            </div>
+                            <span className="text-sm font-serif text-indigo-700">
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'expense').reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Net Balance */}
+                          <div className="flex items-center justify-between p-3 bg-black/5 rounded-xl border border-black/10">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center text-white shadow-sm">
+                                <DollarSign className="w-4 h-4" />
+                              </div>
+                              <span className="text-xs font-bold text-black/60 uppercase tracking-wider">Net Balance</span>
+                            </div>
+                            <span className={`text-sm font-serif ${
+                              filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? (Number(t.amount) || 0) : -(Number(t.amount) || 0)), 0) >= 0 
+                              ? 'text-gold' : 'text-red-500'
+                            }`}>
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? (Number(t.amount) || 0) : -(Number(t.amount) || 0)), 0)
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="w-full space-y-8">
                       <div className="flex justify-end gap-3">
                         <button 
                           onClick={() => {
@@ -2629,10 +2798,12 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         </table>
                       </div>
                     </div>
-
-                    <div className="w-full lg:w-[350px] space-y-6 lg:sticky lg:top-8">
+                  </div>
+                ) : (
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                       {/* Filters Panel */}
-                      <div className="glass p-6 rounded-3xl space-y-4">
+                      <div className="lg:col-span-1 glass p-6 rounded-3xl space-y-4">
                         <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-black/40 mb-2">Filters</h4>
                         <div className="space-y-3">
                           <div className="relative">
@@ -2704,7 +2875,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       </div>
 
                       {/* Summary Panel */}
-                      <div className="glass p-6 rounded-3xl">
+                      <div className="lg:col-span-2 glass p-6 rounded-3xl">
                         <div className="flex items-center justify-between mb-6">
                           <div>
                             <h4 className="text-lg font-serif text-black">Financial Summary</h4>
@@ -2717,7 +2888,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           </div>
                         </div>
                         
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                           {/* Income */}
                           <div className="flex items-center justify-between p-3 bg-green-50/50 rounded-xl border border-green-100/50">
                             <div className="flex items-center gap-3">
@@ -2779,7 +2950,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           </div>
 
                           {/* Net Balance */}
-                          <div className="flex items-center justify-between p-3 bg-black/5 rounded-xl border border-black/10 mt-2">
+                          <div className="flex items-center justify-between p-3 bg-black/5 rounded-xl border border-black/10">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center text-white shadow-sm">
                                 <DollarSign className="w-4 h-4" />
@@ -2798,10 +2969,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         </div>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col lg:flex-row gap-8 items-start">
-                    <div className="flex-1 w-full space-y-8">
+
+                    <div className="w-full space-y-8">
                       <div className="flex justify-end gap-3">
                         {!financeSubTab.startsWith('ABPC') && (
                           <button 
@@ -2915,175 +3084,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                             )}
                           </tbody>
                         </table>
-                      </div>
-                    </div>
-
-                    <div className="w-full lg:w-[350px] space-y-6 lg:sticky lg:top-8">
-                      {/* Filters Panel */}
-                      <div className="glass p-6 rounded-3xl space-y-4">
-                        <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-black/40 mb-2">Filters</h4>
-                        <div className="space-y-3">
-                          <div className="relative">
-                            <Search className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-black/20" />
-                            <input 
-                              type="text"
-                              placeholder="Search descriptions..."
-                              value={financeSearchTerm}
-                              onChange={(e) => setFinanceSearchTerm(e.target.value)}
-                              className="w-full bg-black/5 border-none rounded-xl pl-8 pr-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <select 
-                              value={financeYearFilter}
-                              onChange={(e) => {
-                                setFinanceYearFilter(e.target.value);
-                                setFinanceMonthFilter('all');
-                              }}
-                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
-                            >
-                              <option value="all">All Years</option>
-                              {financeYears.map(year => (
-                                <option key={year} value={year}>{year}</option>
-                              ))}
-                            </select>
-                            <select 
-                              value={financeMonthFilter}
-                              onChange={(e) => setFinanceMonthFilter(e.target.value)}
-                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
-                            >
-                              <option value="all">All Months</option>
-                              {financeMonths.map(month => (
-                                <option key={month} value={month}>{new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <select 
-                            value={financeAgentFilter}
-                            onChange={(e) => setFinanceAgentFilter(e.target.value)}
-                            className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
-                          >
-                            <option value="all">All Agents</option>
-                            {financeAgents.map(agent => (
-                              <option key={agent} value={agent}>{getAgentDisplayName(agent)}</option>
-                            ))}
-                          </select>
-                          <div className="grid grid-cols-2 gap-2">
-                            <select 
-                              value={financeAccountFilter}
-                              onChange={(e) => setFinanceAccountFilter(e.target.value)}
-                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
-                            >
-                              <option value="trading">Trading</option>
-                              {!financeSubTab.startsWith('ABPC') && <option value="savings">Savings</option>}
-                            </select>
-                            <select 
-                              value={financeTypeFilter}
-                              onChange={(e) => setFinanceTypeFilter(e.target.value)}
-                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
-                            >
-                              <option value="all">All Types</option>
-                              <option value="income">Income</option>
-                              <option value="expense">Expense</option>
-                              {!financeSubTab.startsWith('ABPC') && <option value="transfer">Transfer</option>}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Summary Panel */}
-                      <div className="glass p-6 rounded-3xl">
-                        <div className="flex items-center justify-between mb-6">
-                          <div>
-                            <h4 className="text-lg font-serif text-black">Financial Summary</h4>
-                            <p className="text-[9px] text-black/40 uppercase tracking-widest mt-0.5">{financeSubTab}</p>
-                          </div>
-                          <div className="px-3 py-1 bg-black/5 rounded-lg border border-black/5">
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-black/40">
-                              {financeMonthFilter === 'all' ? 'All Time' : new Date(financeMonthFilter + '-01').toLocaleString('default', { month: 'short', year: 'numeric' })}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          {/* Income */}
-                          <div className="flex items-center justify-between p-3 bg-green-50/50 rounded-xl border border-green-100/50">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center text-white shadow-sm">
-                                <TrendingUp className="w-4 h-4" />
-                              </div>
-                              <span className="text-xs font-bold text-green-700 uppercase tracking-wider">Income</span>
-                            </div>
-                            <span className="text-sm font-serif text-green-700">
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                filteredFinanceTransactions.filter(t => t.type === 'income' && !t.transferGroupId).reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
-                              )}
-                            </span>
-                          </div>
-
-                          {/* Expenses */}
-                          <div className="flex items-center justify-between p-3 bg-red-50/50 rounded-xl border border-red-100/50">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center text-white shadow-sm">
-                                <TrendingDown className="w-4 h-4" />
-                              </div>
-                              <span className="text-xs font-bold text-red-700 uppercase tracking-wider">Expenses</span>
-                            </div>
-                            <span className="text-sm font-serif text-red-700">
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                filteredFinanceTransactions.filter(t => t.type === 'expense' && !t.transferGroupId).reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
-                              )}
-                            </span>
-                          </div>
-
-                          {/* Transfers In */}
-                          <div className="flex items-center justify-between p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white shadow-sm">
-                                <ArrowDownLeft className="w-4 h-4" />
-                              </div>
-                              <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Transfers In</span>
-                            </div>
-                            <span className="text-sm font-serif text-blue-700">
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'income').reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
-                              )}
-                            </span>
-                          </div>
-
-                          {/* Transfers Out */}
-                          <div className="flex items-center justify-between p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white shadow-sm">
-                                <ArrowUpRight className="w-4 h-4" />
-                              </div>
-                              <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Transfers Out</span>
-                            </div>
-                            <span className="text-sm font-serif text-indigo-700">
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'expense').reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
-                              )}
-                            </span>
-                          </div>
-
-                          {/* Net Balance */}
-                          <div className="flex items-center justify-between p-3 bg-black/5 rounded-xl border border-black/10 mt-2">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center text-white shadow-sm">
-                                <DollarSign className="w-4 h-4" />
-                              </div>
-                              <span className="text-xs font-bold text-black/60 uppercase tracking-wider">Net Balance</span>
-                            </div>
-                            <span className={`text-sm font-serif ${
-                              filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? (Number(t.amount) || 0) : -(Number(t.amount) || 0)), 0) >= 0 
-                              ? 'text-gold' : 'text-red-500'
-                            }`}>
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? (Number(t.amount) || 0) : -(Number(t.amount) || 0)), 0)
-                              )}
-                            </span>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
