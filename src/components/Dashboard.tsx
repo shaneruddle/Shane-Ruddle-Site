@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 import { db, auth, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog, DBCompany, BlogPost, FinanceTransaction } from '../firebase';
 import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy } from 'firebase/firestore';
-import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search } from 'lucide-react';
+import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown } from 'lucide-react';
 import { migrateData } from '../services/migrationService';
 import { getBusinessInfo, saveBusinessInfo } from '../services/businessService';
 import { BusinessInfo } from '../types';
@@ -73,6 +73,11 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [isSeedingCompanies, setIsSeedingCompanies] = useState(false);
   const [compSeedStatus, setCompSeedStatus] = useState<'idle' | 'confirming' | 'success' | 'error'>('idle');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [showABPCMapping, setShowABPCMapping] = useState(false);
+  const [pendingABPCData, setPendingABPCData] = useState<any[]>([]);
+  const [uniqueABPCAgents, setUniqueABPCAgents] = useState<string[]>([]);
+  const [agentMapping, setAgentMapping] = useState<Record<string, string>>({});
+  const [isImportingABPC, setIsImportingABPC] = useState(false);
 
   const [showEditBlog, setShowEditBlog] = useState(false);
   const [editingBlog, setEditingBlog] = useState<Partial<BlogPost> | null>(null);
@@ -376,7 +381,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     const usersCollection = collection(db, 'users');
     let usersQuery;
 
-    if (userProfile.roles?.includes('admin')) {
+    if (userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts')) {
       usersQuery = usersCollection;
     } else if (userProfile.roles?.includes('manager')) {
       // Filter by companyId or company name
@@ -754,6 +759,18 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
           ...editingEmployee,
           updatedAt: serverTimestamp()
         });
+
+        // Log employee update
+        await addDoc(collection(db, 'usage_logs'), {
+          userId: auth.currentUser?.uid,
+          userName: userProfile.name || 'Unknown',
+          userEmail: auth.currentUser?.email || 'Unknown',
+          userCompany: userProfile.company || 'Unknown',
+          type: 'employee_update',
+          details: `Updated employee profile: ${editingEmployee.name || editingEmployee.email} (${editingEmployee.uid})`,
+          timestamp: serverTimestamp()
+        });
+
         toast.success('Employee updated successfully');
       }
       setShowEditEmployee(false);
@@ -867,12 +884,159 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         updatedAt: serverTimestamp()
       };
       await updateDoc(doc(db, 'users', auth.currentUser.uid), updateData);
+
+      // Log profile update
+      await addDoc(collection(db, 'usage_logs'), {
+        userId: auth.currentUser.uid,
+        userName: userProfile.name || 'Unknown',
+        userEmail: auth.currentUser.email || 'Unknown',
+        userCompany: userProfile.company || 'Unknown',
+        type: 'profile_update',
+        details: 'User updated their personal profile',
+        timestamp: serverTimestamp()
+      });
+
       toast.success("Personal profile updated successfully");
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `users/${auth.currentUser.uid}`);
       toast.error("Failed to update personal profile");
     } finally {
       setSavingPersonalProfile(false);
+    }
+  };
+
+  const handleABPCUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingCSV(true);
+    const toastId = toast.loading('Parsing ABPC data...');
+
+    Papa.parse(file, {
+      complete: async (results) => {
+        try {
+          // Skip header and empty rows (first 2 rows)
+          const dataRows = results.data.slice(2) as string[][];
+          const agents = new Set<string>();
+          
+          dataRows.forEach(row => {
+            const agent = row[4]?.trim();
+            if (agent && agent !== '-' && agent !== 'System') {
+              agents.add(agent);
+            }
+          });
+
+          const initialMapping: { [key: string]: string } = {};
+          agents.forEach(agentName => {
+            const matchedUser = users.find(u => {
+              if (u.company !== 'Alan Bolton Property Consultants') return false;
+              const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
+              return fullName === agentName.toLowerCase() || 
+                     (u.firstName && u.firstName.toLowerCase() === agentName.toLowerCase()) ||
+                     (u.lastName && u.lastName.toLowerCase() === agentName.toLowerCase());
+            });
+            if (matchedUser) {
+              initialMapping[agentName] = matchedUser.uid;
+            }
+          });
+
+          setPendingABPCData(dataRows);
+          setUniqueABPCAgents(Array.from(agents).sort());
+          setAgentMapping(initialMapping);
+          setShowABPCMapping(true);
+          toast.dismiss(toastId);
+        } catch (err) {
+          toast.error('Failed to parse ABPC data');
+          console.error(err);
+        } finally {
+          setIsUploadingCSV(false);
+          if (e.target) e.target.value = '';
+        }
+      }
+    });
+  };
+
+  const executeABPCImport = async () => {
+    setIsImportingABPC(true);
+    const toastId = toast.loading('Importing ABPC data...');
+    let importedCount = 0;
+    let errorCount = 0;
+
+    try {
+      for (const row of pendingABPCData) {
+        if (!row[1] || !row[2]) continue;
+
+        const dateStr = row[1].trim();
+        const description = row[2].trim();
+        const dealTypeRaw = row[3]?.trim().toLowerCase();
+        const rawAgent = row[4]?.trim() || 'System';
+        const expenseRaw = row[5]?.trim().replace(/,/g, '').replace(/"/g, '');
+        const incomeRaw = row[6]?.trim().replace(/,/g, '').replace(/"/g, '');
+
+        const expense = parseFloat(expenseRaw) || 0;
+        const income = parseFloat(incomeRaw) || 0;
+
+        if (expense === 0 && income === 0) continue;
+
+        const type = income > 0 ? 'income' : 'expense';
+        const amount = income > 0 ? income : expense;
+        const dealType = dealTypeRaw?.includes('new') ? 'new' : 'renewal';
+
+        // Map the agent
+        const mappedUserId = agentMapping[rawAgent];
+        let agentName = rawAgent;
+        let agentId = null;
+
+        if (mappedUserId === 'no-agent') {
+          agentName = '-';
+          agentId = null;
+        } else if (mappedUserId) {
+          const mappedUser = users.find(u => u.uid === mappedUserId);
+          if (mappedUser) {
+            agentName = `${mappedUser.firstName} ${mappedUser.lastName}`;
+            agentId = mappedUserId;
+          }
+        }
+
+        let formattedDate = dateStr;
+        const dateParts = dateStr.split('/');
+        if (dateParts.length === 3) {
+          const day = dateParts[0].padStart(2, '0');
+          const month = dateParts[1].padStart(2, '0');
+          const year = dateParts[2];
+          formattedDate = `${year}-${month}-${day}`;
+        }
+
+        try {
+          await addDoc(collection(db, 'finance'), {
+            section: 'ABPC',
+            type,
+            account: 'trading',
+            date: formattedDate,
+            description,
+            amount,
+            agent: agentName,
+            agentId: mappedUserId || null,
+            dealType,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            createdBy: auth.currentUser?.uid
+          });
+          importedCount++;
+        } catch (err) {
+          errorCount++;
+        }
+      }
+
+      toast.success(`Import complete: ${importedCount} entries imported, ${errorCount} errors`, { id: toastId });
+      setShowABPCMapping(false);
+      setPendingABPCData([]);
+      setUniqueABPCAgents([]);
+      setAgentMapping({});
+    } catch (err) {
+      toast.error('Import failed', { id: toastId });
+    } finally {
+      setIsImportingABPC(false);
     }
   };
 
@@ -923,7 +1087,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
             try {
               await addDoc(collection(db, 'finance'), {
-                section: 'ECRE',
+                section: (financeSubTab as string).startsWith('ABPC') ? 'ABPC' : 'ECRE',
                 type,
                 account: 'trading',
                 date: formattedDate,
@@ -1215,7 +1379,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     }
     
     return months.map(month => {
-      const income = financeTransactions.filter(t => {
+      const transactions = financeTransactions.filter(t => {
         let normalizedAgent = t.agent;
         if (t.agent === 'Cap') normalizedAgent = 'Arnon Surison';
         if (t.agent === 'MP') normalizedAgent = 'Management Pot';
@@ -1227,10 +1391,26 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         if (t.agent === 'Aunt') normalizedAgent = 'Aunt Srisawat';
         if (t.agent === 'Sho') normalizedAgent = 'Sho';
         
-        return normalizedAgent === agentName && t.type === 'income' && t.date.startsWith(month);
-      }).reduce((acc, t) => acc + t.amount, 0);
+        return normalizedAgent === agentName && t.date.startsWith(month);
+      });
+
+      const income = transactions
+        .filter(t => t.type === 'income' && !t.transferGroupId)
+        .reduce((acc, t) => acc + t.amount, 0);
       
-      return { month, income };
+      const expenses = transactions
+        .filter(t => t.type === 'expense' && !t.transferGroupId)
+        .reduce((acc, t) => acc + t.amount, 0);
+
+      const transfersIn = transactions
+        .filter(t => !!t.transferGroupId && t.type === 'income')
+        .reduce((acc, t) => acc + t.amount, 0);
+
+      const transfersOut = transactions
+        .filter(t => !!t.transferGroupId && t.type === 'expense')
+        .reduce((acc, t) => acc + t.amount, 0);
+      
+      return { month, income, expenses, transfersIn, transfersOut };
     });
   };
 
@@ -1255,7 +1435,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         (financeAgentFilter === 'Sho' && t.agent === 'Sho');
     const matchesMonth = financeMonthFilter === 'all' || t.date.startsWith(financeMonthFilter);
     const matchesAccount = (t.account || 'trading') === financeAccountFilter;
-    const matchesType = financeTypeFilter === 'all' || 
+    const matchesType = financeTypeFilter === 'all' ? 
+                       (financeSubTab.startsWith('ABPC') ? !t.transferGroupId : true) : 
                        (financeTypeFilter === 'transfer' ? !!t.transferGroupId : 
                        (financeTypeFilter === t.type && !t.transferGroupId));
     const matchesSearch = !financeSearchTerm || t.description.toLowerCase().includes(financeSearchTerm.toLowerCase());
@@ -1311,8 +1492,17 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
           width: isSidebarCollapsed ? 80 : 288,
           padding: isSidebarCollapsed ? '24px 12px' : '32px'
         }}
-        className="hidden md:flex bg-white border-r border-black/5 flex-col h-screen sticky top-0 z-50 overflow-hidden"
+        className="hidden md:flex bg-white border-r border-black/5 flex-col h-screen sticky top-0 z-50 relative overflow-visible"
       >
+        {/* Collapse Button on Edge */}
+        <button 
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          className="absolute -right-3 top-24 w-6 h-6 bg-white border border-black/5 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all z-[60] text-black/40 hover:text-black hover:scale-110"
+          title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          {isSidebarCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+        </button>
+
         <div className={`mb-12 transition-all duration-300 ${isSidebarCollapsed ? 'opacity-0 invisible h-0 mb-0' : 'opacity-100 visible'}`}>
           <button onClick={onBack} className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-black/40 hover:text-gold transition-colors mb-8 whitespace-nowrap">
             <ArrowLeft className="w-4 h-4" /> Back to Portfolio
@@ -1324,14 +1514,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         <div className={`mb-8 flex justify-center transition-all duration-300 ${isSidebarCollapsed ? 'opacity-100 visible' : 'opacity-0 invisible h-0 mb-0'}`}>
           <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center text-gold font-serif text-xl">A</div>
         </div>
-
-        <button 
-          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          className={`flex items-center justify-center w-10 h-10 rounded-xl bg-black/5 hover:bg-black/10 text-black/40 hover:text-black transition-all mb-6 ${isSidebarCollapsed ? 'mx-auto' : 'ml-4'}`}
-          title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-        >
-          {isSidebarCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
-        </button>
 
         <nav className="flex flex-col gap-2 flex-grow overflow-y-auto pr-2 custom-scrollbar overflow-x-hidden">
           {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('manager')) && (
@@ -1379,10 +1561,10 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'logs' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
               >
                 <History className="w-4 h-4 shrink-0" />
-                <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Usage Logs</span>
+                <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>System Logs</span>
                 {isSidebarCollapsed && (
                   <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                    Usage Logs
+                    System Logs
                   </div>
                 )}
               </button>
@@ -1401,18 +1583,72 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
             </>
           )}
           {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts')) && (
-            <button 
-              onClick={() => setActiveTab('finance')}
-              className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'finance' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-            >
-              <DollarSign className="w-4 h-4 shrink-0" />
-              <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Finance</span>
-              {isSidebarCollapsed && (
-                <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                  Finance
+            <div className="flex flex-col">
+              <button 
+                onClick={() => setActiveTab('finance')}
+                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'finance' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+              >
+                <DollarSign className="w-4 h-4 shrink-0" />
+                <span className={`transition-all duration-300 whitespace-nowrap flex-grow ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Finance</span>
+                {!isSidebarCollapsed && (
+                  <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${activeTab === 'finance' ? 'rotate-180' : ''}`} />
+                )}
+                {isSidebarCollapsed && (
+                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                    Finance
+                  </div>
+                )}
+              </button>
+              
+              {!isSidebarCollapsed && activeTab === 'finance' && (
+                <div className="ml-11 flex flex-col gap-1 mt-1 mb-4">
+                  {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.company === 'Alan Bolton Property Consultants') && (
+                    <>
+                      <button 
+                        onClick={() => {
+                          setFinanceSubTab('ABPC');
+                          setSelectedIndividualAgent('');
+                        }}
+                        className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ABPC' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
+                      >
+                        ABPC
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setFinanceSubTab('ABPC Agents');
+                          setSelectedIndividualAgent('');
+                        }}
+                        className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ABPC Agents' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
+                      >
+                        ABPC Agents
+                      </button>
+                    </>
+                  )}
+                  {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.company === 'East Coast Real Estate') && (
+                    <>
+                      <button 
+                        onClick={() => {
+                          setFinanceSubTab('ECRE');
+                          setSelectedIndividualAgent('');
+                        }}
+                        className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ECRE' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
+                      >
+                        ECRE
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setFinanceSubTab('ECRE Agents');
+                          setSelectedIndividualAgent('');
+                        }}
+                        className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ECRE Agents' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
+                      >
+                        ECRE Agents
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
-            </button>
+            </div>
           )}
           <button 
             onClick={() => setActiveTab('profile')}
@@ -1822,7 +2058,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 exit={{ opacity: 0, y: -10 }}
               >
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-serif">Usage Logs</h3>
+                  <h3 className="text-xl font-serif">System Logs</h3>
                   <div className="flex gap-2">
                     <div className="relative">
                       <Search className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-black/20" />
@@ -1886,7 +2122,9 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           <td className="px-6 py-4">
                             <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
                               log.type === 'login' ? 'bg-blue-100 text-blue-600' : 
+                              log.type === 'signup' ? 'bg-green-100 text-green-600' :
                               log.type?.startsWith('finance_') ? 'bg-purple-100 text-purple-600' :
+                              log.type?.includes('_update') ? 'bg-amber-100 text-amber-600' :
                               'bg-gold/10 text-gold'
                             }`}>
                               {(log.type || 'redemption').replace('_', ' ')}
@@ -1895,7 +2133,11 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           <td className="px-6 py-4 text-xs">
                             {log.type === 'login' ? (
                               <span className="text-black/60 italic">User logged in to the application</span>
+                            ) : log.type === 'signup' ? (
+                              <span className="text-black/60">{log.details || 'New user registered'}</span>
                             ) : log.type?.startsWith('finance_') ? (
+                              <span className="text-black/60">{log.details}</span>
+                            ) : log.type?.includes('_update') ? (
                               <span className="text-black/60">{log.details}</span>
                             ) : (
                               <div>
@@ -1909,7 +2151,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       {logs.length === 0 && (
                         <tr>
                           <td colSpan={4} className="py-24 text-center text-black/40 italic text-sm">
-                            No usage logs found.
+                            No system logs found.
                           </td>
                         </tr>
                       )}
@@ -2034,7 +2276,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               </motion.div>
             )}
 
-            {activeTab === 'finance' && userProfile.roles?.includes('accounts') && (
+            {activeTab === 'finance' && (userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts')) && (
               <motion.div 
                 key="finance"
                 initial={{ opacity: 0, y: 10 }}
@@ -2046,54 +2288,56 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                     <h3 className="text-2xl font-serif">Finance Management</h3>
                     <p className="text-black/40 text-xs">Track incomes and expenses for ABPC and ECRE</p>
                   </div>
+
+                  {/* Mobile Finance Sub-tabs */}
+                  <div className="md:hidden flex bg-black/5 p-1 rounded-xl mb-6 overflow-x-auto no-scrollbar">
+                    {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.company === 'Alan Bolton Property Consultants') && (
+                      <>
+                        <button 
+                          onClick={() => {
+                            setFinanceSubTab('ABPC');
+                            setSelectedIndividualAgent('');
+                          }}
+                          className={`px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${financeSubTab === 'ABPC' ? 'bg-white text-gold shadow-sm' : 'text-black/40'}`}
+                        >
+                          ABPC
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setFinanceSubTab('ABPC Agents');
+                            setSelectedIndividualAgent('');
+                          }}
+                          className={`px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${financeSubTab === 'ABPC Agents' ? 'bg-white text-gold shadow-sm' : 'text-black/40'}`}
+                        >
+                          ABPC Agents
+                        </button>
+                      </>
+                    )}
+                    {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.company === 'East Coast Real Estate') && (
+                      <>
+                        <button 
+                          onClick={() => {
+                            setFinanceSubTab('ECRE');
+                            setSelectedIndividualAgent('');
+                          }}
+                          className={`px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${financeSubTab === 'ECRE' ? 'bg-white text-gold shadow-sm' : 'text-black/40'}`}
+                        >
+                          ECRE
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setFinanceSubTab('ECRE Agents');
+                            setSelectedIndividualAgent('');
+                          }}
+                          className={`px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${financeSubTab === 'ECRE Agents' ? 'bg-white text-gold shadow-sm' : 'text-black/40'}`}
+                        >
+                          ECRE Agents
+                        </button>
+                      </>
+                    )}
+                  </div>
+
                   <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex bg-black/5 p-1 rounded-xl">
-                      {(userProfile.roles?.includes('admin') || userProfile.company === 'Alan Bolton Property Consultants') && (
-                        <>
-                          <button 
-                            onClick={() => {
-                              setFinanceSubTab('ABPC');
-                              setSelectedIndividualAgent('');
-                            }}
-                            className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ABPC' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
-                          >
-                            ABPC
-                          </button>
-                          <button 
-                            onClick={() => {
-                              setFinanceSubTab('ABPC Agents');
-                              setSelectedIndividualAgent('');
-                            }}
-                            className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ABPC Agents' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
-                          >
-                            ABPC Agents
-                          </button>
-                        </>
-                      )}
-                      {(userProfile.roles?.includes('admin') || userProfile.company === 'East Coast Real Estate') && (
-                        <>
-                          <button 
-                            onClick={() => {
-                              setFinanceSubTab('ECRE');
-                              setSelectedIndividualAgent('');
-                            }}
-                            className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ECRE' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
-                          >
-                            ECRE
-                          </button>
-                          <button 
-                            onClick={() => {
-                              setFinanceSubTab('ECRE Agents');
-                              setSelectedIndividualAgent('');
-                            }}
-                            className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ECRE Agents' ? 'bg-white text-gold shadow-sm' : 'text-black/40 hover:text-black/60'}`}
-                          >
-                            ECRE Agents
-                          </button>
-                        </>
-                      )}
-                    </div>
-                    
                     {(financeSubTab === 'ABPC' || financeSubTab === 'ECRE') && (
                       <div className="flex gap-2">
                         <div className="relative">
@@ -2132,7 +2376,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           className="bg-black/5 border-none rounded-xl px-4 py-2 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
                         >
                           <option value="trading">Trading</option>
-                          <option value="savings">Savings</option>
+                          {!financeSubTab.startsWith('ABPC') && <option value="savings">Savings</option>}
                         </select>
                         <select 
                           value={financeTypeFilter}
@@ -2142,7 +2386,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           <option value="all">All Types</option>
                           <option value="income">Income</option>
                           <option value="expense">Expense</option>
-                          <option value="transfer">Transfer</option>
+                          {!financeSubTab.startsWith('ABPC') && <option value="transfer">Transfer</option>}
                         </select>
                       </div>
                     )}
@@ -2268,12 +2512,20 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       </div>
 
                       {selectedIndividualAgent ? (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left border-collapse">
+                        <div className="overflow-x-auto [transform:rotateX(180deg)]">
+                          <table className="w-full text-left border-collapse [transform:rotateX(180deg)]">
                             <thead>
                               <tr className="border-bottom border-black/5 bg-black/2">
                                 <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Month</th>
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Total Income</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Income</th>
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Expenses</th>
+                                {!financeSubTab.startsWith('ABPC') && (
+                                  <>
+                                    <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Transfers In</th>
+                                    <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Transfers Out</th>
+                                  </>
+                                )}
+                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Net</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -2282,8 +2534,28 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                   <td className="px-6 py-4 text-sm font-medium">
                                     {new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                                   </td>
-                                  <td className="px-6 py-4 text-sm font-bold text-right text-gold">
+                                  <td className="px-6 py-4 text-sm font-bold text-right text-green-600">
                                     {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(item.income)}
+                                  </td>
+                                  <td className="px-6 py-4 text-sm font-bold text-right text-red-600">
+                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(item.expenses)}
+                                  </td>
+                                  {!financeSubTab.startsWith('ABPC') && (
+                                    <>
+                                      <td className="px-6 py-4 text-sm font-bold text-right text-blue-600">
+                                        {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(item.transfersIn)}
+                                      </td>
+                                      <td className="px-6 py-4 text-sm font-bold text-right text-indigo-600">
+                                        {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(item.transfersOut)}
+                                      </td>
+                                    </>
+                                  )}
+                                  <td className={`px-6 py-4 text-sm font-bold text-right ${
+                                    (item.income + (financeSubTab.startsWith('ABPC') ? 0 : item.transfersIn) - item.expenses - (financeSubTab.startsWith('ABPC') ? 0 : item.transfersOut)) >= 0 ? 'text-gold' : 'text-red-500'
+                                  }`}>
+                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                      item.income + (financeSubTab.startsWith('ABPC') ? 0 : item.transfersIn) - item.expenses - (financeSubTab.startsWith('ABPC') ? 0 : item.transfersOut)
+                                    )}
                                   </td>
                                 </tr>
                               ))}
@@ -2300,24 +2572,26 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 ) : financeSubTab === 'ABPC' ? (
                   <div className="space-y-8">
                     <div className="flex justify-end gap-3">
-                      <button 
-                        onClick={() => {
-                          setEditingTransaction(null);
-                          setNewTransaction({
-                            type: 'expense',
-                            isTransfer: true,
-                            fromAccount: 'trading',
-                            toAccount: 'savings',
-                            dealType: 'new',
-                            agent: '-',
-                            date: new Date().toISOString().split('T')[0]
-                          });
-                          setShowAddTransaction(true);
-                        }}
-                        className="bg-black text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/90 transition-all flex items-center gap-2 shadow-lg shadow-black/20"
-                      >
-                        <ArrowLeftRight className="w-4 h-4" /> Transfer Funds
-                      </button>
+                      {!financeSubTab.startsWith('ABPC') && (
+                        <button 
+                          onClick={() => {
+                            setEditingTransaction(null);
+                            setNewTransaction({
+                              type: 'expense',
+                              isTransfer: true,
+                              fromAccount: 'trading',
+                              toAccount: 'savings',
+                              dealType: 'new',
+                              agent: '-',
+                              date: new Date().toISOString().split('T')[0]
+                            });
+                            setShowAddTransaction(true);
+                          }}
+                          className="bg-black text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/90 transition-all flex items-center gap-2 shadow-lg shadow-black/20"
+                        >
+                          <ArrowLeftRight className="w-4 h-4" /> Transfer Funds
+                        </button>
+                      )}
                       <button 
                         onClick={() => {
                           setEditingTransaction(null);
@@ -2338,8 +2612,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       <div className="lg:col-span-2 space-y-6">
-                        <div className="glass rounded-[2.5rem] overflow-x-auto">
-                          <table className="w-full text-left border-collapse min-w-[800px]">
+                        <div className="glass rounded-[2.5rem] overflow-x-auto [transform:rotateX(180deg)]">
+                          <table className="w-full text-left border-collapse min-w-[800px] [transform:rotateX(180deg)]">
                             <thead>
                               <tr className="border-bottom border-black/5 bg-black/2">
                                 <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date</th>
@@ -2417,7 +2691,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
                       <div className="space-y-6">
                         <div className="glass p-8 rounded-[2.5rem]">
-                          <h4 className="text-sm font-serif mb-6">Summary <span className="italic">ABPC</span></h4>
+                          <h4 className="text-sm font-serif mb-6">Summary <span className="italic">{financeSubTab}</span></h4>
                           <div className="space-y-4">
                             <div className="flex justify-between items-center p-4 bg-green-50 rounded-2xl border border-green-100">
                               <div className="flex items-center gap-3">
@@ -2445,19 +2719,36 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                 )}
                               </div>
                             </div>
-                            <div className="flex justify-between items-center p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                                  <ArrowLeftRight className="w-4 h-4" />
+                            {!financeSubTab.startsWith('ABPC') && (
+                              <>
+                                <div className="flex justify-between items-center p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                                      <ArrowDownLeft className="w-4 h-4" />
+                                    </div>
+                                    <div className="text-[10px] uppercase tracking-widest font-bold text-blue-600">Transfers In</div>
+                                  </div>
+                                  <div className="text-lg font-serif text-blue-700">
+                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                      filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'income').reduce((acc, t) => acc + t.amount, 0)
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="text-[10px] uppercase tracking-widest font-bold text-blue-600">Total Transfers</div>
-                              </div>
-                              <div className="text-lg font-serif text-blue-700">
-                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                  filteredFinanceTransactions.filter(t => !!t.transferGroupId).reduce((acc, t) => acc + t.amount, 0)
-                                )}
-                              </div>
-                            </div>
+                                <div className="flex justify-between items-center p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white">
+                                      <ArrowUpRight className="w-4 h-4" />
+                                    </div>
+                                    <div className="text-[10px] uppercase tracking-widest font-bold text-indigo-600">Transfers Out</div>
+                                  </div>
+                                  <div className="text-lg font-serif text-indigo-700">
+                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                      filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'expense').reduce((acc, t) => acc + t.amount, 0)
+                                    )}
+                                  </div>
+                                </div>
+                              </>
+                            )}
                             <div className="pt-4 border-t border-black/5">
                               <div className="flex justify-between items-center">
                                 <div className="text-[10px] uppercase tracking-widest font-bold text-black/40">Net Balance</div>
@@ -2479,35 +2770,52 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 ) : (
                   <div className="space-y-8">
                     <div className="flex justify-end gap-3">
-                      <button 
-                        onClick={() => {
-                          setEditingTransaction(null);
-                          setNewTransaction({
-                            type: 'expense',
-                            isTransfer: true,
-                            fromAccount: 'trading',
-                            toAccount: 'savings',
-                            dealType: 'new',
-                            agent: '-',
-                            date: new Date().toISOString().split('T')[0]
-                          });
-                          setShowAddTransaction(true);
-                        }}
-                        className="bg-black text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/90 transition-all flex items-center gap-2 shadow-lg shadow-black/20"
-                      >
-                        <ArrowLeftRight className="w-4 h-4" /> Transfer Funds
-                      </button>
-                      <label className="bg-black/5 text-black px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/10 transition-all flex items-center gap-2 cursor-pointer">
-                        {isUploadingCSV ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                        Upload CSV
-                        <input 
-                          type="file" 
-                          accept=".csv" 
-                          className="hidden" 
-                          onChange={handleCSVUpload}
-                          disabled={isUploadingCSV}
-                        />
-                      </label>
+                      {!financeSubTab.startsWith('ABPC') && (
+                        <button 
+                          onClick={() => {
+                            setEditingTransaction(null);
+                            setNewTransaction({
+                              type: 'expense',
+                              isTransfer: true,
+                              fromAccount: 'trading',
+                              toAccount: 'savings',
+                              dealType: 'new',
+                              agent: '-',
+                              date: new Date().toISOString().split('T')[0]
+                            });
+                            setShowAddTransaction(true);
+                          }}
+                          className="bg-black text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/90 transition-all flex items-center gap-2 shadow-lg shadow-black/20"
+                        >
+                          <ArrowLeftRight className="w-4 h-4" /> Transfer Funds
+                        </button>
+                      )}
+                      {(financeSubTab as string).startsWith('ABPC') && (
+                        <>
+                          <label className="bg-black/5 text-black px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/10 transition-all flex items-center gap-2 cursor-pointer">
+                            {isUploadingCSV ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                            Import ABPC
+                            <input 
+                              type="file" 
+                              accept=".csv" 
+                              className="hidden" 
+                              onChange={handleABPCUpload}
+                              disabled={isUploadingCSV}
+                            />
+                          </label>
+                          <label className="bg-black/5 text-black px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/10 transition-all flex items-center gap-2 cursor-pointer">
+                            {isUploadingCSV ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                            Upload ECRE
+                            <input 
+                              type="file" 
+                              accept=".csv" 
+                              className="hidden" 
+                              onChange={handleCSVUpload}
+                              disabled={isUploadingCSV}
+                            />
+                          </label>
+                        </>
+                      )}
                       <button 
                         onClick={() => {
                           setEditingTransaction(null);
@@ -2528,8 +2836,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       <div className="lg:col-span-2 space-y-6">
-                        <div className="glass rounded-[2.5rem] overflow-x-auto">
-                          <table className="w-full text-left border-collapse min-w-[800px]">
+                        <div className="glass rounded-[2.5rem] overflow-x-auto [transform:rotateX(180deg)]">
+                          <table className="w-full text-left border-collapse min-w-[800px] [transform:rotateX(180deg)]">
                             <thead>
                               <tr className="border-bottom border-black/5 bg-black/2">
                                 <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date</th>
@@ -2607,7 +2915,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
                       <div className="space-y-6">
                         <div className="glass p-8 rounded-[2.5rem]">
-                          <h4 className="text-sm font-serif mb-6">Summary <span className="italic">ECRE</span></h4>
+                          <h4 className="text-sm font-serif mb-6">Summary <span className="italic">{financeSubTab}</span></h4>
                           <div className="space-y-4">
                             <div className="flex justify-between items-center p-4 bg-green-50 rounded-2xl border border-green-100">
                               <div className="flex items-center gap-3">
@@ -2635,19 +2943,36 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                 )}
                               </div>
                             </div>
-                            <div className="flex justify-between items-center p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                                  <ArrowLeftRight className="w-4 h-4" />
+                            {!financeSubTab.startsWith('ABPC') && (
+                              <>
+                                <div className="flex justify-between items-center p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                                      <ArrowDownLeft className="w-4 h-4" />
+                                    </div>
+                                    <div className="text-[10px] uppercase tracking-widest font-bold text-blue-600">Transfers In</div>
+                                  </div>
+                                  <div className="text-lg font-serif text-blue-700">
+                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                      filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'income').reduce((acc, t) => acc + t.amount, 0)
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="text-[10px] uppercase tracking-widest font-bold text-blue-600">Total Transfers</div>
-                              </div>
-                              <div className="text-lg font-serif text-blue-700">
-                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                  filteredFinanceTransactions.filter(t => !!t.transferGroupId).reduce((acc, t) => acc + t.amount, 0)
-                                )}
-                              </div>
-                            </div>
+                                <div className="flex justify-between items-center p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white">
+                                      <ArrowUpRight className="w-4 h-4" />
+                                    </div>
+                                    <div className="text-[10px] uppercase tracking-widest font-bold text-indigo-600">Transfers Out</div>
+                                  </div>
+                                  <div className="text-lg font-serif text-indigo-700">
+                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                      filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'expense').reduce((acc, t) => acc + t.amount, 0)
+                                    )}
+                                  </div>
+                                </div>
+                              </>
+                            )}
                             <div className="pt-4 border-t border-black/5">
                               <div className="flex justify-between items-center">
                                 <div className="text-[10px] uppercase tracking-widest font-bold text-black/40">Net Balance</div>
@@ -3003,7 +3328,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                     >
                       <option value="income">Income</option>
                       <option value="expense">Expense</option>
-                      <option value="transfer">Transfer</option>
+                      {!financeSubTab.startsWith('ABPC') && <option value="transfer">Transfer</option>}
                     </select>
                   </div>
                   {!newTransaction.isTransfer ? (
@@ -3015,7 +3340,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
                       >
                         <option value="trading">Trading</option>
-                        <option value="savings">Savings</option>
+                        {!financeSubTab.startsWith('ABPC') && <option value="savings">Savings</option>}
                       </select>
                     </div>
                   ) : (
@@ -3706,6 +4031,88 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               </form>
             </motion.div>
           </div>
+            )}
+          </AnimatePresence>
+
+          {/* ABPC Mapping Modal */}
+          <AnimatePresence>
+            {showABPCMapping && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-white rounded-[2.5rem] p-10 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
+                >
+                  <div className="flex justify-between items-center mb-8">
+                    <div>
+                      <h3 className="text-2xl font-serif">Map ABPC Agents</h3>
+                      <p className="text-black/40 text-xs">Link CSV agent names to system users</p>
+                    </div>
+                    <button onClick={() => setShowABPCMapping(false)} className="p-2 hover:bg-black/5 rounded-full">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-6 mb-10">
+                    {uniqueABPCAgents.map(agent => (
+                      <div key={agent} className="flex items-center gap-4 p-4 bg-black/5 rounded-2xl">
+                        <div className="flex-1">
+                          <div className="text-[10px] text-black/40 uppercase tracking-widest font-bold mb-1">CSV Agent Name</div>
+                          <div className="text-sm font-medium">{agent}</div>
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-[10px] text-black/40 uppercase tracking-widest font-bold mb-1 flex items-center gap-2">
+                            Map to System User
+                            {agentMapping[agent] && (
+                              <span className="text-[8px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full">Matched</span>
+                            )}
+                          </div>
+                          <select 
+                            value={agentMapping[agent] || ''}
+                            onChange={(e) => setAgentMapping(prev => ({ ...prev, [agent]: e.target.value }))}
+                            className="w-full bg-white border-none rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none"
+                          >
+                            <option value="">Select User...</option>
+                            <option value="no-agent">No Agent (Unassigned)</option>
+                            {users
+                              .filter(u => u.company === 'Alan Bolton Property Consultants')
+                              .sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''))
+                              .map(user => (
+                                <option key={user.uid} value={user.uid}>
+                                  {user.firstName} {user.lastName}
+                                </option>
+                              ))
+                            }
+                          </select>
+                        </div>
+                      </div>
+                    ))}
+                    {uniqueABPCAgents.length === 0 && (
+                      <div className="text-center py-12 text-black/40 italic">
+                        No agents found in the CSV data.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-4">
+                    <button 
+                      onClick={() => setShowABPCMapping(false)}
+                      className="flex-1 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest border border-black/5 hover:bg-black/5 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={executeABPCImport}
+                      disabled={isImportingABPC || uniqueABPCAgents.length === 0}
+                      className="flex-1 bg-gold text-white py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gold/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {isImportingABPC ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                      Confirm & Import
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
             )}
           </AnimatePresence>
         </div>

@@ -607,6 +607,18 @@ export default function App() {
             // Clean up the seeded document
             await deleteDoc(doc(db, "users", seededDoc.id));
             console.log("Successfully claimed and deleted seeded profile:", seededDoc.id);
+            
+            // Log signup event
+            await addDoc(collection(db, 'usage_logs'), {
+              userId: user.uid,
+              userName: newProfile.name,
+              userEmail: user.email || null,
+              userCompany: newProfile.company || null,
+              type: 'signup',
+              details: 'User claimed a seeded profile',
+              timestamp: serverTimestamp()
+            });
+
             toast.success("Profile claimed successfully");
           } catch (err) {
             console.error("Error claiming profile:", err);
@@ -630,6 +642,18 @@ export default function App() {
           try {
             await setDoc(userRef, newProfile);
             console.log("Successfully created fresh profile for:", user.uid);
+
+            // Log signup event
+            await addDoc(collection(db, 'usage_logs'), {
+              userId: user.uid,
+              userName: newProfile.name,
+              userEmail: user.email || null,
+              userCompany: newProfile.company || null,
+              type: 'signup',
+              details: 'New user registered',
+              timestamp: serverTimestamp()
+            });
+
             toast.success("Account registered successfully");
           } catch (err) {
             console.error("Error creating profile:", err);

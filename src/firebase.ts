@@ -126,7 +126,7 @@ export interface UsageLog {
   discountId?: string;
   discountName?: string;
   restaurantId?: string;
-  type?: 'redemption' | 'login' | 'finance_create' | 'finance_update' | 'finance_delete';
+  type?: 'redemption' | 'login' | 'finance_create' | 'finance_update' | 'finance_delete' | 'signup' | 'profile_update' | 'employee_update';
   details?: string;
   timestamp: Timestamp;
 }
@@ -155,6 +155,7 @@ export interface FinanceTransaction {
   description: string;
   amount: number;
   agent: string;
+  agentId?: string;
   dealType: 'new' | 'renewal' | '-';
   isTransfer?: boolean;
   transferGroupId?: string;

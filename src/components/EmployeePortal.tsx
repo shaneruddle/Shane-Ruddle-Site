@@ -61,6 +61,7 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
         discountId: selectedDiscount.id,
         discountName: selectedDiscount.name || null,
         restaurantId: selectedDiscount.restaurantId || null,
+        type: 'redemption',
         timestamp: serverTimestamp()
       });
 
