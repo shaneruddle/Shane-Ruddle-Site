@@ -41,10 +41,21 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [editingTransaction, setEditingTransaction] = useState<FinanceTransaction | null>(null);
   const [confirmDeleteTransaction, setConfirmDeleteTransaction] = useState<FinanceTransaction | null>(null);
   const [financeMonthFilter, setFinanceMonthFilter] = useState<string>('all');
+  const [financeYearFilter, setFinanceYearFilter] = useState<string>('all');
   const [financeAgentFilter, setFinanceAgentFilter] = useState<string>('all');
   const [financeAccountFilter, setFinanceAccountFilter] = useState<string>('trading');
   const [financeTypeFilter, setFinanceTypeFilter] = useState<string>('all');
   const [financeSearchTerm, setFinanceSearchTerm] = useState('');
+
+  // Reset filters when sub-tab changes
+  useEffect(() => {
+    setFinanceAgentFilter('all');
+    setFinanceMonthFilter('all');
+    setFinanceYearFilter('all');
+    setFinanceSearchTerm('');
+    setSelectedIndividualAgent('');
+  }, [financeSubTab]);
+
   const [newTransaction, setNewTransaction] = useState<Partial<FinanceTransaction> & { fromAccount?: 'trading' | 'savings', toAccount?: 'trading' | 'savings' }>({
     type: 'income',
     dealType: 'new',
@@ -1260,6 +1271,11 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
   const financeAgents = Array.from(new Set(financeTransactions.filter(t => {
     if (t.agent?.toLowerCase() === 'system') return false;
+    
+    // Filter based on the current view (ABPC or ECRE)
+    const currentViewSection = (financeSubTab === 'ABPC' || financeSubTab === 'ABPC Agents') ? 'ABPC' : 'ECRE';
+    if (t.section !== currentViewSection) return false;
+
     if (userProfile.roles?.includes('admin')) return true;
     if (userProfile.company === 'Alan Bolton Property Consultants') return t.section === 'ABPC';
     if (userProfile.company === 'East Coast Real Estate') return t.section === 'ECRE';
@@ -1295,11 +1311,19 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     return agentName;
   };
 
-  const financeMonths = Array.from(new Set(financeTransactions.filter(t => {
+  const financeYears = Array.from(new Set(financeTransactions.filter(t => {
     if (userProfile.roles?.includes('admin')) return true;
     if (userProfile.company === 'Alan Bolton Property Consultants') return t.section === 'ABPC';
     if (userProfile.company === 'East Coast Real Estate') return t.section === 'ECRE';
     return false;
+  }).map(t => t.date.substring(0, 4)))).sort().reverse();
+
+  const financeMonths = Array.from(new Set(financeTransactions.filter(t => {
+    const matchesSection = userProfile.roles?.includes('admin') || 
+      (userProfile.company === 'Alan Bolton Property Consultants' && t.section === 'ABPC') ||
+      (userProfile.company === 'East Coast Real Estate' && t.section === 'ECRE');
+    if (!matchesSection) return false;
+    return financeYearFilter === 'all' || t.date.startsWith(financeYearFilter);
   }).map(t => t.date.substring(0, 7)))).sort().reverse();
 
   const getAgentPerformance = (months: number, section: 'ABPC' | 'ECRE') => {
@@ -1433,14 +1457,14 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         (financeAgentFilter === 'Noel Magold' && t.agent === 'Noel') ||
                         (financeAgentFilter === 'Aunt Srisawat' && t.agent === 'Aunt') ||
                         (financeAgentFilter === 'Sho' && t.agent === 'Sho');
+    const matchesYear = financeYearFilter === 'all' || t.date.startsWith(financeYearFilter);
     const matchesMonth = financeMonthFilter === 'all' || t.date.startsWith(financeMonthFilter);
     const matchesAccount = (t.account || 'trading') === financeAccountFilter;
-    const matchesType = financeTypeFilter === 'all' ? 
-                       (financeSubTab.startsWith('ABPC') ? !t.transferGroupId : true) : 
+    const matchesType = financeTypeFilter === 'all' ? true : 
                        (financeTypeFilter === 'transfer' ? !!t.transferGroupId : 
                        (financeTypeFilter === t.type && !t.transferGroupId));
     const matchesSearch = !financeSearchTerm || t.description.toLowerCase().includes(financeSearchTerm.toLowerCase());
-    return matchesSection && matchesAgent && matchesMonth && matchesAccount && matchesType && matchesSearch;
+    return matchesSection && matchesAgent && matchesYear && matchesMonth && matchesAccount && matchesType && matchesSearch;
   });
 
   const filteredEmployees = uniqueEmployees
@@ -1607,7 +1631,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       <button 
                         onClick={() => {
                           setFinanceSubTab('ABPC');
-                          setSelectedIndividualAgent('');
                         }}
                         className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ABPC' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
                       >
@@ -1616,7 +1639,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       <button 
                         onClick={() => {
                           setFinanceSubTab('ABPC Agents');
-                          setSelectedIndividualAgent('');
                         }}
                         className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ABPC Agents' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
                       >
@@ -1629,7 +1651,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       <button 
                         onClick={() => {
                           setFinanceSubTab('ECRE');
-                          setSelectedIndividualAgent('');
                         }}
                         className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ECRE' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
                       >
@@ -1638,7 +1659,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       <button 
                         onClick={() => {
                           setFinanceSubTab('ECRE Agents');
-                          setSelectedIndividualAgent('');
                         }}
                         className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ECRE Agents' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
                       >
@@ -2286,7 +2306,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
                   <div>
                     <h3 className="text-2xl font-serif">Finance Management</h3>
-                    <p className="text-black/40 text-xs">Track incomes and expenses for ABPC and ECRE</p>
                   </div>
 
                   {/* Mobile Finance Sub-tabs */}
@@ -2296,7 +2315,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         <button 
                           onClick={() => {
                             setFinanceSubTab('ABPC');
-                            setSelectedIndividualAgent('');
                           }}
                           className={`px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${financeSubTab === 'ABPC' ? 'bg-white text-gold shadow-sm' : 'text-black/40'}`}
                         >
@@ -2305,7 +2323,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         <button 
                           onClick={() => {
                             setFinanceSubTab('ABPC Agents');
-                            setSelectedIndividualAgent('');
                           }}
                           className={`px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${financeSubTab === 'ABPC Agents' ? 'bg-white text-gold shadow-sm' : 'text-black/40'}`}
                         >
@@ -2318,7 +2335,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         <button 
                           onClick={() => {
                             setFinanceSubTab('ECRE');
-                            setSelectedIndividualAgent('');
                           }}
                           className={`px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${financeSubTab === 'ECRE' ? 'bg-white text-gold shadow-sm' : 'text-black/40'}`}
                         >
@@ -2327,7 +2343,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         <button 
                           onClick={() => {
                             setFinanceSubTab('ECRE Agents');
-                            setSelectedIndividualAgent('');
                           }}
                           className={`px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${financeSubTab === 'ECRE Agents' ? 'bg-white text-gold shadow-sm' : 'text-black/40'}`}
                         >
@@ -2338,58 +2353,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">
-                    {(financeSubTab === 'ABPC' || financeSubTab === 'ECRE') && (
-                      <div className="flex gap-2">
-                        <div className="relative">
-                          <Search className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-black/20" />
-                          <input 
-                            type="text"
-                            placeholder="Search descriptions..."
-                            value={financeSearchTerm}
-                            onChange={(e) => setFinanceSearchTerm(e.target.value)}
-                            className="bg-black/5 border-none rounded-xl pl-8 pr-4 py-2 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none w-[200px]"
-                          />
-                        </div>
-                        <select 
-                          value={financeMonthFilter}
-                          onChange={(e) => setFinanceMonthFilter(e.target.value)}
-                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
-                        >
-                          <option value="all">All Months</option>
-                          {financeMonths.map(month => (
-                            <option key={month} value={month}>{new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</option>
-                          ))}
-                        </select>
-                        <select 
-                          value={financeAgentFilter}
-                          onChange={(e) => setFinanceAgentFilter(e.target.value)}
-                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
-                        >
-                          <option value="all">All Agents</option>
-                          {financeAgents.map(agent => (
-                            <option key={agent} value={agent}>{getAgentDisplayName(agent)}</option>
-                          ))}
-                        </select>
-                        <select 
-                          value={financeAccountFilter}
-                          onChange={(e) => setFinanceAccountFilter(e.target.value)}
-                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
-                        >
-                          <option value="trading">Trading</option>
-                          {!financeSubTab.startsWith('ABPC') && <option value="savings">Savings</option>}
-                        </select>
-                        <select 
-                          value={financeTypeFilter}
-                          onChange={(e) => setFinanceTypeFilter(e.target.value)}
-                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
-                        >
-                          <option value="all">All Types</option>
-                          <option value="income">Income</option>
-                          <option value="expense">Expense</option>
-                          {!financeSubTab.startsWith('ABPC') && <option value="transfer">Transfer</option>}
-                        </select>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -2482,7 +2445,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                         <div className="w-[700px]">
                           <h4 className="text-lg font-serif">Individual Agent <span className="italic">Monthly Income</span></h4>
-                          <p className="text-[10px] text-black/40 uppercase tracking-widest">Select an agent to view their 6-month performance breakdown</p>
                         </div>
                         <select 
                           value={selectedIndividualAgent}
@@ -2570,422 +2532,556 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                     </div>
                   </div>
                 ) : financeSubTab === 'ABPC' ? (
-                  <div className="space-y-8">
-                    <div className="flex justify-end gap-3">
-                      {!financeSubTab.startsWith('ABPC') && (
+                  <div className="flex flex-col lg:flex-row gap-8 items-start">
+                    <div className="flex-1 w-full space-y-8">
+                      <div className="flex justify-end gap-3">
                         <button 
                           onClick={() => {
                             setEditingTransaction(null);
                             setNewTransaction({
-                              type: 'expense',
-                              isTransfer: true,
-                              fromAccount: 'trading',
-                              toAccount: 'savings',
+                              type: 'income',
                               dealType: 'new',
+                              account: 'trading',
                               agent: '-',
                               date: new Date().toISOString().split('T')[0]
                             });
                             setShowAddTransaction(true);
                           }}
-                          className="bg-black text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/90 transition-all flex items-center gap-2 shadow-lg shadow-black/20"
+                          className="bg-gold text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gold/90 transition-all flex items-center gap-2 shadow-lg shadow-gold/20"
                         >
-                          <ArrowLeftRight className="w-4 h-4" /> Transfer Funds
+                          <Plus className="w-4 h-4" /> Add Transaction
                         </button>
-                      )}
-                      <button 
-                        onClick={() => {
-                          setEditingTransaction(null);
-                          setNewTransaction({
-                            type: 'income',
-                            dealType: 'new',
-                            account: 'trading',
-                            agent: '-',
-                            date: new Date().toISOString().split('T')[0]
-                          });
-                          setShowAddTransaction(true);
-                        }}
-                        className="bg-gold text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gold/90 transition-all flex items-center gap-2 shadow-lg shadow-gold/20"
-                      >
-                        <Plus className="w-4 h-4" /> Add Transaction
-                      </button>
+                      </div>
+
+                      <div className="glass rounded-[2.5rem] overflow-x-auto [transform:rotateX(180deg)]">
+                        <table className="w-full text-left border-collapse min-w-[800px] [transform:rotateX(180deg)]">
+                          <thead>
+                            <tr className="border-bottom border-black/5 bg-black/2">
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 w-[80%]">Description</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Agent</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Account</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Type</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Amount</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredFinanceTransactions.map((t) => (
+                              <tr key={t.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
+                                <td className="px-6 py-4 text-xs font-mono">{t.date}</td>
+                                <td className="px-6 py-4 w-[80%]">
+                                  <div className="text-sm font-medium">{t.description}</div>
+                                  <div className="text-[10px] text-black/40 uppercase tracking-widest">
+                                    {t.dealType === '-' ? '-' : `${t.dealType} deal`}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 text-xs">
+                                  {getAgentDisplayName(t.agent)}
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">
+                                    {t.account || 'trading'}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`px-2 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${
+                                      t.transferGroupId ? 'bg-blue-100 text-blue-600' :
+                                      t.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                                    }`}>
+                                      {t.transferGroupId ? 'transfer' : t.type}
+                                    </span>
+                                    {t.transferGroupId && (
+                                      <ArrowLeftRight className="w-3 h-3 text-blue-400" />
+                                    )}
+                                  </div>
+                                </td>
+                                <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                                  {t.type === 'income' ? '+' : '-'}{new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(t.amount)}
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                  <div className="flex justify-end gap-1 transition-opacity">
+                                    <button 
+                                      onClick={() => handleEditTransaction(t)}
+                                      className="p-2 text-black/10 hover:text-gold transition-colors"
+                                    >
+                                      <Edit2 className="w-4 h-4" />
+                                    </button>
+                                    <button 
+                                      onClick={() => setConfirmDeleteTransaction(t)}
+                                      className="p-2 text-black/10 hover:text-red-500 transition-colors"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                            {filteredFinanceTransactions.length === 0 && (
+                              <tr>
+                                <td colSpan={7} className="px-6 py-12 text-center text-black/40 italic text-sm">
+                                  No transactions found matching your filters.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      <div className="lg:col-span-2 space-y-6">
-                        <div className="glass rounded-[2.5rem] overflow-x-auto [transform:rotateX(180deg)]">
-                          <table className="w-full text-left border-collapse min-w-[800px] [transform:rotateX(180deg)]">
-                            <thead>
-                              <tr className="border-bottom border-black/5 bg-black/2">
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date</th>
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 w-[80%]">Description</th>
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Agent</th>
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Account</th>
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Type</th>
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Amount</th>
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40"></th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {filteredFinanceTransactions.map((t) => (
-                                <tr key={t.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
-                                  <td className="px-6 py-4 text-xs font-mono">{t.date}</td>
-                                  <td className="px-6 py-4 w-[80%]">
-                                    <div className="text-sm font-medium">{t.description}</div>
-                                    <div className="text-[10px] text-black/40 uppercase tracking-widest">
-                                      {t.dealType === '-' ? '-' : `${t.dealType} deal`}
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4 text-xs">
-                                    {getAgentDisplayName(t.agent)}
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">
-                                      {t.account || 'trading'}
-                                    </span>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <div className="flex items-center gap-2">
-                                      <span className={`px-2 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${
-                                        t.transferGroupId ? 'bg-blue-100 text-blue-600' :
-                                        t.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-                                      }`}>
-                                        {t.transferGroupId ? 'transfer' : t.type}
-                                      </span>
-                                      {t.transferGroupId && (
-                                        <ArrowLeftRight className="w-3 h-3 text-blue-400" />
-                                      )}
-                                    </div>
-                                  </td>
-                                  <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                                    {t.type === 'income' ? '+' : '-'}{new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(t.amount)}
-                                  </td>
-                                  <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-1 transition-opacity">
-                                      <button 
-                                        onClick={() => handleEditTransaction(t)}
-                                        className="p-2 text-black/10 hover:text-gold transition-colors"
-                                      >
-                                        <Edit2 className="w-4 h-4" />
-                                      </button>
-                                      <button 
-                                        onClick={() => setConfirmDeleteTransaction(t)}
-                                        className="p-2 text-black/10 hover:text-red-500 transition-colors"
-                                      >
-                                        <Trash2 className="w-4 h-4" />
-                                      </button>
-                                    </div>
-                                  </td>
-                                </tr>
+                    <div className="w-full lg:w-[350px] space-y-6 lg:sticky lg:top-8">
+                      {/* Filters Panel */}
+                      <div className="glass p-6 rounded-3xl space-y-4">
+                        <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-black/40 mb-2">Filters</h4>
+                        <div className="space-y-3">
+                          <div className="relative">
+                            <Search className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-black/20" />
+                            <input 
+                              type="text"
+                              placeholder="Search descriptions..."
+                              value={financeSearchTerm}
+                              onChange={(e) => setFinanceSearchTerm(e.target.value)}
+                              className="w-full bg-black/5 border-none rounded-xl pl-8 pr-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <select 
+                              value={financeYearFilter}
+                              onChange={(e) => {
+                                setFinanceYearFilter(e.target.value);
+                                setFinanceMonthFilter('all');
+                              }}
+                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            >
+                              <option value="all">All Years</option>
+                              {financeYears.map(year => (
+                                <option key={year} value={year}>{year}</option>
                               ))}
-                              {filteredFinanceTransactions.length === 0 && (
-                                <tr>
-                                  <td colSpan={7} className="px-6 py-12 text-center text-black/40 italic text-sm">
-                                    No transactions found matching your filters.
-                                  </td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
+                            </select>
+                            <select 
+                              value={financeMonthFilter}
+                              onChange={(e) => setFinanceMonthFilter(e.target.value)}
+                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            >
+                              <option value="all">All Months</option>
+                              {financeMonths.map(month => (
+                                <option key={month} value={month}>{new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <select 
+                            value={financeAgentFilter}
+                            onChange={(e) => setFinanceAgentFilter(e.target.value)}
+                            className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                          >
+                            <option value="all">All Agents</option>
+                            {financeAgents.map(agent => (
+                              <option key={agent} value={agent}>{getAgentDisplayName(agent)}</option>
+                            ))}
+                          </select>
+                          <div className="grid grid-cols-2 gap-2">
+                            <select 
+                              value={financeAccountFilter}
+                              onChange={(e) => setFinanceAccountFilter(e.target.value)}
+                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            >
+                              <option value="trading">Trading</option>
+                              {!financeSubTab.startsWith('ABPC') && <option value="savings">Savings</option>}
+                            </select>
+                            <select 
+                              value={financeTypeFilter}
+                              onChange={(e) => setFinanceTypeFilter(e.target.value)}
+                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            >
+                              <option value="all">All Types</option>
+                              <option value="income">Income</option>
+                              <option value="expense">Expense</option>
+                              {!financeSubTab.startsWith('ABPC') && <option value="transfer">Transfer</option>}
+                            </select>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="space-y-6">
-                        <div className="glass p-8 rounded-[2.5rem]">
-                          <h4 className="text-sm font-serif mb-6">Summary <span className="italic">{financeSubTab}</span></h4>
-                          <div className="space-y-4">
-                            <div className="flex justify-between items-center p-4 bg-green-50 rounded-2xl border border-green-100">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">
-                                  <TrendingUp className="w-4 h-4" />
-                                </div>
-                                <div className="text-[10px] uppercase tracking-widest font-bold text-green-600">Total Income</div>
+                      {/* Summary Panel */}
+                      <div className="glass p-6 rounded-3xl">
+                        <div className="flex items-center justify-between mb-6">
+                          <div>
+                            <h4 className="text-lg font-serif text-black">Financial Summary</h4>
+                            <p className="text-[9px] text-black/40 uppercase tracking-widest mt-0.5">{financeSubTab}</p>
+                          </div>
+                          <div className="px-3 py-1 bg-black/5 rounded-lg border border-black/5">
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-black/40">
+                              {financeMonthFilter === 'all' ? 'All Time' : new Date(financeMonthFilter + '-01').toLocaleString('default', { month: 'short', year: 'numeric' })}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          {/* Income */}
+                          <div className="flex items-center justify-between p-3 bg-green-50/50 rounded-xl border border-green-100/50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center text-white shadow-sm">
+                                <TrendingUp className="w-4 h-4" />
                               </div>
-                              <div className="text-lg font-serif text-green-700">
-                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                  filteredFinanceTransactions.filter(t => t.type === 'income' && !t.transferGroupId).reduce((acc, t) => acc + t.amount, 0)
-                                )}
-                              </div>
+                              <span className="text-xs font-bold text-green-700 uppercase tracking-wider">Income</span>
                             </div>
-                            <div className="flex justify-between items-center p-4 bg-red-50 rounded-2xl border border-red-100">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white">
-                                  <TrendingDown className="w-4 h-4" />
-                                </div>
-                                <div className="text-[10px] uppercase tracking-widest font-bold text-red-600">Total Expenses</div>
+                            <span className="text-sm font-serif text-green-700">
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.filter(t => t.type === 'income' && !t.transferGroupId).reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Expenses */}
+                          <div className="flex items-center justify-between p-3 bg-red-50/50 rounded-xl border border-red-100/50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center text-white shadow-sm">
+                                <TrendingDown className="w-4 h-4" />
                               </div>
-                              <div className="text-lg font-serif text-red-700">
-                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                  filteredFinanceTransactions.filter(t => t.type === 'expense' && !t.transferGroupId).reduce((acc, t) => acc + t.amount, 0)
-                                )}
-                              </div>
+                              <span className="text-xs font-bold text-red-700 uppercase tracking-wider">Expenses</span>
                             </div>
-                            {!financeSubTab.startsWith('ABPC') && (
-                              <>
-                                <div className="flex justify-between items-center p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                                      <ArrowDownLeft className="w-4 h-4" />
-                                    </div>
-                                    <div className="text-[10px] uppercase tracking-widest font-bold text-blue-600">Transfers In</div>
-                                  </div>
-                                  <div className="text-lg font-serif text-blue-700">
-                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                      filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'income').reduce((acc, t) => acc + t.amount, 0)
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex justify-between items-center p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white">
-                                      <ArrowUpRight className="w-4 h-4" />
-                                    </div>
-                                    <div className="text-[10px] uppercase tracking-widest font-bold text-indigo-600">Transfers Out</div>
-                                  </div>
-                                  <div className="text-lg font-serif text-indigo-700">
-                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                      filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'expense').reduce((acc, t) => acc + t.amount, 0)
-                                    )}
-                                  </div>
-                                </div>
-                              </>
-                            )}
-                            <div className="pt-4 border-t border-black/5">
-                              <div className="flex justify-between items-center">
-                                <div className="text-[10px] uppercase tracking-widest font-bold text-black/40">Net Balance</div>
-                                <div className={`text-xl font-serif ${
-                                  filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? t.amount : -t.amount), 0) >= 0 
-                                  ? 'text-gold' : 'text-red-500'
-                                }`}>
-                                  {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                    filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? t.amount : -t.amount), 0)
-                                  )}
-                                </div>
+                            <span className="text-sm font-serif text-red-700">
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.filter(t => t.type === 'expense' && !t.transferGroupId).reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Transfers In */}
+                          <div className="flex items-center justify-between p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white shadow-sm">
+                                <ArrowDownLeft className="w-4 h-4" />
                               </div>
+                              <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Transfers In</span>
                             </div>
+                            <span className="text-sm font-serif text-blue-700">
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'income').reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Transfers Out */}
+                          <div className="flex items-center justify-between p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white shadow-sm">
+                                <ArrowUpRight className="w-4 h-4" />
+                              </div>
+                              <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Transfers Out</span>
+                            </div>
+                            <span className="text-sm font-serif text-indigo-700">
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'expense').reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Net Balance */}
+                          <div className="flex items-center justify-between p-3 bg-black/5 rounded-xl border border-black/10 mt-2">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center text-white shadow-sm">
+                                <DollarSign className="w-4 h-4" />
+                              </div>
+                              <span className="text-xs font-bold text-black/60 uppercase tracking-wider">Net Balance</span>
+                            </div>
+                            <span className={`text-sm font-serif ${
+                              filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? (Number(t.amount) || 0) : -(Number(t.amount) || 0)), 0) >= 0 
+                              ? 'text-gold' : 'text-red-500'
+                            }`}>
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? (Number(t.amount) || 0) : -(Number(t.amount) || 0)), 0)
+                              )}
+                            </span>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-8">
-                    <div className="flex justify-end gap-3">
-                      {!financeSubTab.startsWith('ABPC') && (
+                  <div className="flex flex-col lg:flex-row gap-8 items-start">
+                    <div className="flex-1 w-full space-y-8">
+                      <div className="flex justify-end gap-3">
+                        {!financeSubTab.startsWith('ABPC') && (
+                          <button 
+                            onClick={() => {
+                              setEditingTransaction(null);
+                              setNewTransaction({
+                                type: 'expense',
+                                isTransfer: true,
+                                fromAccount: 'trading',
+                                toAccount: 'savings',
+                                dealType: 'new',
+                                agent: '-',
+                                date: new Date().toISOString().split('T')[0]
+                              });
+                              setShowAddTransaction(true);
+                            }}
+                            className="bg-black text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/90 transition-all flex items-center gap-2 shadow-lg shadow-black/20"
+                          >
+                            <ArrowLeftRight className="w-4 h-4" /> Transfer Funds
+                          </button>
+                        )}
                         <button 
                           onClick={() => {
                             setEditingTransaction(null);
                             setNewTransaction({
-                              type: 'expense',
-                              isTransfer: true,
-                              fromAccount: 'trading',
-                              toAccount: 'savings',
+                              type: 'income',
                               dealType: 'new',
+                              account: 'trading',
                               agent: '-',
                               date: new Date().toISOString().split('T')[0]
                             });
                             setShowAddTransaction(true);
                           }}
-                          className="bg-black text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/90 transition-all flex items-center gap-2 shadow-lg shadow-black/20"
+                          className="bg-gold text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gold/90 transition-all flex items-center gap-2 shadow-lg shadow-gold/20"
                         >
-                          <ArrowLeftRight className="w-4 h-4" /> Transfer Funds
+                          <Plus className="w-4 h-4" /> Add Transaction
                         </button>
-                      )}
-                      {(financeSubTab as string).startsWith('ABPC') && (
-                        <>
-                          <label className="bg-black/5 text-black px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/10 transition-all flex items-center gap-2 cursor-pointer">
-                            {isUploadingCSV ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                            Import ABPC
-                            <input 
-                              type="file" 
-                              accept=".csv" 
-                              className="hidden" 
-                              onChange={handleABPCUpload}
-                              disabled={isUploadingCSV}
-                            />
-                          </label>
-                          <label className="bg-black/5 text-black px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/10 transition-all flex items-center gap-2 cursor-pointer">
-                            {isUploadingCSV ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                            Upload ECRE
-                            <input 
-                              type="file" 
-                              accept=".csv" 
-                              className="hidden" 
-                              onChange={handleCSVUpload}
-                              disabled={isUploadingCSV}
-                            />
-                          </label>
-                        </>
-                      )}
-                      <button 
-                        onClick={() => {
-                          setEditingTransaction(null);
-                          setNewTransaction({
-                            type: 'income',
-                            dealType: 'new',
-                            account: 'trading',
-                            agent: '-',
-                            date: new Date().toISOString().split('T')[0]
-                          });
-                          setShowAddTransaction(true);
-                        }}
-                        className="bg-gold text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gold/90 transition-all flex items-center gap-2 shadow-lg shadow-gold/20"
-                      >
-                        <Plus className="w-4 h-4" /> Add Transaction
-                      </button>
+                      </div>
+
+                      <div className="glass rounded-[2.5rem] overflow-x-auto [transform:rotateX(180deg)]">
+                        <table className="w-full text-left border-collapse min-w-[800px] [transform:rotateX(180deg)]">
+                          <thead>
+                            <tr className="border-bottom border-black/5 bg-black/2">
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 w-[80%]">Description</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Agent</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Account</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Type</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Amount</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredFinanceTransactions.map((t) => (
+                              <tr key={t.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
+                                <td className="px-6 py-4 text-xs font-mono">{t.date}</td>
+                                <td className="px-6 py-4 w-[80%]">
+                                  <div className="text-sm font-medium">{t.description}</div>
+                                  <div className="text-[10px] text-black/40 uppercase tracking-widest">
+                                    {t.dealType === '-' ? '-' : `${t.dealType} deal`}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 text-xs">
+                                  {getAgentDisplayName(t.agent)}
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">
+                                    {t.account || 'trading'}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`px-2 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${
+                                      t.transferGroupId ? 'bg-blue-100 text-blue-600' :
+                                      t.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                                    }`}>
+                                      {t.transferGroupId ? 'transfer' : t.type}
+                                    </span>
+                                    {t.transferGroupId && (
+                                      <ArrowLeftRight className="w-3 h-3 text-blue-400" />
+                                    )}
+                                  </div>
+                                </td>
+                                <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                                  {t.type === 'income' ? '+' : '-'}{new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(t.amount)}
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                  <div className="flex justify-end gap-1 transition-opacity">
+                                    <button 
+                                      onClick={() => handleEditTransaction(t)}
+                                      className="p-2 text-black/10 hover:text-gold transition-colors"
+                                    >
+                                      <Edit2 className="w-4 h-4" />
+                                    </button>
+                                    <button 
+                                      onClick={() => setConfirmDeleteTransaction(t)}
+                                      className="p-2 text-black/10 hover:text-red-500 transition-colors"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                            {filteredFinanceTransactions.length === 0 && (
+                              <tr>
+                                <td colSpan={7} className="px-6 py-12 text-center text-black/40 italic text-sm">
+                                  No transactions found matching your filters.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      <div className="lg:col-span-2 space-y-6">
-                        <div className="glass rounded-[2.5rem] overflow-x-auto [transform:rotateX(180deg)]">
-                          <table className="w-full text-left border-collapse min-w-[800px] [transform:rotateX(180deg)]">
-                            <thead>
-                              <tr className="border-bottom border-black/5 bg-black/2">
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date</th>
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 w-[80%]">Description</th>
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Agent</th>
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Account</th>
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Type</th>
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Amount</th>
-                                <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40"></th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {filteredFinanceTransactions.map((t) => (
-                                <tr key={t.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
-                                  <td className="px-6 py-4 text-xs font-mono">{t.date}</td>
-                                  <td className="px-6 py-4 w-[80%]">
-                                    <div className="text-sm font-medium">{t.description}</div>
-                                    <div className="text-[10px] text-black/40 uppercase tracking-widest">
-                                      {t.dealType === '-' ? '-' : `${t.dealType} deal`}
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4 text-xs">
-                                    {getAgentDisplayName(t.agent)}
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">
-                                      {t.account || 'trading'}
-                                    </span>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <div className="flex items-center gap-2">
-                                      <span className={`px-2 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${
-                                        t.transferGroupId ? 'bg-blue-100 text-blue-600' :
-                                        t.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-                                      }`}>
-                                        {t.transferGroupId ? 'transfer' : t.type}
-                                      </span>
-                                      {t.transferGroupId && (
-                                        <ArrowLeftRight className="w-3 h-3 text-blue-400" />
-                                      )}
-                                    </div>
-                                  </td>
-                                  <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                                    {t.type === 'income' ? '+' : '-'}{new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(t.amount)}
-                                  </td>
-                                  <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-1 transition-opacity">
-                                      <button 
-                                        onClick={() => handleEditTransaction(t)}
-                                        className="p-2 text-black/10 hover:text-gold transition-colors"
-                                      >
-                                        <Edit2 className="w-4 h-4" />
-                                      </button>
-                                      <button 
-                                        onClick={() => setConfirmDeleteTransaction(t)}
-                                        className="p-2 text-black/10 hover:text-red-500 transition-colors"
-                                      >
-                                        <Trash2 className="w-4 h-4" />
-                                      </button>
-                                    </div>
-                                  </td>
-                                </tr>
+                    <div className="w-full lg:w-[350px] space-y-6 lg:sticky lg:top-8">
+                      {/* Filters Panel */}
+                      <div className="glass p-6 rounded-3xl space-y-4">
+                        <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-black/40 mb-2">Filters</h4>
+                        <div className="space-y-3">
+                          <div className="relative">
+                            <Search className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-black/20" />
+                            <input 
+                              type="text"
+                              placeholder="Search descriptions..."
+                              value={financeSearchTerm}
+                              onChange={(e) => setFinanceSearchTerm(e.target.value)}
+                              className="w-full bg-black/5 border-none rounded-xl pl-8 pr-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <select 
+                              value={financeYearFilter}
+                              onChange={(e) => {
+                                setFinanceYearFilter(e.target.value);
+                                setFinanceMonthFilter('all');
+                              }}
+                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            >
+                              <option value="all">All Years</option>
+                              {financeYears.map(year => (
+                                <option key={year} value={year}>{year}</option>
                               ))}
-                              {filteredFinanceTransactions.length === 0 && (
-                                <tr>
-                                  <td colSpan={7} className="px-6 py-12 text-center text-black/40 italic text-sm">
-                                    No transactions found matching your filters.
-                                  </td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
+                            </select>
+                            <select 
+                              value={financeMonthFilter}
+                              onChange={(e) => setFinanceMonthFilter(e.target.value)}
+                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            >
+                              <option value="all">All Months</option>
+                              {financeMonths.map(month => (
+                                <option key={month} value={month}>{new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <select 
+                            value={financeAgentFilter}
+                            onChange={(e) => setFinanceAgentFilter(e.target.value)}
+                            className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                          >
+                            <option value="all">All Agents</option>
+                            {financeAgents.map(agent => (
+                              <option key={agent} value={agent}>{getAgentDisplayName(agent)}</option>
+                            ))}
+                          </select>
+                          <div className="grid grid-cols-2 gap-2">
+                            <select 
+                              value={financeAccountFilter}
+                              onChange={(e) => setFinanceAccountFilter(e.target.value)}
+                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            >
+                              <option value="trading">Trading</option>
+                              {!financeSubTab.startsWith('ABPC') && <option value="savings">Savings</option>}
+                            </select>
+                            <select 
+                              value={financeTypeFilter}
+                              onChange={(e) => setFinanceTypeFilter(e.target.value)}
+                              className="w-full bg-black/5 border-none rounded-xl px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                            >
+                              <option value="all">All Types</option>
+                              <option value="income">Income</option>
+                              <option value="expense">Expense</option>
+                              {!financeSubTab.startsWith('ABPC') && <option value="transfer">Transfer</option>}
+                            </select>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="space-y-6">
-                        <div className="glass p-8 rounded-[2.5rem]">
-                          <h4 className="text-sm font-serif mb-6">Summary <span className="italic">{financeSubTab}</span></h4>
-                          <div className="space-y-4">
-                            <div className="flex justify-between items-center p-4 bg-green-50 rounded-2xl border border-green-100">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">
-                                  <TrendingUp className="w-4 h-4" />
-                                </div>
-                                <div className="text-[10px] uppercase tracking-widest font-bold text-green-600">Total Income</div>
+                      {/* Summary Panel */}
+                      <div className="glass p-6 rounded-3xl">
+                        <div className="flex items-center justify-between mb-6">
+                          <div>
+                            <h4 className="text-lg font-serif text-black">Financial Summary</h4>
+                            <p className="text-[9px] text-black/40 uppercase tracking-widest mt-0.5">{financeSubTab}</p>
+                          </div>
+                          <div className="px-3 py-1 bg-black/5 rounded-lg border border-black/5">
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-black/40">
+                              {financeMonthFilter === 'all' ? 'All Time' : new Date(financeMonthFilter + '-01').toLocaleString('default', { month: 'short', year: 'numeric' })}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          {/* Income */}
+                          <div className="flex items-center justify-between p-3 bg-green-50/50 rounded-xl border border-green-100/50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center text-white shadow-sm">
+                                <TrendingUp className="w-4 h-4" />
                               </div>
-                              <div className="text-lg font-serif text-green-700">
-                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                  filteredFinanceTransactions.filter(t => t.type === 'income' && !t.transferGroupId).reduce((acc, t) => acc + t.amount, 0)
-                                )}
-                              </div>
+                              <span className="text-xs font-bold text-green-700 uppercase tracking-wider">Income</span>
                             </div>
-                            <div className="flex justify-between items-center p-4 bg-red-50 rounded-2xl border border-red-100">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white">
-                                  <TrendingDown className="w-4 h-4" />
-                                </div>
-                                <div className="text-[10px] uppercase tracking-widest font-bold text-red-600">Total Expenses</div>
+                            <span className="text-sm font-serif text-green-700">
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.filter(t => t.type === 'income' && !t.transferGroupId).reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Expenses */}
+                          <div className="flex items-center justify-between p-3 bg-red-50/50 rounded-xl border border-red-100/50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center text-white shadow-sm">
+                                <TrendingDown className="w-4 h-4" />
                               </div>
-                              <div className="text-lg font-serif text-red-700">
-                                {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                  filteredFinanceTransactions.filter(t => t.type === 'expense' && !t.transferGroupId).reduce((acc, t) => acc + t.amount, 0)
-                                )}
-                              </div>
+                              <span className="text-xs font-bold text-red-700 uppercase tracking-wider">Expenses</span>
                             </div>
-                            {!financeSubTab.startsWith('ABPC') && (
-                              <>
-                                <div className="flex justify-between items-center p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                                      <ArrowDownLeft className="w-4 h-4" />
-                                    </div>
-                                    <div className="text-[10px] uppercase tracking-widest font-bold text-blue-600">Transfers In</div>
-                                  </div>
-                                  <div className="text-lg font-serif text-blue-700">
-                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                      filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'income').reduce((acc, t) => acc + t.amount, 0)
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex justify-between items-center p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white">
-                                      <ArrowUpRight className="w-4 h-4" />
-                                    </div>
-                                    <div className="text-[10px] uppercase tracking-widest font-bold text-indigo-600">Transfers Out</div>
-                                  </div>
-                                  <div className="text-lg font-serif text-indigo-700">
-                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                      filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'expense').reduce((acc, t) => acc + t.amount, 0)
-                                    )}
-                                  </div>
-                                </div>
-                              </>
-                            )}
-                            <div className="pt-4 border-t border-black/5">
-                              <div className="flex justify-between items-center">
-                                <div className="text-[10px] uppercase tracking-widest font-bold text-black/40">Net Balance</div>
-                                <div className={`text-xl font-serif ${
-                                  filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? t.amount : -t.amount), 0) >= 0 
-                                  ? 'text-gold' : 'text-red-500'
-                                }`}>
-                                  {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
-                                    filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? t.amount : -t.amount), 0)
-                                  )}
-                                </div>
+                            <span className="text-sm font-serif text-red-700">
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.filter(t => t.type === 'expense' && !t.transferGroupId).reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Transfers In */}
+                          <div className="flex items-center justify-between p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white shadow-sm">
+                                <ArrowDownLeft className="w-4 h-4" />
                               </div>
+                              <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Transfers In</span>
                             </div>
+                            <span className="text-sm font-serif text-blue-700">
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'income').reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Transfers Out */}
+                          <div className="flex items-center justify-between p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white shadow-sm">
+                                <ArrowUpRight className="w-4 h-4" />
+                              </div>
+                              <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Transfers Out</span>
+                            </div>
+                            <span className="text-sm font-serif text-indigo-700">
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'expense').reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Net Balance */}
+                          <div className="flex items-center justify-between p-3 bg-black/5 rounded-xl border border-black/10 mt-2">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center text-white shadow-sm">
+                                <DollarSign className="w-4 h-4" />
+                              </div>
+                              <span className="text-xs font-bold text-black/60 uppercase tracking-wider">Net Balance</span>
+                            </div>
+                            <span className={`text-sm font-serif ${
+                              filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? (Number(t.amount) || 0) : -(Number(t.amount) || 0)), 0) >= 0 
+                              ? 'text-gold' : 'text-red-500'
+                            }`}>
+                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? (Number(t.amount) || 0) : -(Number(t.amount) || 0)), 0)
+                              )}
+                            </span>
                           </div>
                         </div>
                       </div>
