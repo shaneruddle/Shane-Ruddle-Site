@@ -27,10 +27,9 @@ const formatCurrency = (amount: number) => {
 
 const convertToWebP = (file: File): Promise<Blob> => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      try {
         const canvas = document.createElement('canvas');
         canvas.width = img.width;
         canvas.height = img.height;
@@ -41,18 +40,23 @@ const convertToWebP = (file: File): Promise<Blob> => {
         }
         ctx.drawImage(img, 0, 0);
         canvas.toBlob((blob) => {
+          URL.revokeObjectURL(img.src);
           if (blob) {
             resolve(blob);
           } else {
-            reject(new Error('Failed to convert to WebP'));
+            reject(new Error('Failed to convert to WebP: Blob is null'));
           }
         }, 'image/webp', 0.8);
-      };
-      img.onerror = () => reject(new Error('Failed to load image'));
-      img.src = e.target?.result as string;
+      } catch (err) {
+        URL.revokeObjectURL(img.src);
+        reject(err);
+      }
     };
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsDataURL(file);
+    img.onerror = () => {
+      URL.revokeObjectURL(img.src);
+      reject(new Error('Failed to load image for conversion'));
+    };
+    img.src = URL.createObjectURL(file);
   });
 };
 
@@ -479,9 +483,29 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       setFinanceTransactions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FinanceTransaction)));
     }, (err) => handleFirestoreError(err, OperationType.LIST, 'finance'));
 
-    const unsubSiteImages = onSnapshot(query(collection(db, 'site_images'), orderBy('uploadedAt', 'desc')), (snapshot) => {
-      setSiteImages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SiteImage)));
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'site_images'));
+    const unsubSiteImages = onSnapshot(collection(db, 'site_images'), (snapshot) => {
+      console.log("Site images snapshot received:", snapshot.size);
+      const images = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return { 
+          id: doc.id, 
+          ...data,
+          uploadedAt: data.uploadedAt || { toDate: () => new Date() }
+        } as SiteImage;
+      });
+      
+      // Sort client-side to handle null timestamps from serverTimestamp()
+      const sortedImages = [...images].sort((a, b) => {
+        const dateA = a.uploadedAt?.toDate?.() || new Date(0);
+        const dateB = b.uploadedAt?.toDate?.() || new Date(0);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      setSiteImages(sortedImages);
+    }, (err) => {
+      console.error("Site images snapshot error:", err);
+      handleFirestoreError(err, OperationType.LIST, 'site_images');
+    });
 
     return () => {
       unsubEmployees();
@@ -1307,41 +1331,78 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     const file = e.target.files?.[0];
     if (!file || !auth.currentUser) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image size must be less than 5MB");
+    console.log("Starting upload for file:", file.name, "size:", file.size);
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image size must be less than 10MB");
       return;
     }
 
     setIsUploadingImage(true);
-    const toastId = toast.loading("Converting and uploading image...");
+    const toastId = toast.loading("Processing image...");
 
     try {
-      // Convert to WebP
-      const webpBlob = await convertToWebP(file);
-      const webpFileName = file.name.substring(0, file.name.lastIndexOf('.')) + '.webp';
-      const storagePath = `site_images/${Date.now()}_${webpFileName}`;
+      let uploadData: Blob | File = file;
+      let fileName = file.name;
+      let fileType = file.type;
+
+      try {
+        console.log("Attempting WebP conversion...");
+        const webpBlob = await convertToWebP(file);
+        uploadData = webpBlob;
+        const lastDotIndex = file.name.lastIndexOf('.');
+        const baseName = lastDotIndex !== -1 ? file.name.substring(0, lastDotIndex) : file.name;
+        fileName = `${baseName}.webp`;
+        fileType = 'image/webp';
+        console.log("WebP conversion successful:", fileName);
+      } catch (convErr) {
+        console.warn("WebP conversion failed, falling back to original:", convErr);
+      }
+
+      const storagePath = `site_images/${Date.now()}_${fileName}`;
       const storageRef = ref(storage, storagePath);
       
-      await uploadBytes(storageRef, webpBlob);
-      const downloadURL = await getDownloadURL(storageRef);
+      console.log("Uploading to storage path:", storagePath);
+      toast.loading("Uploading to storage...", { id: toastId });
 
+      // Use Data URL for upload - often more reliable in sandboxed environments
+      const reader = new FileReader();
+      const dataUrlPromise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(uploadData);
+      });
+      
+      const dataUrl = await dataUrlPromise;
+      console.log("Data URL generated, starting uploadString...");
+      
+      await uploadString(storageRef, dataUrl, 'data_url');
+      console.log("Upload successful");
+
+      console.log("Getting download URL...");
+      const downloadURL = await getDownloadURL(storageRef);
+      console.log("Download URL obtained:", downloadURL);
+
+      toast.loading("Saving to database...", { id: toastId });
       await addDoc(collection(db, 'site_images'), {
-        name: webpFileName,
+        name: fileName,
         url: downloadURL,
         storagePath: storagePath,
-        uploadedBy: auth.currentUser?.uid,
+        uploadedBy: auth.currentUser.uid,
         uploadedAt: serverTimestamp(),
-        size: webpBlob.size,
-        type: 'image/webp'
+        size: uploadData.size,
+        type: fileType
       });
+      console.log("Firestore document added");
 
-      toast.success("Image uploaded successfully as WebP", { id: toastId });
+      toast.success("Image uploaded successfully", { id: toastId });
     } catch (err) {
-      console.error("Upload error:", err);
-      toast.error("Failed to upload image", { id: toastId });
+      console.error("Upload process failed:", err);
+      toast.error("Failed to upload image. Please check your connection and try again.", { id: toastId });
       handleFirestoreError(err, OperationType.CREATE, 'site_images');
     } finally {
       setIsUploadingImage(false);
+      if (e.target) e.target.value = '';
     }
   };
 
