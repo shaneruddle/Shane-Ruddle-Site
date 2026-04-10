@@ -94,6 +94,22 @@
         "published": { "type": "boolean" }
       },
       "required": ["title", "body", "category"]
+    },
+    "SiteImage": {
+      "title": "SiteImage",
+      "description": "Represents an uploaded image for site management.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "storagePath": { "type": "string" },
+        "uploadedBy": { "type": "string" },
+        "uploadedAt": { "type": "string", "format": "date-time" },
+        "size": { "type": "number" },
+        "type": { "type": "string" }
+      },
+      "required": ["name", "url", "storagePath", "uploadedBy", "uploadedAt"]
     }
   },
   "firestore": {
@@ -116,6 +132,10 @@
     "/blog/{postId}": {
       "schema": "BlogPost",
       "description": "Blog posts for the website."
+    },
+    "/site_images/{imageId}": {
+      "schema": "SiteImage",
+      "description": "Images uploaded for site management."
     }
   }
 }

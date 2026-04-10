@@ -61,6 +61,18 @@ service cloud.firestore {
     //   - updatedAt: timestamp (optional)
     //   - createdBy: string (optional)
     //
+    // Collection: site_images
+    // Document ID: imageId
+    // Fields:
+    //   - id: string (optional)
+    //   - name: string (required)
+    //   - url: string (required)
+    //   - storagePath: string (required)
+    //   - uploadedBy: string (required)
+    //   - uploadedAt: timestamp (required)
+    //   - size: number (optional)
+    //   - type: string (optional)
+    //
     // ===============================================================
 
     // ===============================================================
@@ -158,18 +170,19 @@ service cloud.firestore {
     }
 
     function isValidUsageLog(data) {
-      let allowedFields = ['userId', 'timestamp', 'type', 'userName', 'userEmail', 'userCompany', 'discountId', 'discountName', 'restaurantId'];
+      let allowedFields = ['userId', 'timestamp', 'type', 'userName', 'userEmail', 'userCompany', 'discountId', 'discountName', 'restaurantId', 'details'];
       return data.keys().hasAll(['userId', 'timestamp']) &&
              data.keys().hasOnly(allowedFields) &&
              data.userId == request.auth.uid &&
              data.timestamp is timestamp &&
-             (!('type' in data) || data.type in ['redemption', 'login']) &&
+             (!('type' in data) || data.type in ['redemption', 'login', 'signup', 'finance_create', 'finance_update', 'finance_delete', 'profile_update', 'employee_update']) &&
              (!('userName' in data) || data.userName == null || (data.userName is string && data.userName.size() < 200)) &&
              (!('userEmail' in data) || data.userEmail == null || (data.userEmail is string && data.userEmail.size() < 200)) &&
              (!('userCompany' in data) || data.userCompany == null || (data.userCompany is string && data.userCompany.size() < 200)) &&
              (!('discountId' in data) || data.discountId is string) &&
              (!('discountName' in data) || data.discountName == null || (data.discountName is string && data.discountName.size() < 200)) &&
-             (!('restaurantId' in data) || data.restaurantId == null || (data.restaurantId is string && data.restaurantId.size() < 200));
+             (!('restaurantId' in data) || data.restaurantId == null || (data.restaurantId is string && data.restaurantId.size() < 200)) &&
+             (!('details' in data) || data.details == null || (data.details is string && data.details.size() < 2000));
     }
 
     function isValidCompany(data) {
@@ -196,6 +209,17 @@ service cloud.firestore {
              (!('id' in data) || data.id is string);
     }
 
+    function isValidSiteImage(data) {
+      return data.keys().hasAll(['name', 'url', 'storagePath', 'uploadedBy', 'uploadedAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             data.url is string && data.url.size() > 0 &&
+             data.storagePath is string &&
+             data.uploadedBy == request.auth.uid &&
+             data.uploadedAt is timestamp &&
+             (!('size' in data) || data.size is number) &&
+             (!('type' in data) || data.type is string);
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -209,6 +233,7 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (
         request.auth.uid == userId || 
         isAdmin() || 
+        isFinanceUser() ||
         (isManager() && (
           resource.data.get('companyId', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('companyId', '---') ||
           resource.data.get('company', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('company', '---')
@@ -283,6 +308,12 @@ service cloud.firestore {
       allow read: if isFinanceUser();
       allow create, update: if isFinanceUser() && isValidFinanceTransaction(request.resource.data);
       allow delete: if isAdmin();
+    }
+
+    match /site_images/{imageId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidSiteImage(request.resource.data);
+      allow update, delete: if isAdmin();
     }
   }
 }

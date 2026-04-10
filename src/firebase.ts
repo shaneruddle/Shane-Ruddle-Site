@@ -12,12 +12,14 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber
 } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp, Timestamp, deleteDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
 import firebaseConfig from '../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 
 export enum OperationType {
@@ -163,3 +165,15 @@ export interface FinanceTransaction {
   updatedAt?: Timestamp;
   createdBy?: string;
 }
+
+export interface SiteImage {
+  id: string;
+  name: string;
+  url: string;
+  storagePath: string;
+  uploadedBy: string;
+  uploadedAt: Timestamp;
+  size?: number;
+  type?: string;
+}
+

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
-import { db, auth, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog, DBCompany, BlogPost, FinanceTransaction } from '../firebase';
+import { db, auth, storage, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog, DBCompany, BlogPost, FinanceTransaction, SiteImage } from '../firebase';
 import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy } from 'firebase/firestore';
-import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown } from 'lucide-react';
+import { ref, uploadString, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, Copy, ExternalLink, Image as ImageIcon } from 'lucide-react';
 import { migrateData } from '../services/migrationService';
 import { getBusinessInfo, saveBusinessInfo } from '../services/businessService';
 import { BusinessInfo } from '../types';
@@ -14,6 +15,46 @@ interface DashboardProps {
   userProfile: UserProfile;
   onBack: () => void;
 }
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-TH', { 
+    style: 'currency', 
+    currency: 'THB',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount);
+};
+
+const convertToWebP = (file: File): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Failed to convert to WebP'));
+          }
+        }, 'image/webp', 0.8);
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+};
 
 export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'users' | 'finance' | 'settings'>(
@@ -27,11 +68,13 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [companies, setCompanies] = useState<DBCompany[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [financeTransactions, setFinanceTransactions] = useState<FinanceTransaction[]>([]);
+  const [siteImages, setSiteImages] = useState<SiteImage[]>([]);
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo | null>(null);
   const [personalProfile, setPersonalProfile] = useState<Partial<UserProfile>>(userProfile);
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPersonalProfile, setSavingPersonalProfile] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Finance states
   const [financeSubTab, setFinanceSubTab] = useState<'ABPC' | 'ECRE' | 'ABPC Agents' | 'ECRE Agents'>('ABPC');
@@ -436,6 +479,10 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       setFinanceTransactions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FinanceTransaction)));
     }, (err) => handleFirestoreError(err, OperationType.LIST, 'finance'));
 
+    const unsubSiteImages = onSnapshot(query(collection(db, 'site_images'), orderBy('uploadedAt', 'desc')), (snapshot) => {
+      setSiteImages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SiteImage)));
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'site_images'));
+
     return () => {
       unsubEmployees();
       unsubDiscounts();
@@ -443,6 +490,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       unsubCompanies();
       unsubBlog();
       unsubFinance();
+      unsubSiteImages();
     };
   }, [userProfile]);
 
@@ -464,8 +512,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       });
       toast.success(`User roles updated`);
     } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `users/${userId}`);
       toast.error('Failed to update user roles');
+      handleFirestoreError(err, OperationType.UPDATE, `users/${userId}`);
     }
   };
 
@@ -486,8 +534,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       }
       toast.success(`Standardized ${updatedCount} user roles to "employee"`);
     } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, 'users/standardize');
       toast.error('Failed to standardize roles');
+      handleFirestoreError(err, OperationType.UPDATE, 'users/standardize');
     } finally {
       setIsStandardizing(false);
     }
@@ -647,8 +695,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         agent: '-'
       });
     } catch (err) {
-      handleFirestoreError(err, editingTransaction ? OperationType.UPDATE : OperationType.CREATE, editingTransaction ? `finance/${editingTransaction.id}` : 'finance');
       toast.error(`Failed to ${editingTransaction ? 'update' : 'save'} transaction`);
+      handleFirestoreError(err, editingTransaction ? OperationType.UPDATE : OperationType.CREATE, editingTransaction ? `finance/${editingTransaction.id}` : 'finance');
     } finally {
       setIsSavingTransaction(false);
     }
@@ -712,8 +760,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       }
       setConfirmDeleteTransaction(null);
     } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `finance/${id}`);
       toast.error('Failed to delete transaction');
+      handleFirestoreError(err, OperationType.DELETE, `finance/${id}`);
     }
   };
 
@@ -787,8 +835,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       setShowEditEmployee(false);
       setEditingEmployee(null);
     } catch (err) {
-      handleFirestoreError(err, isNew ? OperationType.CREATE : OperationType.UPDATE, `users/${finalUid}`);
       toast.error(`Failed to ${isNew ? 'add' : 'update'} employee`);
+      handleFirestoreError(err, isNew ? OperationType.CREATE : OperationType.UPDATE, `users/${finalUid}`);
     }
   };
 
@@ -844,8 +892,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       toast.success('Company deleted successfully');
       setConfirmDelete(null);
     } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `companies/${id}`);
       toast.error('Failed to delete company');
+      handleFirestoreError(err, OperationType.DELETE, `companies/${id}`);
     }
   };
 
@@ -909,8 +957,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
       toast.success("Personal profile updated successfully");
     } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `users/${auth.currentUser.uid}`);
       toast.error("Failed to update personal profile");
+      handleFirestoreError(err, OperationType.UPDATE, `users/${auth.currentUser.uid}`);
     } finally {
       setSavingPersonalProfile(false);
     }
@@ -1184,8 +1232,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       setShowEditBlog(false);
       setEditingBlog(null);
     } catch (err) {
-      handleFirestoreError(err, editingBlog.id ? OperationType.UPDATE : OperationType.CREATE, 'blog');
       toast.error('Failed to save blog post');
+      handleFirestoreError(err, editingBlog.id ? OperationType.UPDATE : OperationType.CREATE, 'blog');
     } finally {
       setIsSavingBlog(false);
     }
@@ -1253,6 +1301,68 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       toast.success('Blog image uploaded');
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleSiteImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !auth.currentUser) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    const toastId = toast.loading("Converting and uploading image...");
+
+    try {
+      // Convert to WebP
+      const webpBlob = await convertToWebP(file);
+      const webpFileName = file.name.substring(0, file.name.lastIndexOf('.')) + '.webp';
+      const storagePath = `site_images/${Date.now()}_${webpFileName}`;
+      const storageRef = ref(storage, storagePath);
+      
+      await uploadBytes(storageRef, webpBlob);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      await addDoc(collection(db, 'site_images'), {
+        name: webpFileName,
+        url: downloadURL,
+        storagePath: storagePath,
+        uploadedBy: auth.currentUser?.uid,
+        uploadedAt: serverTimestamp(),
+        size: webpBlob.size,
+        type: 'image/webp'
+      });
+
+      toast.success("Image uploaded successfully as WebP", { id: toastId });
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast.error("Failed to upload image", { id: toastId });
+      handleFirestoreError(err, OperationType.CREATE, 'site_images');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleDeleteSiteImage = async (image: SiteImage) => {
+    if (!window.confirm(`Are you sure you want to delete "${image.name}"?`)) return;
+
+    const toastId = toast.loading("Deleting image...");
+    try {
+      const storageRef = ref(storage, image.storagePath);
+      await deleteObject(storageRef);
+      await deleteDoc(doc(db, 'site_images', image.id));
+      toast.success("Image deleted successfully", { id: toastId });
+    } catch (err) {
+      toast.error("Failed to delete image", { id: toastId });
+      handleFirestoreError(err, OperationType.DELETE, `site_images/${image.id}`);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("URL copied to clipboard");
   };
 
   const uniqueEmployees: UserProfile[] = Array.from(
@@ -1397,9 +1507,12 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     
     const now = new Date();
     const months = [];
-    for (let i = 0; i < 6; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      months.push(d.toISOString().split('T')[0].substring(0, 7));
+    const startDate = new Date(2022, 11, 1); // December 2022
+    
+    let currentDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    while (currentDate >= startDate) {
+      months.push(currentDate.toISOString().split('T')[0].substring(0, 7));
+      currentDate.setMonth(currentDate.getMonth() - 1);
     }
     
     return months.map(month => {
@@ -2383,12 +2496,12 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                   <div className="text-sm font-medium">
                                     {p.agent} {p.nickname && p.nickname !== p.agent && `(${p.nickname})`}
                                   </div>
-                                  <div className="text-[10px] text-black/40 uppercase tracking-widest">Total: {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.total)}</div>
+                                  <div className="text-[10px] text-black/40 uppercase tracking-widest">Total: {formatCurrency(p.total)}</div>
                                 </div>
                               </div>
                               <div className="text-right">
                                 <div className="text-sm font-bold text-gold">
-                                  {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.average)}
+                                  {formatCurrency(p.average)}
                                 </div>
                               </div>
                             </div>
@@ -2423,12 +2536,12 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                   <div className="text-sm font-medium">
                                     {p.agent} {p.nickname && p.nickname !== p.agent && `(${p.nickname})`}
                                   </div>
-                                  <div className="text-[10px] text-black/40 uppercase tracking-widest">Total: {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.total)}</div>
+                                  <div className="text-[10px] text-black/40 uppercase tracking-widest">Total: {formatCurrency(p.total)}</div>
                                 </div>
                               </div>
                               <div className="text-right">
                                 <div className="text-sm font-bold text-gold">
-                                  {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(p.average)}
+                                  {formatCurrency(p.average)}
                                 </div>
                               </div>
                             </div>
@@ -2497,25 +2610,25 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                     {new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                                   </td>
                                   <td className="px-6 py-4 text-sm font-bold text-right text-green-600">
-                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(item.income)}
+                                    {formatCurrency(item.income)}
                                   </td>
                                   <td className="px-6 py-4 text-sm font-bold text-right text-red-600">
-                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(item.expenses)}
+                                    {formatCurrency(item.expenses)}
                                   </td>
                                   {!financeSubTab.startsWith('ABPC') && (
                                     <>
                                       <td className="px-6 py-4 text-sm font-bold text-right text-blue-600">
-                                        {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(item.transfersIn)}
+                                        {formatCurrency(item.transfersIn)}
                                       </td>
                                       <td className="px-6 py-4 text-sm font-bold text-right text-indigo-600">
-                                        {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(item.transfersOut)}
+                                        {formatCurrency(item.transfersOut)}
                                       </td>
                                     </>
                                   )}
                                   <td className={`px-6 py-4 text-sm font-bold text-right ${
                                     (item.income + (financeSubTab.startsWith('ABPC') ? 0 : item.transfersIn) - item.expenses - (financeSubTab.startsWith('ABPC') ? 0 : item.transfersOut)) >= 0 ? 'text-gold' : 'text-red-500'
                                   }`}>
-                                    {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                                    {formatCurrency(
                                       item.income + (financeSubTab.startsWith('ABPC') ? 0 : item.transfersIn) - item.expenses - (financeSubTab.startsWith('ABPC') ? 0 : item.transfersOut)
                                     )}
                                   </td>
@@ -2630,7 +2743,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               <span className="text-xs font-bold text-green-700 uppercase tracking-wider">Income</span>
                             </div>
                             <span className="text-sm font-serif text-green-700">
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                              {formatCurrency(
                                 filteredFinanceTransactions.filter(t => t.type === 'income' && !t.transferGroupId).reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
                               )}
                             </span>
@@ -2645,7 +2758,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               <span className="text-xs font-bold text-red-700 uppercase tracking-wider">Expenses</span>
                             </div>
                             <span className="text-sm font-serif text-red-700">
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                              {formatCurrency(
                                 filteredFinanceTransactions.filter(t => t.type === 'expense' && !t.transferGroupId).reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
                               )}
                             </span>
@@ -2660,7 +2773,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Transfers In</span>
                             </div>
                             <span className="text-sm font-serif text-blue-700">
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                              {formatCurrency(
                                 filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'income').reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
                               )}
                             </span>
@@ -2675,7 +2788,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Transfers Out</span>
                             </div>
                             <span className="text-sm font-serif text-indigo-700">
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                              {formatCurrency(
                                 filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'expense').reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
                               )}
                             </span>
@@ -2693,7 +2806,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? (Number(t.amount) || 0) : -(Number(t.amount) || 0)), 0) >= 0 
                               ? 'text-gold' : 'text-red-500'
                             }`}>
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                              {formatCurrency(
                                 filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? (Number(t.amount) || 0) : -(Number(t.amount) || 0)), 0)
                               )}
                             </span>
@@ -2767,7 +2880,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                   </div>
                                 </td>
                                 <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                                  {t.type === 'income' ? '+' : '-'}{new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(t.amount)}
+                                  {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                   <div className="flex justify-end gap-1 transition-opacity">
@@ -2898,7 +3011,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               <span className="text-xs font-bold text-green-700 uppercase tracking-wider">Income</span>
                             </div>
                             <span className="text-sm font-serif text-green-700">
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                              {formatCurrency(
                                 filteredFinanceTransactions.filter(t => t.type === 'income' && !t.transferGroupId).reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
                               )}
                             </span>
@@ -2913,7 +3026,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               <span className="text-xs font-bold text-red-700 uppercase tracking-wider">Expenses</span>
                             </div>
                             <span className="text-sm font-serif text-red-700">
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                              {formatCurrency(
                                 filteredFinanceTransactions.filter(t => t.type === 'expense' && !t.transferGroupId).reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
                               )}
                             </span>
@@ -2928,7 +3041,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Transfers In</span>
                             </div>
                             <span className="text-sm font-serif text-blue-700">
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                              {formatCurrency(
                                 filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'income').reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
                               )}
                             </span>
@@ -2943,7 +3056,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Transfers Out</span>
                             </div>
                             <span className="text-sm font-serif text-indigo-700">
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                              {formatCurrency(
                                 filteredFinanceTransactions.filter(t => !!t.transferGroupId && t.type === 'expense').reduce((acc, t) => acc + (Number(t.amount) || 0), 0)
                               )}
                             </span>
@@ -2961,7 +3074,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? (Number(t.amount) || 0) : -(Number(t.amount) || 0)), 0) >= 0 
                               ? 'text-gold' : 'text-red-500'
                             }`}>
-                              {new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(
+                              {formatCurrency(
                                 filteredFinanceTransactions.reduce((acc, t) => acc + (t.type === 'income' ? (Number(t.amount) || 0) : -(Number(t.amount) || 0)), 0)
                               )}
                             </span>
@@ -3055,7 +3168,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                   </div>
                                 </td>
                                 <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                                  {t.type === 'income' ? '+' : '-'}{new Intl.NumberFormat('en-TH', { style: 'currency', currency: 'THB' }).format(t.amount)}
+                                  {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                   <div className="flex justify-end gap-1 transition-opacity">
@@ -3270,6 +3383,75 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       </div>
                       <p className="text-[10px] text-black/30 italic">Upload high-quality portrait photos. Max 1MB each.</p>
                     </div>
+                  </div>
+                </div>
+
+                {/* Image Management Section */}
+                <div className="glass rounded-[40px] p-10 mt-12">
+                  <div className="flex items-center justify-between mb-10">
+                    <div>
+                      <h3 className="text-2xl font-serif">Image <span className="italic">Management</span></h3>
+                      <p className="text-black/40 text-sm">Upload and manage logos or other assets for the site</p>
+                    </div>
+                    <label className={`bg-black text-white px-8 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-gold transition-all flex items-center gap-2 cursor-pointer ${isUploadingImage ? 'opacity-50 pointer-events-none' : ''}`}>
+                      {isUploadingImage ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                      Upload Image
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={handleSiteImageUpload}
+                        disabled={isUploadingImage}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {siteImages.map((image) => (
+                      <div key={image.id} className="bg-black/2 rounded-[2rem] p-4 group relative border border-black/5 hover:border-gold/20 transition-all">
+                        <div className="aspect-video rounded-2xl overflow-hidden bg-white mb-4 flex items-center justify-center">
+                          <img src={image.url} alt={image.name} className="max-w-full max-h-full object-contain" referrerPolicy="no-referrer" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-bold truncate pr-12">{image.name}</p>
+                          <p className="text-[10px] text-black/40 font-mono">
+                            {(image.size ? (image.size / 1024).toFixed(1) : 0)} KB
+                          </p>
+                        </div>
+                        
+                        <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => copyToClipboard(image.url)}
+                            className="p-2 bg-white/90 backdrop-blur-sm text-black rounded-xl shadow-sm hover:bg-gold hover:text-white transition-all"
+                            title="Copy URL"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                          <a 
+                            href={image.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="p-2 bg-white/90 backdrop-blur-sm text-black rounded-xl shadow-sm hover:bg-black hover:text-white transition-all"
+                            title="Open Original"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                          <button 
+                            onClick={() => handleDeleteSiteImage(image)}
+                            className="p-2 bg-white/90 backdrop-blur-sm text-red-500 rounded-xl shadow-sm hover:bg-red-500 hover:text-white transition-all"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {siteImages.length === 0 && !isUploadingImage && (
+                      <div className="col-span-full py-12 text-center border-2 border-dashed border-black/5 rounded-[2.5rem]">
+                        <ImageIcon className="w-12 h-12 text-black/5 mx-auto mb-4" />
+                        <p className="text-black/40 italic text-sm">No images uploaded yet.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -3530,7 +3712,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       <option value="-">-</option>
                       {employees
                         .filter(emp => {
-                          const targetCompany = financeSubTab === 'ABPC' ? 'Alan Bolton Property Consultants' : 'East Coast Real Estate';
+                          const targetCompany = (financeSubTab === 'ABPC' || financeSubTab === 'ABPC Agents') ? 'Alan Bolton Property Consultants' : 'East Coast Real Estate';
                           return emp.company === targetCompany;
                         })
                         .map((emp) => {
