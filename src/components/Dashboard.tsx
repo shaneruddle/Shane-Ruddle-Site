@@ -1197,8 +1197,10 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   };
 
   useEffect(() => {
-    setPersonalProfile(userProfile);
-  }, [userProfile]);
+    if (!savingPersonalProfile) {
+      setPersonalProfile(userProfile);
+    }
+  }, [userProfile, savingPersonalProfile]);
 
   useEffect(() => {
     const fetchBusinessInfo = async () => {
@@ -1233,6 +1235,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     if (!auth.currentUser) return;
     setSavingPersonalProfile(true);
     try {
+      console.log("Updating personal profile. Current state:", personalProfile);
       const updateData = {
         name: personalProfile.name || '',
         firstName: personalProfile.firstName || '',
@@ -1241,8 +1244,11 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         profileImage: personalProfile.profileImage || '',
         updatedAt: serverTimestamp()
       };
+      
+      console.log("Sending update to Firestore:", updateData);
       await updateDoc(doc(db, 'users', auth.currentUser.uid), updateData);
-
+      
+      console.log("Firestore update successful. Logging usage...");
       // Log profile update
       await addDoc(collection(db, 'usage_logs'), {
         userId: auth.currentUser.uid,
@@ -1250,12 +1256,13 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         userEmail: auth.currentUser.email || 'Unknown',
         userCompany: userProfile.company || 'Unknown',
         type: 'profile_update',
-        details: 'User updated their personal profile',
+        details: `User updated their personal profile (Mobile: ${personalProfile.mobile || 'N/A'})`,
         timestamp: serverTimestamp()
       });
 
       toast.success("Personal profile updated successfully");
     } catch (err) {
+      console.error("Error updating personal profile:", err);
       toast.error("Failed to update personal profile");
       handleFirestoreError(err, OperationType.UPDATE, `users/${auth.currentUser.uid}`);
     } finally {

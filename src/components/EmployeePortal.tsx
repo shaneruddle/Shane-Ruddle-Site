@@ -23,8 +23,10 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
   const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
-    setPersonalProfile(userProfile);
-  }, [userProfile]);
+    if (!savingProfile) {
+      setPersonalProfile(userProfile);
+    }
+  }, [userProfile, savingProfile]);
 
   useEffect(() => {
     const unsubDiscounts = onSnapshot(query(collection(db, 'discounts'), where('active', '==', true)), (snapshot) => {
@@ -114,6 +116,7 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
     if (!auth.currentUser) return;
     setSavingProfile(true);
     try {
+      console.log("Updating employee profile. Current state:", personalProfile);
       const updateData = {
         name: personalProfile.name || '',
         firstName: personalProfile.firstName || '',
@@ -122,9 +125,25 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
         profileImage: personalProfile.profileImage || '',
         updatedAt: serverTimestamp()
       };
+      
+      console.log("Sending update to Firestore:", updateData);
       await updateDoc(doc(db, 'users', auth.currentUser.uid), updateData);
+      
+      console.log("Firestore update successful. Logging usage...");
+      // Log profile update
+      await addDoc(collection(db, 'usage_logs'), {
+        userId: auth.currentUser.uid,
+        userName: userProfile.name || 'Unknown',
+        userEmail: auth.currentUser.email || 'Unknown',
+        userCompany: userProfile.company || 'Unknown',
+        type: 'profile_update',
+        details: `User updated their personal profile (Mobile: ${personalProfile.mobile || 'N/A'})`,
+        timestamp: serverTimestamp()
+      });
+
       toast.success("Profile updated successfully");
     } catch (err) {
+      console.error("Error updating employee profile:", err);
       handleFirestoreError(err, OperationType.UPDATE, `users/${auth.currentUser.uid}`);
       toast.error("Failed to update profile");
     } finally {

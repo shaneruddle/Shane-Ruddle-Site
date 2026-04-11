@@ -89,7 +89,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && (
-        (request.auth.token.email == "shaneruddle@gmail.com" && request.auth.token.email_verified == true) ||
+        (request.auth.token.email.lower() == "shaneruddle@gmail.com" && request.auth.token.email_verified == true) ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
          'admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []))
       );
@@ -131,7 +131,9 @@ service cloud.firestore {
         'uid', 'email', 'name', 'firstName', 'lastName', 'nickname', 'roles', 'active',
         'employeeId', 'discountCode', 'discountIds', 'bio', 'birthday', 'company',
         'contractLink', 'employedFrom', 'finishWork', 'mobile', 'position',
-        'preferredLanguage', 'profileImage', 'tempPass', 'companyId', 'createdAt', 'updatedAt', 'id'
+        'preferredLanguage', 'profileImage', 'tempPass', 'companyId', 'createdAt', 'updatedAt', 'id',
+        'phoneNumber', 'photoURL', 'displayName', 'emailVerified', 'lastLogin', 'providerId', '__v', '_id', 'authProvider', 'provider',
+        'lastLoginAt', 'lastSignInTime', 'creationTime', 'metadata', 'fcmToken'
       ];
       return data.keys().hasOnly(allowedFields) &&
              (!('uid' in data) || data.uid is string) &&
@@ -159,7 +161,13 @@ service cloud.firestore {
              (!('discountIds' in data) || data.discountIds == null || data.discountIds is list) &&
              (!('createdAt' in data) || data.createdAt == null || data.createdAt is timestamp || data.createdAt is string) &&
              (!('updatedAt' in data) || data.updatedAt == null || data.updatedAt is timestamp || data.updatedAt is string) &&
-             (!('id' in data) || data.id is string);
+             (!('id' in data) || data.id is string) &&
+             (!('phoneNumber' in data) || data.phoneNumber == null || data.phoneNumber is string) &&
+             (!('photoURL' in data) || data.photoURL == null || data.photoURL is string) &&
+             (!('displayName' in data) || data.displayName == null || data.displayName is string) &&
+             (!('emailVerified' in data) || data.emailVerified == null || data.emailVerified is bool) &&
+             (!('lastLogin' in data) || data.lastLogin == null || data.lastLogin is string || data.lastLogin is timestamp) &&
+             (!('providerId' in data) || data.providerId == null || data.providerId is string);
     }
 
     function isValidDiscount(data) {
