@@ -14,6 +14,7 @@ export interface BusinessInfo {
   companies: Company[];
   values: string[];
   ownerPhotos?: string[];
+  notificationEmail?: string;
 }
 
 export const fallbackData: BusinessInfo = {

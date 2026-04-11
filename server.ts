@@ -76,6 +76,63 @@ async function startServer() {
     }
   });
 
+  app.post("/api/notify-login", async (req, res) => {
+    const { userName, userEmail, userCompany, timestamp, targetEmail } = req.body;
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || "smtp.ethereal.email",
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER || "test@example.com",
+        pass: process.env.SMTP_PASS || "password",
+      },
+    });
+
+    const mailOptions = {
+      from: '"Shane Ruddle Group" <notifications@shaneruddle.com>',
+      to: targetEmail || "shaneruddle@gmail.com",
+      subject: `Login Alert: ${userName || userEmail || 'A user'} has signed in`,
+      text: `
+        A user has signed in to the portal!
+        
+        Name: ${userName || 'N/A'}
+        Email: ${userEmail || 'N/A'}
+        Company: ${userCompany || 'N/A'}
+        Time: ${new Date(timestamp).toLocaleString()}
+      `,
+      html: `
+        <div style="font-family: serif; padding: 20px; border: 1px solid #E5E5E5; border-radius: 12px;">
+          <h2 style="color: #D4AF37;">Login Notification</h2>
+          <p><strong>Name:</strong> ${userName || 'N/A'}</p>
+          <p><strong>Email:</strong> ${userEmail || 'N/A'}</p>
+          <p><strong>Company:</strong> ${userCompany || 'N/A'}</p>
+          <p><strong>Time:</strong> ${new Date(timestamp).toLocaleString()}</p>
+        </div>
+      `,
+    };
+
+    try {
+      if (process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_USER !== "test@example.com") {
+        await transporter.sendMail(mailOptions);
+        console.log(`SUCCESS: Login email sent to ${targetEmail || "shaneruddle@gmail.com"} for ${userName}`);
+      } else {
+        console.warn("WARNING: SMTP credentials not configured. Login email NOT sent.");
+        console.log("Email Content (Login):", mailOptions.text);
+
+        if ((transporter.options as any).host === "smtp.ethereal.email") {
+          const info = await transporter.sendMail(mailOptions);
+          console.log("Ethereal Login Email Sent: %s", info.messageId);
+          console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+        }
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("ERROR: Failed to send login email:", error);
+      res.status(500).json({ error: "Failed to send notification" });
+    }
+  });
+
   app.post("/api/contact", async (req, res) => {
     const { name, email, message } = req.body;
 

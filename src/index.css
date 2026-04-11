@@ -10,6 +10,13 @@
   --color-gold: #D4AF37;
   --color-gold-light: #F9F295;
   --color-gold-dark: #B8860B;
+
+  /* Explicitly define colors used in reports to avoid oklab/oklch issues with PDF generation */
+  --color-report-green-bg: #f0fdf4;
+  --color-report-green-text: #16a34a;
+  --color-report-green-dark: #15803d;
+  --color-report-black-muted: rgba(0, 0, 0, 0.4);
+  --color-report-black-light: rgba(0, 0, 0, 0.02);
 }
 
 @layer base {
