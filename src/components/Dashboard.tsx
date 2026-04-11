@@ -5,7 +5,7 @@ import domtoimage from 'dom-to-image-more';
 import { db, auth, storage, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog, DBCompany, BlogPost, FinanceTransaction, SiteImage } from '../firebase';
 import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy } from 'firebase/firestore';
 import { ref, uploadString, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, Download, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, FileDown, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, Copy, ExternalLink, Image as ImageIcon } from 'lucide-react';
+import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, Download, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, FileDown, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, Copy, ExternalLink, Image as ImageIcon, Eye } from 'lucide-react';
 import { migrateData } from '../services/migrationService';
 import { getBusinessInfo, saveBusinessInfo } from '../services/businessService';
 import { BusinessInfo } from '../types';
@@ -61,6 +61,212 @@ const convertToWebP = (file: File): Promise<Blob> => {
     img.src = URL.createObjectURL(file);
   });
 };
+
+const ReportDocument = React.forwardRef<HTMLDivElement, any>(({ 
+  selectedIndividualAgent, 
+  reportYearFilter, 
+  financeSubTab, 
+  uniqueEmployees, 
+  getIndividualAgentReport,
+  getCompanyInfo,
+  formatCurrency,
+  isPreview = false
+}, ref) => {
+  if (!selectedIndividualAgent) {
+    return (
+      <div ref={ref} className="bg-white p-12 min-h-[297mm] w-full max-w-[210mm] mx-auto font-sans text-black flex flex-col items-center justify-center text-black/20 space-y-4">
+        <FileText className="w-20 h-20" />
+        <p className="text-xl font-serif italic">Please select an employee to generate report</p>
+      </div>
+    );
+  }
+
+  const emp = uniqueEmployees.find(e => {
+    const fullName = `${e.firstName} ${e.lastName}`.toLowerCase().trim();
+    const displayName = (e.name || `${e.firstName} ${e.lastName}`).toLowerCase().trim();
+    const target = selectedIndividualAgent.toLowerCase().trim();
+    return displayName === target || fullName === target || (e.nickname && e.nickname.toLowerCase().trim() === target);
+  });
+  const companyInfo = getCompanyInfo(emp?.company || (financeSubTab.startsWith('ABPC') ? 'Alan Bolton Property Consultants' : 'East Coast Real Estate'), emp?.companyId);
+  const allTimeReport = getIndividualAgentReport(selectedIndividualAgent, 'all');
+  const totalIncome = allTimeReport.reduce((acc, curr) => acc + curr.income, 0);
+  
+  const getStats = (monthsCount: number) => {
+    const slice = allTimeReport.slice(0, monthsCount);
+    const total = slice.reduce((acc, curr) => acc + curr.income, 0);
+    const avg = slice.length > 0 ? total / slice.length : 0;
+    return { total, avg };
+  };
+  
+  const stats3m = getStats(3);
+  const stats6m = getStats(6);
+  const stats12m = getStats(12);
+  
+  const yearlyTotals = allTimeReport.reduce((acc: {[key: string]: number}, curr) => {
+    const year = curr.month.substring(0, 4);
+    acc[year] = (acc[year] || 0) + curr.income;
+    return acc;
+  }, {});
+
+  return (
+    <div ref={ref} className={`bg-white p-10 font-sans text-black ${isPreview ? 'shadow-2xl' : 'rounded-none shadow-none'} min-h-[297mm] w-full max-w-[210mm] mx-auto`}>
+      <div className="space-y-8">
+        {/* Branded Header */}
+        <div className="flex justify-between items-start border-b-2 border-black/5 pb-6">
+          <div className="flex items-center gap-6">
+            <div className="w-20 h-20 flex items-center justify-center overflow-hidden bg-white">
+              {companyInfo.logo ? (
+                <img src={companyInfo.logo} alt="Company Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+              ) : (
+                <div className={`w-full h-full ${companyInfo.color} flex items-center justify-center text-white font-bold text-xl`}>
+                  {companyInfo.shorthand}
+                </div>
+              )}
+            </div>
+            <div>
+              <h2 className="text-xl font-serif font-bold tracking-tight">
+                {companyInfo.name.includes('Alan Bolton') ? 'Alan Bolton' : 'East Coast'}
+              </h2>
+              <p className="text-[10px] text-black/40 uppercase tracking-[0.2em] font-bold">
+                {companyInfo.name.includes('Alan Bolton') ? 'Property Consultants' : 'Real Estate'}
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <h1 className="text-2xl font-serif italic text-black/80">Monthly Report</h1>
+            <div className="mt-2 space-y-1">
+              <p className="text-[9px] text-black/40 uppercase tracking-widest font-bold">Generated On</p>
+              <p className="text-xs font-medium">{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              {reportYearFilter !== 'all' && (
+                <p className="text-[10px] font-bold text-gold bg-gold/5 px-2 py-0.5 rounded inline-block mt-1">YEAR: {reportYearFilter}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Employee Details Section */}
+        <div className="grid grid-cols-[120px_1fr] gap-8 items-start">
+          <div className="space-y-3">
+            <div className="aspect-square rounded-xl bg-black/5 border border-black/5 overflow-hidden flex items-center justify-center relative group">
+              {emp?.profileImage ? (
+                <img src={emp.profileImage} alt={selectedIndividualAgent} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                <User className="w-10 h-10 text-black/20" />
+              )}
+            </div>
+            <div className="text-center">
+              <p className="text-[9px] text-black/40 uppercase tracking-widest font-bold mb-0.5">Employee ID</p>
+              <p className="text-xs font-mono font-bold">{emp?.employeeId || 'EMP-000'}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-10 gap-y-6">
+            <div className="space-y-0.5">
+              <p className="text-[9px] text-black/40 uppercase tracking-widest font-bold">Full Name</p>
+              <p className="text-sm font-serif font-medium">{emp?.firstName} {emp?.lastName}</p>
+              {emp?.nickname && <p className="text-[10px] text-gold italic">"{emp.nickname}"</p>}
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[9px] text-black/40 uppercase tracking-widest font-bold">Position</p>
+              <p className="text-sm font-medium">{emp?.position || 'Sales Agent'}</p>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[9px] text-black/40 uppercase tracking-widest font-bold">Email Address</p>
+              <p className="text-[11px] border-b border-black/5 pb-0.5">{emp?.email}</p>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[9px] text-black/40 uppercase tracking-widest font-bold">Contact Number</p>
+              <p className="text-[11px] border-b border-black/5 pb-0.5">{emp?.mobile || 'N/A'}</p>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[9px] text-black/40 uppercase tracking-widest font-bold">Employed Since</p>
+              <p className="text-[11px]">{emp?.employedFrom ? new Date(emp.employedFrom).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A'}</p>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[9px] text-black/40 uppercase tracking-widest font-bold">Preferred Language</p>
+              <p className="text-[11px]">{emp?.preferredLanguage || 'English'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Financial Summary */}
+        <div className="space-y-8">
+          <div className="grid grid-cols-4 gap-4">
+            <div className="bg-black text-white p-4 rounded-xl shadow-lg shadow-black/10">
+              <p className="text-[8px] text-white/40 uppercase tracking-widest font-bold mb-1">Total All-Time</p>
+              <p className="text-lg font-bold font-mono whitespace-nowrap">{formatCurrency(totalIncome)}</p>
+            </div>
+            <div className="bg-white border border-black/5 p-4 rounded-xl">
+              <p className="text-[8px] text-black/40 uppercase tracking-widest font-bold mb-1">3 Month Avg</p>
+              <p className="text-base font-bold font-mono whitespace-nowrap">{formatCurrency(stats3m.avg)}</p>
+              <p className="text-[8px] text-black/30 mt-0.5 italic">Total: {formatCurrency(stats3m.total)}</p>
+            </div>
+            <div className="bg-white border border-black/5 p-4 rounded-xl">
+              <p className="text-[8px] text-black/40 uppercase tracking-widest font-bold mb-1">6 Month Avg</p>
+              <p className="text-base font-bold font-mono whitespace-nowrap">{formatCurrency(stats6m.avg)}</p>
+              <p className="text-[8px] text-black/30 mt-0.5 italic">Total: {formatCurrency(stats6m.total)}</p>
+            </div>
+            <div className="bg-white border border-black/5 p-4 rounded-xl">
+              <p className="text-[8px] text-black/40 uppercase tracking-widest font-bold mb-1">12 Month Avg</p>
+              <p className="text-base font-bold font-mono whitespace-nowrap">{formatCurrency(stats12m.avg)}</p>
+              <p className="text-[8px] text-black/30 mt-0.5 italic">Total: {formatCurrency(stats12m.total)}</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-black/30 border-b border-black/5 pb-1.5">Yearly Performance</h3>
+            <div className="grid grid-cols-6 gap-2">
+              {Object.entries(yearlyTotals).sort((a, b) => b[0].localeCompare(a[0])).map(([year, total]) => (
+                <div key={year} className="bg-black/[0.02] p-2 rounded-lg border border-black/5">
+                  <p className="text-[8px] font-bold text-gold mb-0.5">{year}</p>
+                  <p className="text-[10px] font-bold font-mono whitespace-nowrap">{formatCurrency(total)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-black/30 border-b border-black/5 pb-1.5">Monthly Breakdown</h3>
+            <div className="overflow-hidden rounded-xl border border-black/5">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-black text-white">
+                    <th className="px-3 py-2 text-[8px] uppercase tracking-widest font-bold">Month / Year</th>
+                    <th className="px-3 py-2 text-[8px] uppercase tracking-widest font-bold text-right">Total Income</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-black/5">
+                  {getIndividualAgentReport(selectedIndividualAgent, reportYearFilter).map((item, idx) => (
+                    <tr key={item.month} className={idx % 2 === 0 ? 'bg-white' : 'bg-black/[0.01]'}>
+                      <td className="px-3 py-1.5 text-[10px] font-medium">
+                        {new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      </td>
+                      <td className="px-3 py-1.5 text-[10px] font-bold text-right font-mono">
+                        {formatCurrency(item.income)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="pt-12 border-t border-black/5 flex justify-between items-end">
+          <div className="space-y-1">
+            <p className="text-[8px] text-black/30 uppercase tracking-widest font-bold">Confidential Report</p>
+            <p className="text-[10px] text-black/40">© {new Date().getFullYear()} {financeSubTab.startsWith('ABPC') ? 'Alan Bolton Property Consultants' : 'East Coast Real Estate'}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[8px] text-black/30 uppercase tracking-widest font-bold mb-2">Authorized Signature</p>
+            <div className="w-48 h-px bg-black/20 ml-auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
 
 export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'users' | 'finance' | 'settings'>(
@@ -150,6 +356,20 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [migrationStatus, setMigrationStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [confirmDelete, setConfirmDelete] = useState<{ id: string, type: 'employee' | 'company', name: string } | null>(null);
 
+  // Export Preview states
+  const [showExportPreview, setShowExportPreview] = useState(false);
+  const [exportPreviewData, setExportPreviewData] = useState<any[]>([]);
+  const [exportPreviewTitle, setExportPreviewTitle] = useState('');
+  const [exportPreviewFileName, setExportPreviewFileName] = useState('');
+  const [isExportingFromPreview, setIsExportingFromPreview] = useState(false);
+
+  // PDF Preview states
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState('');
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfFileName, setPdfFileName] = useState('');
+  const previewReportRef = useRef<HTMLDivElement>(null);
+
   const COMPANY_DATA: Record<string, { logo: string, shorthand: string, color: string }> = {
     "Cajun Life Cafe": { logo: "https://picsum.photos/seed/cajun/100/100", shorthand: "CLC", color: "bg-orange-500" },
     "Hemingways Lakeside": { logo: "https://picsum.photos/seed/lake/100/100", shorthand: "HL", color: "bg-blue-500" },
@@ -181,8 +401,9 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       const company = companies.find(c => c.id === companyId);
       if (company) {
         return { 
+          name: company.name,
           logo: getLogoSrc(company.logo), 
-          shorthand: company.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 3), 
+          shorthand: company.name.split(' ').map(w => w[0]).join('').toUpperCase(), 
           color: "bg-white" 
         };
       }
@@ -190,16 +411,17 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     const company = companies.find(c => c.name === companyName);
     if (company) {
       return { 
+        name: company.name,
         logo: getLogoSrc(company.logo), 
-        shorthand: company.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 3), 
+        shorthand: company.name.split(' ').map(w => w[0]).join('').toUpperCase(), 
         color: "bg-white" 
       };
     }
     const info = COMPANY_DATA[companyName];
     if (info) {
-      return { ...info, logo: getLogoSrc(info.logo) };
+      return { ...info, name: companyName, logo: getLogoSrc(info.logo) };
     }
-    return { logo: "https://picsum.photos/seed/generic/100/100", shorthand: "??", color: "bg-gray-400" };
+    return { name: companyName, logo: "https://picsum.photos/seed/generic/100/100", shorthand: "??", color: "bg-gray-400" };
   };
 
   const initialEmployees = [
@@ -811,21 +1033,35 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       Section: t.section
     }));
 
-    const csv = Papa.unparse(exportData);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    const fileName = `Finance_Export_${financeSubTab}_${new Date().toISOString().split('T')[0]}.csv`;
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', fileName);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast.success(`Exported ${filteredFinanceTransactions.length} transactions`);
+    setExportPreviewData(exportData);
+    setExportPreviewTitle(`Finance Export: ${financeSubTab}`);
+    setExportPreviewFileName(`Finance_Export_${financeSubTab}_${new Date().toISOString().split('T')[0]}.csv`);
+    setShowExportPreview(true);
+  };
+
+  const executeExportCSV = (data: any[], fileName: string) => {
+    setIsExportingFromPreview(true);
+    try {
+      const csv = Papa.unparse(data);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', fileName);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success(`Exported ${data.length} items successfully`);
+      setShowExportPreview(false);
+    } catch (err) {
+      toast.error("Export failed");
+      console.error(err);
+    } finally {
+      setIsExportingFromPreview(false);
+    }
   };
 
   const handleEditEmployee = (employee: UserProfile | null) => {
@@ -1655,18 +1891,26 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   };
 
   const downloadPDF = async () => {
-    if (!reportRef.current) return;
+    if (!selectedIndividualAgent) {
+      toast.error("Please select an agent first");
+      return;
+    }
+    setPdfFileName(`Report_${selectedIndividualAgent}_${reportYearFilter}_${new Date().toISOString().split('T')[0]}.pdf`);
+    setShowPdfPreview(true);
+  };
+
+  const executeDownloadPDF = async () => {
+    if (!previewReportRef.current) return;
     
     const toastId = toast.loading('Generating PDF...');
     try {
       // Use dom-to-image-more which handles modern CSS (oklch, oklab, backdrop-filter) much better than html2canvas
-      const dataUrl = await domtoimage.toPng(reportRef.current, {
+      const dataUrl = await domtoimage.toPng(previewReportRef.current, {
         quality: 1.0,
         bgcolor: '#ffffff',
-        width: reportRef.current.offsetWidth,
-        height: reportRef.current.offsetHeight,
+        width: previewReportRef.current.offsetWidth,
+        height: previewReportRef.current.offsetHeight,
         style: {
-          // Ensure the report looks good in the export
           'border-radius': '0',
           'box-shadow': 'none',
           'margin': '0'
@@ -1679,11 +1923,12 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
       pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Report_${selectedIndividualAgent}_${reportYearFilter}_${new Date().toISOString().split('T')[0]}.pdf`);
+      pdf.save(pdfFileName);
       toast.success('PDF downloaded successfully', { id: toastId });
+      setShowPdfPreview(false);
     } catch (error) {
-      console.error('PDF generation error:', error);
-      toast.error('Failed to generate PDF. Please try again.', { id: toastId });
+      console.error('PDF save error:', error);
+      toast.error('Failed to save PDF', { id: toastId });
     }
   };
 
@@ -2814,257 +3059,59 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                   </div>
                 ) : (financeSubTab === 'ABPC Reports' || financeSubTab === 'ECRE Reports') ? (
                   <div className="space-y-8">
-                    <div ref={reportRef} className="bg-white p-12 rounded-none shadow-none min-h-[297mm] w-full max-w-[210mm] mx-auto font-sans text-black">
-                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 print:hidden">
-                        <div>
-                          <h4 className="text-lg font-serif">Employee <span className="italic">Monthly Report</span></h4>
-                          <p className="text-[10px] text-black/40 uppercase tracking-widest mt-1">
-                            Comprehensive performance and details report
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-3">
-                          <select 
-                            value={reportYearFilter}
-                            onChange={(e) => setReportYearFilter(e.target.value)}
-                            className="bg-black/5 border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
-                          >
-                            <option value="all">All Years</option>
-                            {financeYears.map(year => (
-                              <option key={year} value={year}>{year}</option>
-                            ))}
-                          </select>
-                          <select 
-                            value={selectedIndividualAgent}
-                            onChange={(e) => setSelectedIndividualAgent(e.target.value)}
-                            className="bg-black/5 border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none min-w-[250px]"
-                          >
-                            <option value="">Select Employee...</option>
-                            {uniqueEmployees
-                              .filter(emp => {
-                                const targetCompany = financeSubTab.startsWith('ABPC') ? 'Alan Bolton Property Consultants' : 'East Coast Real Estate';
-                                return emp.company === targetCompany;
-                              })
-                              .map(emp => {
-                                const fullName = `${emp.firstName} ${emp.lastName}`.trim();
-                                const displayName = emp.name || fullName;
-                                return (
-                                  <option key={emp.uid} value={displayName}>
-                                    {displayName} {emp.nickname ? `(${emp.nickname})` : ''}
-                                  </option>
-                                );
-                              })
-                            }
-                          </select>
-                        </div>
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 print:hidden">
+                      <div>
+                        <h4 className="text-lg font-serif">Employee <span className="italic">Monthly Report</span></h4>
+                        <p className="text-[10px] text-black/40 uppercase tracking-widest mt-1">
+                          Comprehensive performance and details report
+                        </p>
                       </div>
-
-                      {selectedIndividualAgent ? (
-                        <div className="space-y-10">
-                          {/* Branded Header */}
-                          {(() => {
-                            const emp = uniqueEmployees.find(e => {
-                              const fullName = `${e.firstName} ${e.lastName}`;
-                              const displayName = e.name || fullName;
-                              return displayName === selectedIndividualAgent || e.nickname === selectedIndividualAgent || fullName === selectedIndividualAgent;
-                            });
-                            const companyInfo = getCompanyInfo(emp?.company || (financeSubTab.startsWith('ABPC') ? 'Alan Bolton Property Consultants' : 'East Coast Real Estate'), emp?.companyId);
-                            
-                            return (
-                              <div className="flex justify-between items-start border-b-2 border-black/5 pb-8">
-                                <div className="flex items-center gap-6">
-                                  <div className="w-24 h-24 flex items-center justify-center overflow-hidden bg-white">
-                                    {companyInfo.logo ? (
-                                      <img src={companyInfo.logo} alt="Company Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
-                                    ) : (
-                                      <div className={`w-full h-full ${companyInfo.color} flex items-center justify-center text-white font-bold text-2xl`}>
-                                        {companyInfo.shorthand}
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div>
-                                    <h2 className="text-2xl font-serif font-bold tracking-tight">
-                                      {companyInfo.shorthand === 'ABPC' ? 'Alan Bolton' : 'East Coast'}
-                                    </h2>
-                                    <p className="text-xs text-black/40 uppercase tracking-[0.2em] font-bold">
-                                      {companyInfo.shorthand === 'ABPC' ? 'Property Consultants' : 'Real Estate'}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <h1 className="text-3xl font-serif italic text-black/80">Monthly Report</h1>
-                                  <div className="mt-2 space-y-1">
-                                    <p className="text-[10px] text-black/40 uppercase tracking-widest font-bold">Generated On</p>
-                                    <p className="text-sm font-medium">{new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                                    {reportYearFilter !== 'all' && (
-                                      <p className="text-xs font-bold text-gold bg-gold/5 px-2 py-1 rounded inline-block mt-1">YEAR: {reportYearFilter}</p>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })()}
-
-                          {/* Employee Details Section */}
-                          {(() => {
-                            const emp = uniqueEmployees.find(e => {
-                              const fullName = `${e.firstName} ${e.lastName}`;
-                              const displayName = e.name || fullName;
-                              return displayName === selectedIndividualAgent || e.nickname === selectedIndividualAgent || fullName === selectedIndividualAgent;
-                            });
-
-                            return (
-                              <div className="grid grid-cols-[140px_1fr] gap-10 items-start">
-                                <div className="space-y-4">
-                                  <div className="aspect-square rounded-2xl bg-black/5 border border-black/5 overflow-hidden flex items-center justify-center relative group">
-                                    {emp?.profileImage ? (
-                                      <img src={emp.profileImage} alt={selectedIndividualAgent} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                                    ) : (
-                                      <User className="w-12 h-12 text-black/20" />
-                                    )}
-                                  </div>
-                                  <div className="text-center">
-                                    <p className="text-[10px] text-black/40 uppercase tracking-widest font-bold mb-1">Employee ID</p>
-                                    <p className="text-sm font-mono font-bold">{emp?.employeeId || 'EMP-000'}</p>
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-x-12 gap-y-8">
-                                  <div className="space-y-1">
-                                    <p className="text-[10px] text-black/40 uppercase tracking-widest font-bold">Full Name</p>
-                                    <p className="text-lg font-serif font-medium">{emp?.firstName} {emp?.lastName}</p>
-                                    {emp?.nickname && <p className="text-xs text-gold italic">"{emp.nickname}"</p>}
-                                  </div>
-                                  <div className="space-y-1">
-                                    <p className="text-[10px] text-black/40 uppercase tracking-widest font-bold">Position</p>
-                                    <p className="text-lg font-medium">{emp?.position || 'Sales Agent'}</p>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <p className="text-[10px] text-black/40 uppercase tracking-widest font-bold">Email Address</p>
-                                    <p className="text-sm border-b border-black/5 pb-1">{emp?.email}</p>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <p className="text-[10px] text-black/40 uppercase tracking-widest font-bold">Contact Number</p>
-                                    <p className="text-sm border-b border-black/5 pb-1">{emp?.mobile || 'N/A'}</p>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <p className="text-[10px] text-black/40 uppercase tracking-widest font-bold">Employed Since</p>
-                                    <p className="text-sm">{emp?.employedFrom ? new Date(emp.employedFrom).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A'}</p>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <p className="text-[10px] text-black/40 uppercase tracking-widest font-bold">Preferred Language</p>
-                                    <p className="text-sm">{emp?.preferredLanguage || 'English'}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })()}
-
-                          {/* Financial Summary */}
-                          {(() => {
-                            const allTimeReport = getIndividualAgentReport(selectedIndividualAgent, 'all');
-                            const totalIncome = allTimeReport.reduce((acc, curr) => acc + curr.income, 0);
-                            
-                            const getStats = (monthsCount: number) => {
-                              const slice = allTimeReport.slice(0, monthsCount);
-                              const total = slice.reduce((acc, curr) => acc + curr.income, 0);
-                              const avg = slice.length > 0 ? total / slice.length : 0;
-                              return { total, avg };
-                            };
-                            
-                            const stats3m = getStats(3);
-                            const stats6m = getStats(6);
-                            const stats12m = getStats(12);
-                            
-                            const yearlyTotals = allTimeReport.reduce((acc: {[key: string]: number}, curr) => {
-                              const year = curr.month.substring(0, 4);
-                              acc[year] = (acc[year] || 0) + curr.income;
-                              return acc;
-                            }, {});
-
-                            return (
-                              <div className="space-y-10">
-                                <div className="grid grid-cols-4 gap-6">
-                                  <div className="bg-black text-white p-6 rounded-2xl shadow-xl shadow-black/10">
-                                    <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-2">Total All-Time</p>
-                                    <p className="text-2xl font-bold font-mono">{formatCurrency(totalIncome)}</p>
-                                  </div>
-                                  <div className="bg-white border border-black/5 p-6 rounded-2xl">
-                                    <p className="text-[10px] text-black/40 uppercase tracking-widest font-bold mb-2">3 Month Avg</p>
-                                    <p className="text-xl font-bold font-mono">{formatCurrency(stats3m.avg)}</p>
-                                    <p className="text-[10px] text-black/30 mt-1 italic">Total: {formatCurrency(stats3m.total)}</p>
-                                  </div>
-                                  <div className="bg-white border border-black/5 p-6 rounded-2xl">
-                                    <p className="text-[10px] text-black/40 uppercase tracking-widest font-bold mb-2">6 Month Avg</p>
-                                    <p className="text-xl font-bold font-mono">{formatCurrency(stats6m.avg)}</p>
-                                    <p className="text-[10px] text-black/30 mt-1 italic">Total: {formatCurrency(stats6m.total)}</p>
-                                  </div>
-                                  <div className="bg-white border border-black/5 p-6 rounded-2xl">
-                                    <p className="text-[10px] text-black/40 uppercase tracking-widest font-bold mb-2">12 Month Avg</p>
-                                    <p className="text-xl font-bold font-mono">{formatCurrency(stats12m.avg)}</p>
-                                    <p className="text-[10px] text-black/30 mt-1 italic">Total: {formatCurrency(stats12m.total)}</p>
-                                  </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                  <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-black/30 border-b border-black/5 pb-2">Yearly Performance</h3>
-                                  <div className="grid grid-cols-6 gap-4">
-                                    {Object.entries(yearlyTotals).sort((a, b) => b[0].localeCompare(a[0])).map(([year, total]) => (
-                                      <div key={year} className="bg-black/[0.02] p-4 rounded-xl border border-black/5">
-                                        <p className="text-[10px] font-bold text-gold mb-1">{year}</p>
-                                        <p className="text-sm font-bold font-mono">{formatCurrency(total)}</p>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                  <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-black/30 border-b border-black/5 pb-2">Monthly Breakdown</h3>
-                                  <div className="overflow-hidden rounded-2xl border border-black/5">
-                                    <table className="w-full text-left border-collapse">
-                                      <thead>
-                                        <tr className="bg-black text-white">
-                                          <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold">Month / Year</th>
-                                          <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-right">Total Income</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody className="divide-y divide-black/5">
-                                        {getIndividualAgentReport(selectedIndividualAgent, reportYearFilter).map((item, idx) => (
-                                          <tr key={item.month} className={idx % 2 === 0 ? 'bg-white' : 'bg-black/[0.01]'}>
-                                            <td className="px-6 py-4 text-sm font-medium">
-                                              {new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                                            </td>
-                                            <td className="px-6 py-4 text-sm font-bold text-right font-mono">
-                                              {formatCurrency(item.income)}
-                                            </td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })()}
-
-                          {/* Footer */}
-                          <div className="pt-12 border-t border-black/5 flex justify-between items-end">
-                            <div className="space-y-1">
-                              <p className="text-[8px] text-black/30 uppercase tracking-widest font-bold">Confidential Report</p>
-                              <p className="text-[10px] text-black/40">© {new Date().getFullYear()} {financeSubTab.startsWith('ABPC') ? 'Alan Bolton Property Consultants' : 'East Coast Real Estate'}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-[8px] text-black/30 uppercase tracking-widest font-bold mb-2">Authorized Signature</p>
-                              <div className="w-48 h-px bg-black/20 ml-auto"></div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-[200mm] text-black/20 space-y-4">
-                          <FileText className="w-20 h-20" />
-                          <p className="text-xl font-serif italic">Please select an employee to generate report</p>
-                        </div>
-                      )}
+                      <div className="flex flex-wrap items-center gap-3">
+                        <select 
+                          value={reportYearFilter}
+                          onChange={(e) => setReportYearFilter(e.target.value)}
+                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none"
+                        >
+                          <option value="all">All Years</option>
+                          {financeYears.map(year => (
+                            <option key={year} value={year}>{year}</option>
+                          ))}
+                        </select>
+                        <select 
+                          value={selectedIndividualAgent}
+                          onChange={(e) => setSelectedIndividualAgent(e.target.value)}
+                          className="bg-black/5 border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none min-w-[250px]"
+                        >
+                          <option value="">Select Employee...</option>
+                          {uniqueEmployees
+                            .filter(emp => {
+                              const targetCompany = financeSubTab.startsWith('ABPC') ? 'Alan Bolton Property Consultants' : 'East Coast Real Estate';
+                              return emp.company === targetCompany;
+                            })
+                            .map(emp => {
+                              const fullName = `${emp.firstName} ${emp.lastName}`.trim();
+                              const displayName = emp.name || fullName;
+                              return (
+                                <option key={emp.uid} value={displayName}>
+                                  {displayName} {emp.nickname ? `(${emp.nickname})` : ''}
+                                </option>
+                              );
+                            })
+                          }
+                        </select>
+                      </div>
                     </div>
+
+                    <ReportDocument 
+                      ref={reportRef}
+                      selectedIndividualAgent={selectedIndividualAgent}
+                      reportYearFilter={reportYearFilter}
+                      financeSubTab={financeSubTab}
+                      uniqueEmployees={uniqueEmployees}
+                      getIndividualAgentReport={getIndividualAgentReport}
+                      getCompanyInfo={getCompanyInfo}
+                      formatCurrency={formatCurrency}
+                    />
 
                     <div className="flex justify-end gap-3 print:hidden">
                       <button 
@@ -3076,31 +3123,15 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       <button 
                         onClick={() => {
                           const report = getIndividualAgentReport(selectedIndividualAgent, reportYearFilter);
-                          const emp = uniqueEmployees.find(e => {
-                            const fullName = `${e.firstName} ${e.lastName}`;
-                            const displayName = e.name || fullName;
-                            return displayName === selectedIndividualAgent || e.nickname === selectedIndividualAgent || fullName === selectedIndividualAgent;
-                          });
-
                           const exportData = report.map(item => ({
                             Month: new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
                             Income: item.income
                           }));
 
-                          const csv = Papa.unparse(exportData);
-                          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                          const link = document.createElement('a');
-                          const url = URL.createObjectURL(blob);
-                          
-                          const fileName = `Report_${selectedIndividualAgent}_${reportYearFilter}_${new Date().toISOString().split('T')[0]}.csv`;
-                          
-                          link.setAttribute('href', url);
-                          link.setAttribute('download', fileName);
-                          link.style.visibility = 'hidden';
-                          document.body.appendChild(link);
-                          link.click();
-                          document.body.removeChild(link);
-                          toast.success("Report exported successfully");
+                          setExportPreviewData(exportData);
+                          setExportPreviewTitle(`Report: ${selectedIndividualAgent} (${reportYearFilter})`);
+                          setExportPreviewFileName(`Report_${selectedIndividualAgent}_${reportYearFilter}_${new Date().toISOString().split('T')[0]}.csv`);
+                          setShowExportPreview(true);
                         }}
                         className="bg-black text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/90 transition-all flex items-center gap-2 shadow-lg shadow-black/20"
                       >
@@ -4796,6 +4827,130 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               </form>
             </motion.div>
           </div>
+            )}
+          </AnimatePresence>
+
+          {/* Export Preview Modal */}
+          <AnimatePresence>
+            {showExportPreview && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-white rounded-[2.5rem] p-10 w-full max-w-5xl shadow-2xl max-h-[90vh] flex flex-col"
+                >
+                  <div className="flex justify-between items-center mb-8 shrink-0">
+                    <div>
+                      <h3 className="text-2xl font-serif">Export <span className="italic">Preview</span></h3>
+                      <p className="text-black/40 text-xs">{exportPreviewTitle}</p>
+                    </div>
+                    <button onClick={() => setShowExportPreview(false)} className="p-2 hover:bg-black/5 rounded-full">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="flex-grow overflow-auto mb-8 border border-black/5 rounded-2xl">
+                    <table className="w-full text-left border-collapse">
+                      <thead className="sticky top-0 bg-white z-10">
+                        <tr className="border-b border-black/5">
+                          {exportPreviewData.length > 0 && Object.keys(exportPreviewData[0]).map(key => (
+                            <th key={key} className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-black/40">{key}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {exportPreviewData.map((row, idx) => (
+                          <tr key={idx} className="border-b border-black/5 hover:bg-black/[0.02] transition-colors">
+                            {Object.values(row).map((val: any, i) => (
+                              <td key={i} className="px-6 py-4 text-xs">
+                                {typeof val === 'number' && !isNaN(val) ? (
+                                  val.toLocaleString()
+                                ) : (
+                                  String(val)
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="flex gap-4 shrink-0">
+                    <button 
+                      onClick={() => setShowExportPreview(false)}
+                      className="flex-1 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest border border-black/5 hover:bg-black/5 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={() => executeExportCSV(exportPreviewData, exportPreviewFileName)}
+                      disabled={isExportingFromPreview}
+                      className="flex-1 bg-black text-white py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-black/20"
+                    >
+                      {isExportingFromPreview ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                      Download CSV
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
+          {/* PDF Preview Modal */}
+          <AnimatePresence>
+            {showPdfPreview && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-white rounded-[2.5rem] p-10 w-full max-w-4xl shadow-2xl max-h-[90vh] flex flex-col"
+                >
+                  <div className="flex justify-between items-center mb-8 shrink-0">
+                    <div>
+                      <h3 className="text-2xl font-serif">PDF <span className="italic">Preview</span></h3>
+                      <p className="text-black/40 text-xs">{pdfFileName}</p>
+                    </div>
+                    <button onClick={() => setShowPdfPreview(false)} className="p-2 hover:bg-black/5 rounded-full">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="flex-grow overflow-auto mb-8 border border-black/5 rounded-2xl bg-black/5 p-8 flex justify-center">
+                    <div className="origin-top scale-[0.6] sm:scale-[0.8] md:scale-100 h-fit">
+                      <ReportDocument 
+                        ref={previewReportRef}
+                        selectedIndividualAgent={selectedIndividualAgent}
+                        reportYearFilter={reportYearFilter}
+                        financeSubTab={financeSubTab}
+                        uniqueEmployees={uniqueEmployees}
+                        getIndividualAgentReport={getIndividualAgentReport}
+                        getCompanyInfo={getCompanyInfo}
+                        formatCurrency={formatCurrency}
+                        isPreview={true}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 shrink-0">
+                    <button 
+                      onClick={() => setShowPdfPreview(false)}
+                      className="flex-1 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest border border-black/5 hover:bg-black/5 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={executeDownloadPDF}
+                      className="flex-1 bg-black text-white py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/20"
+                    >
+                      <FileDown className="w-4 h-4" />
+                      Download PDF
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
             )}
           </AnimatePresence>
 
