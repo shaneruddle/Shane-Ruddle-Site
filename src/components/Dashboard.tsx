@@ -325,6 +325,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
   // Search and Sort states
   const [searchTerm, setSearchTerm] = useState('');
+  const [userSearchTerm, setUserSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [companyFilter, setCompanyFilter] = useState<string>('all');
 
@@ -2705,21 +2706,33 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
               >
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                   <div>
                     <h3 className="text-xl font-serif">User Management</h3>
                     <p className="text-black/40 text-xs">Manage user roles and permissions</p>
                   </div>
-                  {(auth.currentUser?.email === 'shaneruddle@gmail.com') && (
-                    <button 
-                      onClick={handleStandardizeRoles}
-                      disabled={isStandardizing}
-                      className="bg-black/5 text-black px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black/10 transition-all flex items-center gap-2 disabled:opacity-50"
-                    >
-                      {isStandardizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />}
-                      Standardize All Roles
-                    </button>
-                  )}
+                  <div className="flex items-center gap-4 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-64">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20" />
+                      <input 
+                        type="text"
+                        placeholder="Search users..."
+                        value={userSearchTerm}
+                        onChange={(e) => setUserSearchTerm(e.target.value)}
+                        className="w-full bg-black/5 border-none rounded-2xl py-3 pl-12 pr-4 text-xs font-medium focus:ring-2 focus:ring-gold/20 transition-all"
+                      />
+                    </div>
+                    {(auth.currentUser?.email === 'shaneruddle@gmail.com') && (
+                      <button 
+                        onClick={handleStandardizeRoles}
+                        disabled={isStandardizing}
+                        className="bg-black/5 text-black px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black/10 transition-all flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {isStandardizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />}
+                        Standardize All Roles
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="glass rounded-3xl overflow-hidden">
@@ -2732,81 +2745,99 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {users
-                        .sort((a, b) => {
-                          const getTime = (val: any) => {
-                            if (!val) return 0;
-                            if (typeof val.toMillis === 'function') return val.toMillis();
-                            if (val.seconds) return val.seconds * 1000;
-                            if (val instanceof Date) return val.getTime();
-                            if (typeof val === 'string') return new Date(val).getTime();
-                            return 0;
-                          };
-                          const timeA = getTime(a.createdAt);
-                          const timeB = getTime(b.createdAt);
-                          return timeB - timeA; // Always newest first for User Management
-                        })
-                        .map((user) => (
-                        <tr key={user.uid} className="border-bottom border-black/5 hover:bg-black/2 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              {user.profileImage ? (
-                                <img src={user.profileImage} alt={user.name} className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" />
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold font-bold text-[10px]">
-                                  {user.firstName?.[0]}{user.lastName?.[0]}
+                      {(() => {
+                        const filteredUsers = users
+                          .filter(user => {
+                            if (!userSearchTerm) return true;
+                            const searchStr = `${user.name} ${user.firstName} ${user.lastName} ${user.email} ${user.mobile} ${user.nickname}`.toLowerCase();
+                            return searchStr.includes(userSearchTerm.toLowerCase());
+                          })
+                          .sort((a, b) => {
+                            const getTime = (val: any) => {
+                              if (!val) return 0;
+                              if (typeof val.toMillis === 'function') return val.toMillis();
+                              if (val.seconds) return val.seconds * 1000;
+                              if (val instanceof Date) return val.getTime();
+                              if (typeof val === 'string') return new Date(val).getTime();
+                              return 0;
+                            };
+                            const timeA = getTime(a.createdAt);
+                            const timeB = getTime(b.createdAt);
+                            return timeB - timeA;
+                          });
+
+                        if (filteredUsers.length === 0) {
+                          return (
+                            <tr>
+                              <td colSpan={3} className="px-6 py-12 text-center text-black/40 text-sm italic">
+                                No users found matching your search.
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        return filteredUsers.map((user) => (
+                          <tr key={user.uid} className="border-bottom border-black/5 hover:bg-black/2 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                {user.profileImage ? (
+                                  <img src={user.profileImage} alt={user.name} className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold font-bold text-[10px]">
+                                    {user.firstName?.[0]}{user.lastName?.[0]}
+                                  </div>
+                                )}
+                                <div>
+                                  <div className="font-medium">{user.name || 'Unnamed'}</div>
+                                  <div className="text-[10px] text-black/40">{user.email || user.mobile || 'No contact info'}</div>
                                 </div>
-                              )}
-                              <div>
-                                <div className="font-medium">{user.name || 'Unnamed'}</div>
-                                <div className="text-[10px] text-black/40">{user.email || user.mobile || 'No contact info'}</div>
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-wrap gap-1">
-                              {(user.roles || []).map(role => (
-                                <span key={role} className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                                  role === 'admin' ? 'bg-red-100 text-red-600' :
-                                  role === 'manager' ? 'bg-blue-100 text-blue-600' :
-                                  role === 'accounts' ? 'bg-green-100 text-green-600' :
-                                  'bg-gray-100 text-gray-600'
-                                }`}>
-                                  {role}
-                                </span>
-                              ))}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-col gap-1">
-                              {['employee', 'manager', 'accounts', 'admin'].map(role => {
-                                if (role === 'admin' && auth.currentUser?.email !== 'shaneruddle@gmail.com') return null;
-                                const isSelected = (user.roles || []).includes(role as any);
-                                return (
-                                  <label key={role} className="flex items-center gap-2 cursor-pointer group">
-                                    <input 
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      disabled={user.email === 'shaneruddle@gmail.com'}
-                                      onChange={(e) => {
-                                        const currentRoles = user.roles || [];
-                                        const newRoles = e.target.checked 
-                                          ? [...currentRoles, role as any]
-                                          : currentRoles.filter(r => r !== role);
-                                        handleUpdateUserRoles(user.uid, newRoles);
-                                      }}
-                                      className="w-3 h-3 rounded border-black/10 text-gold focus:ring-gold/20"
-                                    />
-                                    <span className="text-[10px] uppercase tracking-widest font-bold text-black/40 group-hover:text-black transition-colors capitalize">
-                                      {role}
-                                    </span>
-                                  </label>
-                                );
-                              })}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-wrap gap-1">
+                                {(user.roles || []).map(role => (
+                                  <span key={role} className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                                    role === 'admin' ? 'bg-red-100 text-red-600' :
+                                    role === 'manager' ? 'bg-blue-100 text-blue-600' :
+                                    role === 'accounts' ? 'bg-green-100 text-green-600' :
+                                    'bg-gray-100 text-gray-600'
+                                  }`}>
+                                    {role}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col gap-1">
+                                {['employee', 'manager', 'accounts', 'admin'].map(role => {
+                                  if (role === 'admin' && auth.currentUser?.email !== 'shaneruddle@gmail.com') return null;
+                                  const isSelected = (user.roles || []).includes(role as any);
+                                  return (
+                                    <label key={role} className="flex items-center gap-2 cursor-pointer group">
+                                      <input 
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        disabled={user.email === 'shaneruddle@gmail.com'}
+                                        onChange={(e) => {
+                                          const currentRoles = user.roles || [];
+                                          const newRoles = e.target.checked 
+                                            ? [...currentRoles, role as any]
+                                            : currentRoles.filter(r => r !== role);
+                                          handleUpdateUserRoles(user.uid, newRoles);
+                                        }}
+                                        className="w-3 h-3 rounded border-black/10 text-gold focus:ring-gold/20"
+                                      />
+                                      <span className="text-[10px] uppercase tracking-widest font-bold text-black/40 group-hover:text-black transition-colors capitalize">
+                                        {role}
+                                      </span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </td>
+                          </tr>
+                        ));
+                      })()}
                     </tbody>
                   </table>
                 </div>

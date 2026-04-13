@@ -89,7 +89,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && (
-        (request.auth.token.email.lower() == "shaneruddle@gmail.com" && request.auth.token.email_verified == true) ||
+        (request.auth.token.email.lower() == "shaneruddle@gmail.com") ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
          'admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []))
       );
@@ -97,17 +97,19 @@ service cloud.firestore {
 
     function isManager() {
       return isAuthenticated() && (
-        isAdmin() || 
+        (request.auth.token.email.lower() == "shaneruddle@gmail.com") ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         'manager' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []))
+         ('manager' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []) ||
+          'admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', [])))
       );
     }
 
     function isFinanceUser() {
       return isAuthenticated() && (
-        isAdmin() || 
+        (request.auth.token.email.lower() == "shaneruddle@gmail.com") ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         'accounts' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []))
+         ('accounts' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []) ||
+          'admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', [])))
       );
     }
 
@@ -238,6 +240,7 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
+      allow create, update: if isAdmin();
       allow read: if isAuthenticated() && (
         request.auth.uid == userId || 
         isAdmin() || 
@@ -246,7 +249,7 @@ service cloud.firestore {
           resource.data.get('companyId', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('companyId', '---') ||
           resource.data.get('company', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('company', '---')
         )) ||
-        (request.auth.token.email != null && resource.data.get('email', '') == request.auth.token.email) || 
+        (request.auth.token.email != null && resource.data.get('email', '').lower() == request.auth.token.email.lower()) || 
         (request.auth.token.phone_number != null && resource.data.get('mobile', '') == request.auth.token.phone_number)
       );
       
@@ -260,7 +263,7 @@ service cloud.firestore {
         !('admin' in request.resource.data.get('roles', [])) && 
         !('accounts' in request.resource.data.get('roles', [])))
       ) && isValidUser(request.resource.data) &&
-      (!('admin' in request.resource.data.get('roles', [])) || request.auth.token.email == "shaneruddle@gmail.com");
+      (!('admin' in request.resource.data.get('roles', [])) || request.auth.token.email.lower() == "shaneruddle@gmail.com");
       
       allow update: if isAuthenticated() && (
         isAdmin() || 
@@ -280,11 +283,11 @@ service cloud.firestore {
         request.resource.data.get('roles', []) == resource.data.get('roles', []) &&
         request.resource.data.get('active', true) == resource.data.get('active', true)
       )) &&
-      (!('admin' in request.resource.data.get('roles', [])) || request.auth.token.email == "shaneruddle@gmail.com");
+      (!('admin' in request.resource.data.get('roles', [])) || request.auth.token.email.lower() == "shaneruddle@gmail.com");
       
       allow delete: if isAdmin() || (
         isAuthenticated() && resource != null && (
-          (request.auth.token.email != null && resource.data.email == request.auth.token.email) || 
+          (request.auth.token.email != null && resource.data.email.lower() == request.auth.token.email.lower()) || 
           (request.auth.token.phone_number != null && resource.data.mobile == request.auth.token.phone_number)
         )
       );
