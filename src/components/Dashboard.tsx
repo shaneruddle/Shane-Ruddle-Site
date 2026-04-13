@@ -668,10 +668,10 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     const usersCollection = collection(db, 'users');
     let usersQuery;
 
-    if (hasRole('admin') || hasRole('accounts')) {
+    if (hasRole('admin')) {
       usersQuery = usersCollection;
-    } else if (hasRole('manager')) {
-      // Filter by companyId or company name
+    } else if (hasRole('accounts') || hasRole('manager')) {
+      // Filter by companyId or company name for both accounts and managers
       if (userProfile.companyId) {
         usersQuery = query(usersCollection, where('companyId', '==', userProfile.companyId));
       } else if (userProfile.company) {
@@ -2045,7 +2045,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         </div>
 
         <nav className="flex flex-col gap-2 flex-grow overflow-y-auto pr-2 custom-scrollbar overflow-x-hidden">
-          {(hasRole('admin') || hasRole('manager')) && (
+          {(hasRole('admin') || hasRole('manager') || hasRole('accounts')) && (
             <button 
               onClick={() => setActiveTab('employees')}
               className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'employees' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
@@ -2250,7 +2250,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
       {/* Mobile Navigation (Bottom Bar) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-black/5 p-2 flex justify-around items-center z-50">
-        {(hasRole('admin') || hasRole('manager')) && (
+        {(hasRole('admin') || hasRole('manager') || hasRole('accounts')) && (
           <button onClick={() => setActiveTab('employees')} className={`p-3 rounded-xl transition-all ${activeTab === 'employees' ? 'bg-gold text-white' : 'text-black/40'}`}>
             <Users className="w-5 h-5" />
           </button>
@@ -2381,7 +2381,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       ))}
                     </select>
                   </div>
-                  {(userProfile?.roles?.includes('admin') || userProfile?.roles?.includes('manager')) && (
+                  {(hasRole('admin') || hasRole('manager') || hasRole('accounts')) && (
                     <button 
                       onClick={() => handleEditEmployee(null)}
                       className="bg-gold text-white px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gold/90 transition-all shadow-lg shadow-gold/20 flex items-center gap-2"
@@ -4411,8 +4411,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       {['employee', 'manager', 'accounts', 'admin'].map(role => {
                         const isSelected = (editingEmployee.roles || []).includes(role as any);
                         const isAdminOnly = role === 'admin' || role === 'accounts';
-                        const isManagerOnly = userProfile.roles?.includes('manager') && !userProfile.roles?.includes('admin');
-                        const isDisabled = isManagerOnly && isAdminOnly;
+                        const isRestrictedUser = (hasRole('manager') || hasRole('accounts')) && !hasRole('admin');
+                        const isDisabled = isRestrictedUser && isAdminOnly;
 
                         return (
                           <label key={role} className={cn(

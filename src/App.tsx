@@ -550,9 +550,14 @@ export default function App() {
           }
         }
 
-        // Log login event if not already logged for this session
-        if (!loginLogged.current) {
+        // Log login event if not already logged for this session and throttle to once every 15 mins
+        const lastLoginTime = localStorage.getItem(`last_login_${user.uid}`);
+        const now = Date.now();
+        const isThrottled = lastLoginTime && (now - parseInt(lastLoginTime) < 15 * 60 * 1000);
+
+        if (!loginLogged.current && !isThrottled) {
           loginLogged.current = true;
+          localStorage.setItem(`last_login_${user.uid}`, now.toString());
           try {
             console.log("Logging login for:", user.email || user.phoneNumber);
             const name = data.name || (data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : data.firstName || data.lastName) || user.email || user.phoneNumber || 'Unknown';
@@ -567,8 +572,12 @@ export default function App() {
           } catch (err) {
             console.error("Error logging login:", err);
             loginLogged.current = false; // Reset on failure to allow retry
+            localStorage.removeItem(`last_login_${user.uid}`); // Allow retry on next update
             handleFirestoreError(err, OperationType.WRITE, 'usage_logs');
           }
+        } else if (isThrottled) {
+          // Still mark as logged for this session even if throttled by localStorage
+          loginLogged.current = true;
         }
         
         setUserProfile(data);
@@ -765,7 +774,7 @@ export default function App() {
             >
               <div className="flex flex-col items-center gap-4">
                 <div className="w-12 h-12 border-2 border-gold border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs uppercase tracking-[0.4em] text-gold-dark animate-pulse">Researching Portfolio...</span>
+                <span className="text-xs uppercase tracking-[0.4em] text-gold-dark animate-pulse">Shane Ruddle Portfolio</span>
               </div>
             </motion.div>
           ) : (
