@@ -269,9 +269,11 @@ const ReportDocument = React.forwardRef<HTMLDivElement, any>(({
 });
 
 export default function Dashboard({ userProfile, onBack }: DashboardProps) {
+  const hasRole = (role: string) => userProfile.roles?.includes(role as any) || (userProfile as any).role === role;
+
   const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'users' | 'finance' | 'settings'>(
-    userProfile.roles?.includes('admin') ? 'employees' : 
-    userProfile.roles?.includes('accounts') ? 'finance' : 'profile'
+    hasRole('admin') ? 'employees' : 
+    hasRole('accounts') ? 'finance' : 'profile'
   );
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [employees, setEmployees] = useState<UserProfile[]>([]);
@@ -661,14 +663,14 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   };
 
   useEffect(() => {
-    if (!userProfile.roles?.includes('admin') && !userProfile.roles?.includes('accounts') && !userProfile.roles?.includes('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com') return;
+    if (!hasRole('admin') && !hasRole('accounts') && !hasRole('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com') return;
 
     const usersCollection = collection(db, 'users');
     let usersQuery;
 
-    if (userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts')) {
+    if (hasRole('admin') || hasRole('accounts')) {
       usersQuery = usersCollection;
-    } else if (userProfile.roles?.includes('manager')) {
+    } else if (hasRole('manager')) {
       // Filter by companyId or company name
       if (userProfile.companyId) {
         usersQuery = query(usersCollection, where('companyId', '==', userProfile.companyId));
@@ -746,10 +748,11 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   }, [userProfile]);
 
   useEffect(() => {
-    if (userProfile.roles?.includes('accounts') && !userProfile.roles?.includes('admin')) {
-      if (userProfile.company === 'Alan Bolton Property Consultants') {
+    const hasRole = (role: string) => userProfile.roles?.includes(role as any) || (userProfile as any).role === role;
+    if (hasRole('accounts') && !hasRole('admin')) {
+      if (userProfile.company?.includes('Alan Bolton')) {
         setFinanceSubTab('ABPC');
-      } else if (userProfile.company === 'East Coast Real Estate') {
+      } else if (userProfile.company?.includes('East Coast')) {
         setFinanceSubTab('ECRE');
       }
     }
@@ -1773,7 +1776,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   }).map(t => t.date.substring(0, 4)))).sort().reverse();
 
   const financeMonths = Array.from(new Set(financeTransactions.filter(t => {
-    const matchesSection = userProfile.roles?.includes('admin') || 
+    const matchesSection = hasRole('admin') || 
       (userProfile.company === 'Alan Bolton Property Consultants' && t.section === 'ABPC') ||
       (userProfile.company === 'East Coast Real Estate' && t.section === 'ECRE');
     if (!matchesSection) return false;
@@ -1997,7 +2000,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
     });
 
-  if (!userProfile.roles?.includes('admin') && !userProfile.roles?.includes('accounts') && !userProfile.roles?.includes('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com') {
+  if (!hasRole('admin') && !hasRole('accounts') && !hasRole('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com') {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 text-center">
         <div>
@@ -2042,7 +2045,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         </div>
 
         <nav className="flex flex-col gap-2 flex-grow overflow-y-auto pr-2 custom-scrollbar overflow-x-hidden">
-          {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('manager')) && (
+          {(hasRole('admin') || hasRole('manager')) && (
             <button 
               onClick={() => setActiveTab('employees')}
               className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'employees' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
@@ -2108,7 +2111,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               </button>
             </>
           )}
-          {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts')) && (
+          {(hasRole('admin') || hasRole('accounts')) && (
             <div className="flex flex-col">
               <button 
                 onClick={() => setActiveTab('finance')}
@@ -2128,7 +2131,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               
               {!isSidebarCollapsed && activeTab === 'finance' && (
                 <div className="ml-11 flex flex-col gap-1 mt-1 mb-4">
-                  {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.company === 'Alan Bolton Property Consultants') && (
+                  {(hasRole('admin') || hasRole('accounts') || userProfile.company === 'Alan Bolton Property Consultants') && (
                     <>
                       <button 
                         onClick={() => {
@@ -2156,7 +2159,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       </button>
                     </>
                   )}
-                  {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.company === 'East Coast Real Estate') && (
+                  {(hasRole('admin') || hasRole('accounts') || userProfile.company === 'East Coast Real Estate') && (
                     <>
                       <button 
                         onClick={() => {
@@ -2247,7 +2250,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
       {/* Mobile Navigation (Bottom Bar) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-black/5 p-2 flex justify-around items-center z-50">
-        {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('manager')) && (
+        {(hasRole('admin') || hasRole('manager')) && (
           <button onClick={() => setActiveTab('employees')} className={`p-3 rounded-xl transition-all ${activeTab === 'employees' ? 'bg-gold text-white' : 'text-black/40'}`}>
             <Users className="w-5 h-5" />
           </button>
@@ -2262,7 +2265,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
             </button>
           </>
         )}
-        {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts')) && (
+        {(hasRole('admin') || hasRole('accounts')) && (
           <button onClick={() => setActiveTab('finance')} className={`p-3 rounded-xl transition-all ${activeTab === 'finance' ? 'bg-gold text-white' : 'text-black/40'}`}>
             <DollarSign className="w-5 h-5" />
           </button>
@@ -2844,7 +2847,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               </motion.div>
             )}
 
-            {activeTab === 'finance' && (userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts')) && (
+            {activeTab === 'finance' && (hasRole('admin') || hasRole('accounts')) && (
               <motion.div 
                 key="finance"
                 initial={{ opacity: 0, y: 10 }}
@@ -2858,7 +2861,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
                   {/* Mobile Finance Sub-tabs */}
                   <div className="md:hidden flex bg-black/5 p-1 rounded-xl mb-6 overflow-x-auto no-scrollbar">
-                    {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.company === 'Alan Bolton Property Consultants') && (
+                    {(hasRole('admin') || hasRole('accounts') || userProfile.company === 'Alan Bolton Property Consultants') && (
                       <>
                         <button 
                           onClick={() => {
@@ -2886,7 +2889,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         </button>
                       </>
                     )}
-                    {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.company === 'East Coast Real Estate') && (
+                    {(hasRole('admin') || hasRole('accounts') || userProfile.company === 'East Coast Real Estate') && (
                       <>
                         <button 
                           onClick={() => {
@@ -3846,7 +3849,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               </motion.div>
             )}
 
-            {activeTab === 'settings' && userProfile.roles?.includes('admin') && businessInfo && (
+            {activeTab === 'settings' && hasRole('admin') && businessInfo && (
               <motion.div 
                 key="settings"
                 initial={{ opacity: 0, y: 10 }}
@@ -4268,8 +4271,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       <option value="-">-</option>
                       {employees
                         .filter(emp => {
-                          const targetCompany = financeSubTab.startsWith('ABPC') ? 'Alan Bolton Property Consultants' : 'East Coast Real Estate';
-                          return emp.company === targetCompany;
+                          const targetKeyword = financeSubTab.startsWith('ABPC') ? 'Alan Bolton' : 'East Coast';
+                          return emp.company?.includes(targetKeyword);
                         })
                         .map((emp) => {
                           const displayName = emp.name || `${emp.firstName} ${emp.lastName}`;
@@ -4373,14 +4376,14 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         });
                       }}
                       className="w-full bg-black/5 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-gold/20 outline-none disabled:opacity-50"
-                      disabled={userProfile.roles?.includes('manager') && !userProfile.roles?.includes('admin')}
+                      disabled={hasRole('manager') && !hasRole('admin')}
                     >
                       <option value="">Select Company</option>
                       {companies.map(c => (
                         <option key={c.id} value={c.id}>{c.name}</option>
                       ))}
                     </select>
-                    {userProfile.roles?.includes('manager') && !userProfile.roles?.includes('admin') && (
+                    {hasRole('manager') && !hasRole('admin') && (
                       <p className="mt-1 text-[8px] text-black/20 italic">Managers can only manage employees within their own company.</p>
                     )}
                   </div>

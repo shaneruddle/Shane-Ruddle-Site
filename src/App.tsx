@@ -552,6 +552,7 @@ export default function App() {
 
         // Log login event if not already logged for this session
         if (!loginLogged.current) {
+          loginLogged.current = true;
           try {
             console.log("Logging login for:", user.email || user.phoneNumber);
             const name = data.name || (data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : data.firstName || data.lastName) || user.email || user.phoneNumber || 'Unknown';
@@ -563,9 +564,9 @@ export default function App() {
               type: 'login',
               timestamp: serverTimestamp()
             });
-            loginLogged.current = true;
           } catch (err) {
             console.error("Error logging login:", err);
+            loginLogged.current = false; // Reset on failure to allow retry
             handleFirestoreError(err, OperationType.WRITE, 'usage_logs');
           }
         }

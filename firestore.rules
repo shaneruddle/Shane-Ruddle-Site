@@ -90,26 +90,34 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && (
         (request.auth.token.email.lower() == "shaneruddle@gmail.com") ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         'admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []))
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+          'admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'admin'
+        ))
       );
     }
 
     function isManager() {
       return isAuthenticated() && (
         (request.auth.token.email.lower() == "shaneruddle@gmail.com") ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         ('manager' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []) ||
-          'admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', [])))
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+          'manager' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []) ||
+          'admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'manager' ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'admin'
+        ))
       );
     }
 
     function isFinanceUser() {
       return isAuthenticated() && (
         (request.auth.token.email.lower() == "shaneruddle@gmail.com") ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         ('accounts' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []) ||
-          'admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', [])))
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+          'accounts' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []) ||
+          'admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'accounts' ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') == 'admin'
+        ))
       );
     }
 
