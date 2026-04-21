@@ -110,6 +110,26 @@
         "type": { "type": "string" }
       },
       "required": ["name", "url", "storagePath", "uploadedBy", "uploadedAt"]
+    },
+    "Extraction": {
+      "title": "Extraction",
+      "description": "Represents a property extraction activity.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "url": { "type": "string" },
+        "refNumber": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "title": { "type": "string" },
+        "agent": { "type": "string" },
+        "engDescription": { "type": "string" },
+        "bubbleStatus": { "type": "string" },
+        "metadata": { "type": "object" },
+        "images": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["userId", "url", "timestamp"]
     }
   },
   "firestore": {
@@ -136,6 +156,10 @@
     "/site_images/{imageId}": {
       "schema": "SiteImage",
       "description": "Images uploaded for site management."
+    },
+    "/extractions/{extractionId}": {
+      "schema": "Extraction",
+      "description": "Property extraction history."
     }
   }
 }

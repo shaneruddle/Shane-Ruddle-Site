@@ -37,9 +37,32 @@
   @apply bg-black/[0.02] backdrop-blur-md border border-black/5;
 }
 
-.gold-gradient {
-  background: linear-gradient(to right, var(--color-gold-dark), var(--color-gold), var(--color-gold-light), var(--color-gold-dark));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* Luxury Quill Overrides */
+.rich-text-container .ql-toolbar.ql-snow {
+  @apply bg-[#F9F8F6] border-0 border-b border-[#E5E1DA] px-4 py-2;
+}
+
+.rich-text-container .ql-container.ql-snow {
+  @apply border-0 min-h-[160px];
+}
+
+.rich-text-container .ql-editor {
+  @apply text-[11px] leading-relaxed text-[#444] p-4 font-sans italic;
+}
+
+.rich-text-container .ql-editor.ql-blank::before {
+  @apply text-[#BBB] decoration-transparent italic left-4;
+}
+
+.rich-text-container .ql-snow.ql-toolbar button:hover,
+.rich-text-container .ql-snow.ql-toolbar button:focus,
+.rich-text-container .ql-snow.ql-toolbar button.ql-active {
+  @apply text-[#C5A059];
+}
+
+.rich-text-container .ql-snow.ql-toolbar button:hover .ql-stroke,
+.rich-text-container .ql-snow.ql-toolbar button:focus .ql-stroke,
+.rich-text-container .ql-snow.ql-toolbar button.ql-active .ql-stroke {
+  stroke: #C5A059;
 }
 

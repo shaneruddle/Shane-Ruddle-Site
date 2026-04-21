@@ -1,79 +1,10 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ===============================================================
-    // Assumed Data Model
-    // ===============================================================
-    //
-    // Collection: users
-    // Document ID: userId (UID)
-    // Fields:
-    //   - uid: string (required)
-    //   - email: string (optional, email format)
-    //   - mobile: string (optional)
-    //   - name: string (optional)
-    //   - roles: list (required, enum: ['admin', 'employee', 'manager', 'accounts'])
-    //   - employeeId: string (optional)
-    //   - discountCode: string (optional)
-    //   - createdAt: timestamp (optional)
-    //
-    // Collection: discounts
-    // Document ID: discountId
-    // Fields:
-    //   - id: string (optional)
-    //   - name: string (required)
-    //   - description: string (optional)
-    //   - percentage: number (required, positive)
-    //   - restaurantId: string (required)
-    //   - active: bool (optional)
-    //
-    // Collection: usage_logs
-    // Document ID: logId
-    // Fields:
-    //   - id: string (optional)
-    //   - userId: string (required)
-    //   - discountId: string (required)
-    //   - restaurantId: string (required)
-    //   - timestamp: timestamp (required)
-    //
-    // Collection: companies
-    // Document ID: companyId
-    // Fields:
-    //   - id: string (optional)
-    //   - name: string (required)
-    //   - website: string (optional)
-    //   - logo: string (optional)
-    //   - description: string (optional)
-    //   - createdAt: timestamp (optional)
-    //
-    // Collection: finance
-    // Document ID: transactionId
-    // Fields:
-    //   - id: string (optional)
-    //   - section: string (required, enum: ['ABPC', 'ECRE'])
-    //   - type: string (required, enum: ['income', 'expense'])
-    //   - date: string (required)
-    //   - description: string (required)
-    //   - amount: number (required)
-    //   - agent: string (required)
-    //   - dealType: string (required, enum: ['new', 'renewal'])
-    //   - createdAt: timestamp (optional)
-    //   - updatedAt: timestamp (optional)
-    //   - createdBy: string (optional)
-    //
-    // Collection: site_images
-    // Document ID: imageId
-    // Fields:
-    //   - id: string (optional)
-    //   - name: string (required)
-    //   - url: string (required)
-    //   - storagePath: string (required)
-    //   - uploadedBy: string (required)
-    //   - uploadedAt: timestamp (required)
-    //   - size: number (optional)
-    //   - type: string (optional)
-    //
-    // ===============================================================
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
 
     // ===============================================================
     // Helper Functions
@@ -81,10 +12,6 @@ service cloud.firestore {
     
     function isAuthenticated() {
       return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
     }
 
     function isAdmin() {
@@ -129,175 +56,50 @@ service cloud.firestore {
              data.description is string &&
              data.amount is number &&
              data.agent is string &&
-             data.dealType in ['new', 'renewal', '-'];
-    }
-
-    function isValidEmail(email) {
-      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+             data.dealType in ['new', 'renewal', '-', 'RENEWAL'];
     }
 
     function isValidUser(data) {
-      let allowedFields = [
-        'uid', 'email', 'name', 'firstName', 'lastName', 'nickname', 'roles', 'active',
-        'employeeId', 'discountCode', 'discountIds', 'bio', 'birthday', 'company',
-        'contractLink', 'employedFrom', 'finishWork', 'mobile', 'position',
-        'preferredLanguage', 'profileImage', 'tempPass', 'companyId', 'createdAt', 'updatedAt', 'id',
-        'phoneNumber', 'photoURL', 'displayName', 'emailVerified', 'lastLogin', 'providerId', '__v', '_id', 'authProvider', 'provider',
-        'lastLoginAt', 'lastSignInTime', 'creationTime', 'metadata', 'fcmToken'
-      ];
-      return data.keys().hasOnly(allowedFields) &&
-             (!('uid' in data) || data.uid is string) &&
-             (!('roles' in data) || data.roles is list) &&
-             (!('active' in data) || data.active is bool) &&
-             (!('email' in data) || data.email == null || data.email is string) &&
-             (!('mobile' in data) || data.mobile == null || data.mobile is string) &&
-             (!('name' in data) || data.name == null || data.name is string) &&
-             (!('firstName' in data) || data.firstName == null || data.firstName is string) &&
-             (!('lastName' in data) || data.lastName == null || data.lastName is string) &&
-             (!('nickname' in data) || data.nickname == null || data.nickname is string) &&
-             (!('profileImage' in data) || data.profileImage == null || data.profileImage is string) &&
-             (!('employeeId' in data) || data.employeeId == null || data.employeeId is string) &&
-             (!('discountCode' in data) || data.discountCode == null || data.discountCode is string) &&
-             (!('company' in data) || data.company == null || data.company is string) &&
-             (!('companyId' in data) || data.companyId == null || data.companyId is string) &&
-             (!('position' in data) || data.position == null || data.position is string) &&
-             (!('bio' in data) || data.bio == null || data.bio is string) &&
-             (!('birthday' in data) || data.birthday == null || data.birthday is string) &&
-             (!('contractLink' in data) || data.contractLink == null || data.contractLink is string) &&
-             (!('employedFrom' in data) || data.employedFrom == null || data.employedFrom is string) &&
-             (!('finishWork' in data) || data.finishWork == null || data.finishWork is string) &&
-             (!('preferredLanguage' in data) || data.preferredLanguage == null || data.preferredLanguage is string) &&
-             (!('tempPass' in data) || data.tempPass == null || data.tempPass is string) &&
-             (!('discountIds' in data) || data.discountIds == null || data.discountIds is list) &&
-             (!('createdAt' in data) || data.createdAt == null || data.createdAt is timestamp || data.createdAt is string) &&
-             (!('updatedAt' in data) || data.updatedAt == null || data.updatedAt is timestamp || data.updatedAt is string) &&
-             (!('id' in data) || data.id is string) &&
-             (!('phoneNumber' in data) || data.phoneNumber == null || data.phoneNumber is string) &&
-             (!('photoURL' in data) || data.photoURL == null || data.photoURL is string) &&
-             (!('displayName' in data) || data.displayName == null || data.displayName is string) &&
-             (!('emailVerified' in data) || data.emailVerified == null || data.emailVerified is bool) &&
-             (!('lastLogin' in data) || data.lastLogin == null || data.lastLogin is string || data.lastLogin is timestamp) &&
-             (!('providerId' in data) || data.providerId == null || data.providerId is string);
-    }
-
-    function isValidDiscount(data) {
-      return data.keys().hasAll(['name', 'percentage', 'restaurantId']) &&
-             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
-             data.percentage is number && data.percentage > 0 && data.percentage <= 100 &&
-             data.restaurantId is string && data.restaurantId.size() > 0;
+      return (data.uid is string || !('uid' in data)) &&
+             (data.email is string || !('email' in data) || data.email == null);
     }
 
     function isValidUsageLog(data) {
-      let allowedFields = ['userId', 'timestamp', 'type', 'userName', 'userEmail', 'userCompany', 'discountId', 'discountName', 'restaurantId', 'details'];
       return data.keys().hasAll(['userId', 'timestamp']) &&
-             data.keys().hasOnly(allowedFields) &&
              data.userId == request.auth.uid &&
-             data.timestamp is timestamp &&
-             (!('type' in data) || data.type in ['redemption', 'login', 'signup', 'finance_create', 'finance_update', 'finance_delete', 'profile_update', 'employee_update']) &&
-             (!('userName' in data) || data.userName == null || (data.userName is string && data.userName.size() < 200)) &&
-             (!('userEmail' in data) || data.userEmail == null || (data.userEmail is string && data.userEmail.size() < 200)) &&
-             (!('userCompany' in data) || data.userCompany == null || (data.userCompany is string && data.userCompany.size() < 200)) &&
-             (!('discountId' in data) || data.discountId is string) &&
-             (!('discountName' in data) || data.discountName == null || (data.discountName is string && data.discountName.size() < 200)) &&
-             (!('restaurantId' in data) || data.restaurantId == null || (data.restaurantId is string && data.restaurantId.size() < 200)) &&
-             (!('details' in data) || data.details == null || (data.details is string && data.details.size() < 2000));
-    }
-
-    function isValidCompany(data) {
-      return data.keys().hasAll(['name']) &&
-             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
-             (!('website' in data) || (data.website is string && data.website.size() < 200)) &&
-             (!('logo' in data) || (data.logo is string && data.logo.size() < 1000000)) &&
-             (!('description' in data) || (data.description is string && data.description.size() < 1000));
+             data.timestamp is timestamp;
     }
 
     function isValidBlogPost(data) {
       return data.keys().hasAll(['title', 'body', 'category']) &&
-             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
-             data.body is string && data.body.size() > 0 &&
-             data.category in ["My Advice", "Property", "Car Rental", "Pattaya News"] &&
-             (!('metaDescription' in data) || (data.metaDescription is string && data.metaDescription.size() < 500)) &&
-             (!('keywords' in data) || (data.keywords is string && data.keywords.size() < 500)) &&
-             (!('imageUrl' in data) || data.imageUrl is string) &&
-             (!('authorId' in data) || data.authorId is string) &&
-             (!('authorName' in data) || data.authorName is string) &&
-             (!('published' in data) || data.published is bool) &&
-             (!('createdAt' in data) || data.createdAt is timestamp) &&
-             (!('updatedAt' in data) || data.updatedAt is timestamp) &&
-             (!('id' in data) || data.id is string);
+             data.title is string && data.body is string && 
+             data.category in ["My Advice", "Property", "Car Rental", "Pattaya News"];
     }
 
-    function isValidSiteImage(data) {
-      return data.keys().hasAll(['name', 'url', 'storagePath', 'uploadedBy', 'uploadedAt']) &&
-             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
-             data.url is string && data.url.size() > 0 &&
-             data.storagePath is string &&
-             data.uploadedBy == request.auth.uid &&
-             data.uploadedAt is timestamp &&
-             (!('size' in data) || data.size is number) &&
-             (!('type' in data) || data.type is string);
+    function isValidExtraction(data) {
+      return data.keys().hasAll(['userId', 'url', 'timestamp']) &&
+             data.userId == request.auth.uid &&
+             data.url is string &&
+             (data.timestamp is timestamp || data.timestamp is string) &&
+             (!('refNumber' in data) || data.refNumber is string || data.refNumber == null) &&
+             (!('bubbleStatus' in data) || data.bubbleStatus is string || data.bubbleStatus == null);
     }
 
     // ===============================================================
-    // Rules
+    // Collection Rules
     // ===============================================================
-
-    match /blog/{postId} {
-      allow get, list: if true;
-      allow write: if isAdmin() && isValidBlogPost(request.resource.data);
-    }
 
     match /users/{userId} {
-      allow create, update: if isAdmin();
       allow read: if isAuthenticated() && (
         request.auth.uid == userId || 
         isAdmin() || 
         ((isManager() || isFinanceUser()) && (
           resource.data.get('companyId', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('companyId', '---') ||
           resource.data.get('company', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('company', '---')
-        )) ||
-        (request.auth.token.email != null && resource.data.get('email', '').lower() == request.auth.token.email.lower()) || 
-        (request.auth.token.phone_number != null && resource.data.get('mobile', '') == request.auth.token.phone_number)
+        ))
       );
-      
-      allow create: if isAuthenticated() && (
-        request.auth.uid == userId || 
-        isAdmin() || 
-        ((isManager() || isFinanceUser()) && (
-          request.resource.data.get('companyId', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('companyId', '---') ||
-          request.resource.data.get('company', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('company', '---')
-        ) && 
-        !('admin' in request.resource.data.get('roles', [])) && 
-        !('accounts' in request.resource.data.get('roles', [])))
-      ) && isValidUser(request.resource.data) &&
-      (!('admin' in request.resource.data.get('roles', [])) || request.auth.token.email.lower() == "shaneruddle@gmail.com");
-      
-      allow update: if isAuthenticated() && (
-        isAdmin() || 
-        ((isManager() || isFinanceUser()) && (
-          resource.data.get('companyId', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('companyId', '---') ||
-          resource.data.get('company', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('company', '---')
-        ) && 
-        request.resource.data.get('companyId', '') == resource.data.get('companyId', '') &&
-        request.resource.data.get('company', '') == resource.data.get('company', '') &&
-        !('admin' in request.resource.data.get('roles', [])) && 
-        !('accounts' in request.resource.data.get('roles', []))) ||
-        (request.auth.uid == userId && 
-         request.resource.data.get('roles', []) == resource.data.get('roles', []) && 
-         request.resource.data.get('active', true) == resource.data.get('active', true))
-      ) && isValidUser(request.resource.data) &&
-      (isAdmin() || (
-        request.resource.data.get('roles', []) == resource.data.get('roles', []) &&
-        request.resource.data.get('active', true) == resource.data.get('active', true)
-      )) &&
-      (!('admin' in request.resource.data.get('roles', [])) || request.auth.token.email.lower() == "shaneruddle@gmail.com");
-      
-      allow delete: if isAdmin() || (
-        isAuthenticated() && resource != null && (
-          (request.auth.token.email != null && resource.data.email.lower() == request.auth.token.email.lower()) || 
-          (request.auth.token.phone_number != null && resource.data.mobile == request.auth.token.phone_number)
-        )
-      );
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     match /discounts/{discountId} {
@@ -307,31 +109,40 @@ service cloud.firestore {
 
     match /companies/{companyId} {
       allow read: if true;
-      allow create, update: if isAdmin() && isValidCompany(request.resource.data);
-      allow delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     match /usage_logs/{logId} {
-      allow read: if isAdmin() || isManager() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow read: if isAdmin() || isManager() || isFinanceUser() || (isAuthenticated() && resource.data.userId == request.auth.uid);
       allow create: if isAuthenticated() && isValidUsageLog(request.resource.data);
       allow update, delete: if isAdmin();
     }
 
-    match /settings/{settingId} {
+    match /blog/{postId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAdmin() && isValidBlogPost(request.resource.data);
     }
 
     match /finance/{transactionId} {
-      allow read: if isFinanceUser();
+      allow read: if isFinanceUser() || isManager();
       allow create, update: if isFinanceUser() && isValidFinanceTransaction(request.resource.data);
       allow delete: if isAdmin();
     }
 
     match /site_images/{imageId} {
       allow read: if true;
-      allow create: if isAdmin() && isValidSiteImage(request.resource.data);
+      allow write: if isAdmin();
+    }
+
+    match /extractions/{extractionId} {
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidExtraction(request.resource.data);
       allow update, delete: if isAdmin();
+    }
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }

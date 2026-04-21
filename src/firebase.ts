@@ -10,7 +10,9 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   RecaptchaVerifier,
-  signInWithPhoneNumber
+  signInWithPhoneNumber,
+  browserLocalPersistence,
+  setPersistence
 } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp, Timestamp, deleteDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -18,9 +20,16 @@ import firebaseConfig from '../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+// Ensure persistence is set correctly for cross-origin iframe contexts
+setPersistence(auth, browserLocalPersistence).catch(err => console.error("Error setting persistence:", err));
+
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`);
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
+// Add explicit scopes to improve token acquisition reliability
+googleProvider.addScope('profile');
+googleProvider.addScope('email');
 
 export enum OperationType {
   CREATE = 'create',

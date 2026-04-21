@@ -3,6 +3,9 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import axios from "axios";
+import * as cheerio from "cheerio";
+import cors from "cors";
 
 dotenv.config();
 
@@ -10,9 +13,180 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  app.use(cors());
   app.use(express.json());
 
-  // API routes FIRST
+  // API Route to extract property data and images from a URL
+  app.post("/api/extract-images", async (req, res) => {
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: "URL is required" });
+
+    try {
+      const response = await axios.get(url, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" },
+        timeout: 15000,
+      });
+
+      const html = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+      const $ = cheerio.load(html);
+      const images: string[] = [];
+      const seen = new Set<string>();
+      let bubbleMetadata: any = null;
+
+      const addImage = (src: string | undefined) => {
+        if (!src || src.startsWith('data:')) return;
+        let cleanSrc = src.startsWith('//') ? `https:${src}` : src;
+        
+        // Ensure protocol if it's just a path
+        if (cleanSrc.startsWith('/')) {
+          try {
+            const parsed = new URL(url);
+            cleanSrc = `${parsed.protocol}//${parsed.host}${cleanSrc}`;
+          } catch(e) {}
+        }
+
+        try {
+          const absoluteUrl = new URL(cleanSrc, url).href;
+          if (!seen.has(absoluteUrl)) {
+            const junk = /(logo|brand|avatar|icon|favicon|banner|header|footer|social|pixel|tracking|marker|btn|staff|agent)/i;
+            if (!junk.test(absoluteUrl)) {
+              images.push(absoluteUrl);
+              seen.add(absoluteUrl);
+            }
+          }
+        } catch (e) {}
+      };
+
+      // --- PRIMARY EXTRACTION: BUBBLE.IO API ---
+      const refMatch = url.match(/([A-Za-z]{2,8}\d{2,10})/i);
+      const refCode = refMatch ? refMatch[1].toUpperCase() : null;
+
+      if (refCode && (html.includes("api/1.1/init/data") || url.includes("property"))) {
+        const parsedUrl = new URL(url);
+        const constraints = JSON.stringify([{
+          key: "Main Website Ref",
+          constraint_type: "equals",
+          value: refCode
+        }]);
+        const apiUrl = `${parsedUrl.origin}/api/1.1/obj/homes?constraints=${encodeURIComponent(constraints)}`;
+        
+        try {
+          const apiResponse = await axios.get(apiUrl, { timeout: 8000 });
+          const item = apiResponse.data?.response?.results[0];
+          if (item) {
+            bubbleMetadata = item;
+            // Extract Images
+            const galleryFields = ["List of Image", "List of Image NW", "Main Photo", "Photos"];
+            galleryFields.forEach(field => {
+              const val = item[field];
+              if (Array.isArray(val)) val.forEach((img: any) => addImage(img));
+              else if (typeof val === 'string') addImage(val);
+            });
+          }
+        } catch (apiErr) { console.error("Bubble API failed", apiErr); }
+      }
+
+      // FALLBACK: Standard scraping for images if API failed
+      if (images.length === 0) {
+        $("[src], [data-src], [srcset], img").each((_, el) => {
+          addImage($(el).attr("src") || $(el).attr("data-src") || $(el).attr("srcset"));
+        });
+        const deepRegex = /(?:https?:)?\/\/[^"'\s<>]*?\.(?:jpg|jpeg|png|webp|avif)(?:\?[^"'\s<>]*)?/gi;
+        let match;
+        while ((match = deepRegex.exec(html)) !== null) { addImage(match[0]); }
+      }
+
+      // Metadata Resolution
+      const htmlText = $('body').text();
+      const refNumber = refCode || "N/A";
+      
+      // Map API fields if available, else scrape
+      const beds = bubbleMetadata?.["Bedrooms"] || bubbleMetadata?.["Beds"] || htmlText.match(/(\d+)\s?(?:bed|bedroom)/i)?.[1] || "";
+      const baths = bubbleMetadata?.["Bathrooms"] || bubbleMetadata?.["Baths"] || htmlText.match(/(\d+)\s?(?:bath|bathroom)/i)?.[1] || "";
+      const livingSize = bubbleMetadata?.["Living Area"] || bubbleMetadata?.["Living Size"] || bubbleMetadata?.["Area Size"] || bubbleMetadata?.["Size"] || htmlText.match(/(\d+(?:,\d+)?(?:\.\d+)?)\s?(?:sqm|sq\.\s?m|sq\s?ft|square\s?feet|m2|sq\s?meters)/i)?.[1] || "";
+      const landSize = bubbleMetadata?.["Land Area"] || bubbleMetadata?.["Land Size"] || "";
+      const priceVal = bubbleMetadata?.["Listing Price"] || bubbleMetadata?.["Price"] || htmlText.match(/(?:price|baht|฿|THB|sale)\s*[:\-]?\s*(?:฿|THB|USD|\$)?\s*([\d,]+)/i)?.[1] || "";
+      const isBubbleId = (val: string) => /^\d+x\d+$/.test(val);
+      let agent = bubbleMetadata?.["Assigned Agent"] || "";
+      if (isBubbleId(agent)) agent = ""; // Skip ID values
+      
+      agent = agent || bubbleMetadata?.["Agent Name"] || bubbleMetadata?.["Assigned Agent Name"] || bubbleMetadata?.["Agent"] || htmlText.match(/(?:listing\s?by|agent|contact)\s*[:\-]?\s*([A-Za-z\s]{3,30})/i)?.[1]?.trim() || "";
+      
+      // Clean agent name if it's an email (e.g. shaneruddle@pattaya-property.net -> Shane Ruddle)
+      if (agent.includes('@')) {
+        const namePart = agent.split('@')[0];
+        agent = namePart
+          .replace(/[._-]/g, ' ')
+          .toLowerCase()
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ')
+          .trim();
+      }
+
+      const location = bubbleMetadata?.["Location"] || bubbleMetadata?.["District"] || "";
+      const saleType = bubbleMetadata?.["Sale Type"] || "";
+      const ownership = bubbleMetadata?.["Ownership"] || "";
+      const devLink = bubbleMetadata?.["Development Link"] || "";
+
+      res.json({
+        images: images,
+        meta: {
+          title: bubbleMetadata?.["Listing Title"] || ($('meta[property="og:title"]').attr('content') || $('title').text()).trim() || "Property Listing",
+          description: bubbleMetadata?.["Eng description"] || bubbleMetadata?.["Eng Description"] || bubbleMetadata?.["Listing Description"] || ($('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content') || "").trim(),
+          engDescription: bubbleMetadata?.["Eng description"] || bubbleMetadata?.["Eng Description"] || "",
+          refNumber,
+          beds,
+          baths,
+          size: livingSize, // Maintaining 'size' for backward compatibility in UI
+          livingSize,
+          landSize,
+          price: priceVal,
+          agent,
+          location,
+          saleType,
+          ownership,
+          devLink
+        }
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Bubble Status Endpoint
+  app.get("/api/bubble/status/:ref", async (req, res) => {
+    const { ref } = req.params;
+    const base = process.env.BUBBLE_API_BASE_URL;
+    const token = process.env.BUBBLE_API_TOKEN;
+    const objType = process.env.BUBBLE_OBJECT_TYPE || "homes";
+
+    if (!base || !token) {
+      return res.json({ found: false, status: "Config Missing" });
+    }
+
+    const apiUrl = `${base}/obj/${objType}?constraints=${encodeURIComponent(JSON.stringify([{key: "Main Website Ref", constraint_type: "equals", value: ref}]))}`;
+    
+    try {
+      const response = await axios.get(apiUrl, { headers: { Authorization: `Bearer ${token}`} });
+      const item = response.data?.response?.results[0];
+      res.json({ found: !!item, status: item?.["Sale Type"] || "N/A" });
+    } catch (err: any) { 
+      res.json({ found: false, error: err.message }); 
+    }
+  });
+
+  app.get("/api/proxy-image", async (req, res) => {
+    const { url } = req.query;
+    try {
+      const response = await axios.get(url as string, { responseType: "arraybuffer" });
+      res.set("Content-Type", response.headers["content-type"] as string);
+      res.send(response.data);
+    } catch (error) {
+      res.status(500).send("Failed to proxy image");
+    }
+  });
+
   app.post("/api/notify-redemption", async (req, res) => {
     const { employeeName, company, discountName, restaurantId, timestamp } = req.body;
 

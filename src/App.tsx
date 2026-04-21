@@ -392,6 +392,9 @@ export default function App() {
 
   // Real-time companies listener to ensure latest updates (like logos) are reflected immediately
   useEffect(() => {
+    // Only use real-time updates for companies if we are on the home page or past ventures
+    if (view !== 'home' && view !== 'past-ventures') return;
+
     const unsubCompanies = onSnapshot(collection(db, 'companies'), (snapshot) => {
       const firestoreCompanies = snapshot.docs.map(doc => {
         const d = doc.data();
@@ -421,6 +424,9 @@ export default function App() {
 
   // Real-time business info listener
   useEffect(() => {
+    // Only use real-time updates for business info if we are on the home page
+    if (view !== 'home') return;
+
     const unsubSettings = onSnapshot(doc(db, 'settings', 'business_info'), (snapshot) => {
       if (snapshot.exists()) {
         const settingsData = snapshot.data() as Partial<BusinessInfo>;
@@ -440,15 +446,8 @@ export default function App() {
   // Re-fetch data when returning to home view to ensure latest updates are shown
   useEffect(() => {
     if (view === 'home') {
-      async function refreshData() {
-        try {
-          const result = await getBusinessInfo();
-          setData(result);
-        } catch (error) {
-          console.error("Error refreshing business info:", error);
-        }
-      }
-      refreshData();
+      // We rely on the initial fetch and snapshots for real-time updates
+      // No need to force a full re-fetch every time we switch to home view
     }
   }, [view]);
 
@@ -852,7 +851,7 @@ export default function App() {
                       
                       {userProfile && (
                         <>
-                          {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.roles?.includes('employee') || user?.email === 'shaneruddle@gmail.com') && (
+                          {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.roles?.includes('manager') || user?.email === 'shaneruddle@gmail.com') && (
                             <button 
                               onClick={() => setView('dashboard')}
                               className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold hover:text-gold-dark transition-colors"
@@ -921,7 +920,7 @@ export default function App() {
 
                         {userProfile && (
                           <>
-                            {(userProfile.roles?.includes('admin') || user?.email === 'shaneruddle@gmail.com') && (
+                            {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.roles?.includes('manager') || user?.email === 'shaneruddle@gmail.com') && (
                               <button 
                                 onClick={() => {
                                   setView('dashboard');
@@ -930,7 +929,7 @@ export default function App() {
                                 }}
                                 className="text-2xl font-serif tracking-widest uppercase text-gold hover:text-gold-dark transition-colors flex items-center gap-3"
                               >
-                                <LayoutDashboard className="w-6 h-6" /> Admin Dashboard
+                                <LayoutDashboard className="w-6 h-6" /> Dashboard
                               </button>
                             )}
                             <button 

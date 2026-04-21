@@ -3,15 +3,16 @@ import Papa from 'papaparse';
 import jsPDF from 'jspdf';
 import domtoimage from 'dom-to-image-more';
 import { db, auth, storage, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog, DBCompany, BlogPost, FinanceTransaction, SiteImage } from '../firebase';
-import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy, limit } from 'firebase/firestore';
 import { ref, uploadString, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, Download, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, FileDown, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, Copy, ExternalLink, Image as ImageIcon, Eye } from 'lucide-react';
+import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, Download, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, FileDown, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, Copy, ExternalLink, Image as ImageIcon, Wrench, Layers } from 'lucide-react';
 import { migrateData } from '../services/migrationService';
 import { getBusinessInfo, saveBusinessInfo } from '../services/businessService';
 import { BusinessInfo } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { cn } from '@/src/lib/utils';
+import PropertyExtractorPro from './PropertyExtractorPro';
 
 interface DashboardProps {
   userProfile: UserProfile;
@@ -271,11 +272,10 @@ const ReportDocument = React.forwardRef<HTMLDivElement, any>(({
 export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const hasRole = (role: string) => userProfile.roles?.includes(role as any) || (userProfile as any).role === role;
 
-  const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'users' | 'finance' | 'settings'>(
+  const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'finance' | 'settings' | 'tools'>(
     hasRole('admin') ? 'employees' : 
     hasRole('accounts') ? 'finance' : 'profile'
   );
-  const [users, setUsers] = useState<UserProfile[]>([]);
   const [employees, setEmployees] = useState<UserProfile[]>([]);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [logs, setLogs] = useState<UsageLog[]>([]);
@@ -291,7 +291,9 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Finance states
-  const [financeSubTab, setFinanceSubTab] = useState<'ABPC' | 'ECRE' | 'ABPC Agents' | 'ECRE Agents' | 'ABPC Reports' | 'ECRE Reports'>('ABPC');
+  const [financeSubTab, setFinanceSubTab] = useState<'ABPC' | 'ECRE' | 'ABPC Agents' | 'ECRE Agents' | 'ABPC Reports' | 'ECRE Reports'>(
+    userProfile.company === 'East Coast Real Estate' ? 'ECRE' : 'ABPC'
+  );
   const [selectedIndividualAgent, setSelectedIndividualAgent] = useState<string>('');
   const [reportYearFilter, setReportYearFilter] = useState<string>('all');
   const [showAddTransaction, setShowAddTransaction] = useState(false);
@@ -327,7 +329,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
   // Search and Sort states
   const [searchTerm, setSearchTerm] = useState('');
-  const [userSearchTerm, setUserSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [companyFilter, setCompanyFilter] = useState<string>('all');
 
@@ -688,14 +689,13 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     const unsubEmployees = onSnapshot(usersQuery, (snapshot) => {
       const allUsers = snapshot.docs.map(doc => ({ ...doc.data() } as UserProfile));
       setEmployees(allUsers);
-      setUsers(allUsers);
     }, (err) => handleFirestoreError(err, OperationType.LIST, 'users'));
 
     const unsubDiscounts = onSnapshot(collection(db, 'discounts'), (snapshot) => {
       setDiscounts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Discount)));
     }, (err) => handleFirestoreError(err, OperationType.LIST, 'discounts'));
 
-    const unsubLogs = onSnapshot(collection(db, 'usage_logs'), (snapshot) => {
+    const unsubLogs = onSnapshot(query(collection(db, 'usage_logs'), orderBy('timestamp', 'desc'), limit(100)), (snapshot) => {
       setLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UsageLog)));
       setLoading(false);
     }, (err) => handleFirestoreError(err, OperationType.LIST, 'usage_logs'));
@@ -708,7 +708,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       setBlogPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BlogPost)));
     }, (err) => handleFirestoreError(err, OperationType.LIST, 'blog'));
 
-    const unsubFinance = onSnapshot(query(collection(db, 'finance'), orderBy('date', 'desc')), (snapshot) => {
+    const unsubFinance = onSnapshot(query(collection(db, 'finance'), orderBy('date', 'desc'), limit(500)), (snapshot) => {
       setFinanceTransactions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FinanceTransaction)));
     }, (err) => handleFirestoreError(err, OperationType.LIST, 'finance'));
 
@@ -758,16 +758,79 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     }
   }, [userProfile]);
 
-  const handleUpdateUserRoles = async (userId: string, newRoles: UserProfile['roles']) => {
+  const [isCleaning, setIsCleaning] = useState(false);
+
+  const handleCleanupDuplicates = async () => {
+    if (!window.confirm('This will find duplicate accounts with the same email or mobile, merge their data into the logged-in profile, and remove the redundant records. Proceed?')) return;
+    
+    setIsCleaning(true);
     try {
-      await updateDoc(doc(db, 'users', userId), {
-        roles: newRoles,
-        updatedAt: serverTimestamp()
+      // Group users by email and mobile
+      const groups: Record<string, UserProfile[]> = {};
+      employees.forEach(u => {
+        const email = u.email?.toLowerCase();
+        const mobile = u.mobile?.replace(/[^0-9]/g, '');
+        
+        if (email) {
+          if (!groups[email]) groups[email] = [];
+          if (!groups[email].find(existing => existing.uid === u.uid)) groups[email].push(u);
+        }
+        if (mobile && mobile.length > 5) {
+          if (!groups[mobile]) groups[mobile] = [];
+          if (!groups[mobile].find(existing => existing.uid === u.uid)) groups[mobile].push(u);
+        }
       });
-      toast.success(`User roles updated`);
+
+      let mergedCount = 0;
+      for (const key of Object.keys(groups)) {
+        const group = groups[key];
+        if (group.length > 1) {
+          // Identify Primary (Real Login) vs Seeded
+          const realUsers = group.filter(u => !u.uid.includes('x') && !u.uid.startsWith('temp_'));
+          const seededUsers = group.filter(u => u.uid.includes('x') || u.uid.startsWith('temp_'));
+
+          if (realUsers.length > 0 && seededUsers.length > 0) {
+            const primary = realUsers[0];
+            const updates: Partial<UserProfile> = {};
+            
+            // Merge from any seeded record in the group
+            seededUsers.forEach(seeded => {
+              if (!primary.firstName && seeded.firstName) updates.firstName = seeded.firstName;
+              if (!primary.lastName && seeded.lastName) updates.lastName = seeded.lastName;
+              if (!primary.company && seeded.company) updates.company = seeded.company;
+              if (!primary.companyId && seeded.companyId) updates.companyId = seeded.companyId;
+              if (!primary.position && seeded.position) updates.position = seeded.position;
+              if (!primary.mobile && seeded.mobile) updates.mobile = seeded.mobile;
+              if (!primary.nickname && seeded.nickname) updates.nickname = seeded.nickname;
+              
+              const combinedRoles = Array.from(new Set([...(primary.roles || []), ...(seeded.roles || [])]));
+              if (combinedRoles.length !== (primary.roles?.length || 0)) {
+                updates.roles = combinedRoles;
+              }
+            });
+
+            if (Object.keys(updates).length > 0) {
+              await updateDoc(doc(db, 'users', primary.uid), {
+                ...updates,
+                updatedAt: serverTimestamp()
+              });
+            }
+
+            // Delete all seeded records in this email/mobile group
+            for (const s of seededUsers) {
+              await deleteDoc(doc(db, 'users', s.uid));
+              console.log(`Deleted seeded duplicate: ${s.uid} merged into ${primary.uid}`);
+            }
+            mergedCount++;
+          }
+        }
+      }
+      toast.success(`Successfully merged ${mergedCount} duplicate groups`);
     } catch (err) {
-      toast.error('Failed to update user roles');
-      handleFirestoreError(err, OperationType.UPDATE, `users/${userId}`);
+      console.error('Cleanup error:', err);
+      toast.error('Failed to clean up duplicates');
+    } finally {
+      setIsCleaning(false);
     }
   };
 
@@ -777,7 +840,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     setIsStandardizing(true);
     try {
       let updatedCount = 0;
-      for (const user of users) {
+      for (const user of employees) {
         if (user.email !== 'shaneruddle@gmail.com' && (!user.roles || !user.roles.includes('employee'))) {
           await updateDoc(doc(db, 'users', user.uid), {
             roles: ['employee'],
@@ -1297,7 +1360,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
           const initialMapping: { [key: string]: string } = {};
           agents.forEach(agentName => {
-            const matchedUser = users.find(u => {
+            const matchedUser = employees.find(u => {
               if (u.company !== 'Alan Bolton Property Consultants') return false;
               const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
               return fullName === agentName.toLowerCase() || 
@@ -1360,7 +1423,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
           agentName = '-';
           agentId = null;
         } else if (mappedUserId) {
-          const mappedUser = users.find(u => u.uid === mappedUserId);
+          const mappedUser = employees.find(u => u.uid === mappedUserId);
           if (mappedUser) {
             agentName = `${mappedUser.firstName} ${mappedUser.lastName}`;
             agentId = mappedUserId;
@@ -1714,13 +1777,26 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
   const uniqueEmployees: UserProfile[] = Array.from(
     employees.reduce((acc: Map<string, UserProfile>, emp: UserProfile) => {
-      // Use email as key if available, otherwise use UID to prevent overwriting Phone Auth users
-      const key = emp.email || emp.uid;
+      // Key can be email or mobile
+      const key = (emp.email || emp.mobile || emp.uid).toLowerCase();
       const existing = acc.get(key);
-      // Prefer real UIDs (no 'x') over seeded ones (contain 'x')
-      const isSeeded = emp.uid.includes('x');
-      if (!existing || (!isSeeded && existing.uid.includes('x'))) {
+      
+      // Seeded check: UIDs from initial batch usually have 'x' or 'temp_'
+      const isSeeded = emp.uid.includes('x') || emp.uid.startsWith('temp_');
+      const existingIsSeeded = existing ? (existing.uid.includes('x') || existing.uid.startsWith('temp_')) : false;
+
+      // Logic: 
+      // 1. If not in map, add it.
+      // 2. If new one is REAL and existing is SEEDED, overwrite.
+      // 3. Otherwise, keep existing (or pick one with more data).
+      if (!existing || (!isSeeded && existingIsSeeded)) {
         acc.set(key, emp);
+      } else if (existing && isSeeded === existingIsSeeded) {
+        // Both same type, pick one with more fields populated
+        const getFieldCount = (u: UserProfile) => Object.values(u).filter(v => v !== undefined && v !== '').length;
+        if (getFieldCount(emp) > getFieldCount(existing)) {
+          acc.set(key, emp);
+        }
       }
       return acc;
     }, new Map<string, UserProfile>()).values()
@@ -1975,14 +2051,25 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const filteredEmployees = uniqueEmployees
     .filter(emp => {
       // If manager, only show employees from their company
-      const isManagerOnly = userProfile.roles?.includes('manager') && !userProfile.roles?.includes('admin');
-      if (isManagerOnly) {
-        const matchesManagerCompany = emp.companyId === userProfile.companyId || emp.company === userProfile.company;
-        if (!matchesManagerCompany) return false;
+      const isRestrictedUser = (hasRole('manager') || hasRole('accounts')) && !hasRole('admin');
+      if (isRestrictedUser) {
+        const matchesCompany = emp.companyId === userProfile.companyId || emp.company === userProfile.company;
+        if (!matchesCompany) return false;
       }
 
-      const searchStr = `${emp.firstName} ${emp.lastName} ${emp.email} ${emp.company} ${emp.position}`.toLowerCase();
-      const matchesSearch = searchStr.includes(searchTerm.toLowerCase());
+      const searchItems = [
+        emp.name,
+        emp.firstName,
+        emp.lastName,
+        emp.nickname,
+        emp.email,
+        emp.mobile,
+        emp.company,
+        emp.position
+      ].filter(Boolean).map(s => String(s).toLowerCase());
+      
+      const searchTermLower = searchTerm.toLowerCase();
+      const matchesSearch = searchItems.some(item => item.includes(searchTermLower));
       const matchesCompany = companyFilter === 'all' || (companyFilter === 'Unassigned' ? !emp.company : emp.company === companyFilter);
       return matchesSearch && matchesCompany;
     })
@@ -2051,10 +2138,10 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'employees' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
             >
               <Users className="w-4 h-4 shrink-0" />
-              <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Employees</span>
+              <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Staff Management</span>
               {isSidebarCollapsed && (
                 <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                  Employees
+                  Staff Management
                 </div>
               )}
             </button>
@@ -2097,18 +2184,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                   </div>
                 )}
               </button>
-              <button 
-                onClick={() => setActiveTab('users')}
-                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'users' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-              >
-                <ShieldCheck className="w-4 h-4 shrink-0" />
-                <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Users</span>
-                {isSidebarCollapsed && (
-                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                    Users
-                  </div>
-                )}
-              </button>
             </>
           )}
           {(hasRole('admin') || hasRole('accounts')) && (
@@ -2131,7 +2206,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               
               {!isSidebarCollapsed && activeTab === 'finance' && (
                 <div className="ml-11 flex flex-col gap-1 mt-1 mb-4">
-                  {(hasRole('admin') || hasRole('accounts') || userProfile.company === 'Alan Bolton Property Consultants') && (
+                  {(hasRole('admin') || userProfile.company === 'Alan Bolton Property Consultants') && (
                     <>
                       <button 
                         onClick={() => {
@@ -2159,7 +2234,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       </button>
                     </>
                   )}
-                  {(hasRole('admin') || hasRole('accounts') || userProfile.company === 'East Coast Real Estate') && (
+                  {(hasRole('admin') || userProfile.company === 'East Coast Real Estate') && (
                     <>
                       <button 
                         onClick={() => {
@@ -2190,6 +2265,20 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 </div>
               )}
             </div>
+          )}
+          {hasRole('admin') && (
+            <button 
+              onClick={() => setActiveTab('tools')}
+              className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'tools' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+            >
+              <Wrench className="w-4 h-4 shrink-0" />
+              <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Tools</span>
+              {isSidebarCollapsed && (
+                <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                  Tools
+                </div>
+              )}
+            </button>
           )}
           <button 
             onClick={() => setActiveTab('profile')}
@@ -2270,6 +2359,11 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
             <DollarSign className="w-5 h-5" />
           </button>
         )}
+        {hasRole('admin') && (
+          <button onClick={() => setActiveTab('tools')} className={`p-3 rounded-xl transition-all ${activeTab === 'tools' ? 'bg-gold text-white' : 'text-black/40'}`}>
+            <Wrench className="w-5 h-5" />
+          </button>
+        )}
         <button onClick={() => setActiveTab('profile')} className={`p-3 rounded-xl transition-all ${activeTab === 'profile' ? 'bg-gold text-white' : 'text-black/40'}`}>
           <User className="w-5 h-5" />
         </button>
@@ -2294,14 +2388,14 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 {/* Stats Breakdown */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
                   <div className="glass p-6 rounded-3xl flex flex-col justify-center">
-                    <div className="text-[10px] uppercase tracking-widest font-bold text-black/40 mb-1">Total Employees</div>
+                    <div className="text-[10px] uppercase tracking-widest font-bold text-black/40 mb-1">Total Staff</div>
                     <div className="text-4xl font-serif text-gold">{employees.length}</div>
                   </div>
                   <div className="lg:col-span-3 glass p-8 rounded-[2.5rem]">
                     <div className="flex items-center justify-between mb-8">
                       <div>
                         <div className="text-[10px] uppercase tracking-[0.4em] font-bold text-gold mb-1">Company Distribution</div>
-                        <div className="text-black/40 text-xs font-light">Employee allocation across your portfolio</div>
+                        <div className="text-black/40 text-xs font-light">Staff allocation across your portfolio</div>
                       </div>
                       <div className="text-2xl font-serif text-black/20">{companies.length} <span className="text-xs uppercase tracking-widest font-sans font-bold ml-1">Companies</span></div>
                     </div>
@@ -2326,7 +2420,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                 <span className="text-sm font-medium text-black group-hover:text-gold transition-colors">{company}</span>
                               </div>
                               <div className="flex items-center gap-4">
-                                <span className="text-[10px] text-black/40 font-mono font-bold">{data.count} {data.count === 1 ? 'Employee' : 'Employees'}</span>
+                                <span className="text-[10px] text-black/40 font-mono font-bold">{data.count} {data.count === 1 ? 'Person' : 'People'}</span>
                                 <span className="text-[10px] text-gold font-bold w-8 text-right">{Math.round(percentage)}%</span>
                               </div>
                             </div>
@@ -2348,14 +2442,15 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                   <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                    <h3 className="text-xl font-serif">Employee Directory</h3>
+                    <h3 className="text-xl font-serif">Staff Directory</h3>
                     <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-black/20" />
                       <input 
                         type="text"
-                        placeholder="Search employees..."
+                        placeholder="Search staff..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="bg-black/5 border-none rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none w-full md:w-64"
+                        className="bg-black/5 border-none rounded-xl pl-10 pr-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none w-full md:w-64"
                       />
                     </div>
                     <select 
@@ -2381,35 +2476,37 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       ))}
                     </select>
                   </div>
-                  {(hasRole('admin') || hasRole('manager') || hasRole('accounts')) && (
-                    <button 
-                      onClick={() => handleEditEmployee(null)}
-                      className="bg-gold text-white px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gold/90 transition-all shadow-lg shadow-gold/20 flex items-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" /> Add Employee
-                    </button>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {(hasRole('admin') || hasRole('manager') || hasRole('accounts')) && (
+                      <button 
+                        onClick={() => handleEditEmployee(null)}
+                        className="bg-gold text-white px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gold/90 transition-all shadow-lg shadow-gold/20 flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" /> Add Person
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="glass rounded-3xl overflow-hidden">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-bottom border-black/5 bg-black/2">
-                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Employee</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Staff Member</th>
                         <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Status</th>
                         <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Company</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Role</th>
                         <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Position</th>
-                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Mobile</th>
-                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Discounts</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-center">Discounts</th>
                         <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Code</th>
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Action</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredEmployees.map((emp) => (
                         <tr 
                           key={emp.uid} 
-                          onClick={() => handleEditEmployee(emp)}
-                          className="border-bottom border-black/5 hover:bg-black/2 transition-colors cursor-pointer group/row"
+                          className="border-bottom border-black/5 hover:bg-black/2 transition-colors group/row"
                         >
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
@@ -2456,10 +2553,23 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                               )}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-xs text-black/60">{emp.position || '-'}</td>
-                          <td className="px-6 py-4 text-xs text-black/60">{emp.mobile || '-'}</td>
                           <td className="px-6 py-4">
-                            <div className="flex flex-wrap gap-1 max-w-[120px]">
+                            <div className="flex flex-wrap gap-1">
+                              {(emp.roles || []).map(role => (
+                                <span key={role} className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest ${
+                                  role === 'admin' ? 'bg-red-100 text-red-600' :
+                                  role === 'manager' ? 'bg-blue-100 text-blue-600' :
+                                  role === 'accounts' ? 'bg-green-100 text-green-600' :
+                                  'bg-gray-100 text-gray-600'
+                                }`}>
+                                  {role}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-[10px] text-black/60 uppercase font-bold tracking-widest">{emp.position || '-'}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-wrap justify-center gap-1 max-w-[120px] mx-auto">
                               {(emp.discountIds || []).length > 0 ? (
                                 emp.discountIds?.map(id => {
                                   const d = discounts.find(disc => disc.id === id);
@@ -2481,6 +2591,14 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                             </div>
                           </td>
                           <td className="px-6 py-4 text-sm font-mono text-gold font-bold">{emp.discountCode || 'N/A'}</td>
+                          <td className="px-6 py-4 text-right">
+                            <button 
+                              onClick={() => handleEditEmployee(emp)}
+                              className="p-2 bg-black/5 hover:bg-gold hover:text-white rounded-lg transition-all"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -2702,151 +2820,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               </motion.div>
             )}
 
-            {activeTab === 'users' && (
-              <motion.div 
-                key="users"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-              >
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                  <div>
-                    <h3 className="text-xl font-serif">User Management</h3>
-                    <p className="text-black/40 text-xs">Manage user roles and permissions</p>
-                  </div>
-                  <div className="flex items-center gap-4 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-64">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20" />
-                      <input 
-                        type="text"
-                        placeholder="Search users..."
-                        value={userSearchTerm}
-                        onChange={(e) => setUserSearchTerm(e.target.value)}
-                        className="w-full bg-black/5 border-none rounded-2xl py-3 pl-12 pr-4 text-xs font-medium focus:ring-2 focus:ring-gold/20 transition-all"
-                      />
-                    </div>
-                    {(auth.currentUser?.email === 'shaneruddle@gmail.com') && (
-                      <button 
-                        onClick={handleStandardizeRoles}
-                        disabled={isStandardizing}
-                        className="bg-black/5 text-black px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black/10 transition-all flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
-                      >
-                        {isStandardizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />}
-                        Standardize All Roles
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="glass rounded-3xl overflow-hidden">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-bottom border-black/5 bg-black/2">
-                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">User</th>
-                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Current Role</th>
-                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Change Role</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(() => {
-                        const filteredUsers = users
-                          .filter(user => {
-                            if (!userSearchTerm) return true;
-                            const searchStr = `${user.name} ${user.firstName} ${user.lastName} ${user.email} ${user.mobile} ${user.nickname}`.toLowerCase();
-                            return searchStr.includes(userSearchTerm.toLowerCase());
-                          })
-                          .sort((a, b) => {
-                            const getTime = (val: any) => {
-                              if (!val) return 0;
-                              if (typeof val.toMillis === 'function') return val.toMillis();
-                              if (val.seconds) return val.seconds * 1000;
-                              if (val instanceof Date) return val.getTime();
-                              if (typeof val === 'string') return new Date(val).getTime();
-                              return 0;
-                            };
-                            const timeA = getTime(a.createdAt);
-                            const timeB = getTime(b.createdAt);
-                            return timeB - timeA;
-                          });
-
-                        if (filteredUsers.length === 0) {
-                          return (
-                            <tr>
-                              <td colSpan={3} className="px-6 py-12 text-center text-black/40 text-sm italic">
-                                No users found matching your search.
-                              </td>
-                            </tr>
-                          );
-                        }
-
-                        return filteredUsers.map((user) => (
-                          <tr key={user.uid} className="border-bottom border-black/5 hover:bg-black/2 transition-colors">
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
-                                {user.profileImage ? (
-                                  <img src={user.profileImage} alt={user.name} className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" />
-                                ) : (
-                                  <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold font-bold text-[10px]">
-                                    {user.firstName?.[0]}{user.lastName?.[0]}
-                                  </div>
-                                )}
-                                <div>
-                                  <div className="font-medium">{user.name || 'Unnamed'}</div>
-                                  <div className="text-[10px] text-black/40">{user.email || user.mobile || 'No contact info'}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex flex-wrap gap-1">
-                                {(user.roles || []).map(role => (
-                                  <span key={role} className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                                    role === 'admin' ? 'bg-red-100 text-red-600' :
-                                    role === 'manager' ? 'bg-blue-100 text-blue-600' :
-                                    role === 'accounts' ? 'bg-green-100 text-green-600' :
-                                    'bg-gray-100 text-gray-600'
-                                  }`}>
-                                    {role}
-                                  </span>
-                                ))}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex flex-col gap-1">
-                                {['employee', 'manager', 'accounts', 'admin'].map(role => {
-                                  if (role === 'admin' && auth.currentUser?.email !== 'shaneruddle@gmail.com') return null;
-                                  const isSelected = (user.roles || []).includes(role as any);
-                                  return (
-                                    <label key={role} className="flex items-center gap-2 cursor-pointer group">
-                                      <input 
-                                        type="checkbox"
-                                        checked={isSelected}
-                                        disabled={user.email === 'shaneruddle@gmail.com'}
-                                        onChange={(e) => {
-                                          const currentRoles = user.roles || [];
-                                          const newRoles = e.target.checked 
-                                            ? [...currentRoles, role as any]
-                                            : currentRoles.filter(r => r !== role);
-                                          handleUpdateUserRoles(user.uid, newRoles);
-                                        }}
-                                        className="w-3 h-3 rounded border-black/10 text-gold focus:ring-gold/20"
-                                      />
-                                      <span className="text-[10px] uppercase tracking-widest font-bold text-black/40 group-hover:text-black transition-colors capitalize">
-                                        {role}
-                                      </span>
-                                    </label>
-                                  );
-                                })}
-                              </div>
-                            </td>
-                          </tr>
-                        ));
-                      })()}
-                    </tbody>
-                  </table>
-                </div>
-              </motion.div>
-            )}
-
             {activeTab === 'finance' && (hasRole('admin') || hasRole('accounts')) && (
               <motion.div 
                 key="finance"
@@ -2861,7 +2834,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
 
                   {/* Mobile Finance Sub-tabs */}
                   <div className="md:hidden flex bg-black/5 p-1 rounded-xl mb-6 overflow-x-auto no-scrollbar">
-                    {(hasRole('admin') || hasRole('accounts') || userProfile.company === 'Alan Bolton Property Consultants') && (
+                    {(hasRole('admin') || userProfile.company === 'Alan Bolton Property Consultants') && (
                       <>
                         <button 
                           onClick={() => {
@@ -2889,7 +2862,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                         </button>
                       </>
                     )}
-                    {(hasRole('admin') || hasRole('accounts') || userProfile.company === 'East Coast Real Estate') && (
+                    {(hasRole('admin') || userProfile.company === 'East Coast Real Estate') && (
                       <>
                         <button 
                           onClick={() => {
@@ -4097,6 +4070,28 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 </div>
               </motion.div>
             )}
+
+            {activeTab === 'tools' && (
+              <motion.div 
+                key="tools"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-8"
+              >
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="p-4 bg-gold/10 rounded-2xl">
+                    <Wrench className="w-6 h-6 text-gold" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-serif tracking-tight">Admin <span className="italic text-gold">Tools</span></h2>
+                    <p className="text-xs text-black/40 uppercase tracking-widest font-bold">Productivity & Extraction Utilities</p>
+                  </div>
+                </div>
+
+                <PropertyExtractorPro userProfile={userProfile} />
+              </motion.div>
+            )}
           </AnimatePresence>
         )}
       </div>
@@ -4317,7 +4312,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-2xl bg-white rounded-[40px] p-10 shadow-2xl max-h-[90vh] overflow-y-auto"
             >
-              <h3 className="text-2xl font-serif mb-6">{editingEmployee.uid.startsWith('temp_') ? 'Add' : 'Edit'} Employee <span className="italic">Details</span></h3>
+              <h3 className="text-2xl font-serif mb-6">{editingEmployee.uid.startsWith('temp_') ? 'Add' : 'Edit'} Staff <span className="italic">Profile</span></h3>
               <form onSubmit={handleUpdateEmployee} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -5036,7 +5031,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           >
                             <option value="">Select User...</option>
                             <option value="no-agent">No Agent (Unassigned)</option>
-                            {users
+                            {employees
                               .filter(u => u.company === 'Alan Bolton Property Consultants')
                               .sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''))
                               .map(user => (

@@ -103,13 +103,32 @@ export default function Auth({ user, loading }: AuthProps) {
   };
 
   const handleGoogleLogin = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setAuthError(null);
     console.log('Google Login clicked');
     try {
       await signInWithPopup(auth, googleProvider);
       setShowModal(false);
     } catch (error: any) {
-      console.error('Google Login error:', error instanceof Error ? error.message : 'Unknown error');
-      setAuthError(error.message);
+      console.error('Google Login full error:', error);
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      
+      // Gracefully handle specific error codes
+      if (errorCode === 'auth/popup-closed-by-user') {
+        console.log('Login popup closed by user');
+      } else if (errorCode === 'auth/popup-blocked') {
+        setAuthError('Sign-in popup blocked. Please enable popups for this site or try a different browser.');
+      } else if (errorCode === 'auth/internal-error') {
+        setAuthError('A technical problem occurred during login. This usually happens if cookies are disabled or if your browser is blocking authentication. Try opening this app in a new tab.');
+      } else if (errorCode === 'auth/unauthorized-domain') {
+        setAuthError('This domain is not authorized for Google Login. Please contact the administrator.');
+      } else {
+        setAuthError(errorMessage || 'An unexpected error occurred during Google Login.');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -437,9 +456,14 @@ export default function Auth({ user, loading }: AuthProps) {
               <div className="space-y-3">
                 <button 
                   onClick={handleGoogleLogin}
-                  className="w-full border border-black/5 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/[0.02] transition-all flex items-center justify-center gap-3"
+                  disabled={isSubmitting}
+                  className="w-full border border-black/5 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/[0.02] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                 >
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4" alt="Google" />
+                  {isSubmitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-gold" />
+                  ) : (
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4" alt="Google" />
+                  )}
                   Google Account
                 </button>
                 
