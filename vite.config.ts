@@ -11,10 +11,11 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       {
         name: 'strip-quill-sourcemap',
+        enforce: 'pre',
         transform(code, id) {
-          if (id.includes('quill.snow.css') || id.includes('quill.bubble.css') || id.includes('quill.core.css')) {
+          if (id.includes('node_modules/react-quill-new/dist') && id.endsWith('.css')) {
             return {
-              code: code.replace(/\/\*# sourceMappingURL=.* \*\/| \/\*# sourceMappingURL=.* \*\//g, ''),
+              code: code.replace(/\/\*# sourceMappingURL=.*\*\//g, ''),
               map: null
             };
           }

@@ -106,11 +106,38 @@ async function startServer() {
       const livingSize = bubbleMetadata?.["Living Area"] || bubbleMetadata?.["Living Size"] || bubbleMetadata?.["Area Size"] || bubbleMetadata?.["Size"] || htmlText.match(/(\d+(?:,\d+)?(?:\.\d+)?)\s?(?:sqm|sq\.\s?m|sq\s?ft|square\s?feet|m2|sq\s?meters)/i)?.[1] || "";
       const landSize = bubbleMetadata?.["Land Area"] || bubbleMetadata?.["Land Size"] || "";
       const priceVal = bubbleMetadata?.["Listing Price"] || bubbleMetadata?.["Price"] || htmlText.match(/(?:price|baht|฿|THB|sale)\s*[:\-]?\s*(?:฿|THB|USD|\$)?\s*([\d,]+)/i)?.[1] || "";
-      const isBubbleId = (val: string) => /^\d+x\d+$/.test(val);
+      const isBubbleId = (val: string) => typeof val === 'string' && /^\d+x\d+$/.test(val);
       let agent = bubbleMetadata?.["Assigned Agent"] || "";
       if (isBubbleId(agent)) agent = ""; // Skip ID values
       
-      agent = agent || bubbleMetadata?.["Agent Name"] || bubbleMetadata?.["Assigned Agent Name"] || bubbleMetadata?.["Agent"] || htmlText.match(/(?:listing\s?by|agent|contact)\s*[:\-]?\s*([A-Za-z\s]{3,30})/i)?.[1]?.trim() || "";
+      // Try multiple keys from Bubble API and meta tags
+      agent = agent || 
+              bubbleMetadata?.["Agent Name"] || 
+              bubbleMetadata?.["Assigned Agent Name"] || 
+              bubbleMetadata?.["Agent Display Name"] ||
+              bubbleMetadata?.["Full Name"] ||
+              bubbleMetadata?.["Agent"] || 
+              $('meta[name="author"]').attr('content') ||
+              $('meta[property="product:brand"]').attr('content') ||
+              htmlText.match(/(?:listing\s?by|agent|contact|representative)\s*[:\-]?\s*([A-Za-z\s]{3,30})/i)?.[1]?.trim() || 
+              "";
+      
+      // Check for structured data if agent still not found
+      if (!agent) {
+        try {
+          const ldJson = $('script[type="application/ld+json"]');
+          ldJson.each((_, el) => {
+            try {
+              const data = JSON.parse($(el).html() || '{}');
+              const author = data?.author?.name || data?.brand?.name || data?.seller?.name;
+              if (author && typeof author === 'string') {
+                agent = author;
+                return false; // break
+              }
+            } catch (e) {}
+          });
+        } catch (e) {}
+      }
       
       // Clean agent name if it's an email (e.g. shaneruddle@pattaya-property.net -> Shane Ruddle)
       if (agent.includes('@')) {

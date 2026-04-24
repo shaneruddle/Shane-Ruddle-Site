@@ -495,6 +495,29 @@ export default function App() {
         // Check if user is active
         if (data.active === false && user.email !== "shaneruddle@gmail.com") {
           console.log("Inactive user attempted login:", user.email);
+          
+          // Log inactive login attempt if not already logged recently (throttled)
+          const lastInactiveLog = localStorage.getItem(`last_inactive_log_${user.uid}`);
+          const now = Date.now();
+          const oneHour = 60 * 60 * 1000;
+          
+          if (!lastInactiveLog || (now - parseInt(lastInactiveLog)) > oneHour) {
+            try {
+              addDoc(collection(db, 'usage_logs'), {
+                userId: user.uid,
+                userName: data.name || 'Unknown',
+                userEmail: user.email || null,
+                userCompany: data.company || null,
+                type: 'auth_error',
+                details: 'Login blocked: Account inactive',
+                timestamp: serverTimestamp()
+              });
+              localStorage.setItem(`last_inactive_log_${user.uid}`, now.toString());
+            } catch (err) {
+              console.error("Error logging inactive attempt:", err);
+            }
+          }
+
           toast.error("Your account is inactive. Please contact an administrator.");
           await auth.signOut();
           setAuthLoading(false);
@@ -618,8 +641,10 @@ export default function App() {
           const newProfile: UserProfile = {
             ...seededData,
             uid: user.uid,
-            active: user.email === "shaneruddle@gmail.com" ? true : false,
-            role: "employee",
+            // Respect seeded active status, or default to true if specified or superadmin
+            active: seededData.active !== undefined ? seededData.active : true,
+            // Keep roles if they exist, otherwise use migrated role or "employee"
+            roles: seededData.roles || (seededData as any).role ? [(seededData as any).role] : ["employee"],
             name: user.displayName || seededData.name || "",
             updatedAt: serverTimestamp() as any
           };
@@ -656,7 +681,8 @@ export default function App() {
             name: user.displayName || "",
             role: user.email === "shaneruddle@gmail.com" ? "admin" : "employee",
             roles: user.email === "shaneruddle@gmail.com" ? ["admin", "accounts", "manager"] : ["employee"],
-            active: user.email === "shaneruddle@gmail.com" ? true : false,
+            // Set active: true by default for new registrations to allow immediate login
+            active: true,
             discountCode: `SR-EMP-${Math.floor(1000 + Math.random() * 9000)}`,
             createdAt: serverTimestamp() as any,
             updatedAt: serverTimestamp() as any

@@ -4,7 +4,7 @@ import jsPDF from 'jspdf';
 import domtoimage from 'dom-to-image-more';
 import { db, auth, storage, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog, DBCompany, BlogPost, FinanceTransaction, SiteImage } from '../firebase';
 import { initializeApp, getApp } from 'firebase/app';
-import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy, limit, getFirestore } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy, limit, getFirestore, getDocs } from 'firebase/firestore';
 import { ref, uploadString, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, Download, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, FileDown, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp, Copy, ExternalLink, Image as ImageIcon, Wrench, Layers, Shield, Info, Briefcase, Globe } from 'lucide-react';
 import { migrateData } from '../services/migrationService';
@@ -1256,6 +1256,20 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
     const finalUid = isNew ? Date.now().toString() + 'x' + Math.floor(Math.random() * 1000000000000000000).toString() : editingEmployee.uid;
 
     try {
+      // Check for duplicate email if it's a new employee or email changed
+      if (editingEmployee.email) {
+        const q = query(collection(db, "users"), where("email", "==", editingEmployee.email.toLowerCase().trim()));
+        const querySnap = await getDocs(q);
+        const duplicate = querySnap.docs.find(d => d.id !== editingEmployee.uid);
+        
+        if (duplicate) {
+          const dupData = duplicate.data();
+          const isRealUser = !duplicate.id.includes('x'); // Real users use Firebase UID, seeded ones have 'x' from transition
+          toast.error(`Email already in use by ${dupData.name || 'another account'} (${isRealUser ? 'Registered Account' : 'Seeded Account'})`);
+          return;
+        }
+      }
+
       if (isNew) {
         await setDoc(doc(db, 'users', finalUid), {
           ...editingEmployee,

@@ -451,6 +451,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
   const clearSession = () => {
     setUrl('');
     setExtractedData(null);
+    setGeneratedCopy('');
     setSelectedImages(new Set());
     addLog('BUFFER_CLEARED: Working memory reset');
   };
