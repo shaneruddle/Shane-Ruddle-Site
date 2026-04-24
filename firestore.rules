@@ -98,7 +98,19 @@ service cloud.firestore {
           resource.data.get('company', '') == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('company', '---')
         ))
       );
-      allow create, update: if isAdmin();
+
+      allow create: if isAuthenticated() && request.auth.uid == userId && (
+        (request.auth.token.email.lower() == "shaneruddle@gmail.com") ||
+        (request.resource.data.get('active', true) == false && 
+         (request.resource.data.get('roles', ['employee']) == ['employee'] || 
+          request.resource.data.get('role', 'employee') == 'employee'))
+      );
+
+      allow update: if isAdmin() || (
+        isAuthenticated() && request.auth.uid == userId && 
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['roles', 'role', 'active'])
+      );
+
       allow delete: if isAdmin();
     }
 

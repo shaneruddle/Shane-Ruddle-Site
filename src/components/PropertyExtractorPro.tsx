@@ -849,26 +849,6 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
 };
 
 const HistoryRow = ({ item }: { item: Extraction }) => {
-  const [liveStatus, setLiveStatus] = useState(item.bubbleStatus);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!item.refNumber) return;
-    const fetchStatus = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/bubble/status/${item.refNumber}`);
-        const data = await res.json();
-        setLiveStatus(data.status);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStatus();
-  }, [item.refNumber]);
-
   return (
     <div className="flex flex-col p-6 bg-white border border-[#E5E1DA] rounded-3xl hover:border-[#C5A059] transition-all group shadow-sm hover:shadow-xl">
       <div className="flex items-center justify-between mb-6">
@@ -881,11 +861,6 @@ const HistoryRow = ({ item }: { item: Extraction }) => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className={`text-[9px] font-bold px-3 py-1 rounded-full border ${
-            liveStatus?.toLowerCase().includes('active') ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-blue-50 text-blue-500 border-blue-100'
-          }`}>
-            {loading ? 'SYNCING...' : liveStatus?.toUpperCase() || 'BUSY'}
-          </span>
           <a href={item.url} target="_blank" rel="noopener noreferrer" className="p-2 bg-[#F9F8F6] border border-[#E5E1DA] rounded-full hover:bg-black hover:text-white transition-all">
             <ExternalLink className="w-3.5 h-3.5" />
           </a>

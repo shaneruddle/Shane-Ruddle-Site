@@ -3,9 +3,10 @@ import Papa from 'papaparse';
 import jsPDF from 'jspdf';
 import domtoimage from 'dom-to-image-more';
 import { db, auth, storage, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog, DBCompany, BlogPost, FinanceTransaction, SiteImage } from '../firebase';
-import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy, limit } from 'firebase/firestore';
+import { initializeApp, getApp } from 'firebase/app';
+import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy, limit, getFirestore } from 'firebase/firestore';
 import { ref, uploadString, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, Download, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, FileDown, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, Copy, ExternalLink, Image as ImageIcon, Wrench, Layers } from 'lucide-react';
+import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, Download, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, FileDown, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp, Copy, ExternalLink, Image as ImageIcon, Wrench, Layers, Shield, Info, Briefcase, Globe } from 'lucide-react';
 import { migrateData } from '../services/migrationService';
 import { getBusinessInfo, saveBusinessInfo } from '../services/businessService';
 import { BusinessInfo } from '../types';
@@ -17,6 +18,7 @@ import PropertyExtractorPro from './PropertyExtractorPro';
 interface DashboardProps {
   userProfile: UserProfile;
   onBack: () => void;
+  onImpersonate?: (profile: UserProfile) => void;
 }
 
 const formatCurrency = (amount: number) => {
@@ -269,8 +271,9 @@ const ReportDocument = React.forwardRef<HTMLDivElement, any>(({
   );
 });
 
-export default function Dashboard({ userProfile, onBack }: DashboardProps) {
+export default function Dashboard({ userProfile, onBack, onImpersonate }: DashboardProps) {
   const hasRole = (role: string) => userProfile.roles?.includes(role as any) || (userProfile as any).role === role;
+  const isImpersonating = auth.currentUser && userProfile.uid !== auth.currentUser.uid;
 
   const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'finance' | 'settings' | 'tools'>(
     hasRole('admin') ? 'employees' : 
@@ -286,6 +289,11 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo | null>(null);
   const [personalProfile, setPersonalProfile] = useState<Partial<UserProfile>>(userProfile);
   const [loading, setLoading] = useState(true);
+  const [pattayaLogs, setPattayaLogs] = useState<UsageLog[]>([]);
+  const [cajunLogs, setCajunLogs] = useState<UsageLog[]>([]);
+  const [pattayaError, setPattayaError] = useState<string | null>(null);
+  const [cajunError, setCajunError] = useState<string | null>(null);
+  const [logFilter, setLogFilter] = useState<'ALL' | 'SHANE' | 'RENT A CAR' | 'CAJUN'>('ALL');
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPersonalProfile, setSavingPersonalProfile] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -297,6 +305,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [selectedIndividualAgent, setSelectedIndividualAgent] = useState<string>('');
   const [reportYearFilter, setReportYearFilter] = useState<string>('all');
   const [showAddTransaction, setShowAddTransaction] = useState(false);
+  const [isFinanceExpanded, setIsFinanceExpanded] = useState(hasRole('accounts') && !hasRole('admin'));
   const [isSavingTransaction, setIsSavingTransaction] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<FinanceTransaction | null>(null);
   const [confirmDeleteTransaction, setConfirmDeleteTransaction] = useState<FinanceTransaction | null>(null);
@@ -331,6 +340,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [companyFilter, setCompanyFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
 
   // Form states
   const [showEditEmployee, setShowEditEmployee] = useState(false);
@@ -360,12 +371,18 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
   const [migrationStatus, setMigrationStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [confirmDelete, setConfirmDelete] = useState<{ id: string, type: 'employee' | 'company', name: string } | null>(null);
 
+  const [settingsSubTab, setSettingsSubTab] = useState<'general' | 'privacy'>('general');
+  const [isSettingsExpanded, setIsSettingsExpanded] = useState(false);
+  const [isToolsExpanded, setIsToolsExpanded] = useState(false);
+  const [toolsSubTab, setToolsSubTab] = useState<'extractor-pro' | 'general'>('extractor-pro');
+
   // Export Preview states
   const [showExportPreview, setShowExportPreview] = useState(false);
   const [exportPreviewData, setExportPreviewData] = useState<any[]>([]);
   const [exportPreviewTitle, setExportPreviewTitle] = useState('');
   const [exportPreviewFileName, setExportPreviewFileName] = useState('');
   const [isExportingFromPreview, setIsExportingFromPreview] = useState(false);
+  const [isCompanyDistributionExpanded, setIsCompanyDistributionExpanded] = useState(false);
 
   // PDF Preview states
   const [showPdfPreview, setShowPdfPreview] = useState(false);
@@ -696,9 +713,74 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
     }, (err) => handleFirestoreError(err, OperationType.LIST, 'discounts'));
 
     const unsubLogs = onSnapshot(query(collection(db, 'usage_logs'), orderBy('timestamp', 'desc'), limit(100)), (snapshot) => {
-      setLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UsageLog)));
+      setLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), source: 'SHANE' } as UsageLog)));
       setLoading(false);
     }, (err) => handleFirestoreError(err, OperationType.LIST, 'usage_logs'));
+
+    // Remote Logs Setup
+    let unsubPattaya: (() => void) | undefined;
+    let unsubCajun: (() => void) | undefined;
+    
+    const setupRemote = (config: any, appId: string, dbId: string, sourceLabel: string, setLogsFn: (logs: UsageLog[]) => void, setErrorFn: (err: string | null) => void) => {
+      try {
+        let app;
+        try { app = getApp(appId); } catch { app = initializeApp(config, appId); }
+        const rDb = getFirestore(app, dbId);
+        
+        // Try multiple common log collection names, prioritizing system_logs for Cajun
+        const collectionNames = ['system_logs', 'usage_logs', 'logs', 'activity', 'history', 'audit_trail'];
+        
+        const tryNext = (index: number) => {
+          if (index >= collectionNames.length) {
+            setErrorFn(null); // Just show 0 if nothing found
+            return;
+          }
+          
+          const colName = collectionNames[index];
+          const q = query(collection(rDb, colName), orderBy('timestamp', 'desc'), limit(100));
+          
+          onSnapshot(q, (snap) => {
+            if (snap.empty) {
+              tryNext(index + 1);
+            } else {
+              setLogsFn(snap.docs.map(doc => ({ id: doc.id, ...doc.data(), source: sourceLabel } as UsageLog)));
+              setErrorFn(null);
+            }
+          }, (err) => {
+            console.warn(`Remote logs (${appId}) ${colName} failed:`, err.message);
+            if (err.message.includes('permission')) {
+              setErrorFn('Access Denied');
+            } else {
+              tryNext(index + 1);
+            }
+          });
+        };
+
+        tryNext(0);
+      } catch (err) {
+        console.error(`Failed to init remote (${appId}):`, err);
+        setErrorFn('Init Failed');
+        return undefined;
+      }
+    };
+
+    unsubPattaya = setupRemote({
+      apiKey: "AIzaSyBwNBORxwnyg-X-PGULAYL2tnv9qvckp2I",
+      authDomain: "pattaya-rent-a-car-rebuild.firebaseapp.com",
+      projectId: "pattaya-rent-a-car-rebuild",
+      storageBucket: "pattaya-rent-a-car-rebuild.firebasestorage.app",
+      messagingSenderId: "700448424476",
+      appId: "1:700448424476:web:5ddf038c6bd46b7b4615d9"
+    }, "pattaya-logs", "(default)", "RENT A CAR", setPattayaLogs, setPattayaError);
+
+    unsubCajun = setupRemote({
+      apiKey: "AIzaSyCvrKHre4sQUVnrk0eKFgQcNoexLS_WZps",
+      authDomain: "cajun-life-cafe.firebaseapp.com",
+      projectId: "cajun-life-cafe",
+      storageBucket: "cajun-life-cafe.firebasestorage.app",
+      messagingSenderId: "1006330230181",
+      appId: "1:1006330230181:web:bb9fa1db36a7ef61bd244c"
+    }, "cajun-logs", "ai-studio-88dfc183-b7e7-45b8-b831-62b1a7bbdb29", "CAJUN", setCajunLogs, setCajunError);
 
     const unsubCompanies = onSnapshot(collection(db, 'companies'), (snapshot) => {
       setCompanies(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DBCompany)));
@@ -740,6 +822,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       unsubEmployees();
       unsubDiscounts();
       unsubLogs();
+      if (unsubPattaya) unsubPattaya();
+      if (unsubCajun) unsubCajun();
       unsubCompanies();
       unsubBlog();
       unsubFinance();
@@ -1041,6 +1125,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       description: transaction.description,
       amount: transaction.amount,
       agent: transaction.agent,
+      leadFrom: transaction.leadFrom || '',
       isTransfer,
       fromAccount: fromAccount as any,
       toAccount: toAccount as any
@@ -2070,8 +2155,12 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       
       const searchTermLower = searchTerm.toLowerCase();
       const matchesSearch = searchItems.some(item => item.includes(searchTermLower));
+      const matchesStatus = statusFilter === 'all' ? true : 
+                          statusFilter === 'active' ? emp.active !== false : emp.active === false;
+      const matchesRole = roleFilter === 'all' || (emp.roles || []).includes(roleFilter as any);
       const matchesCompany = companyFilter === 'all' || (companyFilter === 'Unassigned' ? !emp.company : emp.company === companyFilter);
-      return matchesSearch && matchesCompany;
+      
+      return matchesSearch && matchesStatus && matchesRole && matchesCompany;
     })
     .sort((a, b) => {
       const getTime = (val: any) => {
@@ -2082,12 +2171,14 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
         if (typeof val === 'string') return new Date(val).getTime();
         return 0;
       };
-      const timeA = getTime(a.createdAt);
-      const timeB = getTime(b.createdAt);
+      const timeA = getTime(a.createdAt) || getTime(a.employedFrom);
+      const timeB = getTime(b.createdAt) || getTime(b.employedFrom);
       return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
     });
 
-  if (!hasRole('admin') && !hasRole('accounts') && !hasRole('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com') {
+  const isWhitelistedCompany = userProfile.company === 'Alan Bolton Property Consultants' || userProfile.company === 'East Coast Real Estate';
+
+  if (!hasRole('admin') && !hasRole('accounts') && !hasRole('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com' && !isWhitelistedCompany) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 text-center">
         <div>
@@ -2108,7 +2199,10 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
           width: isSidebarCollapsed ? 80 : 288,
           padding: isSidebarCollapsed ? '24px 12px' : '32px'
         }}
-        className="hidden md:flex bg-white border-r border-black/5 flex-col h-screen sticky top-0 z-50 relative overflow-visible"
+        className={cn(
+          "hidden md:flex bg-white border-r border-black/5 flex-col h-screen sticky z-50 relative overflow-visible transition-all duration-500",
+          isImpersonating ? "top-[38px]" : "top-0"
+        )}
       >
         {/* Collapse Button on Edge */}
         <button 
@@ -2189,13 +2283,20 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
           {(hasRole('admin') || hasRole('accounts')) && (
             <div className="flex flex-col">
               <button 
-                onClick={() => setActiveTab('finance')}
+                onClick={() => {
+                  if (activeTab === 'finance') {
+                    setIsFinanceExpanded(!isFinanceExpanded);
+                  } else {
+                    setActiveTab('finance');
+                    setIsFinanceExpanded(true);
+                  }
+                }}
                 className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'finance' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
               >
                 <DollarSign className="w-4 h-4 shrink-0" />
-                <span className={`transition-all duration-300 whitespace-nowrap flex-grow ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Finance</span>
+                <span className={`transition-all duration-300 whitespace-nowrap flex-grow text-left ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Finance</span>
                 {!isSidebarCollapsed && (
-                  <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${activeTab === 'finance' ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isFinanceExpanded ? 'rotate-180' : ''}`} />
                 )}
                 {isSidebarCollapsed && (
                   <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
@@ -2204,7 +2305,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 )}
               </button>
               
-              {!isSidebarCollapsed && activeTab === 'finance' && (
+              {!isSidebarCollapsed && isFinanceExpanded && (
                 <div className="ml-11 flex flex-col gap-1 mt-1 mb-4">
                   {(hasRole('admin') || userProfile.company === 'Alan Bolton Property Consultants') && (
                     <>
@@ -2266,19 +2367,44 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               )}
             </div>
           )}
-          {hasRole('admin') && (
-            <button 
-              onClick={() => setActiveTab('tools')}
-              className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'tools' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-            >
-              <Wrench className="w-4 h-4 shrink-0" />
-              <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Tools</span>
-              {isSidebarCollapsed && (
-                <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                  Tools
+          {(hasRole('admin') || isWhitelistedCompany) && (
+            <div className="flex flex-col">
+              <button 
+                onClick={() => {
+                  if (activeTab === 'tools') {
+                    setIsToolsExpanded(!isToolsExpanded);
+                  } else {
+                    setActiveTab('tools');
+                    setIsToolsExpanded(true);
+                  }
+                }}
+                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'tools' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+              >
+                <Wrench className="w-4 h-4 shrink-0" />
+                <span className={`transition-all duration-300 whitespace-nowrap flex-grow text-left ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Tools</span>
+                {!isSidebarCollapsed && (
+                  <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isToolsExpanded ? 'rotate-180' : ''}`} />
+                )}
+                {isSidebarCollapsed && (
+                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                    Tools
+                  </div>
+                )}
+              </button>
+              
+              {!isSidebarCollapsed && isToolsExpanded && (
+                <div className="ml-11 flex flex-col gap-1 mt-1 mb-4">
+                  <button 
+                    onClick={() => {
+                      setToolsSubTab('extractor-pro');
+                    }}
+                    className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${toolsSubTab === 'extractor-pro' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
+                  >
+                    Extractor Pro
+                  </button>
                 </div>
               )}
-            </button>
+            </div>
           )}
           <button 
             onClick={() => setActiveTab('profile')}
@@ -2293,18 +2419,47 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
             )}
           </button>
           {userProfile.roles?.includes('admin') && (
-            <button 
-              onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'settings' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-            >
-              <Settings className="w-4 h-4 shrink-0" />
-              <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Site Settings</span>
-              {isSidebarCollapsed && (
-                <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                  Site Settings
+            <div className="flex flex-col">
+              <button 
+                onClick={() => {
+                  if (activeTab === 'settings') {
+                    setIsSettingsExpanded(!isSettingsExpanded);
+                  } else {
+                    setActiveTab('settings');
+                    setIsSettingsExpanded(true);
+                  }
+                }}
+                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'settings' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+              >
+                <Settings className="w-4 h-4 shrink-0" />
+                <span className={`transition-all duration-300 whitespace-nowrap flex-grow text-left ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Site Settings</span>
+                {!isSidebarCollapsed && (
+                  <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isSettingsExpanded ? 'rotate-180' : ''}`} />
+                )}
+                {isSidebarCollapsed && (
+                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                    Site Settings
+                  </div>
+                )}
+              </button>
+              
+              {!isSidebarCollapsed && isSettingsExpanded && (
+                <div className="ml-11 flex flex-col gap-1 mt-1 mb-4">
+                  <button 
+                    onClick={() => setSettingsSubTab('general')}
+                    className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${settingsSubTab === 'general' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
+                  >
+                    General
+                  </button>
+                  <button 
+                    onClick={() => setSettingsSubTab('privacy')}
+                    className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${settingsSubTab === 'privacy' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
+                  >
+                    Privacy Settings
+                  </button>
                 </div>
               )}
-            </button>
+            </div>
           )}
         </nav>
 
@@ -2325,7 +2480,10 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
       </motion.aside>
 
       {/* Mobile Header (Visible only on small screens) */}
-      <div className="md:hidden bg-white border-b border-black/5 p-4 flex items-center justify-between sticky top-0 z-50">
+      <div className={cn(
+        "md:hidden bg-white border-b border-black/5 p-4 flex items-center justify-between sticky z-50 transition-all duration-500",
+        isImpersonating ? "top-[38px]" : "top-0"
+      )}>
         <h1 className="text-xl font-serif italic text-gold">Dashboard</h1>
         <div className="flex gap-2">
           <button onClick={onBack} className="p-2 text-black/40 hover:text-gold transition-colors">
@@ -2392,51 +2550,70 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                     <div className="text-4xl font-serif text-gold">{employees.length}</div>
                   </div>
                   <div className="lg:col-span-3 glass p-8 rounded-[2.5rem]">
-                    <div className="flex items-center justify-between mb-8">
-                      <div>
-                        <div className="text-[10px] uppercase tracking-[0.4em] font-bold text-gold mb-1">Company Distribution</div>
+                    <button 
+                      onClick={() => setIsCompanyDistributionExpanded(!isCompanyDistributionExpanded)}
+                      className="w-full flex items-center justify-between group"
+                    >
+                      <div className="text-left">
+                        <div className="flex items-center gap-2">
+                          <div className="text-[10px] uppercase tracking-[0.4em] font-bold text-gold">Company Distribution</div>
+                          {isCompanyDistributionExpanded ? <ChevronUp className="w-3 h-3 text-gold" /> : <ChevronDown className="w-3 h-3 text-gold" />}
+                        </div>
                         <div className="text-black/40 text-xs font-light">Staff allocation across your portfolio</div>
                       </div>
                       <div className="text-2xl font-serif text-black/20">{companies.length} <span className="text-xs uppercase tracking-widest font-sans font-bold ml-1">Companies</span></div>
-                    </div>
-                    <div className="space-y-6">
-                      {Object.entries(
-                        employees.reduce((acc: Record<string, { count: number, id?: string }>, emp) => {
-                          const company = emp.company || 'Unassigned';
-                          acc[company] = { 
-                            count: (acc[company]?.count || 0) + 1,
-                            id: emp.companyId
-                          };
-                          return acc;
-                        }, {} as Record<string, { count: number, id?: string }>)
-                      ).sort((a: [string, any], b: [string, any]) => b[1].count - a[1].count).map(([company, data]: [string, any]) => {
-                        const info = getCompanyInfo(company, data.id);
-                        const percentage = (data.count / employees.length) * 100;
-                        return (
-                          <div key={company} className="group">
-                            <div className="flex justify-between items-center mb-2">
-                              <div className="flex items-center gap-3">
-                                <div className={`w-2 h-2 rounded-full ${info.color === 'bg-white' ? 'bg-gold' : info.color}`} />
-                                <span className="text-sm font-medium text-black group-hover:text-gold transition-colors">{company}</span>
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <span className="text-[10px] text-black/40 font-mono font-bold">{data.count} {data.count === 1 ? 'Person' : 'People'}</span>
-                                <span className="text-[10px] text-gold font-bold w-8 text-right">{Math.round(percentage)}%</span>
-                              </div>
-                            </div>
-                            <div className="w-full h-2 bg-black/5 rounded-full overflow-hidden">
-                              <motion.div 
-                                initial={{ width: 0 }}
-                                whileInView={{ width: `${percentage}%` }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 1.2, ease: "circOut" }}
-                                className={`h-full rounded-full ${info.color === 'bg-white' ? 'bg-gold' : info.color} shadow-sm`}
-                              />
-                            </div>
+                    </button>
+
+                    <AnimatePresence>
+                      {isCompanyDistributionExpanded && (
+                        <motion.div 
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                          className="overflow-hidden"
+                        >
+                          <div className="space-y-6 pt-8">
+                            {Object.entries(
+                              employees.reduce((acc: Record<string, { count: number, id?: string }>, emp) => {
+                                const company = emp.company || 'Unassigned';
+                                acc[company] = { 
+                                  count: (acc[company]?.count || 0) + 1,
+                                  id: emp.companyId
+                                };
+                                return acc;
+                              }, {} as Record<string, { count: number, id?: string }>)
+                            ).sort((a: [string, any], b: [string, any]) => b[1].count - a[1].count).map(([company, data]: [string, any]) => {
+                              const info = getCompanyInfo(company, data.id);
+                              const percentage = (data.count / employees.length) * 100;
+                              return (
+                                <div key={company} className="group">
+                                  <div className="flex justify-between items-center mb-2">
+                                    <div className="flex items-center gap-3">
+                                      <div className={`w-2 h-2 rounded-full ${info.color === 'bg-white' ? 'bg-gold' : info.color}`} />
+                                      <span className="text-sm font-medium text-black group-hover:text-gold transition-colors">{company}</span>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                      <span className="text-[10px] text-black/40 font-mono font-bold">{data.count} {data.count === 1 ? 'Person' : 'People'}</span>
+                                      <span className="text-[10px] text-gold font-bold w-8 text-right">{Math.round(percentage)}%</span>
+                                    </div>
+                                  </div>
+                                  <div className="w-full h-2 bg-black/5 rounded-full overflow-hidden">
+                                    <motion.div 
+                                      initial={{ width: 0 }}
+                                      whileInView={{ width: `${percentage}%` }}
+                                      viewport={{ once: true }}
+                                      transition={{ duration: 1.2, ease: "circOut" }}
+                                      className={`h-full rounded-full ${info.color === 'bg-white' ? 'bg-gold' : info.color} shadow-sm`}
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
-                    </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
 
@@ -2473,6 +2650,27 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                       ))}
                       {companies.filter(c => !COMPANY_DATA[c.name]).map(c => (
                         <option key={c.id} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+
+                    <select 
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value as any)}
+                      className="bg-black/5 border-none rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none"
+                    >
+                      <option value="all">All Status</option>
+                      <option value="active">Active Only</option>
+                      <option value="inactive">Inactive Only</option>
+                    </select>
+
+                    <select 
+                      value={roleFilter}
+                      onChange={(e) => setRoleFilter(e.target.value)}
+                      className="bg-black/5 border-none rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none"
+                    >
+                      <option value="all">All Roles</option>
+                      {['admin', 'manager', 'accounts', 'employee', 'agent', 'cashier', 'housekeeping'].map(role => (
+                        <option key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1)}</option>
                       ))}
                     </select>
                   </div>
@@ -2592,12 +2790,23 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           </td>
                           <td className="px-6 py-4 text-sm font-mono text-gold font-bold">{emp.discountCode || 'N/A'}</td>
                           <td className="px-6 py-4 text-right">
-                            <button 
-                              onClick={() => handleEditEmployee(emp)}
-                              className="p-2 bg-black/5 hover:bg-gold hover:text-white rounded-lg transition-all"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex justify-end gap-2">
+                              {onImpersonate && userProfile.roles?.includes('admin') && emp.uid !== auth.currentUser?.uid && (
+                                <button 
+                                  onClick={() => onImpersonate(emp)}
+                                  className="p-2 bg-black/5 hover:bg-gold hover:text-white rounded-lg transition-all"
+                                  title="Run As User (Preview Mode)"
+                                >
+                                  <ShieldCheck className="w-4 h-4" />
+                                </button>
+                              )}
+                              <button 
+                                onClick={() => handleEditEmployee(emp)}
+                                className="p-2 bg-black/5 hover:bg-gold hover:text-white rounded-lg transition-all"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -2716,17 +2925,33 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
               >
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-serif">System Logs</h3>
-                  <div className="flex gap-2">
-                    <div className="relative">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                  <div>
+                    <h3 className="text-xl font-serif">System <span className="italic">Activity Logs</span></h3>
+                    <p className="text-black/40 text-xs">Monitoring security and usage events in real-time</p>
+                  </div>
+                  <div className="flex items-center gap-4 w-full md:w-auto">
+                    <div className="relative group">
+                      <ChevronDown className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 text-black/40 pointer-events-none transition-transform group-hover:translate-y-[-40%]" />
+                      <select 
+                        value={logFilter}
+                        onChange={(e) => setLogFilter(e.target.value as any)}
+                        className="appearance-none bg-black/5 hover:bg-black/10 border-none rounded-xl pl-4 pr-9 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none w-full md:w-48 transition-all cursor-pointer"
+                      >
+                        <option value="ALL">All Sources ({[...logs, ...pattayaLogs, ...cajunLogs].length})</option>
+                        <option value="SHANE">Shane ({logs.length})</option>
+                        <option value="RENT A CAR">Rent A Car ({pattayaError || pattayaLogs.length})</option>
+                        <option value="CAJUN">Cajun ({cajunError || cajunLogs.length})</option>
+                      </select>
+                    </div>
+                    <div className="relative flex-grow md:flex-grow-0">
                       <Search className="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-black/20" />
                       <input 
                         type="text"
                         placeholder="Search logs..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="bg-black/5 border-none rounded-xl pl-8 pr-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none w-48"
+                        className="bg-black/5 border-none rounded-xl pl-8 pr-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none w-full md:w-48"
                       />
                     </div>
                   </div>
@@ -2735,18 +2960,20 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 <div className="glass rounded-[2.5rem] overflow-hidden">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-bottom border-black/5 bg-black/2">
+                      <tr className="border-bottom border-black/5 bg-black/2 text-left">
+                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Source</th>
                         <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date & Time</th>
                         <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Employee</th>
                         <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Event Type</th>
                         <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Details</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {logs
+                    <tbody className="divide-y divide-black/5">
+                      {[...logs, ...pattayaLogs, ...cajunLogs]
                         .filter(log => {
-                          const searchStr = `${log.userName} ${log.userEmail} ${log.type} ${log.discountName} ${log.details}`.toLowerCase();
-                          return searchStr.includes(searchTerm.toLowerCase());
+                          const matchesSearch = `${log.userName} ${log.userEmail} ${log.type} ${log.discountName} ${log.details} ${log.source}`.toLowerCase().includes(searchTerm.toLowerCase());
+                          const matchesFilter = logFilter === 'ALL' || log.source === logFilter;
+                          return matchesSearch && matchesFilter;
                         })
                         .sort((a, b) => {
                           const getTime = (val: any) => {
@@ -2762,31 +2989,46 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           return timeB - timeA;
                         })
                         .map((log) => (
-                        <tr key={log.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors">
-                          <td className="px-6 py-4 text-xs font-mono">
-                            {log.timestamp?.seconds 
-                              ? new Date(log.timestamp.seconds * 1000).toLocaleString('en-US', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })
-                              : 'Pending...'}
+                        <tr key={log.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-widest ${log.source === 'SHANE' ? 'text-gold' : log.source === 'RENT A CAR' ? 'text-blue-500' : 'text-purple-500'}`}>
+                              <div className={`w-1.5 h-1.5 rounded-full ${log.source === 'SHANE' ? 'bg-gold' : log.source === 'RENT A CAR' ? 'bg-blue-500' : 'bg-purple-500'}`} />
+                              {log.source}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-xs font-mono whitespace-nowrap">
+                            {(() => {
+                              const time = log.timestamp;
+                              if (!time) return 'Pending...';
+                              let date;
+                              if ((time as any).seconds) date = new Date((time as any).seconds * 1000);
+                              else if (typeof (time as any).toMillis === 'function') date = new Date((time as any).toMillis());
+                              else date = new Date(time as any);
+                              
+                              return isNaN(date.getTime()) ? 'Pending...' : date.toLocaleString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              });
+                            })()}
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm font-medium">{log.userName || 'Unknown User'}</div>
+                            <div className="text-sm font-medium">
+                              {log.userName || (log.userEmail ? log.userEmail.split('@')[0] : 'Unknown')}
+                            </div>
                             <div className="text-[10px] text-black/40">{log.userEmail}</div>
                           </td>
                           <td className="px-6 py-4">
                             <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                              log.type === 'login' ? 'bg-blue-100 text-blue-600' : 
-                              log.type === 'signup' ? 'bg-green-100 text-green-600' :
-                              log.type?.startsWith('finance_') ? 'bg-purple-100 text-purple-600' :
-                              log.type?.includes('_update') ? 'bg-amber-100 text-amber-600' :
+                              (log.type || (log as any).action) === 'login' || (log.type || (log as any).action)?.includes('Login') ? 'bg-blue-50 text-blue-600' : 
+                              (log.type || (log as any).action) === 'signup' || (log.type || (log as any).action)?.includes('Created') ? 'bg-green-50 text-green-600' :
+                              (log.type || (log as any).action)?.includes('finance') ? 'bg-purple-50 text-purple-600' :
+                              (log.type || (log as any).action)?.includes('Update') || (log.type || (log as any).action)?.includes('update') ? 'bg-amber-50 text-amber-600' :
                               'bg-gold/10 text-gold'
                             }`}>
-                              {(log.type || 'redemption').replace('_', ' ')}
+                              {(log.type || (log as any).action || 'activity').replace('_', ' ')}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-xs">
@@ -2807,10 +3049,10 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           </td>
                         </tr>
                       ))}
-                      {logs.length === 0 && (
+                      {[...logs, ...pattayaLogs, ...cajunLogs].length === 0 && (
                         <tr>
-                          <td colSpan={4} className="py-24 text-center text-black/40 italic text-sm">
-                            No system logs found.
+                          <td colSpan={5} className="py-24 text-center text-black/40 italic text-sm">
+                            No logs found for any source.
                           </td>
                         </tr>
                       )}
@@ -3338,7 +3580,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                             setNewTransaction({
                               type: 'income',
                               dealType: 'new',
-                              account: 'trading',
+                              leadFrom: '',
                               agent: '-',
                               date: new Date().toISOString().split('T')[0]
                             });
@@ -3355,10 +3597,10 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           <thead>
                             <tr className="border-bottom border-black/5 bg-black/2">
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date</th>
-                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 w-[80%]">Description</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Description</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Deal</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Lead From</th>
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Agent</th>
-                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Account</th>
-                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Type</th>
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Amount</th>
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40"></th>
                             </tr>
@@ -3367,32 +3609,25 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                             {filteredFinanceTransactions.map((t) => (
                               <tr key={t.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
                                 <td className="px-6 py-4 text-xs font-mono">{t.date}</td>
-                                <td className="px-6 py-4 w-[80%]">
+                                <td className="px-6 py-4">
                                   <div className="text-sm font-medium">{t.description}</div>
-                                  <div className="text-[10px] text-black/40 uppercase tracking-widest">
-                                    {t.dealType === '-' ? '-' : `${t.dealType} deal`}
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className={cn(
+                                    "inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest",
+                                    t.dealType === 'new' ? "bg-gold/10 text-gold" : 
+                                    t.dealType === 'renewal' ? "bg-blue-50 text-blue-600" : "text-black/40"
+                                  )}>
+                                    {t.dealType === '-' ? '-' : t.dealType}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="text-[10px] font-bold uppercase tracking-widest text-black/40">
+                                    {t.leadFrom || '-'}
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 text-xs">
                                   {getAgentDisplayName(t.agent)}
-                                </td>
-                                <td className="px-6 py-4">
-                                  <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">
-                                    {t.account || 'trading'}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                  <div className="flex items-center gap-2">
-                                    <span className={`px-2 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${
-                                      t.transferGroupId ? 'bg-blue-100 text-blue-600' :
-                                      t.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-                                    }`}>
-                                      {t.transferGroupId ? 'transfer' : t.type}
-                                    </span>
-                                    {t.transferGroupId && (
-                                      <ArrowLeftRight className="w-3 h-3 text-blue-400" />
-                                    )}
-                                  </div>
                                 </td>
                                 <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                                   {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
@@ -3599,8 +3834,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                     </div>
 
                     <div className="w-full space-y-8">
-                      <div className="flex justify-end gap-3">
-                        {!financeSubTab.startsWith('ABPC') && (
+                      <div className="flex justify-end gap-3">                        {!financeSubTab.startsWith('ABPC') && (
                           <button 
                             onClick={() => {
                               setEditingTransaction(null);
@@ -3610,6 +3844,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                                 fromAccount: 'trading',
                                 toAccount: 'savings',
                                 dealType: 'new',
+                                leadFrom: '',
                                 agent: '-',
                                 date: new Date().toISOString().split('T')[0]
                               });
@@ -3632,7 +3867,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                             setNewTransaction({
                               type: 'income',
                               dealType: 'new',
-                              account: 'trading',
+                              leadFrom: '',
                               agent: '-',
                               date: new Date().toISOString().split('T')[0]
                             });
@@ -3649,10 +3884,10 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                           <thead>
                             <tr className="border-bottom border-black/5 bg-black/2">
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date</th>
-                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 w-[80%]">Description</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Description</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Deal</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Lead From</th>
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Agent</th>
-                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Account</th>
-                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Type</th>
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Amount</th>
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40"></th>
                             </tr>
@@ -3661,32 +3896,25 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                             {filteredFinanceTransactions.map((t) => (
                               <tr key={t.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
                                 <td className="px-6 py-4 text-xs font-mono">{t.date}</td>
-                                <td className="px-6 py-4 w-[80%]">
+                                <td className="px-6 py-4">
                                   <div className="text-sm font-medium">{t.description}</div>
-                                  <div className="text-[10px] text-black/40 uppercase tracking-widest">
-                                    {t.dealType === '-' ? '-' : `${t.dealType} deal`}
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className={cn(
+                                    "inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest",
+                                    t.dealType === 'new' ? "bg-gold/10 text-gold" : 
+                                    t.dealType === 'renewal' ? "bg-blue-50 text-blue-600" : "text-black/40"
+                                  )}>
+                                    {t.dealType === '-' ? '-' : t.dealType}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="text-[10px] font-bold uppercase tracking-widest text-black/40">
+                                    {t.leadFrom || '-'}
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 text-xs">
                                   {getAgentDisplayName(t.agent)}
-                                </td>
-                                <td className="px-6 py-4">
-                                  <span className="text-[10px] font-bold uppercase tracking-widest text-black/40">
-                                    {t.account || 'trading'}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                  <div className="flex items-center gap-2">
-                                    <span className={`px-2 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${
-                                      t.transferGroupId ? 'bg-blue-100 text-blue-600' :
-                                      t.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-                                    }`}>
-                                      {t.transferGroupId ? 'transfer' : t.type}
-                                    </span>
-                                    {t.transferGroupId && (
-                                      <ArrowLeftRight className="w-3 h-3 text-blue-400" />
-                                    )}
-                                  </div>
                                 </td>
                                 <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                                   {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
@@ -3830,21 +4058,23 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                 exit={{ opacity: 0, y: -10 }}
                 className="max-w-4xl mx-auto"
               >
-                <div className="glass rounded-[40px] p-10">
-                  <div className="flex items-center justify-between mb-10">
-                    <div>
-                      <h3 className="text-2xl font-serif">Public <span className="italic">Portfolio Profile</span></h3>
-                      <p className="text-black/40 text-sm">Manage the global brand and site content for the portfolio</p>
-                    </div>
-                    <button 
-                      onClick={handleUpdateBusinessInfo}
-                      disabled={savingProfile}
-                      className="bg-black text-white px-8 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-gold transition-all flex items-center gap-2 disabled:opacity-50"
-                    >
-                      {savingProfile ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
-                      Save Changes
-                    </button>
-                  </div>
+                {settingsSubTab === 'general' && (
+                  <>
+                    <div className="glass rounded-[40px] p-10">
+                      <div className="flex items-center justify-between mb-10">
+                        <div>
+                          <h3 className="text-2xl font-serif">Public <span className="italic">Portfolio Profile</span></h3>
+                          <p className="text-black/40 text-sm">Manage the global brand and site content for the portfolio</p>
+                        </div>
+                        <button 
+                          onClick={handleUpdateBusinessInfo}
+                          disabled={savingProfile}
+                          className="bg-gold text-white px-8 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-gold-dark transition-all flex items-center gap-2 disabled:opacity-50"
+                        >
+                          {savingProfile ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
+                          Save Changes
+                        </button>
+                      </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     <div className="space-y-8">
@@ -3986,8 +4216,139 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                     )}
                   </div>
                 </div>
-              </motion.div>
+              </>
             )}
+
+            {settingsSubTab === 'privacy' && (
+              <div className="glass rounded-[40px] p-10">
+                <div className="mb-10">
+                  <h3 className="text-2xl font-serif">Privacy <span className="italic">& Visibility Settings</span></h3>
+                  <p className="text-black/40 text-sm">Detailed overview of data visibility and permissions for each user role</p>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="bg-black/2 rounded-3xl p-6 border border-black/5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                        <Shield className="w-4 h-4" />
+                      </div>
+                      <h4 className="text-sm font-bold uppercase tracking-widest">Admin Role</h4>
+                    </div>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-black/60">
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        Full access to all staff profiles and sensitive data
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        Complete financial oversight across all companies (ABPC & ECRE)
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        Manage site content, blog posts, and global settings
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        Access to advanced admin tools and property extraction
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        Ability to seed, export, and delete system data
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-black/2 rounded-3xl p-6 border border-black/5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                        <DollarSign className="w-4 h-4" />
+                      </div>
+                      <h4 className="text-sm font-bold uppercase tracking-widest">Accounts Role</h4>
+                    </div>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-black/60">
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        Access to all financial transactions and reports
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        View staff directory (restricted to assigned company)
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        Create and edit financial entries for marketing tracking
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        Manage their own profile and view company performance
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-black/2 rounded-3xl p-6 border border-black/5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                        <Briefcase className="w-4 h-4" />
+                      </div>
+                      <h4 className="text-sm font-bold uppercase tracking-widest">Manager Role</h4>
+                    </div>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-black/60">
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        Full management of staff within their assigned company
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        View financial performance metrics for their department
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        Access to company-specific blog topics or internal tools
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-black/2 rounded-3xl p-6 border border-black/5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <h4 className="text-sm font-bold uppercase tracking-widest">Employee Role (Default)</h4>
+                    </div>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-black/60">
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        Manage personal landing page and profile information
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        View assigned discount codes and benefits
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        NO access to the administration dashboard or financial data
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-gold shrink-0" />
+                        Personalized portfolio view for client demonstrations
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="pt-8 mt-8 border-t border-black/5">
+                    <div className="flex items-center gap-2 text-gold mb-3">
+                      <Info className="w-4 h-4" />
+                      <span className="text-[10px] uppercase font-bold tracking-widest">About Data Privacy</span>
+                    </div>
+                    <p className="text-[10px] text-black/40 leading-relaxed max-w-2xl italic">
+                      This portfolio enforces strict server-side security rules via Firestore. Even if a user attempts to manually navigate to an unauthorized section, the underlying database will reject any requests that do not match their assigned role. PII (Personally Identifiable Information) is further restricted to prevent unauthorized data scraping.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
 
             {activeTab === 'blog' && (
               <motion.div 
@@ -4071,7 +4432,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               </motion.div>
             )}
 
-            {activeTab === 'tools' && (
+            {activeTab === 'tools' && (hasRole('admin') || isWhitelistedCompany) && (
               <motion.div 
                 key="tools"
                 initial={{ opacity: 0, y: 10 }}
@@ -4085,11 +4446,15 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                   </div>
                   <div>
                     <h2 className="text-2xl font-serif tracking-tight">Admin <span className="italic text-gold">Tools</span></h2>
-                    <p className="text-xs text-black/40 uppercase tracking-widest font-bold">Productivity & Extraction Utilities</p>
+                    <p className="text-xs text-black/40 uppercase tracking-widest font-bold">
+                      {toolsSubTab === 'extractor-pro' ? 'Property Extractor Pro' : 'Productivity & Extraction Utilities'}
+                    </p>
                   </div>
                 </div>
 
-                <PropertyExtractorPro userProfile={userProfile} />
+                {toolsSubTab === 'extractor-pro' && (
+                  <PropertyExtractorPro userProfile={userProfile} />
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -4136,6 +4501,34 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
               <form onSubmit={handleSaveTransaction} className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Lead From</label>
+                    <select 
+                      value={newTransaction.leadFrom || ''}
+                      onChange={(e) => setNewTransaction({ ...newTransaction, leadFrom: e.target.value })}
+                      className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    >
+                      <option value="">Select Source</option>
+                      {['LINE', 'Facebook Page', 'Proppit', 'BahtSold', 'Referral', 'Instagram', 'Email', 'Website', 'Walkin', 'Co Broke Deal', 'Meta Ad', 'Facebook Marketplace', 'Personal Facebook Profile', 'Call In', 'Whatsapp'].map(source => (
+                        <option key={source} value={source}>{source}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Deal Type</label>
+                    <select 
+                      value={newTransaction.dealType || 'new'}
+                      onChange={(e) => setNewTransaction({ ...newTransaction, dealType: e.target.value as any })}
+                      className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
+                    >
+                      <option value="new">New Deal</option>
+                      <option value="renewal">Renewal</option>
+                      <option value="-">-</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
                     <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Type</label>
                     <select 
                       value={newTransaction.isTransfer ? 'transfer' : (newTransaction.type || 'income')}
@@ -4145,8 +4538,8 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                             ...newTransaction, 
                             isTransfer: true, 
                             type: 'expense',
-                            fromAccount: 'trading',
-                            toAccount: 'savings'
+                            fromAccount: (newTransaction as any).fromAccount || 'trading',
+                            toAccount: (newTransaction as any).toAccount || 'savings'
                           });
                         } else {
                           setNewTransaction({ 
@@ -4179,7 +4572,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">From Account</label>
                       <select 
-                        value={newTransaction.fromAccount || 'trading'}
+                        value={(newTransaction as any).fromAccount || 'trading'}
                         onChange={(e) => setNewTransaction({ ...newTransaction, fromAccount: e.target.value as any })}
                         className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
                       >
@@ -4194,7 +4587,7 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">To Account</label>
                     <select 
-                      value={newTransaction.toAccount || 'savings'}
+                      value={(newTransaction as any).toAccount || 'savings'}
                       onChange={(e) => setNewTransaction({ ...newTransaction, toAccount: e.target.value as any })}
                       className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
                     >
@@ -4203,19 +4596,6 @@ export default function Dashboard({ userProfile, onBack }: DashboardProps) {
                     </select>
                   </div>
                 )}
-
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Deal Type</label>
-                  <select 
-                    value={newTransaction.dealType || 'new'}
-                    onChange={(e) => setNewTransaction({ ...newTransaction, dealType: e.target.value as any })}
-                    className="w-full bg-black/5 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-gold/20 outline-none"
-                  >
-                    <option value="new">New Deal</option>
-                    <option value="renewal">Renewal</option>
-                    <option value="-">-</option>
-                  </select>
-                </div>
 
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 ml-4">Date</label>

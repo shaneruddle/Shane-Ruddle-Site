@@ -89,6 +89,7 @@ export interface UserProfile {
   firstName?: string;
   lastName?: string;
   nickname?: string;
+  role?: 'admin' | 'employee' | 'manager' | 'accounts';
   roles: ('admin' | 'employee' | 'manager' | 'accounts')[];
   active?: boolean;
   employeeId?: string;
@@ -140,6 +141,7 @@ export interface UsageLog {
   type?: 'redemption' | 'login' | 'finance_create' | 'finance_update' | 'finance_delete' | 'signup' | 'profile_update' | 'employee_update';
   details?: string;
   timestamp: Timestamp;
+  source?: string;
 }
 
 export interface BlogPost {
@@ -165,8 +167,9 @@ export interface FinanceTransaction {
   date: string;
   description: string;
   amount: number;
-  agent: string;
+  agent?: string;
   agentId?: string;
+  leadFrom?: string;
   dealType: 'new' | 'renewal' | '-';
   isTransfer?: boolean;
   transferGroupId?: string;

@@ -280,6 +280,8 @@ export default function App() {
   const [view, setView] = useState<'home' | 'past-ventures' | 'dashboard' | 'portal' | 'blog' | 'privacy-policy' | 'terms-of-service'>('home');
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [impersonatedProfile, setImpersonatedProfile] = useState<UserProfile | null>(null);
+  const displayProfile = impersonatedProfile || userProfile;
   const [authLoading, setAuthLoading] = useState(true);
   console.log("App rendering. AuthLoading:", authLoading);
   const [formState, setFormState] = useState({ name: '', email: '', message: '' });
@@ -580,6 +582,15 @@ export default function App() {
         }
         
         setUserProfile(data);
+        if (impersonatedProfile) {
+          // If we are currently impersonating and the real profile changes, 
+          // we might want to check if we still have permission to impersonate.
+          const isAdmin = data.roles?.includes('admin') || user.email === 'shaneruddle@gmail.com';
+          if (!isAdmin) {
+            setImpersonatedProfile(null);
+            toast.error("Impersonation stopped: You no longer have admin privileges.");
+          }
+        }
         setAuthLoading(false);
       } else {
         console.log("No profile found for UID:", user.uid, "Creating/Claiming...");
@@ -607,7 +618,8 @@ export default function App() {
           const newProfile: UserProfile = {
             ...seededData,
             uid: user.uid,
-            active: seededData.active ?? true,
+            active: user.email === "shaneruddle@gmail.com" ? true : false,
+            role: "employee",
             name: user.displayName || seededData.name || "",
             updatedAt: serverTimestamp() as any
           };
@@ -642,8 +654,9 @@ export default function App() {
             email: user.email || "",
             mobile: user.phoneNumber || "",
             name: user.displayName || "",
+            role: user.email === "shaneruddle@gmail.com" ? "admin" : "employee",
             roles: user.email === "shaneruddle@gmail.com" ? ["admin", "accounts", "manager"] : ["employee"],
-            active: true,
+            active: user.email === "shaneruddle@gmail.com" ? true : false,
             discountCode: `SR-EMP-${Math.floor(1000 + Math.random() * 9000)}`,
             createdAt: serverTimestamp() as any,
             updatedAt: serverTimestamp() as any
@@ -763,6 +776,33 @@ export default function App() {
       </AnimatePresence>
 
       <div ref={containerRef} className="relative min-h-screen selection:bg-gold selection:text-black bg-white">
+        <AnimatePresence>
+          {impersonatedProfile && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="fixed top-0 left-0 right-0 z-[20000] bg-gold text-black px-6 py-2 flex items-center justify-between shadow-lg"
+            >
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="w-4 h-4" />
+                <span className="text-[10px] font-bold uppercase tracking-widest">
+                  Previewing as: <span className="italic">{impersonatedProfile.name || impersonatedProfile.email}</span> ({impersonatedProfile.roles?.join(', ')})
+                </span>
+              </div>
+              <button 
+                onClick={() => {
+                  setImpersonatedProfile(null);
+                  toast.success("Exited preview mode");
+                }}
+                className="bg-black text-white px-4 py-1.5 rounded-full text-[8px] font-bold uppercase tracking-widest hover:bg-black/80 transition-all shadow-md"
+              >
+                Exit Preview
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <AnimatePresence mode="wait">
           {isLoading ? (
             <motion.div 
@@ -784,7 +824,8 @@ export default function App() {
                   <nav 
                     onClick={() => console.log('NAV CLICKED')}
                     className={cn(
-                      "fixed top-0 left-0 right-0 z-[10000] flex items-center justify-between transition-all duration-500 pointer-events-auto",
+                      "fixed left-0 right-0 z-[10000] flex items-center justify-between transition-all duration-500 pointer-events-auto",
+                      impersonatedProfile ? "top-[38px]" : "top-0",
                       isScrolled 
                         ? "px-6 py-4 md:px-12 md:py-4 bg-white/90 backdrop-blur-xl border-b border-black/5 shadow-sm" 
                         : "px-6 py-6 md:px-12 md:py-8 bg-transparent"
@@ -849,9 +890,9 @@ export default function App() {
                         <History className="w-3 h-3" /> Past Ventures
                       </button>
                       
-                      {userProfile && (
+                      {displayProfile && (
                         <>
-                          {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.roles?.includes('manager') || user?.email === 'shaneruddle@gmail.com') && (
+                          {(displayProfile.roles?.includes('admin') || displayProfile.roles?.includes('accounts') || displayProfile.roles?.includes('manager') || user?.email === 'shaneruddle@gmail.com' || displayProfile.company === 'Alan Bolton Property Consultants' || displayProfile.company === 'East Coast Real Estate') && (
                             <button 
                               onClick={() => setView('dashboard')}
                               className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold hover:text-gold-dark transition-colors"
@@ -918,9 +959,9 @@ export default function App() {
                           Past Ventures
                         </button>
 
-                        {userProfile && (
+                        {displayProfile && (
                           <>
-                            {(userProfile.roles?.includes('admin') || userProfile.roles?.includes('accounts') || userProfile.roles?.includes('manager') || user?.email === 'shaneruddle@gmail.com') && (
+                            {(displayProfile.roles?.includes('admin') || displayProfile.roles?.includes('accounts') || displayProfile.roles?.includes('manager') || user?.email === 'shaneruddle@gmail.com' || displayProfile.company === 'Alan Bolton Property Consultants' || displayProfile.company === 'East Coast Real Estate') && (
                               <button 
                                 onClick={() => {
                                   setView('dashboard');
@@ -958,7 +999,7 @@ export default function App() {
                 key="main-content"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex flex-col min-h-screen"
+                className={cn("flex flex-col min-h-screen", impersonatedProfile && "pt-[38px]")}
               >
                 <main className="flex-grow">
                 <AnimatePresence mode="wait">
@@ -975,7 +1016,7 @@ export default function App() {
                         window.scrollTo(0, 0);
                       }} />
                     </motion.div>
-                  ) : view === 'dashboard' && userProfile ? (
+                  ) : view === 'dashboard' && displayProfile ? (
                     <motion.div
                       key="dashboard"
                       initial={{ opacity: 0, scale: 0.98 }}
@@ -983,9 +1024,22 @@ export default function App() {
                       exit={{ opacity: 0, scale: 0.98 }}
                       transition={{ duration: 0.4 }}
                     >
-                      <Dashboard userProfile={userProfile} onBack={() => setView('home')} />
+                      <Dashboard 
+                        userProfile={displayProfile} 
+                        onBack={() => setView('home')} 
+                        onImpersonate={(profile) => {
+                          const isRealAdmin = userProfile?.roles?.includes('admin') || user?.email === 'shaneruddle@gmail.com';
+                          if (isRealAdmin) {
+                            setImpersonatedProfile(profile);
+                            toast.success(`Now viewing as ${profile.name || profile.email}`);
+                            setIsMenuOpen(false);
+                          } else {
+                            toast.error("Only administrators can impersonate users.");
+                          }
+                        }}
+                      />
                     </motion.div>
-                  ) : view === 'portal' && userProfile ? (
+                  ) : view === 'portal' && displayProfile ? (
                     <motion.div
                       key="portal"
                       initial={{ opacity: 0, scale: 0.98 }}
@@ -993,7 +1047,7 @@ export default function App() {
                       exit={{ opacity: 0, scale: 0.98 }}
                       transition={{ duration: 0.4 }}
                     >
-                      <EmployeePortal userProfile={userProfile} onBack={() => setView('home')} />
+                      <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} />
                     </motion.div>
                   ) : view === 'blog' ? (
                     <motion.div
