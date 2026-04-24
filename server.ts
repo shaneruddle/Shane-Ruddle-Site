@@ -106,24 +106,24 @@ async function startServer() {
       const livingSize = bubbleMetadata?.["Living Area"] || bubbleMetadata?.["Living Size"] || bubbleMetadata?.["Area Size"] || bubbleMetadata?.["Size"] || htmlText.match(/(\d+(?:,\d+)?(?:\.\d+)?)\s?(?:sqm|sq\.\s?m|sq\s?ft|square\s?feet|m2|sq\s?meters)/i)?.[1] || "";
       const landSize = bubbleMetadata?.["Land Area"] || bubbleMetadata?.["Land Size"] || "";
       const priceVal = bubbleMetadata?.["Listing Price"] || bubbleMetadata?.["Price"] || htmlText.match(/(?:price|baht|฿|THB|sale)\s*[:\-]?\s*(?:฿|THB|USD|\$)?\s*([\d,]+)/i)?.[1] || "";
-      const isBubbleId = (val: string) => typeof val === 'string' && /^\d+x\d+$/.test(val);
+      const isBubbleId = (val: string) => typeof val === 'string' && (/^\d+x\d+$/.test(val) || /^[0-9\-]+$/.test(val));
       let agent = bubbleMetadata?.["Assigned Agent"] || "";
-      if (isBubbleId(agent)) agent = ""; // Skip ID values
       
-      // Try multiple keys from Bubble API and meta tags
-      agent = agent || 
-              bubbleMetadata?.["Agent Name"] || 
-              bubbleMetadata?.["Assigned Agent Name"] || 
-              bubbleMetadata?.["Agent Display Name"] ||
-              bubbleMetadata?.["Full Name"] ||
-              bubbleMetadata?.["Agent"] || 
-              $('meta[name="author"]').attr('content') ||
-              $('meta[property="product:brand"]').attr('content') ||
-              htmlText.match(/(?:listing\s?by|agent|contact|representative)\s*[:\-]?\s*([A-Za-z\s]{3,30})/i)?.[1]?.trim() || 
-              "";
+      // If we got a Bubble ID or something heavily numeric, try to find a better name
+      if (!agent || isBubbleId(agent)) {
+        agent = bubbleMetadata?.["Agent Name"] || 
+                bubbleMetadata?.["Assigned Agent Name"] || 
+                bubbleMetadata?.["Agent Display Name"] ||
+                bubbleMetadata?.["Full Name"] ||
+                bubbleMetadata?.["Agent"] || 
+                $('meta[name="author"]').attr('content') ||
+                $('meta[property="product:brand"]').attr('content') ||
+                htmlText.match(/(?:listing\s?by|agent|contact|representative|listing agent)\s*[:\-]?\s*([A-Za-z\s]{3,30})/i)?.[1]?.trim() || 
+                "";
+      }
       
-      // Check for structured data if agent still not found
-      if (!agent) {
+      // Check for structured data if agent still not found/valid
+      if (!agent || isBubbleId(agent)) {
         try {
           const ldJson = $('script[type="application/ld+json"]');
           ldJson.each((_, el) => {

@@ -604,6 +604,17 @@ export default function App() {
           loginLogged.current = true;
         }
         
+        // Check if user is from a whitelisted company to ensure they have the right level of access
+        const companyName = data.company?.toLowerCase()?.trim();
+        const isWhitelisted = companyName === 'alan bolton property consultants' || companyName === 'east coast real estate';
+        
+        // If they are whitelisted but have no roles, give them a default employee role
+        if (isWhitelisted && (!data.roles || data.roles.length === 0)) {
+          data.roles = ['employee'];
+          // Don't wait for the update, just update local state
+          updateDoc(doc(db, 'users', user.uid), { roles: ['employee'] });
+        }
+        
         setUserProfile(data);
         if (impersonatedProfile) {
           // If we are currently impersonating and the real profile changes, 
@@ -918,7 +929,12 @@ export default function App() {
                       
                       {displayProfile && (
                         <>
-                          {(displayProfile.roles?.includes('admin') || displayProfile.roles?.includes('accounts') || displayProfile.roles?.includes('manager') || user?.email === 'shaneruddle@gmail.com' || displayProfile.company === 'Alan Bolton Property Consultants' || displayProfile.company === 'East Coast Real Estate') && (
+                          {(displayProfile.roles?.includes('admin') || 
+                            displayProfile.roles?.includes('accounts') || 
+                            displayProfile.roles?.includes('manager') || 
+                            user?.email === 'shaneruddle@gmail.com' || 
+                            displayProfile.company?.toLowerCase()?.trim() === 'alan bolton property consultants' || 
+                            displayProfile.company?.toLowerCase()?.trim() === 'east coast real estate') && (
                             <button 
                               onClick={() => setView('dashboard')}
                               className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold hover:text-gold-dark transition-colors"
@@ -987,7 +1003,12 @@ export default function App() {
 
                         {displayProfile && (
                           <>
-                            {(displayProfile.roles?.includes('admin') || displayProfile.roles?.includes('accounts') || displayProfile.roles?.includes('manager') || user?.email === 'shaneruddle@gmail.com' || displayProfile.company === 'Alan Bolton Property Consultants' || displayProfile.company === 'East Coast Real Estate') && (
+                            {(displayProfile.roles?.includes('admin') || 
+                              displayProfile.roles?.includes('accounts') || 
+                              displayProfile.roles?.includes('manager') || 
+                              user?.email === 'shaneruddle@gmail.com' || 
+                              displayProfile.company?.toLowerCase()?.trim() === 'alan bolton property consultants' || 
+                              displayProfile.company?.toLowerCase()?.trim() === 'east coast real estate') && (
                               <button 
                                 onClick={() => {
                                   setView('dashboard');
