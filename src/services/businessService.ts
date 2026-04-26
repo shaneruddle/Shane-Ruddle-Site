@@ -52,8 +52,12 @@ export async function getBusinessInfo(forceAI = false): Promise<BusinessInfo> {
       };
     });
     console.log(`Fetched ${firestoreCompanies.length} companies from Firestore`);
-  } catch (e) {
-    handleFirestoreError(e, OperationType.GET, "companies");
+  } catch (e: any) {
+    if (e.message?.includes('Quota limit exceeded')) {
+      console.warn("Firestore quota hit, using fallback company data");
+    } else {
+      handleFirestoreError(e, OperationType.GET, "companies");
+    }
   }
 
   // 3. Check Firestore Settings for Business Info
@@ -64,8 +68,12 @@ export async function getBusinessInfo(forceAI = false): Promise<BusinessInfo> {
       settingsInfo = settingsDoc.data() as Partial<BusinessInfo>;
       console.log("Fetched business info from Firestore settings");
     }
-  } catch (e) {
-    handleFirestoreError(e, OperationType.GET, "settings/business_info");
+  } catch (e: any) {
+    if (e.message?.includes('Quota limit exceeded')) {
+      console.warn("Firestore quota hit, using fallback business settings");
+    } else {
+      handleFirestoreError(e, OperationType.GET, "settings/business_info");
+    }
   }
 
   // 4. Fast Path: If we have enough info or not forcing AI, return immediately

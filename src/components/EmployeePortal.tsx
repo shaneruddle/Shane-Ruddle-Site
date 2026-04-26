@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog } from '../firebase';
-import { collection, onSnapshot, query, where, doc, setDoc, addDoc, serverTimestamp, getDoc, Timestamp } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, doc, setDoc, addDoc, serverTimestamp, getDoc, Timestamp, getDocs } from 'firebase/firestore';
 import { Tag, History, QrCode, ArrowLeft, Loader2, CheckCircle, Sparkles, Ticket, LogOut, Settings, User, Upload, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { updateDoc } from 'firebase/firestore';
@@ -29,25 +29,35 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
   }, [userProfile, savingProfile]);
 
   useEffect(() => {
-    const unsubDiscounts = onSnapshot(query(collection(db, 'discounts'), where('active', '==', true)), (snapshot) => {
-      const allActiveDiscounts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Discount));
-      // Filter by assigned discountIds if they exist
-      if (userProfile.discountIds && userProfile.discountIds.length > 0) {
-        setDiscounts(allActiveDiscounts.filter(d => userProfile.discountIds?.includes(d.id)));
-      } else {
-        setDiscounts([]);
+    const fetchData = async () => {
+      try {
+        // Fetch discounts
+        const discountsQuery = query(collection(db, 'discounts'), where('active', '==', true));
+        const discountsSnap = await getDocs(discountsQuery);
+        const allActiveDiscounts = discountsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Discount));
+        
+        if (userProfile.discountIds && userProfile.discountIds.length > 0) {
+          setDiscounts(allActiveDiscounts.filter(d => userProfile.discountIds?.includes(d.id)));
+        } else {
+          setDiscounts([]);
+        }
+
+        // Fetch logs
+        const logsQuery = query(collection(db, 'usage_logs'), where('userId', '==', userProfile.uid));
+        const logsSnap = await getDocs(logsQuery);
+        setMyLogs(logsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as UsageLog)).sort((a, b) => {
+          const timeA = a.timestamp?.toMillis?.() || 0;
+          const timeB = b.timestamp?.toMillis?.() || 0;
+          return timeB - timeA;
+        }));
+      } catch (err) {
+        console.warn("Error fetching portal data:", err);
+      } finally {
+        setLoading(false);
       }
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'discounts'));
-
-    const unsubLogs = onSnapshot(query(collection(db, 'usage_logs'), where('userId', '==', userProfile.uid)), (snapshot) => {
-      setMyLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UsageLog)).sort((a, b) => b.timestamp?.toMillis() - a.timestamp?.toMillis()));
-      setLoading(false);
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'usage_logs'));
-
-    return () => {
-      unsubDiscounts();
-      unsubLogs();
     };
+
+    fetchData();
   }, [userProfile]);
 
   const handleRedeem = async () => {

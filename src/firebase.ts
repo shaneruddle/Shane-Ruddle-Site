@@ -24,6 +24,7 @@ export const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence).catch(err => console.error("Error setting persistence:", err));
 
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+
 export const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`);
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
@@ -60,6 +61,8 @@ export interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const isQuotaError = error instanceof Error && error.message.includes('Quota limit exceeded');
+  
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
@@ -78,6 +81,13 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path
   }
+  
+  if (isQuotaError) {
+    console.warn('Firestore Quota Exceeded for:', path);
+    // Return gracefully instead of throwing to prevent application crash
+    return;
+  }
+
   console.error('Firestore Error: ', JSON.stringify(errInfo));
   throw new Error(JSON.stringify(errInfo));
 }

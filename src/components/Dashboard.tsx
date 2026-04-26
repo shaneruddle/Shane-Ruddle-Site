@@ -6,7 +6,7 @@ import { db, auth, storage, handleFirestoreError, OperationType, UserProfile, Di
 import { initializeApp, getApp } from 'firebase/app';
 import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy, limit, getFirestore, getDocs } from 'firebase/firestore';
 import { ref, uploadString, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, Download, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, FileDown, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp, Copy, ExternalLink, Image as ImageIcon, Wrench, Layers, Shield, Info, Briefcase, Globe } from 'lucide-react';
+import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, Download, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, FileDown, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp, Copy, ExternalLink, Image as ImageIcon, Wrench, Layers, Shield, Info, Briefcase, Globe, RefreshCw } from 'lucide-react';
 import { migrateData } from '../services/migrationService';
 import { getBusinessInfo, saveBusinessInfo } from '../services/businessService';
 import { BusinessInfo } from '../types';
@@ -703,19 +703,45 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
       usersQuery = query(usersCollection, where('uid', '==', userProfile.uid));
     }
 
+    const fetchData = async () => {
+      try {
+        // Use getDocs instead of onSnapshot for heavy lists to save quota
+        const employeesSnap = await getDocs(usersQuery);
+        setEmployees(employeesSnap.docs.map(doc => ({ ...doc.data() as any } as UserProfile)));
+
+        const discountsSnap = await getDocs(collection(db, 'discounts'));
+        setDiscounts(discountsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any } as Discount)));
+
+        const logsSnap = await getDocs(query(collection(db, 'usage_logs'), orderBy('timestamp', 'desc'), limit(100)));
+        setLogs(logsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any, source: 'SHANE' } as UsageLog)));
+
+        const companiesSnap = await getDocs(collection(db, 'companies'));
+        setCompanies(companiesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any } as any)));
+
+        const blogSnap = await getDocs(query(collection(db, 'blog'), orderBy('createdAt', 'desc')));
+        setBlogPosts(blogSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any } as BlogPost)));
+      } catch (err: any) {
+        if (err.message?.includes('Quota limit exceeded')) {
+          console.warn("Firestore quota hit in Dashboard");
+          toast.error("Daily limit reached. Dashboard data may be incomplete.");
+        } else {
+          handleFirestoreError(err, OperationType.LIST, 'dashboard_init');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+
+    // Still keep some critical real-time listeners but with safe defaults
     const unsubEmployees = onSnapshot(usersQuery, (snapshot) => {
-      const allUsers = snapshot.docs.map(doc => ({ ...doc.data() } as UserProfile));
-      setEmployees(allUsers);
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'users'));
+      setEmployees(snapshot.docs.map(doc => ({ ...doc.data() } as UserProfile)));
+    }, (err) => console.warn("Employees stream stopped:", err.message));
 
-    const unsubDiscounts = onSnapshot(collection(db, 'discounts'), (snapshot) => {
-      setDiscounts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Discount)));
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'discounts'));
-
-    const unsubLogs = onSnapshot(query(collection(db, 'usage_logs'), orderBy('timestamp', 'desc'), limit(100)), (snapshot) => {
+    const unsubLogs = onSnapshot(query(collection(db, 'usage_logs'), orderBy('timestamp', 'desc'), limit(50)), (snapshot) => {
       setLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), source: 'SHANE' } as UsageLog)));
-      setLoading(false);
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'usage_logs'));
+    }, (err) => console.warn("Logs stream stopped:", err.message));
 
     // Remote Logs Setup
     let unsubPattaya: (() => void) | undefined;
@@ -782,20 +808,11 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
       appId: "1:1006330230181:web:bb9fa1db36a7ef61bd244c"
     }, "cajun-logs", "ai-studio-88dfc183-b7e7-45b8-b831-62b1a7bbdb29", "CAJUN", setCajunLogs, setCajunError);
 
-    const unsubCompanies = onSnapshot(collection(db, 'companies'), (snapshot) => {
-      setCompanies(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DBCompany)));
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'companies'));
-
-    const unsubBlog = onSnapshot(query(collection(db, 'blog'), orderBy('createdAt', 'desc')), (snapshot) => {
-      setBlogPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BlogPost)));
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'blog'));
-
-    const unsubFinance = onSnapshot(query(collection(db, 'finance'), orderBy('date', 'desc'), limit(500)), (snapshot) => {
+    const unsubFinance = onSnapshot(query(collection(db, 'finance'), orderBy('date', 'desc'), limit(100)), (snapshot) => {
       setFinanceTransactions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FinanceTransaction)));
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'finance'));
+    }, (err) => console.warn("Finance stream stopped:", err.message));
 
     const unsubSiteImages = onSnapshot(collection(db, 'site_images'), (snapshot) => {
-      console.log("Site images snapshot received:", snapshot.size);
       const images = snapshot.docs.map(doc => {
         const data = doc.data();
         return { 
@@ -804,28 +821,19 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
           uploadedAt: data.uploadedAt || { toDate: () => new Date() }
         } as SiteImage;
       });
-      
-      // Sort client-side to handle null timestamps from serverTimestamp()
       const sortedImages = [...images].sort((a, b) => {
         const dateA = a.uploadedAt?.toDate?.() || new Date(0);
         const dateB = b.uploadedAt?.toDate?.() || new Date(0);
         return dateB.getTime() - dateA.getTime();
       });
-      
       setSiteImages(sortedImages);
-    }, (err) => {
-      console.error("Site images snapshot error:", err);
-      handleFirestoreError(err, OperationType.LIST, 'site_images');
-    });
+    }, (err) => console.warn("Site images stream stopped:", err.message));
 
     return () => {
       unsubEmployees();
-      unsubDiscounts();
       unsubLogs();
       if (unsubPattaya) unsubPattaya();
       if (unsubCajun) unsubCajun();
-      unsubCompanies();
-      unsubBlog();
       unsubFinance();
       unsubSiteImages();
     };
@@ -1260,13 +1268,23 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
       if (editingEmployee.email) {
         const q = query(collection(db, "users"), where("email", "==", editingEmployee.email.toLowerCase().trim()));
         const querySnap = await getDocs(q);
+        
+        // Find a duplicate that isn't the one we are currently editing
         const duplicate = querySnap.docs.find(d => d.id !== editingEmployee.uid);
         
         if (duplicate) {
-          const dupData = duplicate.data();
-          const isRealUser = !duplicate.id.includes('x'); // Real users use Firebase UID, seeded ones have 'x' from transition
-          toast.error(`Email already in use by ${dupData.name || 'another account'} (${isRealUser ? 'Registered Account' : 'Seeded Account'})`);
-          return;
+          const dupData = duplicate.data() as UserProfile;
+          const isRealUser = !duplicate.id.includes('x'); 
+          const isTargetRealUser = !editingEmployee.uid.includes('x');
+          
+          // If we're editing a real user and found a duplicate seeded account for the SAME person,
+          // we should prioritize the real user and allow the save.
+          if (isTargetRealUser && !isRealUser && (dupData.name === editingEmployee.name || dupData.email === editingEmployee.email)) {
+            console.log("Allowing save over matching seeded record.");
+          } else {
+            toast.error(`Email already in use by ${dupData.name || 'another account'} (${isRealUser ? 'Registered Account' : 'Seeded Account'}). Please contact support to merge these entries.`);
+            return;
+          }
         }
       }
 
@@ -2968,6 +2986,16 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                         className="bg-black/5 border-none rounded-xl pl-8 pr-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none w-full md:w-48"
                       />
                     </div>
+                    {hasRole('admin') && (
+                      <button 
+                        onClick={handleCleanupDuplicates}
+                        className="bg-black text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gold transition-all flex items-center gap-2 whitespace-nowrap"
+                        title="Merge duplicate staff accounts"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        Cleanup
+                      </button>
+                    )}
                   </div>
                 </div>
 

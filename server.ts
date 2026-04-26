@@ -105,11 +105,47 @@ async function startServer() {
       const baths = bubbleMetadata?.["Bathrooms"] || bubbleMetadata?.["Baths"] || htmlText.match(/(\d+)\s?(?:bath|bathroom)/i)?.[1] || "";
       const livingSize = bubbleMetadata?.["Living Area"] || bubbleMetadata?.["Living Size"] || bubbleMetadata?.["Area Size"] || bubbleMetadata?.["Size"] || htmlText.match(/(\d+(?:,\d+)?(?:\.\d+)?)\s?(?:sqm|sq\.\s?m|sq\s?ft|square\s?feet|m2|sq\s?meters)/i)?.[1] || "";
       const landSize = bubbleMetadata?.["Land Area"] || bubbleMetadata?.["Land Size"] || "";
-      const priceVal = bubbleMetadata?.["Listing Price"] || bubbleMetadata?.["Price"] || htmlText.match(/(?:price|baht|฿|THB|sale)\s*[:\-]?\s*(?:฿|THB|USD|\$)?\s*([\d,]+)/i)?.[1] || "";
-      const isBubbleId = (val: string) => typeof val === 'string' && (/^\d+x\d+$/.test(val) || /^[0-9\-]+$/.test(val));
+      const sellingPrice = bubbleMetadata?.["Listing Price"] || bubbleMetadata?.["Price"] || htmlText.match(/(?:selling price|sale price|price|sale)\s*[:\-]?\s*(?:฿|THB|USD|\$)?\s*([\d,]+)/i)?.[1] || "";
+      const rentalPrice = bubbleMetadata?.["Rental Price"] || htmlText.match(/(?:rental price|rent|rental)\s*[:\-]?\s*(?:฿|THB|USD|\$)?\s*([\d,]+)/i)?.[1] || "";
+      const priceVal = sellingPrice || rentalPrice || "";
+      const isBubbleId = (val: any) => typeof val === 'string' && (/^\d+x\d+$/.test(val) || /^[0-9\-]+$/.test(val));
       let agent = bubbleMetadata?.["Assigned Agent"] || "";
       
-      // If we got a Bubble ID or something heavily numeric, try to find a better name
+      // If we got a Bubble ID, try to fetch the User object from the exposed User API
+      if (agent && isBubbleId(agent)) {
+        try {
+          const parsedUrl = new URL(url);
+          const userApiUrl = `${parsedUrl.origin}/api/1.1/obj/user/${agent}`;
+          const token = process.env.BUBBLE_API_TOKEN;
+          const headers = token ? { Authorization: `Bearer ${token}` } : {};
+          
+          const userResponse = await axios.get(userApiUrl, { headers, timeout: 5000 });
+          const userItem = userResponse.data?.response;
+          if (userItem) {
+            // Priority: "First Name" field, then "Full Name" (split), then "Name"
+            let firstName = userItem["First Name"] || userItem["first_name"] || userItem["FirstName"];
+            if (!firstName) {
+              const fullName = userItem["Full Name"] || userItem["full_name"] || userItem["Name"] || "";
+              if (fullName) {
+                firstName = fullName.split(' ')[0];
+              }
+            }
+
+            // Extract Nickname
+            const nickname = userItem["Nickname"] || userItem["nickname"] || userItem["Nick Name"];
+            
+            if (firstName) {
+              agent = nickname ? `${firstName} (${nickname})` : firstName;
+            } else if (nickname) {
+              agent = nickname;
+            }
+          }
+        } catch (err: any) {
+          console.error(`Bubble User API fetch failed for ID ${agent}:`, err.message);
+        }
+      }
+      
+      // Fallback: If still a Bubble ID or empty, try finding names in the metadata or scraping
       if (!agent || isBubbleId(agent)) {
         agent = bubbleMetadata?.["Agent Name"] || 
                 bubbleMetadata?.["Assigned Agent Name"] || 
@@ -169,6 +205,8 @@ async function startServer() {
           livingSize,
           landSize,
           price: priceVal,
+          sellingPrice,
+          rentalPrice,
           agent,
           location,
           saleType,

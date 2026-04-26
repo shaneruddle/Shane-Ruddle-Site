@@ -282,6 +282,13 @@ export default function App() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [impersonatedProfile, setImpersonatedProfile] = useState<UserProfile | null>(null);
   const displayProfile = impersonatedProfile || userProfile;
+  const isAdmin = displayProfile?.roles?.includes('admin') || 
+                  displayProfile?.roles?.includes('accounts') || 
+                  displayProfile?.roles?.includes('manager') || 
+                  (user?.email && ['shaneruddle@gmail.com', 'alexstein530@gmail.com'].includes(user.email));
+  const isWhitelisted = isAdmin ||
+                        displayProfile?.company?.toLowerCase()?.trim() === 'alan bolton property consultants' || 
+                        displayProfile?.company?.toLowerCase()?.trim() === 'east coast real estate';
   const [authLoading, setAuthLoading] = useState(true);
   console.log("App rendering. AuthLoading:", authLoading);
   const [formState, setFormState] = useState({ name: '', email: '', message: '' });
@@ -392,57 +399,14 @@ export default function App() {
     };
   }, []);
 
-  // Real-time companies listener to ensure latest updates (like logos) are reflected immediately
+  // Real-time companies listener - removed to save quota, using initial fetch only
   useEffect(() => {
-    // Only use real-time updates for companies if we are on the home page or past ventures
-    if (view !== 'home' && view !== 'past-ventures') return;
-
-    const unsubCompanies = onSnapshot(collection(db, 'companies'), (snapshot) => {
-      const firestoreCompanies = snapshot.docs.map(doc => {
-        const d = doc.data();
-        return {
-          name: d.name || "",
-          description: d.description || "",
-          services: d.services || [],
-          logo: d.logo || "",
-          url: d.url || d.website || "",
-          icon: d.icon || "Sparkles"
-        };
-      });
-      
-      if (firestoreCompanies.length > 0) {
-        console.log("Real-time companies update:", firestoreCompanies.length, "companies");
-        setData(prev => ({
-          ...prev,
-          companies: firestoreCompanies
-        }));
-      }
-    }, (err) => {
-      handleFirestoreError(err, OperationType.GET, 'companies');
-    });
-
-    return () => unsubCompanies();
+    // Initial fetch handled by fetchData above
   }, []);
 
-  // Real-time business info listener
+  // Real-time business info listener - removed to save quota
   useEffect(() => {
-    // Only use real-time updates for business info if we are on the home page
-    if (view !== 'home') return;
-
-    const unsubSettings = onSnapshot(doc(db, 'settings', 'business_info'), (snapshot) => {
-      if (snapshot.exists()) {
-        const settingsData = snapshot.data() as Partial<BusinessInfo>;
-        console.log("Real-time business info update:", settingsData);
-        setData(prev => ({
-          ...prev,
-          ...settingsData
-        }));
-      }
-    }, (err) => {
-      handleFirestoreError(err, OperationType.GET, 'settings/business_info');
-    });
-
-    return () => unsubSettings();
+    // Initial fetch handled by fetchData above
   }, []);
 
   // Re-fetch data when returning to home view to ensure latest updates are shown
@@ -460,12 +424,13 @@ export default function App() {
     const userRef = doc(db, "users", user.uid);
     
     // Use onSnapshot for real-time profile updates
-    const unsubProfile = onSnapshot(userRef, async (docSnap) => {
-      if (!auth.currentUser) {
-        setAuthLoading(false);
-        return;
-      }
-      if (docSnap.exists()) {
+    const unsubProfile = onSnapshot(userRef, 
+      async (docSnap) => {
+        if (!auth.currentUser) {
+          setAuthLoading(false);
+          return;
+        }
+        if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile & { role?: string };
         console.log("Real-time profile update for:", user.email || user.phoneNumber, data ? 'Data received' : 'No data');
         
@@ -731,6 +696,12 @@ export default function App() {
       
       console.error("Profile snapshot error:", error);
       setAuthLoading(false);
+      
+      if (error.message?.includes('Quota limit exceeded')) {
+        toast.error("Daily Firestore read limit reached. Please try again tomorrow.");
+        return;
+      }
+
       try {
         handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
       } catch (e) {
@@ -927,14 +898,9 @@ export default function App() {
                         <History className="w-3 h-3" /> Past Ventures
                       </button>
                       
-                      {displayProfile && (
+                      {isWhitelisted && (
                         <>
-                          {(displayProfile.roles?.includes('admin') || 
-                            displayProfile.roles?.includes('accounts') || 
-                            displayProfile.roles?.includes('manager') || 
-                            user?.email === 'shaneruddle@gmail.com' || 
-                            displayProfile.company?.toLowerCase()?.trim() === 'alan bolton property consultants' || 
-                            displayProfile.company?.toLowerCase()?.trim() === 'east coast real estate') && (
+                          {isAdmin && (
                             <button 
                               onClick={() => setView('dashboard')}
                               className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold hover:text-gold-dark transition-colors"
@@ -1001,14 +967,9 @@ export default function App() {
                           Past Ventures
                         </button>
 
-                        {displayProfile && (
+                        {isWhitelisted && (
                           <>
-                            {(displayProfile.roles?.includes('admin') || 
-                              displayProfile.roles?.includes('accounts') || 
-                              displayProfile.roles?.includes('manager') || 
-                              user?.email === 'shaneruddle@gmail.com' || 
-                              displayProfile.company?.toLowerCase()?.trim() === 'alan bolton property consultants' || 
-                              displayProfile.company?.toLowerCase()?.trim() === 'east coast real estate') && (
+                            {isAdmin && (
                               <button 
                                 onClick={() => {
                                   setView('dashboard');
@@ -1384,6 +1345,25 @@ export default function App() {
                               Past Ventures
                             </button>
                           </li>
+                          {(displayProfile?.roles?.includes('admin') || 
+                            displayProfile?.roles?.includes('accounts') || 
+                            displayProfile?.roles?.includes('manager') || 
+                            (user?.email && ['shaneruddle@gmail.com', 'alexstein530@gmail.com'].includes(user?.email)) || 
+                            displayProfile?.company?.toLowerCase()?.trim() === 'alan bolton property consultants' || 
+                            displayProfile?.company?.toLowerCase()?.trim() === 'east coast real estate') && (
+                            <li>
+                              <button 
+                                onClick={() => {
+                                  setView('dashboard');
+                                  window.scrollTo(0, 0);
+                                }}
+                                className="text-sm text-gold hover:text-gold-dark transition-colors font-bold uppercase tracking-widest mt-4 flex items-center gap-2"
+                              >
+                                <LayoutDashboard className="w-3 h-3" />
+                                Dashboard
+                              </button>
+                            </li>
+                          )}
                         </ul>
                       </div>
 

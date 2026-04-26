@@ -103,36 +103,41 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
         throw new Error('Digital Key Missing: Please check your Project Settings.');
       }
 
-      // Add a safe summary to verify the key format
-      const isGoogleKey = apiKey.startsWith('AIza');
-      addLog(`AI_ENGINE: Key detected [Prefix: ${apiKey.substring(0, 4)}... Format: ${isGoogleKey ? 'VALID' : 'INVALID'}]`);
-
       const ai = new GoogleGenAI({ apiKey });
       
-      const prompt = `Act as an expert luxury real estate marketing copywriter. Write a compelling, high-converting Facebook property listing for: "${title}". 
+      const prompt = `Act as an expert luxury real estate marketing copywriter. Generate a property description using the EXACT structure below.
 
-      Source Material Checklist:
+      STRUCTURE TO FOLLOW (MANDATORY):
+      [Beds] Bedrooms [Baths] Bathrooms in [Location]
+      [Project or Property Name]
+      Selling Price: [Selling Price] baht
+      Rental Price: [Rental Price] baht
+
+      Beds: [Beds]
+      Baths: [Baths]
+      Living Space: [Living Space]
+      Ownership: [Ownership]
+
+      [Short, compelling 1-2 sentence description highlighting the best feature]
+
+      Source Material:
+      - Title: "${title}"
       - Raw Description: ${description}
-      - Ref: ${ref}
-      - Price: ${meta.price || 'Contact for price'}
-      - Location: ${meta.location || 'Pattaya, Thailand'}
-      - Listing Agent: ${meta.agent || 'Alan Bolton Property Consultants'}
+      - Location: ${meta.location || 'Pattaya'}
       - Beds/Baths: ${meta.beds || '-'}/${meta.baths || '-'}
-      - living Size: ${meta.livingSize || meta.size || '-'}
-      - Land Size: ${meta.landSize || '-'}
-      - Sale Strategy: ${meta.saleType || '-'}
+      - Living Space: ${meta.livingSize || meta.size || '-'}
       - Ownership: ${meta.ownership || '-'}
+      - Selling Price: ${meta.sellingPrice || meta.price || 'N/A'}
+      - Rental Price: ${meta.rentalPrice || 'N/A'}
 
       Guidelines:
-      1. Use a hook to grab attention.
-      2. Highlight the lifestyle and unique selling points.
-      3. Use clear bullet points for key features.
-      4. Use professional emojis to add flair.
-      5. Include a call to action.
-      6. Tone: Professional, exclusive, and exciting.
-      7. FORMATTING: Return ONLY high-quality HTML content suitable for a rich text editor.
+      1. FORMATTING: Return HTML using only <p> tags. Each piece of information above should be in its own <p>.
+      2. Use simple formatting: "[Label]: [Value]"
+      3. If one of the information pieces (e.g. Rental Price) is missing/N/A, omit that specific line.
+      4. The "Project/Property Name" should be extracted from the Title or Description.
+      5. Tone: Professional and high-end.
       
-      CRITICAL: Add this footer: "<p><em>Admin Ref: ${meta.agent || 'Team'} | ${ref}</em></p>"`;
+      CRITICAL FOOTER: <p><em>Ref: ${meta.agent || 'Team'} | ${ref}</em></p>`;
 
       const result = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
@@ -162,6 +167,27 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const copyContent = () => {
+    if (!generatedCopy) return;
+    
+    // Create a temporary element to parse HTML and get text
+    const temp = document.createElement('div');
+    temp.innerHTML = generatedCopy;
+    
+    // Replace <p> with newline, <li> with bullet + newline
+    let formattedText = generatedCopy
+      .replace(/<\/p>/g, '\n\n')
+      .replace(/<li>/g, '• ')
+      .replace(/<\/li>/g, '\n')
+      .replace(/<[^>]*>/g, ''); // Remove all other tags
+    
+    // Trim extra newlines
+    formattedText = formattedText.trim();
+    
+    navigator.clipboard.writeText(formattedText);
+    toast.success("Text copied for Facebook!");
   };
 
   // Add a log entry
@@ -577,8 +603,10 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                     { label: 'BATHS', value: extractedData?.metadata?.baths || '-' },
                     { label: 'LIVING', value: extractedData?.metadata?.livingSize || '-' },
                     { label: 'LAND', value: extractedData?.metadata?.landSize || '-' },
-                    { label: 'PRICE', value: extractedData?.metadata?.price || '-' },
+                    { label: 'SELL PRICE', value: extractedData?.metadata?.sellingPrice || '-' },
+                    { label: 'RENT PRICE', value: extractedData?.metadata?.rentalPrice || '-' },
                     { label: 'AGENT', value: extractedData?.metadata?.agent || '-' },
+                    { label: 'REF', value: extractedData?.metadata?.refNumber || '-' },
                   ].map((stat, i) => (
                     <div key={i} className="flex flex-col">
                       <span className="text-[8px] text-[#BBB] font-bold uppercase tracking-wider">{stat.label}</span>
@@ -618,14 +646,24 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                 </div>
               </div>
 
-              <button 
-                onClick={() => extractedData && generateCopy(extractedData)}
-                disabled={isGenerating || !extractedData}
-                className="w-full mb-4 py-3 border border-[#C5A059] text-[#C5A059] hover:bg-[#C5A059] hover:text-white disabled:opacity-30 text-[10px] font-bold rounded-full flex items-center justify-center gap-2 transition-all tracking-widest shadow-sm"
-              >
-                {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
-                EXECUTE AI GENERATION
-              </button>
+              <div className="flex gap-2 items-center mb-4">
+                <button 
+                  onClick={() => extractedData && generateCopy(extractedData)}
+                  disabled={isGenerating || !extractedData}
+                  className="flex-1 py-3 border border-[#C5A059] text-[#C5A059] hover:bg-[#C5A059] hover:text-white disabled:opacity-30 text-[10px] font-bold rounded-full flex items-center justify-center gap-2 transition-all tracking-widest shadow-sm"
+                >
+                  {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                  GENERATE
+                </button>
+                <button 
+                  onClick={copyContent}
+                  disabled={!generatedCopy}
+                  className="px-6 py-3 bg-[#F9F8F6] border border-[#E5E1DA] text-[#888] hover:text-[#C5A059] hover:border-[#C5A059] disabled:opacity-30 text-[10px] font-bold rounded-full flex items-center justify-center gap-2 transition-all tracking-widest"
+                  title="Copy Text"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+              </div>
               
               <div className="bg-white border border-[#E5E1DA] rounded-xl overflow-hidden shadow-sm rich-text-container">
                 <ReactQuill 
