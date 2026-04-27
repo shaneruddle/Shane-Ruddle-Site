@@ -190,18 +190,55 @@ async function startServer() {
       const location = bubbleMetadata?.["Location"] || bubbleMetadata?.["District"] || "";
       const saleType = bubbleMetadata?.["Sale Type"] || "";
       const ownership = bubbleMetadata?.["Ownership"] || "";
-      const devLink = bubbleMetadata?.["Development Link"] || "";
+      let devLink = bubbleMetadata?.["Development Link"] || bubbleMetadata?.["Development"] || "";
+      
+      let devName = "";
+      if (devLink && typeof devLink === 'string' && devLink.startsWith('http')) {
+        try {
+          const parts = devLink.split('/').filter(Boolean);
+          // Try to find a part that isn't just numbers
+          let namePart = "";
+          for (let i = parts.length - 1; i >= 0; i--) {
+            const part = parts[i];
+            // If it contains letters, it's likely a name, not just an ID
+            if (/[a-zA-Z]/.test(part)) {
+              namePart = part;
+              break;
+            }
+          }
+          
+          if (namePart) {
+            devName = namePart.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            // Filter out common generic terms if they are the only part found
+            if (['View', 'Project', 'Development', 'Property'].includes(devName)) {
+               // keep it if it's all we have, but usually we want specific names
+            }
+          }
+        } catch (e) {}
+      } else if (devLink) {
+        devName = devLink;
+      }
+
+      const customDescription = bubbleMetadata?.["Custom Description"] || bubbleMetadata?.["Internal Description"] || bubbleMetadata?.["Eng description"] || "";
+      const floor = bubbleMetadata?.["Floor"] || bubbleMetadata?.["Floor Number"] || "";
+      const furniture = bubbleMetadata?.["Furniture"] || bubbleMetadata?.["Furnished"] || "";
+      const keys = bubbleMetadata?.["List of Keys"] || bubbleMetadata?.["Key held by who"] || "";
 
       res.json({
         images: images,
         meta: {
-          title: bubbleMetadata?.["Listing Title"] || ($('meta[property="og:title"]').attr('content') || $('title').text()).trim() || "Property Listing",
+          title: bubbleMetadata?.["Listing Title"] || 
+               ($('meta[property="og:title"]').attr('content') || 
+                $('meta[name="title"]').attr('content') || 
+                $('h1').first().text() || 
+                $('title').text()).trim() || 
+               "Property Listing",
           description: bubbleMetadata?.["Eng description"] || bubbleMetadata?.["Eng Description"] || bubbleMetadata?.["Listing Description"] || ($('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content') || "").trim(),
           engDescription: bubbleMetadata?.["Eng description"] || bubbleMetadata?.["Eng Description"] || "",
           refNumber,
           beds,
           baths,
-          size: livingSize, // Maintaining 'size' for backward compatibility in UI
+          size: livingSize,
           livingSize,
           landSize,
           price: priceVal,
@@ -211,7 +248,12 @@ async function startServer() {
           location,
           saleType,
           ownership,
-          devLink
+          devLink,
+          devName,
+          customDescription,
+          floor,
+          furniture,
+          keys
         }
       });
     } catch (err: any) {

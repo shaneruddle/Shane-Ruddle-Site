@@ -35,7 +35,8 @@ import {
   Type,
   Wand2,
   Check,
-  XCircle
+  XCircle,
+  Tag
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
@@ -56,6 +57,7 @@ interface Extraction {
   title: string;
   timestamp: any;
   userEmail?: string;
+  userName?: string;
   userCompany?: string;
   saleType?: string;
   bubbleStatus?: string;
@@ -71,7 +73,9 @@ interface LogEntry {
 }
 
 const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile }) => {
-  const [activeTab, setActiveTab] = useState<'extractor' | 'history'>('extractor');
+  const [activeTab, setActiveTab] = useState<'extractor' | 'audit-trail'>('extractor');
+  const [manualUrl, setManualUrl] = useState('');
+  const [isAddingManual, setIsAddingManual] = useState(false);
   const [url, setUrl] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractedData, setExtractedData] = useState<any>(null);
@@ -85,7 +89,12 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isLogsOpen, setIsLogsOpen] = useState(false);
   const [autoSave, setAutoSave] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const logEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+  }, []);
 
   const generateCopy = async (data: any) => {
     setIsGenerating(true);
@@ -105,39 +114,50 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
 
       const ai = new GoogleGenAI({ apiKey });
       
-      const prompt = `Act as an expert luxury real estate marketing copywriter. Generate a property description using the EXACT structure below.
+      const prompt = `Act as an expert property consultant and luxury real estate marketing copywriter. Generate a property description using the EXACT structure and emojis below.
 
       STRUCTURE TO FOLLOW (MANDATORY):
-      [Beds] Bedrooms [Baths] Bathrooms in [Location]
-      [Project or Property Name]
-      Selling Price: [Selling Price] baht
-      Rental Price: [Rental Price] baht
+      🏙️ [Property Title] | [Project Name]
 
-      Beds: [Beds]
-      Baths: [Baths]
-      Living Space: [Living Space]
-      Ownership: [Ownership]
+      💰 Sale: [Selling Price] THB
+      💵 Rent: [Rental Price] THB / Month
+      📍 Location: [Location]
+      🏢 Project: [Project Name]
+      📐 Size: [Size]
+      🌍 Ownership: [Ownership]
 
-      [Short, compelling 1-2 sentence description highlighting the best feature]
+      ✨ Unit Details
+      🛏️ [Bedrooms/Studio Layout]
+      🛁 [Bathrooms]
+      🛋️ [Living Space Details]
+      🍽️ [Kitchen/Dining Details]
+
+      Why You’ll Love It
+      [Short, compelling bullet points with emojis highlighting features like location, facilities, and investment value.]
+
+      📩 Available for sale or rent – Contact us today
+      📌 Ref: ${userProfile?.displayName || userProfile?.email?.split('@')[0] || 'Consultant'} | ${ref}
+
+      Guidelines:
+      1. FORMATTING: Use <p> tags for each line. Ensure there is a blank line (empty <p>&nbsp;</p>) between the main sections (Header, Price/Info, Unit Details, Why You'll Love It, and Footer).
+      2. If "Selling Price" or "Rental Price" is missing, omit that specific line.
+      3. For "Unit Details", expand on the beds/baths/living space with descriptive terms (e.g. "Spacious Studio Layout", "Modern Bathroom").
+      4. For "Why You'll Love It", generate 4-5 bullet points starting with relevant emojis (e.g. 🏊, 🛍️, 🏖️, 🚶, 💼).
+      5. Tone: Professional, high-end, and inviting.
 
       Source Material:
       - Title: "${title}"
-      - Raw Description: ${description}
+      - Raw Description: ${meta.customDescription || description}
       - Location: ${meta.location || 'Pattaya'}
+      - Project Name: ${meta.devName || title}
       - Beds/Baths: ${meta.beds || '-'}/${meta.baths || '-'}
       - Living Space: ${meta.livingSize || meta.size || '-'}
       - Ownership: ${meta.ownership || '-'}
       - Selling Price: ${meta.sellingPrice || meta.price || 'N/A'}
       - Rental Price: ${meta.rentalPrice || 'N/A'}
-
-      Guidelines:
-      1. FORMATTING: Return HTML using only <p> tags. Each piece of information above should be in its own <p>.
-      2. Use simple formatting: "[Label]: [Value]"
-      3. If one of the information pieces (e.g. Rental Price) is missing/N/A, omit that specific line.
-      4. The "Project/Property Name" should be extracted from the Title or Description.
-      5. Tone: Professional and high-end.
-      
-      CRITICAL FOOTER: <p><em>Ref: ${meta.agent || 'Team'} | ${ref}</em></p>`;
+      - Floor: ${meta.floor || '-'}
+      - Furniture: ${meta.furniture || '-'}
+      - Custom Description: ${meta.customDescription || '-'}`;
 
       const result = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
@@ -230,30 +250,104 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
 
-  // Listen to history
-  useEffect(() => {
-    if (!userProfile?.uid) return;
+    // Listen to history
+    useEffect(() => {
+      if (!userProfile?.uid) return;
+  
+      const q = query(
+        collection(db, 'extractions')
+      );
+  
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const docs = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Extraction[];
+        
+        setHistory(docs.sort((a, b) => {
+          const timeA = a.timestamp?.seconds || 0;
+          const timeB = b.timestamp?.seconds || 0;
+          return timeB - timeA;
+        }));
+      }, (err) => {
+        addLog(`AUDIT_TRAIL_ERROR: ${err.message}`, 'error');
+        console.error('Audit Trail Error:', err);
+      });
+  
+      return () => unsubscribe();
+    }, [userProfile?.uid]);
 
-    const q = query(
-      collection(db, 'extractions'),
-      where('userId', '==', userProfile.uid)
-    );
+  const handleManualEntry = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualUrl) return;
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Extraction[];
+    setIsAddingManual(true);
+    addLog(`MANUAL_ENTRY_INIT: Recording intent for ${manualUrl}`);
+
+    try {
+      let refNumber = `MANUAL-${Math.floor(Math.random() * 10000)}`;
+      let displayTitle = 'Manual Entry (Pending Processing)';
+      let devName = '';
       
-      setHistory(docs.sort((a, b) => {
-        const timeA = a.timestamp?.seconds || 0;
-        const timeB = b.timestamp?.seconds || 0;
-        return timeB - timeA;
-      }));
-    });
+      // Attempt to extract reference and title from URL
+      try {
+        const urlObj = new URL(manualUrl);
+        const pathParts = urlObj.pathname.split('/').filter(Boolean);
+        
+        // Find the best string for a title (not just numbers)
+        let namePart = '';
+        for (let i = pathParts.length - 1; i >= 0; i--) {
+          const part = pathParts[i];
+          if (/[a-zA-Z]/.test(part)) {
+            namePart = part;
+            break;
+          }
+        }
 
-    return () => unsubscribe();
-  }, [userProfile?.uid]);
+        if (namePart) {
+          // Try to get a title from the slug
+          displayTitle = namePart.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          
+          // Reference extraction (check the last part specifically first)
+          const lastPart = pathParts[pathParts.length - 1];
+          const refPattern = /^[A-Z]{1,4}[- ]?[0-9]{3,}$/i;
+          if (refPattern.test(lastPart)) {
+            refNumber = lastPart.toUpperCase();
+          } else {
+            const refParam = urlObj.searchParams.get('ref') || urlObj.searchParams.get('id');
+            if (refParam && refParam.length > 3) {
+              refNumber = refParam.toUpperCase();
+            }
+          }
+        }
+      } catch (e) {}
+      
+      await addDoc(collection(db, 'extractions'), {
+        userId: userProfile.uid,
+        userEmail: userProfile.email,
+        userName: userProfile.displayName || userProfile.email?.split('@')[0] || 'User',
+        userCompany: userProfile.company || 'Alan Bolton Property Consultants',
+        url: manualUrl,
+        refNumber,
+        title: displayTitle,
+        timestamp: serverTimestamp(),
+        bubbleStatus: 'Manually Added',
+        isManual: true,
+        metadata: {
+          devName: devName || ''
+        }
+      });
+
+      setManualUrl('');
+      addLog(`AUDIT_TRAIL_LOCKED: URL recorded successfully [${refNumber}]`, 'success');
+      toast.success('URL added to Audit Trail');
+    } catch (err: any) {
+      addLog(`AUDIT_TRAIL_FAILURE: ${err.message}`, 'error');
+      toast.error('Failed to add manual entry');
+    } finally {
+      setIsAddingManual(false);
+    }
+  };
 
   const handleExtract = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -305,6 +399,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
       await addDoc(collection(db, 'extractions'), {
         userId: userProfile.uid,
         userEmail: userProfile.email,
+        userName: userProfile.displayName || userProfile.email?.split('@')[0] || 'User',
         userCompany: userProfile.company || 'Alan Bolton Property Consultants',
         url,
         refNumber,
@@ -335,9 +430,9 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
   };
 
   const handleClearHistory = async () => {
-    if (!window.confirm("Are you sure you want to purge all previous history entries? This cannot be undone.")) return;
+    if (!window.confirm("Are you sure you want to purge all previous Audit Trail entries? This cannot be undone.")) return;
     
-    addLog('HISTORY_PURGE: Initiating sequence...', 'error');
+    addLog('AUDIT_TRAIL_PURGE: Initiating sequence...', 'error');
     setIsExtracting(true); // Reuse loading state
     
     try {
@@ -392,6 +487,39 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
     if (targets.length === 0) {
       addLog('WARNING: No images selected for download', 'info');
       toast.error('Please select images to save');
+      return;
+    }
+
+    if (isMobile) {
+      addLog('MOBILE_SAVE_NOTICE: Safari/iOS requires manual saving. Initiating share/download flow.');
+      toast.info('On iOS: Tap individual images to expand, then long-press to "Save to Photos"');
+      
+      // For mobile, we trigger individual downloads which mobile browsers usually handle by opening the image
+      // or using the Share API if it's a single image.
+      if (targets.length === 1) {
+        try {
+          const response = await fetch(`/api/proxy-image?url=${encodeURIComponent(targets[0])}`);
+          const blob = await response.blob();
+          const file = new File([blob], 'property_image.jpg', { type: 'image/jpeg' });
+          
+          if (navigator.share && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'Property Image',
+              text: 'Save this image to your photos'
+            });
+            addLog('SHARE_UI_OPENED', 'success');
+            return;
+          }
+        } catch (err) {
+          console.error("Share failed", err);
+        }
+      }
+      
+      // Fallback: Open in new tab for manual save
+      targets.forEach(img => {
+        window.open(img, '_blank');
+      });
       return;
     }
 
@@ -483,52 +611,65 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#F9F8F6] text-[#1A1A1A] font-sans selection:bg-[#C5A059]/30">
+    <div className="flex flex-col h-screen bg-[#F9F8F6] text-[#1A1A1A] font-sans selection:bg-[#C5A059]/30 overflow-hidden">
       {/* Header Bar */}
-      <header className="flex items-center justify-between px-6 h-16 bg-white border-b border-[#E5E1DA] shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-[#C5A059]">
-            <Cpu className="w-5 h-5" />
-            <span className="text-sm font-serif font-bold tracking-widest uppercase">Extractor Pro</span>
+      <header className="flex items-center justify-between px-4 lg:px-6 h-16 bg-white border-b border-[#E5E1DA] shadow-sm flex-shrink-0">
+        <div className="flex items-center gap-2 lg:gap-4">
+          <div className="flex items-center gap-1.5 lg:gap-2 text-[#C5A059]">
+            <Cpu className="w-4 h-4 lg:w-5 lg:h-5" />
+            <span className="text-[10px] lg:text-sm font-serif font-bold tracking-widest uppercase truncate max-w-[80px] lg:max-w-none">Extractor Pro</span>
           </div>
-          <div className="h-4 w-px bg-[#E5E1DA] mx-2" />
+          <div className="h-4 w-px bg-[#E5E1DA] mx-1 lg:mx-2 hidden sm:block" />
           <nav className="flex gap-1">
             <button 
               onClick={() => setActiveTab('extractor')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold tracking-widest transition-all ${activeTab === 'extractor' ? 'bg-[#C5A059] text-white shadow-lg' : 'text-[#888] hover:text-[#1A1A1A]'}`}
+              className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-2 rounded-full text-[9px] lg:text-[10px] font-bold tracking-widest transition-all ${activeTab === 'extractor' ? 'bg-[#C5A059] text-white shadow-lg' : 'text-[#888] hover:text-[#1A1A1A]'}`}
             >
-              <Database className="w-3.5 h-3.5" />
-              EXTRACTOR
+              <Database className="w-3 lg:w-3.5 h-3 lg:h-3.5" />
+              <span className="hidden xs:inline">EXTRACTOR</span>
+              <span className="xs:hidden">EXT</span>
             </button>
             <button 
-              onClick={() => setActiveTab('history')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold tracking-widest transition-all ${activeTab === 'history' ? 'bg-[#C5A059] text-white shadow-lg' : 'text-[#888] hover:text-[#1A1A1A]'}`}
+              onClick={() => setActiveTab('audit-trail')}
+              className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-2 rounded-full text-[9px] lg:text-[10px] font-bold tracking-widest transition-all ${activeTab === 'audit-trail' ? 'bg-[#C5A059] text-white shadow-lg' : 'text-[#888] hover:text-[#1A1A1A]'}`}
             >
-              <History className="w-3.5 h-3.5" />
-              HISTORY
+              <History className="w-3 lg:w-3.5 h-3 lg:h-3.5" />
+              <span className="hidden xs:inline">AUDIT TRAIL</span>
+              <span className="xs:hidden">AUDIT</span>
             </button>
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 lg:gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100">
+            <div className="flex items-center gap-2 px-2 lg:px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span className="text-[9px] text-emerald-600 font-bold uppercase tracking-widest">Active</span>
+              <span className="text-[8px] lg:text-[9px] text-emerald-600 font-bold uppercase tracking-widest">Active</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* Action Bar */}
-      <div className="flex items-center gap-3 px-6 py-4 bg-white border-b border-[#E5E1DA]">
-        <button 
-          onClick={handleSelectFolder}
-          className={`flex items-center gap-2 px-5 py-2.5 border rounded-full text-[10px] font-bold transition-all ${folderPath !== 'PLEASE_SELECT_FOLDER_FIRST' ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-white border-[#E5E1DA] text-[#888] hover:border-[#C5A059]'}`}
-        >
-          <FolderOpen className="w-4 h-4" />
-          {folderPath === 'PLEASE_SELECT_FOLDER_FIRST' ? 'MOUNT DRIVE' : folderPath}
-        </button>
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 px-4 lg:px-6 py-4 bg-white border-b border-[#E5E1DA] flex-shrink-0">
+        {!isMobile && (
+          <button 
+            onClick={handleSelectFolder}
+            className={`flex items-center justify-center gap-2 px-5 py-2.5 border rounded-full text-[10px] font-bold transition-all ${folderPath !== 'PLEASE_SELECT_FOLDER_FIRST' ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-white border-[#E5E1DA] text-[#888] hover:border-[#C5A059]'}`}
+          >
+            <FolderOpen className="w-4 h-4" />
+            <span className="truncate max-w-[150px]">{folderPath === 'PLEASE_SELECT_FOLDER_FIRST' ? 'MOUNT DRIVE' : folderPath}</span>
+          </button>
+        )}
+        
+        {isMobile && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-lg mb-1 lg:mb-0">
+            <AlertCircle className="w-3.5 h-3.5 text-blue-500" />
+            <span className="text-[10px] text-blue-700 font-medium leading-tight">
+              iPhone Users: Long-press images to "Save to Photos"
+            </span>
+          </div>
+        )}
         
         <div className="flex-1 flex items-center gap-3 px-5 py-2.5 bg-[#F9F8F6] border border-[#E5E1DA] rounded-full group focus-within:border-[#C5A059] focus-within:bg-white transition-all">
           <Globe className="w-4 h-4 text-[#AAA] group-focus-within:text-[#C5A059]" />
@@ -542,30 +683,33 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
           />
         </div>
 
-        <button 
-          onClick={() => handleExtract()}
-          disabled={isExtracting || !url}
-          className="flex items-center gap-2 px-8 py-3 bg-[#C5A059] hover:bg-[#B38F48] disabled:opacity-50 text-white text-[11px] font-bold rounded-full shadow-lg transition-all uppercase tracking-widest"
-        >
-          {isExtracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-          PROCESS ASSETS
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => handleExtract()}
+            disabled={isExtracting || !url}
+            className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 lg:px-8 py-3 bg-[#C5A059] hover:bg-[#B38F48] disabled:opacity-50 text-white text-[11px] font-bold rounded-full shadow-lg transition-all uppercase tracking-widest"
+          >
+            {isExtracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+            <span className="hidden sm:inline">PROCESS ASSETS</span>
+            <span className="sm:hidden">PROCESS</span>
+          </button>
 
-        <button 
-          onClick={clearSession}
-          className="flex items-center gap-2 px-5 py-3 border border-[#E5E1DA] rounded-full text-[10px] font-bold text-[#AAA] hover:text-[#1A1A1A] hover:bg-white transition-all uppercase tracking-widest"
-        >
-          RESET
-        </button>
+          <button 
+            onClick={clearSession}
+            className="flex items-center justify-center gap-2 px-5 py-3 border border-[#E5E1DA] rounded-full text-[10px] font-bold text-[#AAA] hover:text-[#1A1A1A] hover:bg-white transition-all uppercase tracking-widest"
+          >
+            RESET
+          </button>
+        </div>
       </div>
 
-      <div className="flex-1 flex min-h-0 overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
         {/* Sidebar */}
-        <aside className="w-[360px] border-r border-[#E5E1DA] bg-white flex flex-col">
-          <div className="p-6 space-y-8 flex-1 overflow-y-auto hidden-scrollbar">
+        <aside className={`${activeTab === 'extractor' ? 'flex' : 'hidden'} lg:flex w-full lg:w-[360px] border-r border-[#E5E1DA] bg-white flex-col overflow-y-auto lg:overflow-hidden`}>
+          <div className="p-4 lg:p-6 space-y-8 flex-1 lg:overflow-y-auto hidden-scrollbar">
             {/* Stats */}
             <section>
-              <div className="flex items-center gap-2 text-[10px] font-bold text-[#BBB] uppercase tracking-[0.2em] mb-4">
+              <div className="flex items-center gap-2 text-[foot-[10px]] lg:text-[10px] font-bold text-[#BBB] uppercase tracking-[0.2em] mb-4">
                 <Activity className="w-3 h-3" />
                 System Metrics
               </div>
@@ -605,6 +749,10 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                     { label: 'LAND', value: extractedData?.metadata?.landSize || '-' },
                     { label: 'SELL PRICE', value: extractedData?.metadata?.sellingPrice || '-' },
                     { label: 'RENT PRICE', value: extractedData?.metadata?.rentalPrice || '-' },
+                    { label: 'PROJECT', value: extractedData?.metadata?.devName || '-' },
+                    { label: 'FLOOR', value: extractedData?.metadata?.floor || '-' },
+                    { label: 'FURNISHED', value: extractedData?.metadata?.furniture || '-' },
+                    { label: 'KEYS', value: extractedData?.metadata?.keys || '-' },
                     { label: 'AGENT', value: extractedData?.metadata?.agent || '-' },
                     { label: 'REF', value: extractedData?.metadata?.refNumber || '-' },
                   ].map((stat, i) => (
@@ -625,6 +773,15 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                     <span className="text-[10px] font-medium text-[#444] mt-1 uppercase">{extractedData?.metadata?.saleType || '-'}</span>
                   </div>
                 </div>
+
+                {extractedData?.metadata?.customDescription && (
+                  <div className="mt-4 pt-4 border-t border-[#E5E1DA]">
+                    <span className="text-[8px] text-[#BBB] font-bold uppercase tracking-wider">Custom Description</span>
+                    <p className="text-[9px] text-[#888] leading-relaxed mt-1 italic line-clamp-4">
+                      {extractedData.metadata.customDescription}
+                    </p>
+                  </div>
+                )}
 
                 {extractedData?.metadata?.engDescription && (
                   <div className="mt-4 pt-4 border-t border-[#E5E1DA]">
@@ -783,8 +940,8 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col overflow-hidden">
-                    <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    <div className="flex-1 p-4 lg:p-8 overflow-y-auto custom-scrollbar">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-8">
                         {extractedData.images?.map((img: string, i: number) => (
                           <motion.div 
                             initial={{ opacity: 0, scale: 0.95 }}
@@ -816,19 +973,30 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                                 </div>
                               </div>
                             )}
+                            {isMobile && (
+                             <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(img, '_blank');
+                              }}
+                              className="absolute bottom-3 right-3 p-2 bg-white/90 rounded-full shadow-lg border border-[#E5E1DA] text-[#C5A059]"
+                             >
+                               <ExternalLink className="w-4 h-4" />
+                             </button>
+                            )}
                           </motion.div>
                         ))}
                       </div>
                     </div>
 
-                    <div className="px-8 py-4 bg-white border-t border-[#E5E1DA] flex items-center justify-between">
+                    <div className="px-4 lg:px-8 py-4 bg-white border-t border-[#E5E1DA] flex flex-col sm:flex-row items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <AlertCircle className="w-4 h-4 text-[#C5A059]" />
-                        <span className="text-[10px] text-[#AAA] font-bold uppercase tracking-widest">
+                        <span className="text-[9px] lg:text-[10px] text-[#AAA] font-bold uppercase tracking-widest leading-tight text-center sm:text-left">
                           Proprietary Asset Extraction Engine v2.6 // Secure Connection Active
                         </span>
                       </div>
-                      <div className="text-[10px] font-bold text-[#BBB]">
+                      <div className="text-[10px] font-bold text-[#BBB] whitespace-nowrap">
                         {selectedImages.size} / {extractedData.images?.length} SELECTED
                       </div>
                     </div>
@@ -837,29 +1005,63 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
               </motion.div>
             ) : (
               <motion.div 
-                key="view-history"
+                key="view-audit-trail"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex-1 p-8 overflow-y-auto custom-scrollbar"
+                className="flex-1 p-4 lg:p-8 overflow-y-auto custom-scrollbar"
               >
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between mb-6 lg:mb-8">
                   <div className="flex items-center gap-3">
                     <History className="w-5 h-5 text-[#C5A059]" />
-                    <h3 className="text-[12px] font-bold text-[#1A1A1A] uppercase tracking-[0.4em]">Audit Trail</h3>
+                    <h3 className="text-[10px] lg:text-[12px] font-bold text-[#1A1A1A] uppercase tracking-[0.4em]">Audit Trail</h3>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
-                  {history.map((item) => (
-                    <HistoryRow key={item.id} item={item} />
-                  ))}
-                  {history.length === 0 && (
-                    <div className="h-[400px] flex flex-col items-center justify-center">
-                      <History className="w-12 h-12 text-[#E5E1DA] mb-4" />
-                      <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#CCC]">Log_Buffer_Empty</span>
-                    </div>
-                  )}
+                {/* Manual Entry Form */}
+                <div className="mb-8 lg:mb-12">
+                  <div className="p-5 lg:p-6 bg-white border border-[#E5E1DA] rounded-2xl lg:rounded-3xl shadow-sm">
+                    <h4 className="text-[9px] lg:text-[10px] font-bold text-[#BBB] uppercase tracking-[0.2em] mb-4">Manual Log Entry</h4>
+                    <form onSubmit={handleManualEntry} className="flex flex-col gap-3">
+                      <div className="flex items-center gap-3 px-5 py-2.5 bg-[#F9F8F6] border border-[#E5E1DA] rounded-full focus-within:border-[#C5A059] focus-within:bg-white transition-all">
+                        <Globe className="w-4 h-4 text-[#AAA]" />
+                        <input 
+                          type="url"
+                          value={manualUrl}
+                          onChange={(e) => setManualUrl(e.target.value)}
+                          placeholder="Enter URL to record..."
+                          className="flex-1 bg-transparent text-[#1A1A1A] text-[12px] outline-none"
+                        />
+                      </div>
+                      <button 
+                        type="submit"
+                        disabled={isAddingManual || !manualUrl}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-black hover:bg-[#C5A059] disabled:opacity-50 text-white text-[10px] font-bold rounded-full transition-all uppercase tracking-widest shadow-lg"
+                      >
+                        {isAddingManual ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                        RECORD URL
+                      </button>
+                    </form>
+                    <p className="mt-3 text-[8px] lg:text-[9px] text-[#BBB] italic px-4 leading-tight">
+                      * This records the intent in the audit trail before processing begins.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Activity List */}
+                <div>
+                  <h4 className="text-[10px] font-bold text-[#BBB] uppercase tracking-[0.2em] mb-6 px-4">Activity Log</h4>
+                  <div className="grid grid-cols-1 gap-4">
+                    {history.map((item) => (
+                      <AuditTrailRow key={item.id} item={item} />
+                    ))}
+                    {history.length === 0 && (
+                      <div className="h-[400px] flex flex-col items-center justify-center">
+                        <History className="w-12 h-12 text-[#E5E1DA] mb-4" />
+                        <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#CCC]">Log_Buffer_Empty</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -868,55 +1070,88 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
       </div>
 
       {/* Footer Status Bar */}
-      <footer className="h-10 bg-white border-t border-[#E5E1DA] flex items-center justify-between px-6">
-        <div className="flex items-center gap-6">
+      <footer className="h-8 lg:h-10 bg-white border-t border-[#E5E1DA] flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
+        <div className="flex items-center gap-4 lg:gap-6">
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[9px] text-[#AAA] font-bold tracking-widest uppercase">System Online</span>
+            <div className="w-1.2 h-1.2 lg:w-1.5 lg:h-1.5 rounded-full bg-emerald-500" />
+            <span className="text-[8px] lg:text-[9px] text-[#AAA] font-bold tracking-widest uppercase">Online</span>
           </div>
-          <div className="flex items-center gap-2 text-[9px] text-[#BBB] font-bold uppercase tracking-widest">
-            Selection Profile: <span className={selectedImages.size > 0 ? "text-[#C5A059]" : ""}>{selectedImages.size > 0 ? `${selectedImages.size} OBJECTS` : "READY"}</span>
+          <div className="hidden sm:flex items-center gap-2 text-[8px] lg:text-[9px] text-[#BBB] font-bold uppercase tracking-widest">
+            Profile: <span className={selectedImages.size > 0 ? "text-[#C5A059]" : ""}>{selectedImages.size > 0 ? `${selectedImages.size} OBJ` : "READY"}</span>
           </div>
         </div>
         
-        <div className="flex items-center gap-2 text-[9px] text-[#BBB] font-bold uppercase tracking-widest">
-          {isExtracting ? 'DECODING_PROPERTY_METADATA' : 'AWAITING_INPUT_STREAM'}
+        <div className="flex items-center gap-2 text-[8px] lg:text-[9px] text-[#BBB] font-bold uppercase tracking-widest truncate max-w-[150px] lg:max-w-none">
+          {isExtracting ? 'DECODING_STREAM' : 'IDLE_WAIT'}
         </div>
       </footer>
     </div>
   );
 };
 
-const HistoryRow = ({ item }: { item: Extraction }) => {
+const AuditTrailRow = ({ item }: { item: Extraction }) => {
   return (
-    <div className="flex flex-col p-6 bg-white border border-[#E5E1DA] rounded-3xl hover:border-[#C5A059] transition-all group shadow-sm hover:shadow-xl">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-[#F9F8F6] flex items-center justify-center text-[#C5A059] border border-[#E5E1DA]">
-            <Database className="w-4 h-4" />
+    <div className="flex flex-col p-4 lg:p-6 bg-white border border-[#E5E1DA] rounded-2xl lg:rounded-3xl hover:border-[#C5A059] transition-all group shadow-sm hover:shadow-xl relative overflow-hidden">
+      {(item as any).isManual && (
+        <div className="absolute top-0 right-0 px-3 lg:px-4 py-0.5 lg:py-1 bg-[#C5A059] text-white text-[7px] lg:text-[8px] font-bold uppercase tracking-widest rounded-bl-xl shadow-sm">
+          Manual
+        </div>
+      )}
+      
+      <div className="flex items-center justify-between gap-3 lg:gap-4 mb-4 lg:mb-6">
+        <div className="flex items-center gap-3 lg:gap-4">
+          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-[#F9F8F6] border border-[#E5E1DA] flex items-center justify-center flex-shrink-0 text-[#C5A059]">
+            <Database className="w-4 h-4 lg:w-5 lg:h-5" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-[9px] text-[#BBB] font-medium mt-0.5">{item.userEmail}</span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[12px] lg:text-[14px] font-bold text-[#1A1A1A] line-clamp-1">
+              {item.title}
+              {item.metadata?.devName && (
+                <span className="text-[#C5A059] ml-1"> - {item.metadata.devName}</span>
+              )}
+            </span>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-1">
+              <div className="flex items-center gap-2">
+                {item.userName ? (
+                  <span className="text-[9px] lg:text-[10px] text-[#C5A059] font-bold uppercase tracking-wider truncate">{item.userName}</span>
+                ) : item.userEmail ? (
+                  <span className="text-[9px] lg:text-[10px] text-[#C5A059] font-bold uppercase tracking-wider truncate">{item.userEmail.split('@')[0]}</span>
+                ) : (
+                  <span className="text-[9px] lg:text-[10px] text-[#BBB] font-medium italic">System User</span>
+                )}
+              </div>
+              {item.userEmail && (
+                <span className="text-[9px] lg:text-[10px] text-[#BBB] font-medium sm:before:content-['•'] sm:before:mr-2 truncate">{item.userEmail}</span>
+              )}
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <a href={item.url} target="_blank" rel="noopener noreferrer" className="p-2 bg-[#F9F8F6] border border-[#E5E1DA] rounded-full hover:bg-black hover:text-white transition-all">
-            <ExternalLink className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-2">
+          <a 
+            href={item.url} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="p-2 lg:p-2.5 rounded-full bg-[#F9F8F6] border border-[#E5E1DA] text-[#BBB] hover:text-[#C5A059] hover:border-[#C5A059] transition-all"
+          >
+            <ExternalLink className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
           </a>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-6 py-4 border-t border-[#F9F8F6]">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 lg:gap-6 pt-4 lg:pt-6 border-t border-[#F9F8F6]">
         <div className="flex flex-col gap-1">
-          <span className="text-[8px] text-[#BBB] font-bold uppercase tracking-wider">Reference ID</span>
-          <span className="text-[10px] text-[#1A1A1A] font-bold">{item.refNumber}</span>
+          <span className="text-[8px] lg:text-[9px] text-[#BBB] font-bold uppercase tracking-widest">Reference ID</span>
+          <span className="text-[10px] lg:text-[11px] text-[#1A1A1A] font-bold uppercase">{item.refNumber || '-'}</span>
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-[8px] text-[#BBB] font-bold uppercase tracking-wider">Sale Type</span>
-          <span className="text-[10px] text-[#C5A059] font-bold uppercase">{item.saleType || 'N/A'}</span>
+          <span className="text-[8px] lg:text-[9px] text-[#BBB] font-bold uppercase tracking-widest">Sale Type</span>
+          <span className="text-[10px] lg:text-[11px] text-[#C5A059] font-bold uppercase">{item.saleType || 'N/A'}</span>
         </div>
-        <div className="flex flex-col gap-1 col-span-2 text-right">
-          <span className="text-[10px] text-[#444] font-medium">{new Date(item.timestamp?.seconds * 1000).toLocaleString()}</span>
+        <div className="flex flex-col gap-1 col-span-2 sm:col-span-1">
+          <span className="text-[8px] lg:text-[9px] text-[#BBB] font-bold uppercase tracking-widest">Timestamp</span>
+          <span className="text-[10px] lg:text-[11px] text-[#1A1A1A] font-bold">
+            {item.timestamp?.seconds ? new Date(item.timestamp.seconds * 1000).toLocaleString() : 'PENDING'}
+          </span>
         </div>
       </div>
     </div>

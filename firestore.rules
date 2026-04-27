@@ -16,6 +16,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && (
+        (request.auth.uid == "u7ElWXIkdjVTNTp76LcyXnnq3AM2") ||
         (request.auth.token.email.lower() == "shaneruddle@gmail.com") ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
           'admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []) ||
@@ -26,6 +27,7 @@ service cloud.firestore {
 
     function isManager() {
       return isAuthenticated() && (
+        (request.auth.uid == "u7ElWXIkdjVTNTp76LcyXnnq3AM2") ||
         (request.auth.token.email.lower() == "shaneruddle@gmail.com") ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
           'manager' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []) ||
@@ -38,6 +40,7 @@ service cloud.firestore {
 
     function isFinanceUser() {
       return isAuthenticated() && (
+        (request.auth.uid == "u7ElWXIkdjVTNTp76LcyXnnq3AM2") ||
         (request.auth.token.email.lower() == "shaneruddle@gmail.com") ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
           'accounts' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('roles', []) ||
@@ -99,19 +102,22 @@ service cloud.firestore {
         ))
       );
 
-      allow create: if isAuthenticated() && request.auth.uid == userId && (
-        (request.auth.token.email.lower() == "shaneruddle@gmail.com") ||
-        (request.resource.data.get('active', true) == false && 
+      allow create: if (isAdmin() || (
+        isAuthenticated() && request.auth.uid == userId && 
+        (request.resource.data.get('active', false) is bool && 
          (request.resource.data.get('roles', ['employee']) == ['employee'] || 
           request.resource.data.get('role', 'employee') == 'employee'))
-      );
+      )) && isValidUser(request.resource.data);
 
-      allow update: if isAdmin() || (
+      allow update: if (isAdmin() || (
         isAuthenticated() && request.auth.uid == userId && 
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['roles', 'role', 'active'])
-      );
+      )) && isValidUser(request.resource.data);
 
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || (
+        isAuthenticated() && 
+        request.auth.token.email.lower() == resource.data.get('email', '').lower()
+      );
     }
 
     match /discounts/{discountId} {
@@ -147,7 +153,7 @@ service cloud.firestore {
     }
 
     match /extractions/{extractionId} {
-      allow read: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
+      allow read: if isAuthenticated();
       allow create: if isAuthenticated() && isValidExtraction(request.resource.data);
       allow update, delete: if isAdmin();
     }

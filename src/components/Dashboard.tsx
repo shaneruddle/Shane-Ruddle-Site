@@ -808,10 +808,6 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
       appId: "1:1006330230181:web:bb9fa1db36a7ef61bd244c"
     }, "cajun-logs", "ai-studio-88dfc183-b7e7-45b8-b831-62b1a7bbdb29", "CAJUN", setCajunLogs, setCajunError);
 
-    const unsubFinance = onSnapshot(query(collection(db, 'finance'), orderBy('date', 'desc'), limit(100)), (snapshot) => {
-      setFinanceTransactions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FinanceTransaction)));
-    }, (err) => console.warn("Finance stream stopped:", err.message));
-
     const unsubSiteImages = onSnapshot(collection(db, 'site_images'), (snapshot) => {
       const images = snapshot.docs.map(doc => {
         const data = doc.data();
@@ -834,10 +830,35 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
       unsubLogs();
       if (unsubPattaya) unsubPattaya();
       if (unsubCajun) unsubCajun();
-      unsubFinance();
       unsubSiteImages();
     };
   }, [userProfile]);
+
+  // Separate useEffect for finance transactions to allow larger limits or section-specific queries if needed
+  // For now just keeping it simple but with a higher limit and better error handling
+  useEffect(() => {
+    if (!userProfile?.uid) return;
+
+    const section = financeSubTab.startsWith('ABPC') ? 'ABPC' : 'ECRE';
+    // We fetch a larger limit to ensure we get historical data, but scoped to the section
+    const q = query(
+      collection(db, 'finance'),
+      where('section', '==', section),
+      orderBy('date', 'desc'),
+      limit(10000)
+    );
+
+    const unsub = onSnapshot(q, (snapshot) => {
+      setFinanceTransactions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FinanceTransaction)));
+    }, (err) => {
+      console.warn("Finance stream error:", err.message);
+      if (err.message?.includes('Missing or insufficient permissions')) {
+        toast.error("You don't have permission to view these finance records");
+      }
+    });
+
+    return () => unsub();
+  }, [userProfile?.uid, financeSubTab.startsWith('ABPC')]);
 
   useEffect(() => {
     const hasRole = (role: string) => userProfile.roles?.includes(role as any) || (userProfile as any).role === role;
@@ -2410,7 +2431,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                     setIsToolsExpanded(true);
                   }
                 }}
-                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'tools' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
+                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'tools' ? (isToolsExpanded && !isSidebarCollapsed ? 'bg-gold/10 text-gold' : 'bg-gold text-white shadow-lg shadow-gold/20') : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
               >
                 <Wrench className="w-4 h-4 shrink-0" />
                 <span className={`transition-all duration-300 whitespace-nowrap flex-grow text-left ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Tools</span>
@@ -2430,7 +2451,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                     onClick={() => {
                       setToolsSubTab('extractor-pro');
                     }}
-                    className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${toolsSubTab === 'extractor-pro' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
+                    className={`text-left px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${toolsSubTab === 'extractor-pro' ? 'bg-gold text-white shadow-md shadow-gold/20 translate-x-1' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
                   >
                     Extractor Pro
                   </button>
@@ -3384,7 +3405,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                           {uniqueEmployees
                             .filter(emp => {
                               const targetCompany = financeSubTab.startsWith('ABPC') ? 'Alan Bolton Property Consultants' : 'East Coast Real Estate';
-                              return emp.company === targetCompany;
+                              return emp.company === targetCompany && emp.active !== false;
                             })
                             .map(emp => {
                               const fullName = `${emp.firstName} ${emp.lastName}`.trim();
@@ -4689,7 +4710,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                       {employees
                         .filter(emp => {
                           const targetKeyword = financeSubTab.startsWith('ABPC') ? 'Alan Bolton' : 'East Coast';
-                          return emp.company?.includes(targetKeyword);
+                          return emp.company?.includes(targetKeyword) && emp.active !== false;
                         })
                         .map((emp) => {
                           const displayName = emp.name || `${emp.firstName} ${emp.lastName}`;
