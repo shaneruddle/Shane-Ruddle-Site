@@ -871,81 +871,6 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
     }
   }, [userProfile]);
 
-  const [isCleaning, setIsCleaning] = useState(false);
-
-  const handleCleanupDuplicates = async () => {
-    if (!window.confirm('This will find duplicate accounts with the same email or mobile, merge their data into the logged-in profile, and remove the redundant records. Proceed?')) return;
-    
-    setIsCleaning(true);
-    try {
-      // Group users by email and mobile
-      const groups: Record<string, UserProfile[]> = {};
-      employees.forEach(u => {
-        const email = u.email?.toLowerCase();
-        const mobile = u.mobile?.replace(/[^0-9]/g, '');
-        
-        if (email) {
-          if (!groups[email]) groups[email] = [];
-          if (!groups[email].find(existing => existing.uid === u.uid)) groups[email].push(u);
-        }
-        if (mobile && mobile.length > 5) {
-          if (!groups[mobile]) groups[mobile] = [];
-          if (!groups[mobile].find(existing => existing.uid === u.uid)) groups[mobile].push(u);
-        }
-      });
-
-      let mergedCount = 0;
-      for (const key of Object.keys(groups)) {
-        const group = groups[key];
-        if (group.length > 1) {
-          // Identify Primary (Real Login) vs Seeded
-          const realUsers = group.filter(u => !u.uid.includes('x') && !u.uid.startsWith('temp_'));
-          const seededUsers = group.filter(u => u.uid.includes('x') || u.uid.startsWith('temp_'));
-
-          if (realUsers.length > 0 && seededUsers.length > 0) {
-            const primary = realUsers[0];
-            const updates: Partial<UserProfile> = {};
-            
-            // Merge from any seeded record in the group
-            seededUsers.forEach(seeded => {
-              if (!primary.firstName && seeded.firstName) updates.firstName = seeded.firstName;
-              if (!primary.lastName && seeded.lastName) updates.lastName = seeded.lastName;
-              if (!primary.company && seeded.company) updates.company = seeded.company;
-              if (!primary.companyId && seeded.companyId) updates.companyId = seeded.companyId;
-              if (!primary.position && seeded.position) updates.position = seeded.position;
-              if (!primary.mobile && seeded.mobile) updates.mobile = seeded.mobile;
-              if (!primary.nickname && seeded.nickname) updates.nickname = seeded.nickname;
-              
-              const combinedRoles = Array.from(new Set([...(primary.roles || []), ...(seeded.roles || [])]));
-              if (combinedRoles.length !== (primary.roles?.length || 0)) {
-                updates.roles = combinedRoles;
-              }
-            });
-
-            if (Object.keys(updates).length > 0) {
-              await updateDoc(doc(db, 'users', primary.uid), {
-                ...updates,
-                updatedAt: serverTimestamp()
-              });
-            }
-
-            // Delete all seeded records in this email/mobile group
-            for (const s of seededUsers) {
-              await deleteDoc(doc(db, 'users', s.uid));
-              console.log(`Deleted seeded duplicate: ${s.uid} merged into ${primary.uid}`);
-            }
-            mergedCount++;
-          }
-        }
-      }
-      toast.success(`Successfully merged ${mergedCount} duplicate groups`);
-    } catch (err) {
-      console.error('Cleanup error:', err);
-      toast.error('Failed to clean up duplicates');
-    } finally {
-      setIsCleaning(false);
-    }
-  };
 
   const handleStandardizeRoles = async () => {
     if (!window.confirm('This will set ALL users (except shaneruddle@gmail.com) to the "employee" role. Are you sure?')) return;
@@ -2557,8 +2482,8 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
         )}
         {userProfile.roles?.includes('admin') && (
           <>
-            <button onClick={() => setActiveTab('companies')} className={`p-3 rounded-xl transition-all ${activeTab === 'companies' ? 'bg-gold text-white' : 'text-black/40'}`}>
-              <Database className="w-5 h-5" />
+            <button onClick={() => setActiveTab('logs')} className={`p-3 rounded-xl transition-all ${activeTab === 'logs' ? 'bg-gold text-white' : 'text-black/40'}`}>
+              <History className="w-5 h-5" />
             </button>
             <button onClick={() => setActiveTab('blog')} className={`p-3 rounded-xl transition-all ${activeTab === 'blog' ? 'bg-gold text-white' : 'text-black/40'}`}>
               <FileText className="w-5 h-5" />
@@ -3007,121 +2932,187 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                         className="bg-black/5 border-none rounded-xl pl-8 pr-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-gold/20 outline-none w-full md:w-48"
                       />
                     </div>
-                    {hasRole('admin') && (
-                      <button 
-                        onClick={handleCleanupDuplicates}
-                        className="bg-black text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gold transition-all flex items-center gap-2 whitespace-nowrap"
-                        title="Merge duplicate staff accounts"
-                      >
-                        <RefreshCw className="w-3 h-3" />
-                        Cleanup
-                      </button>
-                    )}
+
                   </div>
                 </div>
 
                 <div className="glass rounded-[2.5rem] overflow-hidden">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-bottom border-black/5 bg-black/2 text-left">
-                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Source</th>
-                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date & Time</th>
-                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Employee</th>
-                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Event Type</th>
-                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Details</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-black/5">
-                      {[...logs, ...pattayaLogs, ...cajunLogs]
-                        .filter(log => {
-                          const matchesSearch = `${log.userName} ${log.userEmail} ${log.type} ${log.discountName} ${log.details} ${log.source}`.toLowerCase().includes(searchTerm.toLowerCase());
-                          const matchesFilter = logFilter === 'ALL' || log.source === logFilter;
-                          return matchesSearch && matchesFilter;
-                        })
-                        .sort((a, b) => {
-                          const getTime = (val: any) => {
-                            if (!val) return 0;
-                            if (typeof val.toMillis === 'function') return val.toMillis();
-                            if (val.seconds) return val.seconds * 1000;
-                            if (val instanceof Date) return val.getTime();
-                            if (typeof val === 'string') return new Date(val).getTime();
-                            return 0;
-                          };
-                          const timeA = getTime(a.timestamp);
-                          const timeB = getTime(b.timestamp);
-                          return timeB - timeA;
-                        })
-                        .map((log) => (
-                        <tr key={log.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-widest ${log.source === 'SHANE' ? 'text-gold' : log.source === 'RENT A CAR' ? 'text-blue-500' : 'text-purple-500'}`}>
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-bottom border-black/5 bg-black/2 text-left">
+                          <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Source</th>
+                          <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Date & Time</th>
+                          <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Employee</th>
+                          <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Event Type</th>
+                          <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Details</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-black/5">
+                        {[...logs, ...pattayaLogs, ...cajunLogs]
+                          .filter(log => {
+                            const matchesSearch = `${log.userName} ${log.userEmail} ${log.type} ${log.discountName} ${log.details} ${log.source}`.toLowerCase().includes(searchTerm.toLowerCase());
+                            const matchesFilter = logFilter === 'ALL' || log.source === logFilter;
+                            return matchesSearch && matchesFilter;
+                          })
+                          .sort((a, b) => {
+                            const getTime = (val: any) => {
+                              if (!val) return 0;
+                              if (typeof val.toMillis === 'function') return val.toMillis();
+                              if (val.seconds) return val.seconds * 1000;
+                              if (val instanceof Date) return val.getTime();
+                              if (typeof val === 'string') return new Date(val).getTime();
+                              return 0;
+                            };
+                            const timeA = getTime(a.timestamp);
+                            const timeB = getTime(b.timestamp);
+                            return timeB - timeA;
+                          })
+                          .map((log) => (
+                          <tr key={log.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-widest ${log.source === 'SHANE' ? 'text-gold' : log.source === 'RENT A CAR' ? 'text-blue-500' : 'text-purple-500'}`}>
+                                <div className={`w-1.5 h-1.5 rounded-full ${log.source === 'SHANE' ? 'bg-gold' : log.source === 'RENT A CAR' ? 'bg-blue-500' : 'bg-purple-500'}`} />
+                                {log.source}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-xs font-mono whitespace-nowrap">
+                              {(() => {
+                                const time = log.timestamp;
+                                if (!time) return 'Pending...';
+                                let date;
+                                if ((time as any).seconds) date = new Date((time as any).seconds * 1000);
+                                else if (typeof (time as any).toMillis === 'function') date = new Date((time as any).toMillis());
+                                else date = new Date(time as any);
+                                
+                                return isNaN(date.getTime()) ? 'Pending...' : date.toLocaleString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                });
+                              })()}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm font-medium">
+                                {log.userName || (log.userEmail ? log.userEmail.split('@')[0] : 'Unknown')}
+                              </div>
+                              <div className="text-[10px] text-black/40">{log.userEmail}</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                                (log.type || (log as any).action) === 'login' || (log.type || (log as any).action)?.includes('Login') ? 'bg-blue-50 text-blue-600' : 
+                                (log.type || (log as any).action) === 'signup' || (log.type || (log as any).action)?.includes('Created') ? 'bg-green-50 text-green-600' :
+                                (log.type || (log as any).action)?.includes('finance') ? 'bg-purple-50 text-purple-600' :
+                                (log.type || (log as any).action)?.includes('Update') || (log.type || (log as any).action)?.includes('update') ? 'bg-amber-50 text-amber-600' :
+                                'bg-gold/10 text-gold'
+                              }`}>
+                                {(log.type || (log as any).action || 'activity').replace('_', ' ')}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-xs">
+                              {log.type === 'login' ? (
+                                <span className="text-black/60 italic">User logged in to the application</span>
+                              ) : log.type === 'signup' ? (
+                                <span className="text-black/60">{log.details || 'New user registered'}</span>
+                              ) : log.type?.startsWith('finance_') ? (
+                                <span className="text-black/60">{log.details}</span>
+                              ) : log.type?.includes('_update') ? (
+                                <span className="text-black/60">{log.details}</span>
+                              ) : (
+                                <div>
+                                  <div className="font-medium text-gold">{log.discountName}</div>
+                                  <div className="text-[10px] text-black/40 uppercase tracking-widest">{log.restaurantId}</div>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                        {[...logs, ...pattayaLogs, ...cajunLogs].length === 0 && (
+                          <tr>
+                            <td colSpan={5} className="py-24 text-center text-black/40 italic text-sm">
+                              No logs found for any source.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile List View */}
+                  <div className="md:hidden divide-y divide-black/5 bg-white">
+                    {[...logs, ...pattayaLogs, ...cajunLogs]
+                      .filter(log => {
+                        const matchesSearch = `${log.userName} ${log.userEmail} ${log.type} ${log.discountName} ${log.details} ${log.source}`.toLowerCase().includes(searchTerm.toLowerCase());
+                        const matchesFilter = logFilter === 'ALL' || log.source === logFilter;
+                        return matchesSearch && matchesFilter;
+                      })
+                      .sort((a, b) => {
+                        const getTime = (val: any) => {
+                          if (!val) return 0;
+                          if (typeof val.toMillis === 'function') return val.toMillis();
+                          if (val.seconds) return val.seconds * 1000;
+                          if (val instanceof Date) return val.getTime();
+                          if (typeof val === 'string') return new Date(val).getTime();
+                          return 0;
+                        };
+                        const timeA = getTime(a.timestamp);
+                        const timeB = getTime(b.timestamp);
+                        return timeB - timeA;
+                      })
+                      .map((log) => (
+                        <div key={log.id} className="p-4 bg-white hover:bg-black/2 transition-colors">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className={`inline-flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest ${log.source === 'SHANE' ? 'text-gold' : log.source === 'RENT A CAR' ? 'text-blue-500' : 'text-purple-500'}`}>
                               <div className={`w-1.5 h-1.5 rounded-full ${log.source === 'SHANE' ? 'bg-gold' : log.source === 'RENT A CAR' ? 'bg-blue-500' : 'bg-purple-500'}`} />
                               {log.source}
                             </span>
-                          </td>
-                          <td className="px-6 py-4 text-xs font-mono whitespace-nowrap">
-                            {(() => {
-                              const time = log.timestamp;
-                              if (!time) return 'Pending...';
-                              let date;
-                              if ((time as any).seconds) date = new Date((time as any).seconds * 1000);
-                              else if (typeof (time as any).toMillis === 'function') date = new Date((time as any).toMillis());
-                              else date = new Date(time as any);
-                              
-                              return isNaN(date.getTime()) ? 'Pending...' : date.toLocaleString('en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              });
-                            })()}
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm font-medium">
+                            <span className="text-[10px] font-mono text-black/40">
+                              {(() => {
+                                const time = log.timestamp;
+                                if (!time) return '';
+                                let date;
+                                if ((time as any).seconds) date = new Date((time as any).seconds * 1000);
+                                else if (typeof (time as any).toMillis === 'function') date = new Date((time as any).toMillis());
+                                else date = new Date(time as any);
+                                
+                                return isNaN(date.getTime()) ? '' : date.toLocaleString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                });
+                              })()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <div className="text-xs font-bold text-black/80">
                               {log.userName || (log.userEmail ? log.userEmail.split('@')[0] : 'Unknown')}
                             </div>
-                            <div className="text-[10px] text-black/40">{log.userEmail}</div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                              (log.type || (log as any).action) === 'login' || (log.type || (log as any).action)?.includes('Login') ? 'bg-blue-50 text-blue-600' : 
-                              (log.type || (log as any).action) === 'signup' || (log.type || (log as any).action)?.includes('Created') ? 'bg-green-50 text-green-600' :
-                              (log.type || (log as any).action)?.includes('finance') ? 'bg-purple-50 text-purple-600' :
-                              (log.type || (log as any).action)?.includes('Update') || (log.type || (log as any).action)?.includes('update') ? 'bg-amber-50 text-amber-600' :
-                              'bg-gold/10 text-gold'
-                            }`}>
-                              {(log.type || (log as any).action || 'activity').replace('_', ' ')}
+                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest ${
+                                (log.type || (log as any).action) === 'login' || (log.type || (log as any).action)?.includes('Login') ? 'bg-blue-50 text-blue-600' : 
+                                (log.type || (log as any).action) === 'signup' || (log.type || (log as any).action)?.includes('Created') ? 'bg-green-50 text-green-600' :
+                                (log.type || (log as any).action)?.includes('finance') ? 'bg-purple-50 text-purple-600' :
+                                (log.type || (log as any).action)?.includes('Update') || (log.type || (log as any).action)?.includes('update') ? 'bg-amber-50 text-amber-600' :
+                                'bg-gold/10 text-gold'
+                              }`}>
+                                {(log.type || (log as any).action || 'activity').replace('_', ' ').split(' ')[0]}
                             </span>
-                          </td>
-                          <td className="px-6 py-4 text-xs">
-                            {log.type === 'login' ? (
-                              <span className="text-black/60 italic">User logged in to the application</span>
-                            ) : log.type === 'signup' ? (
-                              <span className="text-black/60">{log.details || 'New user registered'}</span>
-                            ) : log.type?.startsWith('finance_') ? (
-                              <span className="text-black/60">{log.details}</span>
-                            ) : log.type?.includes('_update') ? (
-                              <span className="text-black/60">{log.details}</span>
-                            ) : (
-                              <div>
-                                <div className="font-medium text-gold">{log.discountName}</div>
-                                <div className="text-[10px] text-black/40 uppercase tracking-widest">{log.restaurantId}</div>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
+                          </div>
+                          <div className="mt-1 text-[10px] text-black/40 truncate">
+                            {log.details || (log.discountName ? `${log.discountName} @ ${log.restaurantId}` : 'Application activity')}
+                          </div>
+                        </div>
                       ))}
                       {[...logs, ...pattayaLogs, ...cajunLogs].length === 0 && (
-                        <tr>
-                          <td colSpan={5} className="py-24 text-center text-black/40 italic text-sm">
-                            No logs found for any source.
-                          </td>
-                        </tr>
+                        <div className="py-12 text-center text-black/40 italic text-xs">
+                          No logs found.
+                        </div>
                       )}
-                    </tbody>
-                  </table>
+                  </div>
                 </div>
+
               </motion.div>
             )}
 

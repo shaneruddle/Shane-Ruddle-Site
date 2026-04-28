@@ -98,7 +98,12 @@ async function startServer() {
 
       // Metadata Resolution
       const htmlText = $('body').text();
-      const refNumber = refCode || "N/A";
+      let refNumber = refCode || 
+                     bubbleMetadata?.["Ref"] || 
+                     bubbleMetadata?.["Reference"] || 
+                     bubbleMetadata?.["Main Website Ref"] || 
+                     bubbleMetadata?.["Listing ID"] || 
+                     "N/A";
       
       // Map API fields if available, else scrape
       const beds = bubbleMetadata?.["Bedrooms"] || bubbleMetadata?.["Beds"] || htmlText.match(/(\d+)\s?(?:bed|bedroom)/i)?.[1] || "";
@@ -190,33 +195,66 @@ async function startServer() {
       const location = bubbleMetadata?.["Location"] || bubbleMetadata?.["District"] || "";
       const saleType = bubbleMetadata?.["Sale Type"] || "";
       const ownership = bubbleMetadata?.["Ownership"] || "";
-      let devLink = bubbleMetadata?.["Development Link"] || bubbleMetadata?.["Development"] || "";
+      let devLink = bubbleMetadata?.["Development Link"] || bubbleMetadata?.["Development"] || bubbleMetadata?.["Project"] || "";
       
-      let devName = "";
-      if (devLink && typeof devLink === 'string' && devLink.startsWith('http')) {
+      let devName = bubbleMetadata?.["Development Name"] || 
+                    bubbleMetadata?.["Project Name"] || 
+                    bubbleMetadata?.["Development_Name"] || 
+                    bubbleMetadata?.["Property Name"] || 
+                    "";
+
+      // If development name is empty or just an ID, and we have a devLink that is a Bubble ID, try to resolve it
+      if ((!devName || isBubbleId(devName)) && devLink && isBubbleId(devLink)) {
         try {
-          const parts = devLink.split('/').filter(Boolean);
-          // Try to find a part that isn't just numbers
-          let namePart = "";
-          for (let i = parts.length - 1; i >= 0; i--) {
-            const part = parts[i];
-            // If it contains letters, it's likely a name, not just an ID
-            if (/[a-zA-Z]/.test(part)) {
-              namePart = part;
-              break;
-            }
-          }
+          const parsedUrl = new URL(url);
+          // Try common development object types in Bubble
+          const potentialTypes = ["development", "project", "condo"];
+          const token = process.env.BUBBLE_API_TOKEN;
+          const headers = token ? { Authorization: `Bearer ${token}` } : {};
           
-          if (namePart) {
-            devName = namePart.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-            // Filter out common generic terms if they are the only part found
-            if (['View', 'Project', 'Development', 'Property'].includes(devName)) {
-               // keep it if it's all we have, but usually we want specific names
+          for (const type of potentialTypes) {
+            try {
+              const devApiUrl = `${parsedUrl.origin}/api/1.1/obj/${type}/${devLink}`;
+              const devResponse = await axios.get(devApiUrl, { headers, timeout: 4000 });
+              const devItem = devResponse.data?.response;
+              if (devItem) {
+                const fetchedName = devItem["Name"] || devItem["name"] || devItem["Development Name"] || devItem["Title"];
+                if (fetchedName && !isBubbleId(fetchedName)) {
+                  devName = fetchedName;
+                  break;
+                }
+              }
+            } catch (e) {
+              // try next type
             }
           }
-        } catch (e) {}
-      } else if (devLink) {
-        devName = devLink;
+        } catch (err: any) {
+          console.error(`Bubble Development API resolution failed:`, err.message);
+        }
+      }
+
+      if (!devName || isBubbleId(devName)) {
+        if (devLink && typeof devLink === 'string' && devLink.startsWith('http')) {
+          try {
+            const parts = devLink.split('/').filter(Boolean);
+            // Try to find a part that isn't just numbers
+            let namePart = "";
+            for (let i = parts.length - 1; i >= 0; i--) {
+              const part = parts[i];
+              // If it contains letters, it's likely a name, not just an ID
+              if (/[a-zA-Z]/.test(part)) {
+                namePart = part;
+                break;
+              }
+            }
+            
+            if (namePart) {
+              devName = namePart.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            }
+          } catch (e) {}
+        } else if (devLink && !isBubbleId(devLink)) {
+          devName = devLink;
+        }
       }
 
       const customDescription = bubbleMetadata?.["Custom Description"] || bubbleMetadata?.["Internal Description"] || bubbleMetadata?.["Eng description"] || "";

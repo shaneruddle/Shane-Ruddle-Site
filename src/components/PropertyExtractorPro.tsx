@@ -36,7 +36,7 @@ import {
   Wand2,
   Check,
   XCircle,
-  Tag
+  Tag,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
@@ -59,6 +59,7 @@ interface Extraction {
   userEmail?: string;
   userName?: string;
   userCompany?: string;
+  agent?: string;
   saleType?: string;
   bubbleStatus?: string;
   metadata?: any;
@@ -90,6 +91,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
   const [isLogsOpen, setIsLogsOpen] = useState(false);
   const [autoSave, setAutoSave] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showSidebarMobile, setShowSidebarMobile] = useState(false);
   const logEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -415,6 +417,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
 
       addLog('SYNC_COMPLETE: Extraction data persisted to cloud storage', 'success');
       toast.success('Property data extracted successfully!');
+      setShowSidebarMobile(false);
 
       // Auto-save logic
       if (autoSave) {
@@ -491,35 +494,6 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
     }
 
     if (isMobile) {
-      addLog('MOBILE_SAVE_NOTICE: Safari/iOS requires manual saving. Initiating share/download flow.');
-      toast.info('On iOS: Tap individual images to expand, then long-press to "Save to Photos"');
-      
-      // For mobile, we trigger individual downloads which mobile browsers usually handle by opening the image
-      // or using the Share API if it's a single image.
-      if (targets.length === 1) {
-        try {
-          const response = await fetch(`/api/proxy-image?url=${encodeURIComponent(targets[0])}`);
-          const blob = await response.blob();
-          const file = new File([blob], 'property_image.jpg', { type: 'image/jpeg' });
-          
-          if (navigator.share && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              files: [file],
-              title: 'Property Image',
-              text: 'Save this image to your photos'
-            });
-            addLog('SHARE_UI_OPENED', 'success');
-            return;
-          }
-        } catch (err) {
-          console.error("Share failed", err);
-        }
-      }
-      
-      // Fallback: Open in new tab for manual save
-      targets.forEach(img => {
-        window.open(img, '_blank');
-      });
       return;
     }
 
@@ -652,6 +626,23 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
 
       {/* Action Bar */}
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 px-4 lg:px-6 py-4 bg-white border-b border-[#E5E1DA] flex-shrink-0">
+        {isMobile && activeTab === 'extractor' && (
+          <div className="flex p-1 bg-[#F9F8F6] border border-[#E5E1DA] rounded-full mb-1">
+            <button 
+              onClick={() => setShowSidebarMobile(false)}
+              className={`flex-1 py-2 px-6 rounded-full text-[10px] font-bold tracking-widest transition-all ${!showSidebarMobile ? 'bg-[#C5A059] text-white shadow-md' : 'text-[#888]'}`}
+            >
+              GALLERY
+            </button>
+            <button 
+              onClick={() => setShowSidebarMobile(true)}
+              className={`flex-1 py-2 px-6 rounded-full text-[10px] font-bold tracking-widest transition-all ${showSidebarMobile ? 'bg-[#C5A059] text-white shadow-md' : 'text-[#888]'}`}
+            >
+              CONTROLS
+            </button>
+          </div>
+        )}
+
         {!isMobile && (
           <button 
             onClick={handleSelectFolder}
@@ -705,11 +696,11 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
 
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
         {/* Sidebar */}
-        <aside className={`${activeTab === 'extractor' ? 'flex' : 'hidden'} lg:flex w-full lg:w-[360px] border-r border-[#E5E1DA] bg-white flex-col overflow-y-auto lg:overflow-hidden`}>
+        <aside className={`${activeTab === 'extractor' ? (isMobile ? (showSidebarMobile ? 'flex' : 'hidden') : 'flex') : 'hidden'} lg:flex w-full lg:w-[360px] border-r border-[#E5E1DA] bg-white flex-col overflow-y-auto lg:overflow-hidden`}>
           <div className="p-4 lg:p-6 space-y-8 flex-1 lg:overflow-y-auto hidden-scrollbar">
             {/* Stats */}
             <section>
-              <div className="flex items-center gap-2 text-[foot-[10px]] lg:text-[10px] font-bold text-[#BBB] uppercase tracking-[0.2em] mb-4">
+              <div className="flex items-center gap-2 text-[10px] lg:text-[10px] font-bold text-[#BBB] uppercase tracking-[0.2em] mb-4">
                 <Activity className="w-3 h-3" />
                 System Metrics
               </div>
@@ -854,14 +845,16 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                 </button>
               </div>
 
-              <button 
-                onClick={() => handleSaveImages()}
-                disabled={isSaving || !dirHandle}
-                className="w-full mt-4 py-4 bg-black hover:bg-[#C5A059] disabled:opacity-30 text-white text-[11px] font-bold rounded-full flex items-center justify-center gap-2 transition-all shadow-xl"
-              >
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                FLUSH TO LOCAL DRIVE
-              </button>
+              {!isMobile && (
+                <button 
+                  onClick={() => handleSaveImages()}
+                  disabled={isSaving || !dirHandle}
+                  className="w-full mt-4 py-4 bg-black hover:bg-[#C5A059] disabled:opacity-30 text-white text-[11px] font-bold rounded-full flex items-center justify-center gap-2 transition-all shadow-xl"
+                >
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  FLUSH TO LOCAL DRIVE
+                </button>
+              )}
             </section>
 
             {/* System Logs Toggle */}
@@ -928,7 +921,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex-1 flex flex-col overflow-hidden"
+                className={`${isMobile && showSidebarMobile ? 'hidden' : 'flex'} flex-1 flex flex-col overflow-hidden`}
               >
                 {!extractedData ? (
                   <div className="h-full flex flex-col items-center justify-center">
@@ -936,7 +929,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                       <ImageIcon className="w-8 h-8 text-[#E5E1DA]" />
                     </div>
                     <span className="text-[11px] font-bold tracking-[0.4em] uppercase text-[#BBB]">Awaiting_Input_Stream</span>
-                    <span className="text-[10px] text-[#CCC] mt-2 font-serif italic">Shane Ruddle Asset Management System</span>
+                    <span className="text-[10px] text-[#CCC] mt-2 font-serif italic text-center mb-6">Shane Ruddle Asset Management System</span>
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col overflow-hidden">
@@ -961,7 +954,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                               ASSET_{i + 1}
                             </div>
                             <img 
-                              src={`/api/proxy-image?url=${encodeURIComponent(img)}`}
+                              src={img.startsWith('data:') ? img : `/api/proxy-image?url=${encodeURIComponent(img)}`}
                               alt={`Asset ${i}`} 
                               className={`w-full h-full object-cover transition-all duration-700 ${selectedImages.has(img) ? 'scale-110' : 'group-hover:scale-110'}`}
                               referrerPolicy="no-referrer"
@@ -975,13 +968,29 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                             )}
                             {isMobile && (
                              <button 
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
-                                window.open(img, '_blank');
+                                try {
+                                  const urlToFetch = img.startsWith('data:') ? img : `/api/proxy-image?url=${encodeURIComponent(img)}`;
+                                  const response = await fetch(urlToFetch);
+                                  const blob = await response.blob();
+                                  const file = new File([blob], `asset_${i+1}.jpg`, { type: 'image/jpeg' });
+                                  
+                                  if (navigator.share && navigator.canShare({ files: [file] })) {
+                                    await navigator.share({
+                                      files: [file],
+                                      title: `Asset ${i+1}`
+                                    });
+                                  } else {
+                                    window.open(img, '_blank');
+                                  }
+                                } catch (err) {
+                                  window.open(img, '_blank');
+                                }
                               }}
-                              className="absolute bottom-3 right-3 p-2 bg-white/90 rounded-full shadow-lg border border-[#E5E1DA] text-[#C5A059]"
+                              className="absolute bottom-3 right-3 p-2 bg-white/90 rounded-full shadow-lg border border-[#E5E1DA] text-[#C5A059] z-20"
                              >
-                               <ExternalLink className="w-4 h-4" />
+                               <Download className="w-4 h-4" />
                              </button>
                             )}
                           </motion.div>
@@ -1112,17 +1121,14 @@ const AuditTrailRow = ({ item }: { item: Extraction }) => {
             </span>
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-1">
               <div className="flex items-center gap-2">
-                {item.userName ? (
-                  <span className="text-[9px] lg:text-[10px] text-[#C5A059] font-bold uppercase tracking-wider truncate">{item.userName}</span>
-                ) : item.userEmail ? (
-                  <span className="text-[9px] lg:text-[10px] text-[#C5A059] font-bold uppercase tracking-wider truncate">{item.userEmail.split('@')[0]}</span>
-                ) : (
-                  <span className="text-[9px] lg:text-[10px] text-[#BBB] font-medium italic">System User</span>
-                )}
+                <span className="text-[9px] lg:text-[10px] text-[#C5A059] font-bold uppercase tracking-wider truncate">
+                  {item.agent || 'Unknown Agent'}
+                </span>
+                <span className="text-[8px] text-[#BBB] font-medium">•</span>
+                <span className="text-[8px] text-[#BBB] font-medium italic">
+                  Recorded by {item.userName || 'System'}
+                </span>
               </div>
-              {item.userEmail && (
-                <span className="text-[9px] lg:text-[10px] text-[#BBB] font-medium sm:before:content-['•'] sm:before:mr-2 truncate">{item.userEmail}</span>
-              )}
             </div>
           </div>
         </div>
@@ -1138,19 +1144,28 @@ const AuditTrailRow = ({ item }: { item: Extraction }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 lg:gap-6 pt-4 lg:pt-6 border-t border-[#F9F8F6]">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 pt-4 lg:pt-6 border-t border-[#F9F8F6]">
         <div className="flex flex-col gap-1">
-          <span className="text-[8px] lg:text-[9px] text-[#BBB] font-bold uppercase tracking-widest">Reference ID</span>
+          <span className="text-[8px] lg:text-[9px] text-[#BBB] font-bold uppercase tracking-widest">Property ID</span>
           <span className="text-[10px] lg:text-[11px] text-[#1A1A1A] font-bold uppercase">{item.refNumber || '-'}</span>
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-[8px] lg:text-[9px] text-[#BBB] font-bold uppercase tracking-widest">Sale Type</span>
           <span className="text-[10px] lg:text-[11px] text-[#C5A059] font-bold uppercase">{item.saleType || 'N/A'}</span>
         </div>
-        <div className="flex flex-col gap-1 col-span-2 sm:col-span-1">
+        <div className="flex flex-col gap-1">
+          <span className="text-[8px] lg:text-[9px] text-[#BBB] font-bold uppercase tracking-widest">Agent</span>
+          <span className="text-[10px] lg:text-[11px] text-[#1A1A1A] font-bold uppercase truncate">{item.agent || 'N/A'}</span>
+        </div>
+        <div className="flex flex-col gap-1">
           <span className="text-[8px] lg:text-[9px] text-[#BBB] font-bold uppercase tracking-widest">Timestamp</span>
           <span className="text-[10px] lg:text-[11px] text-[#1A1A1A] font-bold">
-            {item.timestamp?.seconds ? new Date(item.timestamp.seconds * 1000).toLocaleString() : 'PENDING'}
+            {item.timestamp?.seconds ? new Date(item.timestamp.seconds * 1000).toLocaleString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }) : 'PENDING'}
           </span>
         </div>
       </div>
