@@ -80,6 +80,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractedData, setExtractedData] = useState<any>(null);
   const [history, setHistory] = useState<Extraction[]>([]);
+  const [userFilter, setUserFilter] = useState<string>('all');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCopy, setGeneratedCopy] = useState('');
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
@@ -326,7 +327,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
       await addDoc(collection(db, 'extractions'), {
         userId: userProfile.uid,
         userEmail: userProfile.email,
-        userName: userProfile.displayName || userProfile.email?.split('@')[0] || 'User',
+        userName: userProfile.name || userProfile.displayName || userProfile.email?.split('@')[0] || 'User',
         userCompany: userProfile.company || 'Alan Bolton Property Consultants',
         url: manualUrl,
         refNumber,
@@ -400,7 +401,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
       await addDoc(collection(db, 'extractions'), {
         userId: userProfile.uid,
         userEmail: userProfile.email,
-        userName: userProfile.displayName || userProfile.email?.split('@')[0] || 'User',
+        userName: userProfile.name || userProfile.displayName || userProfile.email?.split('@')[0] || 'User',
         userCompany: userProfile.company || 'Alan Bolton Property Consultants',
         url,
         refNumber,
@@ -1019,12 +1020,30 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                 exit={{ opacity: 0 }}
                 className="flex-1 p-4 lg:p-8 overflow-y-auto custom-scrollbar"
               >
-                <div className="flex items-center justify-between mb-6 lg:mb-8">
-                  <div className="flex items-center gap-3">
-                    <History className="w-5 h-5 text-[#C5A059]" />
-                    <h3 className="text-[10px] lg:text-[12px] font-bold text-[#1A1A1A] uppercase tracking-[0.4em]">Audit Trail</h3>
-                  </div>
-                </div>
+                {/* Compute unique users for filter */}
+                {(() => {
+                  const uniqueUsers = Array.from(new Map(history.map(h => [h.userId, { id: h.userId, name: h.userName || h.userEmail?.split('@')[0] || 'Unknown' }])).values());
+                  const filteredHistory = userFilter === 'all' ? history : history.filter(h => h.userId === userFilter);
+                  return (
+                    <>
+                      <div className="flex items-center justify-between mb-6 lg:mb-8">
+                        <div className="flex items-center gap-3">
+                          <History className="w-5 h-5 text-[#C5A059]" />
+                          <h3 className="text-[10px] lg:text-[12px] font-bold text-[#1A1A1A] uppercase tracking-[0.4em]">Audit Trail</h3>
+                        </div>
+                        {uniqueUsers.length > 1 && (
+                          <select
+                            value={userFilter}
+                            onChange={(e) => setUserFilter(e.target.value)}
+                            className="text-[10px] bg-[#F9F8F6] border border-[#E5E1DA] rounded-full px-3 py-1.5 text-[#1A1A1A] outline-none focus:border-[#C5A059]"
+                          >
+                            <option value="all">All Users</option>
+                            {uniqueUsers.map(u => (
+                              <option key={u.id} value={u.id}>{u.name}</option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
 
                 {/* Manual Entry Form */}
                 <div className="mb-8 lg:mb-12">
@@ -1060,10 +1079,10 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                 <div>
                   <h4 className="text-[10px] font-bold text-[#BBB] uppercase tracking-[0.2em] mb-6 px-4">Activity Log</h4>
                   <div className="grid grid-cols-1 gap-4">
-                    {history.map((item) => (
+                    {filteredHistory.map((item) => (
                       <AuditTrailRow key={item.id} item={item} />
                     ))}
-                    {history.length === 0 && (
+                    {filteredHistory.length === 0 && (
                       <div className="h-[400px] flex flex-col items-center justify-center">
                         <History className="w-12 h-12 text-[#E5E1DA] mb-4" />
                         <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#CCC]">Log_Buffer_Empty</span>
@@ -1125,7 +1144,7 @@ const AuditTrailRow = ({ item }: { item: Extraction }) => {
                 </span>
                 <span className="text-[8px] text-[#BBB] font-medium">•</span>
                 <span className="text-[8px] text-[#BBB] font-medium italic">
-                  Recorded by {item.userName || 'System'}
+                  Recorded by {item.userName || item.userEmail?.split('@')[0] || 'System'}
                 </span>
               </div>
             </div>
