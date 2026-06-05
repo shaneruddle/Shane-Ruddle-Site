@@ -2156,6 +2156,9 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
 
   const isWhitelistedCompany = !!(userProfile.company?.trim());
 
+  const isAbpcOrEcre = userProfile.company === 'Alan Bolton Property Consultants' || userProfile.company === 'East Coast Real Estate';
+  const canAccessTools = hasRole('admin') || hasRole('manager') || hasRole('accounts') || isAbpcOrEcre;
+
   if (!hasRole('admin') && !hasRole('accounts') && !hasRole('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com' && !isWhitelistedCompany) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 text-center">
@@ -2345,7 +2348,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
               )}
             </div>
           )}
-          {(hasRole('admin') || isWhitelistedCompany) && (
+          {canAccessTools && (
             <div className="flex flex-col">
               <button 
                 onClick={() => {
@@ -4486,7 +4489,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
               </motion.div>
             )}
 
-            {activeTab === 'tools' && (hasRole('admin') || isWhitelistedCompany) && (
+            {activeTab === 'tools' && canAccessTools && (
               <motion.div 
                 key="tools"
                 initial={{ opacity: 0, y: 10 }}
