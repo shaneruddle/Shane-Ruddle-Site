@@ -177,7 +177,10 @@ export default function Auth({ user, loading }: AuthProps) {
           await updateProfile(userCredential.user, { displayName });
         }
       } else if (mode === 'reset') {
-        await sendPasswordResetEmail(auth, email);
+        await sendPasswordResetEmail(auth, email, {
+          url: 'https://shaneruddle.com',
+          handleCodeInApp: false,
+        });
         setResetSent(true);
         return;
       }
