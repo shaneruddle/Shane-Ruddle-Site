@@ -287,8 +287,7 @@ export default function App() {
                   displayProfile?.roles?.includes('manager') || 
                   (user?.email && ['shaneruddle@gmail.com', 'alexstein530@gmail.com'].includes(user.email));
   const isWhitelisted = isAdmin ||
-                        displayProfile?.company?.toLowerCase()?.trim() === 'alan bolton property consultants' || 
-                        displayProfile?.company?.toLowerCase()?.trim() === 'east coast real estate';
+                        !!(displayProfile?.company?.trim());
   const [authLoading, setAuthLoading] = useState(true);
   console.log("App rendering. AuthLoading:", authLoading);
   const [formState, setFormState] = useState({ name: '', email: '', message: '' });
@@ -569,9 +568,9 @@ export default function App() {
           loginLogged.current = true;
         }
         
-        // Check if user is from a whitelisted company to ensure they have the right level of access
+        // Check if user has a company set  any company employee gets access
         const companyName = data.company?.toLowerCase()?.trim();
-        const isWhitelisted = companyName === 'alan bolton property consultants' || companyName === 'east coast real estate';
+        const isWhitelisted = !!(companyName);
         
         // If they are whitelisted but have no roles, give them a default employee role
         if (isWhitelisted && (!data.roles || data.roles.length === 0)) {
@@ -1349,8 +1348,7 @@ export default function App() {
                             displayProfile?.roles?.includes('accounts') || 
                             displayProfile?.roles?.includes('manager') || 
                             (user?.email && ['shaneruddle@gmail.com', 'alexstein530@gmail.com'].includes(user?.email)) || 
-                            displayProfile?.company?.toLowerCase()?.trim() === 'alan bolton property consultants' || 
-                            displayProfile?.company?.toLowerCase()?.trim() === 'east coast real estate') && (
+                            !!(displayProfile?.company?.trim())) && (
                             <li>
                               <button 
                                 onClick={() => {

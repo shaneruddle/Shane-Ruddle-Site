@@ -2154,7 +2154,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
       return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
     });
 
-  const isWhitelistedCompany = userProfile.company === 'Alan Bolton Property Consultants' || userProfile.company === 'East Coast Real Estate';
+  const isWhitelistedCompany = !!(userProfile.company?.trim());
 
   if (!hasRole('admin') && !hasRole('accounts') && !hasRole('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com' && !isWhitelistedCompany) {
     return (
