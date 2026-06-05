@@ -69,8 +69,7 @@ service cloud.firestore {
 
     function isValidUsageLog(data) {
       return data.keys().hasAll(['userId', 'timestamp']) &&
-             data.userId == request.auth.uid &&
-             data.timestamp is timestamp;
+             data.userId == request.auth.uid;
     }
 
     function isValidBlogPost(data) {
