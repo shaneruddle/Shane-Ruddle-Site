@@ -81,6 +81,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
   const [extractedData, setExtractedData] = useState<any>(null);
   const [history, setHistory] = useState<Extraction[]>([]);
   const [userFilter, setUserFilter] = useState<string>('all');
+  const [companies, setCompanies] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCopy, setGeneratedCopy] = useState('');
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
@@ -251,6 +252,13 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
+
+    // Fetch companies for logos
+    useEffect(() => {
+      getDocs(collection(db, 'companies')).then(snap => {
+        setCompanies(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }).catch(()=>{});
+    }, []);
 
     // Listen to history
     useEffect(() => {
@@ -1080,7 +1088,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                   <h4 className="text-[10px] font-bold text-[#BBB] uppercase tracking-[0.2em] mb-6 px-4">Activity Log</h4>
                   <div className="grid grid-cols-1 gap-4">
                     {filteredHistory.map((item) => (
-                      <AuditTrailRow key={item.id} item={item} />
+                      <AuditTrailRow key={item.id} item={item} companies={companies} />
                     ))}
                     {filteredHistory.length === 0 && (
                       <div className="h-[400px] flex flex-col items-center justify-center">
@@ -1116,7 +1124,9 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
   );
 };
 
-const AuditTrailRow = ({ item }: { item: Extraction }) => {
+const AuditTrailRow = ({ item, companies = [] }: { item: Extraction; companies?: any[] }) => {
+  const company = companies.find(c => c.name === item.userCompany);
+  const safeUrl = item.url ? (item.url.startsWith('http') ? item.url : `https://${item.url}`) : '#';
   return (
     <div className="flex flex-col p-4 lg:p-6 bg-white border border-[#E5E1DA] rounded-2xl lg:rounded-3xl hover:border-[#C5A059] transition-all group shadow-sm hover:shadow-xl relative overflow-hidden">
       {(item as any).isManual && (
@@ -1127,8 +1137,12 @@ const AuditTrailRow = ({ item }: { item: Extraction }) => {
       
       <div className="flex items-center justify-between gap-3 lg:gap-4 mb-4 lg:mb-6">
         <div className="flex items-center gap-3 lg:gap-4">
-          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-[#F9F8F6] border border-[#E5E1DA] flex items-center justify-center flex-shrink-0 text-[#C5A059]">
-            <Database className="w-4 h-4 lg:w-5 lg:h-5" />
+          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-[#F9F8F6] border border-[#E5E1DA] flex items-center justify-center flex-shrink-0 text-[#C5A059] overflow-hidden">
+            {company?.logo ? (
+              <img src={company.logo.startsWith('data:') ? company.logo : (company.logo.startsWith('http') ? company.logo : `/${company.logo}`)} alt={company.name} className="w-full h-full object-contain p-1" referrerPolicy="no-referrer" />
+            ) : (
+              <Database className="w-4 h-4 lg:w-5 lg:h-5" />
+            )}
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-[12px] lg:text-[14px] font-bold text-[#1A1A1A] line-clamp-1">
@@ -1152,7 +1166,7 @@ const AuditTrailRow = ({ item }: { item: Extraction }) => {
         </div>
         <div className="flex items-center gap-2">
           <a 
-            href={item.url} 
+            href={safeUrl} 
             target="_blank" 
             rel="noopener noreferrer" 
             className="p-2 lg:p-2.5 rounded-full bg-[#F9F8F6] border border-[#E5E1DA] text-[#BBB] hover:text-[#C5A059] hover:border-[#C5A059] transition-all"
