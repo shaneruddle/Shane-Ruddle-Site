@@ -47,6 +47,16 @@ jobs:
           docker build -t asia-east1-docker.pkg.dev/shane-ruddle-site/shane-ruddle/server:${{ github.sha }} .
           docker push asia-east1-docker.pkg.dev/shane-ruddle-site/shane-ruddle/server:${{ github.sha }}
 
+      - name: Write env vars file
+        run: |
+          cat > /tmp/envvars.yaml << EOF
+          NODE_ENV: production
+          SMTP_HOST: "${{ secrets.SMTP_HOST }}"
+          SMTP_PORT: "${{ secrets.SMTP_PORT }}"
+          SMTP_USER: "${{ secrets.SMTP_USER }}"
+          SMTP_PASS: "${{ secrets.SMTP_PASS }}"
+          EOF
+
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy shane-ruddle-server \
@@ -54,11 +64,7 @@ jobs:
             --region asia-east1 \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=production" \
-            --update-env-vars "SMTP_HOST=${{ secrets.SMTP_HOST }}" \
-            --update-env-vars "SMTP_PORT=${{ secrets.SMTP_PORT }}" \
-            --update-env-vars "SMTP_USER=${{ secrets.SMTP_USER }}" \
-            --update-env-vars "SMTP_PASS=${{ secrets.SMTP_PASS }}" \
+            --env-vars-file /tmp/envvars.yaml \
             --project shane-ruddle-site \
             --quiet
 
