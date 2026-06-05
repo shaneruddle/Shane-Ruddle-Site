@@ -1098,6 +1098,9 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                     )}
                   </div>
                 </div>
+                    </>
+                  );
+                })()}
               </motion.div>
             )}
           </AnimatePresence>
