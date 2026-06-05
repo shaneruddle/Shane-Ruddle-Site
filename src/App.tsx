@@ -711,57 +711,7 @@ export default function App() {
     return () => unsubProfile();
   }, [user]);
 
-  // Real-time login notifications for admins
-  useEffect(() => {
-    if (!userProfile?.roles?.includes('admin') || !user) return;
-
-    console.log("Setting up login notification listener for admin...");
-    // Track the time when the listener was attached to only notify about NEW logins
-    const startTime = Timestamp.now();
-    
-    const q = query(
-      collection(db, 'usage_logs'),
-      where('type', '==', 'login'),
-      where('timestamp', '>', startTime),
-      orderBy('timestamp', 'desc'),
-      limit(5)
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        if (change.type === 'added') {
-          const logData = change.doc.data() as any;
-          // Don't notify about own login
-          if (logData.userId !== user.uid) {
-            console.log("Login notification triggered for:", logData.userName);
-            toast.info(`Login Alert: ${logData.userName || logData.userEmail || 'A user'} has signed in.`, {
-              description: logData.userCompany ? `Company: ${logData.userCompany}` : undefined,
-              duration: 8000,
-            });
-
-            // Trigger email notification if configured
-            if (data.notificationEmail) {
-              fetch('/api/notify-login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  userName: logData.userName,
-                  userEmail: logData.userEmail,
-                  userCompany: logData.userCompany,
-                  timestamp: logData.timestamp?.toDate?.() || new Date(),
-                  targetEmail: data.notificationEmail
-                })
-              }).catch(err => console.error("Email notification failed:", err));
-            }
-          }
-        }
-      });
-    }, (err) => {
-      console.error("Error listening to login logs:", err);
-    });
-
-    return () => unsubscribe();
-  }, [userProfile, user, data.notificationEmail]);
+  // Login toast notifications removed
 
   return (
     <ErrorBoundary>

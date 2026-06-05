@@ -338,7 +338,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
 
   // Search and Sort states
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'last-active'>('newest');
   const [companyFilter, setCompanyFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -2149,6 +2149,11 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
         if (typeof val === 'string') return new Date(val).getTime();
         return 0;
       };
+      if (sortOrder === 'last-active') {
+        const activeA = getTime(a.updatedAt) || getTime(a.lastLoginAt) || getTime(a.createdAt);
+        const activeB = getTime(b.updatedAt) || getTime(b.lastLoginAt) || getTime(b.createdAt);
+        return activeB - activeA;
+      }
       const timeA = getTime(a.createdAt) || getTime(a.employedFrom);
       const timeB = getTime(b.createdAt) || getTime(b.employedFrom);
       return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
