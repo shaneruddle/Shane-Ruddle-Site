@@ -41,7 +41,6 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { cn } from '@/src/lib/utils';
-import { GoogleGenAI } from "@google/genai";
 import { get, set } from "idb-keyval";
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -107,14 +106,14 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
     const ref = meta.refNumber || data.refNumber || "N/A";
     
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = ""; // AI features routed through server
       
       if (!apiKey || apiKey === 'undefined' || apiKey === 'null') {
         addLog('AI_CONFIG_ERROR: GEMINI_API_KEY is missing from environment', 'error');
         throw new Error('Digital Key Missing: Please check your Project Settings.');
       }
 
-      const ai = new GoogleGenAI({ apiKey });
+      // AI disabled - use server API instead
       
       const prompt = `Act as an expert property consultant and luxury real estate marketing copywriter. Generate a property description using the EXACT structure and emojis below.
 

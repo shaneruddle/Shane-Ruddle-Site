@@ -1,9 +1,8 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { fallbackData, BusinessInfo, Company } from "../types";
 import { db, handleFirestoreError, OperationType } from "../firebase";
 import { collection, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// AI features disabled - calls routed through server API
 
 const CACHE_KEY = "shane_ruddle_business_info_v3";
 const CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
