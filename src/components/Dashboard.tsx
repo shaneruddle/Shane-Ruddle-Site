@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { cn } from '@/src/lib/utils';
 import PropertyExtractorPro from './PropertyExtractorPro';
+import Sidebar from './Sidebar';
 
 interface DashboardProps {
   userProfile: UserProfile;
@@ -259,7 +260,7 @@ const ReportDocument = React.forwardRef<HTMLDivElement, any>(({
         <div className="pt-12 border-t border-black/5 flex justify-between items-end">
           <div className="space-y-1">
             <p className="text-[8px] text-black/30 uppercase tracking-widest font-bold">Confidential Report</p>
-            <p className="text-[10px] text-black/40">© {new Date().getFullYear()} {financeSubTab.startsWith('ABPC') ? 'Alan Bolton Property Consultants' : 'East Coast Real Estate'}</p>
+            <p className="text-[10px] text-black/40">Â© {new Date().getFullYear()} {financeSubTab.startsWith('ABPC') ? 'Alan Bolton Property Consultants' : 'East Coast Real Estate'}</p>
           </div>
           <div className="text-right">
             <p className="text-[8px] text-black/30 uppercase tracking-widest font-bold mb-2">Authorized Signature</p>
@@ -2179,291 +2180,28 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
   return (
     <div className="min-h-screen bg-[#FDFDFD] flex flex-col md:flex-row">
       {/* Sidebar Navigation */}
-      <motion.aside 
-        initial={false}
-        animate={{ 
-          width: isSidebarCollapsed ? 80 : 288,
-          padding: isSidebarCollapsed ? '24px 12px' : '32px'
-        }}
-        className={cn(
-          "hidden md:flex bg-white border-r border-black/5 flex-col h-screen sticky z-50 relative overflow-visible transition-all duration-500",
-          isImpersonating ? "top-[38px]" : "top-0"
-        )}
-      >
-        {/* Collapse Button on Edge */}
-        <button 
-          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          className="absolute -right-3 top-24 w-6 h-6 bg-white border border-black/5 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all z-[60] text-black/40 hover:text-black hover:scale-110"
-          title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-        >
-          {isSidebarCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
-        </button>
-
-        <div className={`mb-12 transition-all duration-300 ${isSidebarCollapsed ? 'opacity-0 invisible h-0 mb-0' : 'opacity-100 visible'}`}>
-          <button onClick={onBack} className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-black/40 hover:text-gold transition-colors mb-8 whitespace-nowrap">
-            <ArrowLeft className="w-4 h-4" /> Back to Portfolio
-          </button>
-          <h1 className="text-3xl font-serif leading-tight whitespace-nowrap">Admin <br /><span className="italic">Dashboard</span></h1>
-          <p className="text-[10px] uppercase tracking-widest font-bold text-black/20 mt-4 whitespace-nowrap">Management Suite</p>
-        </div>
-
-        <div className={`mb-8 flex justify-center transition-all duration-300 ${isSidebarCollapsed ? 'opacity-100 visible' : 'opacity-0 invisible h-0 mb-0'}`}>
-          <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center text-gold font-serif text-xl">A</div>
-        </div>
-
-        <nav className="flex flex-col gap-2 flex-grow overflow-y-auto pr-2 custom-scrollbar overflow-x-hidden">
-          {(hasRole('admin') || hasRole('manager') || hasRole('accounts')) && (
-            <button 
-              onClick={() => setActiveTab('employees')}
-              className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'employees' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-            >
-              <Users className="w-4 h-4 shrink-0" />
-              <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Staff Management</span>
-              {isSidebarCollapsed && (
-                <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                  Staff Management
-                </div>
-              )}
-            </button>
-          )}
-          {userProfile.roles?.includes('admin') && (
-            <>
-              <button 
-                onClick={() => setActiveTab('companies')}
-                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'companies' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-              >
-                <Database className="w-4 h-4 shrink-0" />
-                <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Companies</span>
-                {isSidebarCollapsed && (
-                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                    Companies
-                  </div>
-                )}
-              </button>
-              <button 
-                onClick={() => setActiveTab('blog')}
-                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'blog' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-              >
-                <FileText className="w-4 h-4 shrink-0" />
-                <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Blog</span>
-                {isSidebarCollapsed && (
-                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                    Blog
-                  </div>
-                )}
-              </button>
-              <button 
-                onClick={() => setActiveTab('logs')}
-                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'logs' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-              >
-                <History className="w-4 h-4 shrink-0" />
-                <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>System Logs</span>
-                {isSidebarCollapsed && (
-                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                    System Logs
-                  </div>
-                )}
-              </button>
-            </>
-          )}
-          {(hasRole('admin') || hasRole('accounts')) && (
-            <div className="flex flex-col">
-              <button 
-                onClick={() => {
-                  if (activeTab === 'finance') {
-                    setIsFinanceExpanded(!isFinanceExpanded);
-                  } else {
-                    setActiveTab('finance');
-                    setIsFinanceExpanded(true);
-                  }
-                }}
-                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'finance' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-              >
-                <DollarSign className="w-4 h-4 shrink-0" />
-                <span className={`transition-all duration-300 whitespace-nowrap flex-grow text-left ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Finance</span>
-                {!isSidebarCollapsed && (
-                  <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isFinanceExpanded ? 'rotate-180' : ''}`} />
-                )}
-                {isSidebarCollapsed && (
-                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                    Finance
-                  </div>
-                )}
-              </button>
-              
-              {!isSidebarCollapsed && isFinanceExpanded && (
-                <div className="ml-11 flex flex-col gap-1 mt-1 mb-4">
-                  {(hasRole('admin') || userProfile.company === 'Alan Bolton Property Consultants') && (
-                    <>
-                      <button 
-                        onClick={() => {
-                          setFinanceSubTab('ABPC');
-                        }}
-                        className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ABPC' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
-                      >
-                        ABPC
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setFinanceSubTab('ABPC Agents');
-                        }}
-                        className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ABPC Agents' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
-                      >
-                        ABPC Agents
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setFinanceSubTab('ABPC Reports');
-                        }}
-                        className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ABPC Reports' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
-                      >
-                        ABPC Reports
-                      </button>
-                    </>
-                  )}
-                  {(hasRole('admin') || userProfile.company === 'East Coast Real Estate') && (
-                    <>
-                      <button 
-                        onClick={() => {
-                          setFinanceSubTab('ECRE');
-                        }}
-                        className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ECRE' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
-                      >
-                        ECRE
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setFinanceSubTab('ECRE Agents');
-                        }}
-                        className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ECRE Agents' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
-                      >
-                        ECRE Agents
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setFinanceSubTab('ECRE Reports');
-                        }}
-                        className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${financeSubTab === 'ECRE Reports' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
-                      >
-                        ECRE Reports
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-          {canAccessTools && (
-            <div className="flex flex-col">
-              <button 
-                onClick={() => {
-                  if (activeTab === 'tools') {
-                    setIsToolsExpanded(!isToolsExpanded);
-                  } else {
-                    setActiveTab('tools');
-                    setIsToolsExpanded(true);
-                  }
-                }}
-                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'tools' ? (isToolsExpanded && !isSidebarCollapsed ? 'bg-gold/10 text-gold' : 'bg-gold text-white shadow-lg shadow-gold/20') : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-              >
-                <Wrench className="w-4 h-4 shrink-0" />
-                <span className={`transition-all duration-300 whitespace-nowrap flex-grow text-left ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Tools</span>
-                {!isSidebarCollapsed && (
-                  <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isToolsExpanded ? 'rotate-180' : ''}`} />
-                )}
-                {isSidebarCollapsed && (
-                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                    Tools
-                  </div>
-                )}
-              </button>
-              
-              {!isSidebarCollapsed && isToolsExpanded && (
-                <div className="ml-11 flex flex-col gap-1 mt-1 mb-4">
-                  <button 
-                    onClick={() => {
-                      setToolsSubTab('extractor-pro');
-                    }}
-                    className={`text-left px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${toolsSubTab === 'extractor-pro' ? 'bg-gold text-white shadow-md shadow-gold/20 translate-x-1' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
-                  >
-                    Extractor Pro
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-          <button 
-            onClick={() => setActiveTab('profile')}
-            className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'profile' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-          >
-            <User className="w-4 h-4 shrink-0" />
-            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>My Profile</span>
-            {isSidebarCollapsed && (
-              <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                My Profile
-              </div>
-            )}
-          </button>
-          {userProfile.roles?.includes('admin') && (
-            <div className="flex flex-col">
-              <button 
-                onClick={() => {
-                  if (activeTab === 'settings') {
-                    setIsSettingsExpanded(!isSettingsExpanded);
-                  } else {
-                    setActiveTab('settings');
-                    setIsSettingsExpanded(true);
-                  }
-                }}
-                className={`flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group ${activeTab === 'settings' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'text-black/40 hover:bg-black/5 hover:text-black'}`}
-              >
-                <Settings className="w-4 h-4 shrink-0" />
-                <span className={`transition-all duration-300 whitespace-nowrap flex-grow text-left ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Site Settings</span>
-                {!isSidebarCollapsed && (
-                  <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isSettingsExpanded ? 'rotate-180' : ''}`} />
-                )}
-                {isSidebarCollapsed && (
-                  <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                    Site Settings
-                  </div>
-                )}
-              </button>
-              
-              {!isSidebarCollapsed && isSettingsExpanded && (
-                <div className="ml-11 flex flex-col gap-1 mt-1 mb-4">
-                  <button 
-                    onClick={() => setSettingsSubTab('general')}
-                    className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${settingsSubTab === 'general' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
-                  >
-                    General
-                  </button>
-                  <button 
-                    onClick={() => setSettingsSubTab('privacy')}
-                    className={`text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${settingsSubTab === 'privacy' ? 'text-gold bg-gold/5' : 'text-black/30 hover:text-black/60 hover:bg-black/2'}`}
-                  >
-                    Privacy Settings
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </nav>
-
-        <div className="mt-auto pt-8 border-t border-black/5 flex flex-col gap-2">
-          <button 
-            onClick={() => auth.signOut()}
-            className="flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all w-full relative group"
-          >
-            <LogOut className="w-4 h-4 shrink-0" />
-            <span className={`transition-all duration-300 whitespace-nowrap ${isSidebarCollapsed ? 'opacity-0 translate-x-4 absolute' : 'opacity-100 translate-x-0'}`}>Sign Out</span>
-            {isSidebarCollapsed && (
-              <div className="absolute left-full ml-4 px-3 py-2 bg-red-500 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                Sign Out
-              </div>
-            )}
-          </button>
-        </div>
-      </motion.aside>
+      <Sidebar
+        userProfile={userProfile}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isSidebarCollapsed={isSidebarCollapsed}
+        setIsSidebarCollapsed={setIsSidebarCollapsed}
+        isImpersonating={!!isImpersonating}
+        isFinanceExpanded={isFinanceExpanded}
+        setIsFinanceExpanded={setIsFinanceExpanded}
+        financeSubTab={financeSubTab}
+        setFinanceSubTab={setFinanceSubTab}
+        isToolsExpanded={isToolsExpanded}
+        setIsToolsExpanded={setIsToolsExpanded}
+        toolsSubTab={toolsSubTab}
+        setToolsSubTab={setToolsSubTab}
+        isSettingsExpanded={isSettingsExpanded}
+        setIsSettingsExpanded={setIsSettingsExpanded}
+        settingsSubTab={settingsSubTab}
+        setSettingsSubTab={setSettingsSubTab}
+        canAccessTools={canAccessTools}
+        onBack={onBack}
+      />
 
       {/* Mobile Header (Visible only on small screens) */}
       <div className={cn(
