@@ -482,7 +482,7 @@ export default function App() {
             }
           }
 
-          toast.error("Your account is inactive. Please contact an administrator.");
+          toast.info("Your account is pending approval. An administrator will activate your account shortly.");
           await auth.signOut();
           setAuthLoading(false);
           return;
@@ -656,8 +656,8 @@ export default function App() {
             name: user.displayName || "",
             role: user.email === "shaneruddle@gmail.com" ? "admin" : "employee",
             roles: user.email === "shaneruddle@gmail.com" ? ["admin", "accounts", "manager"] : ["employee"],
-            // Set active: true by default for new registrations to allow immediate login
-            active: true,
+            // New registrations are inactive until approved by an admin
+            active: false,
             discountCode: `SR-EMP-${Math.floor(1000 + Math.random() * 9000)}`,
             createdAt: serverTimestamp() as any,
             updatedAt: serverTimestamp() as any
@@ -677,7 +677,7 @@ export default function App() {
               timestamp: serverTimestamp()
             });
 
-            toast.success("Account registered successfully");
+            toast.success("Account registered! Your account is pending approval by an administrator.");
           } catch (err) {
             console.error("Error creating profile:", err);
             handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`);
