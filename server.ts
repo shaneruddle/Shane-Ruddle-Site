@@ -452,6 +452,23 @@ async function startServer() {
     }
   });
 
+  app.post("/api/generate-copy", async (req, res) => {
+    const { prompt, model = "claude-sonnet-4-20250514", max_tokens = 1024 } = req.body;
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured on server" });
+    try {
+      const aiResponse = await axios.post(
+        "https://api.anthropic.com/v1/messages",
+        { model, max_tokens, messages: [{ role: "user", content: prompt }] },
+        { headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" }, timeout: 60000 }
+      );
+      return res.json(aiResponse.data);
+    } catch (err: any) {
+      console.error("ERROR: Anthropic proxy failed:", err?.response?.data || err.message);
+      return res.status(err?.response?.status || 500).json({ error: err?.response?.data?.error?.message || "AI generation failed" });
+    }
+  });
+
   app.post("/api/contact", async (req, res) => {
     const { name, email, message } = req.body;
 
