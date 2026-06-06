@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { auth } from '../firebase';
-import { cn } from '@src/lib/utils';
+import { cn } from '@/src/lib/utils';
 import {
   Users, Database, FileText, History, DollarSign, Wrench,
   User, Settings, LogOut, ArrowLeft, ChevronDown, ChevronLeft, ChevronRight
