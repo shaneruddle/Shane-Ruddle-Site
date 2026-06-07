@@ -11,7 +11,7 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
-  const PORT = Number(process.env.PORT) || 3000;
+  const PORT = Number(process.env.PORT) || 300;
 
   app.use(cors());
   app.use(express.json());
@@ -108,9 +108,13 @@ async function startServer() {
       // Map API fields if available, else scrape
       const beds = bubbleMetadata?.["Bedrooms"] || bubbleMetadata?.["Beds"] || htmlText.match(/(\d+)\s?(?:bed|bedroom)/i)?.[1] || "";
       const baths = bubbleMetadata?.["Bathrooms"] || bubbleMetadata?.["Baths"] || htmlText.match(/(\d+)\s?(?:bath|bathroom)/i)?.[1] || "";
-      const livingSize = bubbleMetadata?.["Living Area"] || bubbleMetadata?.["Living Size"] || bubbleMetadata?.["Area Size"] || bubbleMetadata?.["Size"] || htmlText.match(/(\d+(?:,\d+)?(?:\.\d+)?)\s?(?:sqm|sq\.\s?m|sq\s?ft|square\s?feet|m2|sq\s?meters)/i)?.[1] || "";
+      // livingSize: require context keyword nearby, and block "30 SQM+" style filter options (trailing +)
+      const livingSize = bubbleMetadata?.["Living Area"] || bubbleMetadata?.["Living Size"] || bubbleMetadata?.["Area Size"] || bubbleMetadata?.["Size"] ||
+        htmlText.match(/(?:living\s?area|internal\s?size|floor\s?area|unit\s?size)[^\d]*(\d+(?:,\d+)?(?:\.\d+)?)\s?(?:sqm|sq\.?\s?m|sq\s?ft|square\s?feet|m2|sq\s?meters)/i)?.[1] ||
+        htmlText.match(/(\d+(?:,\d+)?(?:\.\d+)?)\s?(?:sqm|sq\.?\s?m|sq\s?ft|square\s?feet|m2|sq\s?meters)(?!\s*\+)/i)?.[1] || "";
       const landSize = bubbleMetadata?.["Land Area"] || bubbleMetadata?.["Land Size"] || "";
-      const sellingPrice = bubbleMetadata?.["Listing Price"] || bubbleMetadata?.["Price"] || htmlText.match(/(?:selling price|sale price|price|sale)\s*[:\-]?\s*(?:฿|THB|USD|\$)?\s*([\d,]+)/i)?.[1] || "";
+      // sellingPrice: only match explicit "selling price" or "sale price" (two words) — avoids grabbing "For sale ฿ X" from similar-property sections
+      const sellingPrice = bubbleMetadata?.["Listing Price"] || bubbleMetadata?.["Price"] || htmlText.match(/(?:selling\s?price|sale\s?price)\s*[:\-]?\s*(?:฿|THB|USD|\$)?\s*([\d,]+)/i)?.[1] || "";
       const rentalPrice = bubbleMetadata?.["Rental Price"] || htmlText.match(/(?:rental price|rent|rental)\s*[:\-]?\s*(?:฿|THB|USD|\$)?\s*([\d,]+)/i)?.[1] || "";
       const priceVal = sellingPrice || rentalPrice || "";
       const isBubbleId = (val: any) => typeof val === 'string' && (/^\d+x\d+$/.test(val) || /^[0-9\-]+$/.test(val));
