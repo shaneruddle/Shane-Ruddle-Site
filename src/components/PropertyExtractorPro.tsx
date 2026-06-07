@@ -130,7 +130,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
       [Short, compelling bullet points with emojis highlighting features like location, facilities, and investment value.]
 
       📩 Available for sale or rent – Contact us today
-      📌 Ref: ${userProfile?.name || userProfile?.displayName || userProfile?.email?.split('@')[0] || 'Consultant'} | ${ref}
+      📌 Ref: ${meta.agent || userProfile?.name || userProfile?.displayName || 'Consultant'} | ${ref}
 
       Guidelines:
       1. FORMATTING: Use <p> tags for each line. Ensure there is a blank line (empty <p>&nbsp;</p>) between the main sections (Header, Price/Info, Unit Details, Why You'll Love It, and Footer).
