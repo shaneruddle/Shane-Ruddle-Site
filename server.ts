@@ -48,12 +48,23 @@ async function startServer() {
           try {
             let tpData: any = null;
 
-            // Direct ID lookup only — no text search fallback (text search does substring matching and returns wrong properties)
+            // Try direct numeric ID lookup first
             try {
               const tpRes = await axios.get(`https://www.thaiproperty.com/api/v1/properties/${tpId}`, { timeout: 8000 });
               const candidate = tpRes.data?.data ?? tpRes.data;
               if (candidate?.reference) tpData = candidate;
             } catch {}
+
+            // If direct lookup failed, search and validate by exact reference suffix
+            // e.g. ?q=1398 returns many results; we only accept one whose reference is exactly ^[A-Z]+1398$
+            // This correctly finds SRC1398 while rejecting RC13984, RH13980 etc.
+            if (!tpData) {
+              try {
+                const searchRes = await axios.get(`https://www.thaiproperty.com/api/v1/properties?q=${tpId}&per_page=20`, { timeout: 8000 });
+                const results: any[] = searchRes.data?.data || [];
+                tpData = results.find((r: any) => r.reference && new RegExp(`^[A-Z]{1,5}${tpId}$`).test(r.reference)) ?? null;
+              } catch {}
+            }
 
             if (tpData) {
               if (Array.isArray(tpData.images)) {
