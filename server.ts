@@ -161,17 +161,24 @@ async function startServer() {
                      bubbleMetadata?.["Listing ID"] || 
                      "N/A";
       
-      // Map API fields if available, else scrape
-      const beds = bubbleMetadata?.["Bedrooms"] || bubbleMetadata?.["Beds"] || htmlText.match(/(\d+)\s?(?:bed|bedroom)/i)?.[1] || "";
-      const baths = bubbleMetadata?.["Bathrooms"] || bubbleMetadata?.["Baths"] || htmlText.match(/(\d+)\s?(?:bath|bathroom)/i)?.[1] || "";
+      // Map API fields if available, else scrape.
+      // When bubbleMetadata is set (API data fetched), trust it completely — empty string means the field is genuinely absent.
+      // Only fall through to HTML scraping when no API data exists (!bubbleMetadata).
+      const beds = bubbleMetadata?.["Bedrooms"] || bubbleMetadata?.["Beds"] ||
+        (!bubbleMetadata ? htmlText.match(/(\d+)\s?(?:bed|bedroom)/i)?.[1] || "" : "");
+      const baths = bubbleMetadata?.["Bathrooms"] || bubbleMetadata?.["Baths"] ||
+        (!bubbleMetadata ? htmlText.match(/(\d+)\s?(?:bath|bathroom)/i)?.[1] || "" : "");
       // livingSize: require context keyword nearby, and block "30 SQM+" style filter options (trailing +)
       const livingSize = bubbleMetadata?.["Living Area"] || bubbleMetadata?.["Living Size"] || bubbleMetadata?.["Area Size"] || bubbleMetadata?.["Size"] ||
-        htmlText.match(/(?:living\s?area|internal\s?size|floor\s?area|unit\s?size)[^\d]*(\d+(?:,\d+)?(?:\.\d+)?)\s?(?:sqm|sq\.?\s?m|sq\s?ft|square\s?feet|m2|sq\s?meters)/i)?.[1] ||
-        htmlText.match(/(\d+(?:,\d+)?(?:\.\d+)?)\s?(?:sqm|sq\.?\s?m|sq\s?ft|square\s?feet|m2|sq\s?meters)(?!\s*\+)/i)?.[1] || "";
+        (!bubbleMetadata ? (
+          htmlText.match(/(?:living\s?area|internal\s?size|floor\s?area|unit\s?size)[^\d]*(\d+(?:,\d+)?(?:\.\d+)?)\s?(?:sqm|sq\.?\s?m|sq\s?ft|square\s?feet|m2|sq\s?meters)/i)?.[1] ||
+          htmlText.match(/(\d+(?:,\d+)?(?:\.\d+)?)\s?(?:sqm|sq\.?\s?m|sq\s?ft|square\s?feet|m2|sq\s?meters)(?!\s*\+)/i)?.[1] || ""
+        ) : "");
       const landSize = bubbleMetadata?.["Land Area"] || bubbleMetadata?.["Land Size"] || "";
-      // sellingPrice: only match explicit "selling price" or "sale price" (two words) — avoids grabbing "For sale ฿ X" from similar-property sections
-      const sellingPrice = bubbleMetadata?.["Listing Price"] || bubbleMetadata?.["Price"] || htmlText.match(/(?:selling\s?price|sale\s?price)\s*[:\-]?\s*(?:฿|THB|USD|\$)?\s*([\d,]+)/i)?.[1] || "";
-      const rentalPrice = bubbleMetadata?.["Rental Price"] || htmlText.match(/(?:rental price|rent|rental)\s*[:\-]?\s*(?:฿|THB|USD|\$)?\s*([\d,]+)/i)?.[1] || "";
+      const sellingPrice = bubbleMetadata?.["Listing Price"] || bubbleMetadata?.["Price"] ||
+        (!bubbleMetadata ? htmlText.match(/(?:selling\s?price|sale\s?price)\s*[:\-]?\s*(?:฿|THB|USD|\$)?\s*([\d,]+)/i)?.[1] || "" : "");
+      const rentalPrice = bubbleMetadata?.["Rental Price"] ||
+        (!bubbleMetadata ? htmlText.match(/(?:rental price|rent|rental)\s*[:\-]?\s*(?:฿|THB|USD|\$)?\s*([\d,]+)/i)?.[1] || "" : "");
       const priceVal = sellingPrice || rentalPrice || "";
       const isBubbleId = (val: any) => typeof val === 'string' && (/^\d+x\d+$/.test(val) || /^[0-9\-]+$/.test(val));
       let agent = bubbleMetadata?.["Assigned Agent"] || "";
