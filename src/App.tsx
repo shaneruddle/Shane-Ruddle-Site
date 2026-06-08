@@ -429,6 +429,7 @@ export default function App() {
           setAuthLoading(false);
           return;
         }
+        const hardcodedAdmins = ['shaneruddle@gmail.com', 'alexstein530@gmail.com'];
         if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile & { role?: string };
         console.log("Real-time profile update for:", user.email || user.phoneNumber, data ? 'Data received' : 'No data');
@@ -457,7 +458,7 @@ export default function App() {
         }
 
         // Check if user is active
-        if (data.active === false && user.email !== "shaneruddle@gmail.com") {
+        if (data.active === false && user.email !hardcodedAdmins.includes(user.email || '')) {
           console.log("Inactive user attempted login:", user.email);
           
           // Log inactive login attempt if not already logged recently (throttled)
@@ -489,13 +490,13 @@ export default function App() {
         }
 
         // Ensure admin has required roles
-        if (user.email === "shaneruddle@gmail.com") {
+        if (hardcodedAdmins.includes(user.email || '')) {
           const currentRoles = data.roles || [];
           const requiredRoles = ['admin', 'accounts', 'manager'];
           const missingRoles = requiredRoles.filter(role => !currentRoles.includes(role as any));
           
           if (missingRoles.length > 0) {
-            console.log("Ensuring roles for shaneruddle@gmail.com:", missingRoles);
+            console.log("Ensuring roles for", user.email, ":", missingRoles);
             await updateDoc(userRef, {
               roles: [...currentRoles, ...missingRoles],
               updatedAt: serverTimestamp()
@@ -654,10 +655,10 @@ export default function App() {
             email: user.email || "",
             mobile: user.phoneNumber || "",
             name: user.displayName || "",
-            role: user.email === "shaneruddle@gmail.com" ? "admin" : "employee",
-            roles: user.email === "shaneruddle@gmail.com" ? ["admin", "accounts", "manager"] : ["employee"],
-            // New registrations are inactive until approved by an admin
-            active: false,
+            role: hardcodedAdmins.includes(user.email || '') ? "admin" : "employee",
+            roles: hardcodedAdmins.includes(user.email || '') ? ["admin", "accounts", "manager"] : ["employee"],
+            // New registrations are inactive until approved by an admin (except hardcoded admins)
+            active: hardcodedAdmins.includes(user.email || ''),
             discountCode: `SR-EMP-${Math.floor(1000 + Math.random() * 9000)}`,
             createdAt: serverTimestamp() as any,
             updatedAt: serverTimestamp() as any
@@ -714,7 +715,7 @@ export default function App() {
   // Login toast notifications removed
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundary
       <Toaster position="top-center" richColors />
       
       {/* Back to Top Button */}
