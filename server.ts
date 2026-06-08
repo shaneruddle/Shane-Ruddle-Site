@@ -11,7 +11,7 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
-  const PORT = Number(process.env.PORT) || 300;
+  const PORT = Number(process.env.PORT) || 3000;
 
   app.use(cors());
   app.use(express.json());
@@ -57,11 +57,67 @@ async function startServer() {
         } catch (e) {}
       };
 
+      // --- PRIMARY EXTRACTION: THAIPROPERTY.COM API ---
+      if (url.includes('thaiproperty.com')) {
+        // Extract numeric ID from URL e.g. /realestate/Some-Name_12345.html
+        const tpIdMatch = url.match(/_(\d+)\.html/) || url.match(/\/(\d{4,})(?:\/|$|\?|#)/);
+        const tpId = tpIdMatch?.[1];
+
+        if (tpId) {
+          try {
+            let tpData: any = null;
+
+            // Try direct reference lookup (e.g. RC16311) then fall back to keyword search
+            try {
+              const tpRes = await axios.get(`https://www.thaiproperty.com/api/v1/properties/${tpId}`, { timeout: 8000 });
+              const candidate = tpRes.data?.data ?? tpRes.data;
+              if (candidate?.reference) tpData = candidate;
+            } catch {}
+
+            // If direct lookup returned nothing, search by numeric ID (always unique per URL)
+            if (!tpData) {
+              const searchRes = await axios.get(`https://www.thaiproperty.com/api/v1/properties?q=${tpId}&per_page=1`, { timeout: 8000 });
+              tpData = searchRes.data?.data?.[0] ?? null;
+            }
+
+            if (tpData) {
+              // Extract images
+              if (Array.isArray(tpData.images)) {
+                tpData.images.forEach((img: any) => addImage(img.url));
+              }
+
+              // Map to the same bubbleMetadata shape the rest of the code expects
+              bubbleMetadata = {
+                "Listing Title":      tpData.name || "",
+                "Main Website Ref":   tpData.reference || tpId,
+                "Ref":                tpData.reference || tpId,
+                "Eng description":    tpData.description || "",
+                "Eng Description":    tpData.description || "",
+                "Bedrooms":           tpData.bedrooms != null ? String(tpData.bedrooms) : "",
+                "Bathrooms":          tpData.bathrooms != null ? String(tpData.bathrooms) : "",
+                "Living Area":        tpData.house_sqm != null ? String(tpData.house_sqm) : "",
+                "Land Area":          tpData.land_sqm  != null ? String(tpData.land_sqm)  : "",
+                "Listing Price":      tpData.sale_price && tpData.sale_price > 0 ? String(tpData.sale_price) : "",
+                "Rental Price":       tpData.rent_price && tpData.rent_price > 0 ? String(tpData.rent_price) : "",
+                "Floor":              tpData.floor != null ? String(tpData.floor) : "",
+                "Location":           tpData.location || "",
+                "Sale Type":          tpData.for_sale && tpData.for_rent ? "Sale & Rent"
+                                      : tpData.for_sale ? "Sale"
+                                      : tpData.for_rent ? "Rent" : "",
+                "Property Name":      tpData.name || "",
+              };
+            }
+          } catch (tpErr: any) {
+            console.error("ThaiProperty API failed:", tpErr.message);
+          }
+        }
+      }
+
       // --- PRIMARY EXTRACTION: BUBBLE.IO API ---
       const refMatch = url.match(/([A-Za-z]{2,8}\d{2,10})/i);
       const refCode = refMatch ? refMatch[1].toUpperCase() : null;
 
-      if (refCode && (html.includes("api/1.1/init/data") || url.includes("property"))) {
+      if (!bubbleMetadata && refCode && (html.includes("api/1.1/init/data") || url.includes("property"))) {
         const parsedUrl = new URL(url);
         const constraints = JSON.stringify([{
           key: "Main Website Ref",
@@ -339,9 +395,6 @@ async function startServer() {
   app.post("/api/notify-redemption", async (req, res) => {
     const { employeeName, company, discountName, restaurantId, timestamp } = req.body;
 
-    // Create a transporter
-    // Note: In a real app, you'd use real SMTP credentials from process.env
-    // For now, I'll use a mock/test account or just log it if credentials aren't provided
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.ethereal.email",
       port: Number(process.env.SMTP_PORT) || 587,
@@ -385,7 +438,6 @@ async function startServer() {
         console.warn("WARNING: SMTP credentials not configured or using default test values. Email NOT sent to shaneruddle@gmail.com.");
         console.log("Email Content (Redemption):", mailOptions.text);
         
-        // If using ethereal, we can still send it and provide a link
         if ((transporter.options as any).host === "smtp.ethereal.email") {
           const info = await transporter.sendMail(mailOptions);
           console.log("Ethereal Email Sent: %s", info.messageId);
