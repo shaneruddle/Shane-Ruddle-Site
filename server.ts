@@ -48,18 +48,12 @@ async function startServer() {
           try {
             let tpData: any = null;
 
-            // Try direct ID lookup first
+            // Direct ID lookup only — no text search fallback (text search does substring matching and returns wrong properties)
             try {
               const tpRes = await axios.get(`https://www.thaiproperty.com/api/v1/properties/${tpId}`, { timeout: 8000 });
               const candidate = tpRes.data?.data ?? tpRes.data;
               if (candidate?.reference) tpData = candidate;
             } catch {}
-
-            // Fall back to search by numeric ID
-            if (!tpData) {
-              const searchRes = await axios.get(`https://www.thaiproperty.com/api/v1/properties?q=${tpId}&per_page=1`, { timeout: 8000 });
-              tpData = searchRes.data?.data?.[0] ?? null;
-            }
 
             if (tpData) {
               if (Array.isArray(tpData.images)) {
