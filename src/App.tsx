@@ -458,7 +458,7 @@ export default function App() {
         }
 
         // Check if user is active
-        if (data.active === false && user.email !hardcodedAdmins.includes(user.email || '')) {
+        if (data.active === false && !hardcodedAdmins.includes(user.email || '')) {
           console.log("Inactive user attempted login:", user.email);
           
           // Log inactive login attempt if not already logged recently (throttled)
@@ -715,7 +715,7 @@ export default function App() {
   // Login toast notifications removed
 
   return (
-    <ErrorBoundary
+    <ErrorBoundary>
       <Toaster position="top-center" richColors />
       
       {/* Back to Top Button */}

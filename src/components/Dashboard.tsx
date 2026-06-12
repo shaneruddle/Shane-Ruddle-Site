@@ -2165,7 +2165,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
   const isWhitelistedCompany = !!(userProfile.company?.trim());
 
   const isAbpcOrEcre = userProfile.company === 'Alan Bolton Property Consultants' || userProfile.company === 'East Coast Real Estate';
-  const canAccessTools = hasRole('admin') || hasRole('manager') || hasRole('accounts') || isAbpcOrEcre;
+  const canAccessTools = hasRole('admin') || hasRole('manager') || (userProfile as any).toolsAccess === true;
 
   if (!hasRole('admin') && !hasRole('accounts') && !hasRole('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com' && !isWhitelistedCompany) {
     return (
@@ -4654,6 +4654,44 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                         : "User will be blocked from logging in."}
                     </p>
                   </div>
+
+        <div>
+          <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Tools Access</label>
+          <button
+            type="button"
+            onClick={() => setEditingEmployee({ ...editingEmployee, toolsAccess: !(editingEmployee as any).toolsAccess })}
+            className={cn(
+              "w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 border-2",
+              (editingEmployee as any).toolsAccess
+                ? "bg-green-50 border-green-100 text-green-700"
+                : "bg-black/5 border-black/10 text-black/50"
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "w-2 h-2 rounded-full",
+                (editingEmployee as any).toolsAccess ? "bg-green-500 animate-pulse" : "bg-black/20"
+              )} />
+              <span className="text-xs font-bold uppercase tracking-widest">
+                {(editingEmployee as any).toolsAccess ? 'Tools Enabled' : 'Tools Disabled'}
+              </span>
+            </div>
+            <div className={cn(
+              "w-10 h-5 rounded-full relative transition-colors duration-300",
+              (editingEmployee as any).toolsAccess ? "bg-green-500" : "bg-black/20"
+            )}>
+              <div className={cn(
+                "absolute top-1 w-3 h-3 bg-white rounded-full transition-all duration-300",
+                (editingEmployee as any).toolsAccess ? "right-1" : "left-1"
+              )} />
+            </div>
+          </button>
+          <p className="mt-2 text-[10px] text-black/40 italic px-4">
+            {(editingEmployee as any).toolsAccess
+              ? "This employee can access the Tools tab."
+              : "This employee cannot access the Tools tab."}
+          </p>
+        </div>
                 </div>
 
                 <div>
