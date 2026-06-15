@@ -318,6 +318,8 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
   const [financeAccountFilter, setFinanceAccountFilter] = useState<string>('trading');
   const [financeTypeFilter, setFinanceTypeFilter] = useState<string>('all');
   const [financeSearchTerm, setFinanceSearchTerm] = useState('');
+  const [logPage, setLogPage] = useState(0);
+  const [finPage, setFinPage] = useState(0);
   const reportRef = useRef<HTMLDivElement>(null);
 
   // Reset filters when sub-tab changes
@@ -326,6 +328,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
     setFinanceMonthFilter('all');
     setFinanceYearFilter('all');
     setFinanceSearchTerm('');
+    setFinPage(0);
     setSelectedIndividualAgent('');
   }, [financeSubTab]);
 
@@ -2687,6 +2690,8 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                             const timeB = getTime(b.timestamp);
                             return timeB - timeA;
                           })
+                          .slice(logPage * 50, (logPage + 1) * 50)
+                          .slice(logPage * 50, (logPage + 1) * 50)
                           .map((log) => (
                           <tr key={log.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
                             <td className="px-6 py-4">
@@ -2754,6 +2759,26 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                     </table>
                   </div>
 
+                  {/* Desktop Log Pagination */}
+                  {(() => {
+                    const _all = [...logs, ...pattayaLogs, ...cajunLogs].filter(log => {
+                      const matchesSearch = `${log.user || ''} ${log.action || ''} ${log.source || ''}`.toLowerCase().includes(searchTerm.toLowerCase());
+                      const matchesFilter = logFilter === 'ALL' || log.source === logFilter;
+                      return matchesSearch && matchesFilter;
+                    });
+                    const _total = Math.ceil(_all.length / 50);
+                    if (_total <= 1) return null;
+                    return (
+                      <div className="hidden md:flex items-center justify-between px-6 py-3 border-t border-black/5">
+                        <span className="text-[10px] text-black/40 uppercase tracking-widest">Page {logPage + 1} of {_total} · {_all.length} entries</span>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setLogPage(p => Math.max(0, p - 1))} disabled={logPage === 0} className="w-6 h-6 flex items-center justify-center rounded border border-black/10 disabled:opacity-30"><ChevronLeft className="w-3 h-3" /></button>
+                          <button onClick={() => setLogPage(p => Math.min(_total - 1, p + 1))} disabled={logPage >= _total - 1} className="w-6 h-6 flex items-center justify-center rounded border border-black/10 disabled:opacity-30"><ChevronRight className="w-3 h-3" /></button>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* Mobile List View */}
                   <div className="md:hidden divide-y divide-black/5 bg-white">
                     {[...logs, ...pattayaLogs, ...cajunLogs]
@@ -2775,6 +2800,8 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                         const timeB = getTime(b.timestamp);
                         return timeB - timeA;
                       })
+                      .slice(logPage * 50, (logPage + 1) * 50)
+                      .slice(logPage * 50, (logPage + 1) * 50)
                       .map((log) => (
                         <div key={log.id} className="p-4 bg-white hover:bg-black/2 transition-colors">
                           <div className="flex justify-between items-start mb-2">
@@ -2825,6 +2852,26 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                         </div>
                       )}
                   </div>
+
+                  {/* Mobile Log Pagination */}
+                  {(() => {
+                    const _all = [...logs, ...pattayaLogs, ...cajunLogs].filter(log => {
+                      const matchesSearch = `${log.user || ''} ${log.action || ''} ${log.source || ''}`.toLowerCase().includes(searchTerm.toLowerCase());
+                      const matchesFilter = logFilter === 'ALL' || log.source === logFilter;
+                      return matchesSearch && matchesFilter;
+                    });
+                    const _total = Math.ceil(_all.length / 50);
+                    if (_total <= 1) return null;
+                    return (
+                      <div className="md:hidden flex items-center justify-between px-4 py-3 border-t border-black/5">
+                        <span className="text-[10px] text-black/40 uppercase tracking-widest">Page {logPage + 1}/{_total}</span>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setLogPage(p => Math.max(0, p - 1))} disabled={logPage === 0} className="w-6 h-6 flex items-center justify-center rounded border border-black/10 disabled:opacity-30"><ChevronLeft className="w-3 h-3" /></button>
+                          <button onClick={() => setLogPage(p => Math.min(_total - 1, p + 1))} disabled={logPage >= _total - 1} className="w-6 h-6 flex items-center justify-center rounded border border-black/10 disabled:opacity-30"><ChevronRight className="w-3 h-3" /></button>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
               </motion.div>
@@ -3375,7 +3422,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                             </tr>
                           </thead>
                           <tbody>
-                            {filteredFinanceTransactions.map((t) => (
+                            {filteredFinanceTransactions.slice(finPage * 50, (finPage + 1) * 50).map((t) => (
                               <tr key={t.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
                                 <td className="px-6 py-4 text-xs font-mono">{t.date}</td>
                                 <td className="px-6 py-4">
@@ -3433,6 +3480,15 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                         </table>
                       </div>
                     </div>
+                  {filteredFinanceTransactions.length > 50 && (
+                    <div className="flex items-center justify-between px-6 py-3 border-t border-black/5">
+                      <span className="text-[10px] text-black/40 uppercase tracking-widest">Page {finPage + 1} of {Math.ceil(filteredFinanceTransactions.length / 50)} · {filteredFinanceTransactions.length} records</span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setFinPage(p => Math.max(0, p - 1))} disabled={finPage === 0} className="w-6 h-6 flex items-center justify-center rounded border border-black/10 disabled:opacity-30"><ChevronLeft className="w-3 h-3" /></button>
+                        <button onClick={() => setFinPage(p => Math.min(Math.ceil(filteredFinanceTransactions.length / 50) - 1, p + 1))} disabled={(finPage + 1) * 50 >= filteredFinanceTransactions.length} className="w-6 h-6 flex items-center justify-center rounded border border-black/10 disabled:opacity-30"><ChevronRight className="w-3 h-3" /></button>
+                      </div>
+                    </div>
+                  )}
                   </div>
                 ) : (
                   <div className="space-y-8">
@@ -3666,7 +3722,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                             </tr>
                           </thead>
                           <tbody>
-                            {filteredFinanceTransactions.map((t) => (
+                            {filteredFinanceTransactions.slice(finPage * 50, (finPage + 1) * 50).map((t) => (
                               <tr key={t.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
                                 <td className="px-6 py-4 text-xs font-mono">{t.date}</td>
                                 <td className="px-6 py-4">
@@ -3724,6 +3780,15 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                         </table>
                       </div>
                     </div>
+                  {filteredFinanceTransactions.length > 50 && (
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-black/5">
+                      <span className="text-[10px] text-black/40 uppercase tracking-widest">Page {finPage + 1}/{Math.ceil(filteredFinanceTransactions.length / 50)}</span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setFinPage(p => Math.max(0, p - 1))} disabled={finPage === 0} className="w-6 h-6 flex items-center justify-center rounded border border-black/10 disabled:opacity-30"><ChevronLeft className="w-3 h-3" /></button>
+                        <button onClick={() => setFinPage(p => Math.min(Math.ceil(filteredFinanceTransactions.length / 50) - 1, p + 1))} disabled={(finPage + 1) * 50 >= filteredFinanceTransactions.length} className="w-6 h-6 flex items-center justify-center rounded border border-black/10 disabled:opacity-30"><ChevronRight className="w-3 h-3" /></button>
+                      </div>
+                    </div>
+                  )}
                   </div>
                 )}
               </motion.div>
