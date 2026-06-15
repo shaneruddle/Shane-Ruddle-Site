@@ -318,6 +318,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
   const [financeAccountFilter, setFinanceAccountFilter] = useState<string>('trading');
   const [financeTypeFilter, setFinanceTypeFilter] = useState<string>('all');
   const [financeSearchTerm, setFinanceSearchTerm] = useState('');
+  const [showFinancePanels, setShowFinancePanels] = useState(false);
   const [logPage, setLogPage] = useState(0);
   const [finPage, setFinPage] = useState(0);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -3210,7 +3211,14 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                   </div>
                 ) : financeSubTab === 'ABPC' ? (
                   <div className="space-y-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <button
+                      onClick={() => setShowFinancePanels(p => !p)}
+                      className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-black/40 hover:text-black/70 transition-colors"
+                    >
+                      <span className={`w-3.5 h-3.5 transition-transform ${showFinancePanels ? 'rotate-90' : ''}`}>&#9654;</span>
+                      {showFinancePanels ? 'Hide' : 'Show'} Filters &amp; Summary
+                    </button>
+                    {showFinancePanels && <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                       {/* Filters Panel */}
                       <div className="lg:col-span-1 glass p-6 rounded-3xl space-y-4">
                         <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-black/40 mb-2">Filters</h4>
@@ -3377,7 +3385,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </div>}
 
                     <div className="w-full space-y-8">
                       <div className="flex justify-end gap-3">
@@ -3490,7 +3498,14 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                   </div>
                 ) : (
                   <div className="space-y-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <button
+                      onClick={() => setShowFinancePanels(p => !p)}
+                      className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-black/40 hover:text-black/70 transition-colors"
+                    >
+                      <span className={`w-3.5 h-3.5 transition-transform ${showFinancePanels ? 'rotate-90' : ''}`}>&#9654;</span>
+                      {showFinancePanels ? 'Hide' : 'Show'} Filters &amp; Summary
+                    </button>
+                    {showFinancePanels && <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                       {/* Filters Panel */}
                       <div className="lg:col-span-1 glass p-6 rounded-3xl space-y-4">
                         <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-black/40 mb-2">Filters</h4>
@@ -3657,7 +3672,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </div>}
 
                     <div className="w-full space-y-8">
                       <div className="flex justify-end gap-3">                        {!financeSubTab.startsWith('ABPC') && (
