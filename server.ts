@@ -6,14 +6,15 @@ import dotenv from "dotenv";
 import axios from "axios";
 import cors from "cors";
 import * as admin from "firebase-admin";
-import { cert } from "firebase-admin/app";
+import { cert, initializeApp as initializeRemoteApp, getApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 
 dotenv.config();
 
 // --- Remote Firebase app instances (initialised once) ---
 function getRemoteApp(name: string, envVar: string): admin.app.App | null {
   try {
-    return admin.app(name);
+    return getApp(name) as unknown as admin.app.App;
   } catch {
     const raw = process.env[envVar];
     if (!raw) return null;
@@ -21,7 +22,7 @@ function getRemoteApp(name: string, envVar: string): admin.app.App | null {
       // Support both raw JSON and base64-encoded JSON
       const json = raw.trim().startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf8');
       const credential = cert(JSON.parse(json));
-      return admin.initializeApp({ credential }, name);
+      return initializeRemoteApp({ credential }, name) as unknown as admin.app.App;
     } catch (e) {
       console.error(`Failed to init Firebase app "${name}":`, e);
       return null;
