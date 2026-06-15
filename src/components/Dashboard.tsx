@@ -745,70 +745,29 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
       setLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), source: 'SHANE' } as UsageLog)));
     }, (err) => console.warn("Logs stream stopped:", err.message));
 
-    // Remote Logs Setup
-    let unsubPattaya: (() => void) | undefined;
-    let unsubCajun: (() => void) | undefined;
-    
-    const setupRemote = (config: any, appId: string, dbId: string, sourceLabel: string, setLogsFn: (logs: UsageLog[]) => void, setErrorFn: (err: string | null) => void) => {
+    // Remote Logs — fetched via server-side aggregator (avoids cross-project auth issues)
+    const fetchRemoteLogs = async () => {
       try {
-        let app;
-        try { app = getApp(appId); } catch { app = initializeApp(config, appId); }
-        const rDb = getFirestore(app, dbId);
-        
-        // Try multiple common log collection names, prioritizing system_logs for Cajun
-        const collectionNames = ['system_logs', 'usage_logs', 'logs', 'activity', 'history', 'audit_trail'];
-        
-        const tryNext = (index: number) => {
-          if (index >= collectionNames.length) {
-            setErrorFn(null); // Just show 0 if nothing found
-            return;
-          }
-          
-          const colName = collectionNames[index];
-          const q = query(collection(rDb, colName), orderBy('timestamp', 'desc'), limit(100));
-          
-          onSnapshot(q, (snap) => {
-            if (snap.empty) {
-              tryNext(index + 1);
-            } else {
-              setLogsFn(snap.docs.map(doc => ({ id: doc.id, ...doc.data(), source: sourceLabel } as UsageLog)));
-              setErrorFn(null);
-            }
-          }, (err) => {
-            console.warn(`Remote logs (${appId}) ${colName} failed:`, err.message);
-            if (err.message.includes('permission')) {
-              setErrorFn('Access Denied');
-            } else {
-              tryNext(index + 1);
-            }
-          });
-        };
+        const res = await fetch('/api/logs');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
 
-        tryNext(0);
-      } catch (err) {
-        console.error(`Failed to init remote (${appId}):`, err);
-        setErrorFn('Init Failed');
-        return undefined;
+        const prac = data['RENT A CAR'];
+        if (prac?.error) setPattayaError(prac.error);
+        else { setPattayaLogs(prac?.logs ?? []); setPattayaError(null); }
+
+        const cajun = data['CAJUN'];
+        if (cajun?.error) setCajunError(cajun.error);
+        else { setCajunLogs(cajun?.logs ?? []); setCajunError(null); }
+      } catch (e: any) {
+        console.error('Remote logs fetch failed:', e.message);
+        setPattayaError('Fetch Failed');
+        setCajunError('Fetch Failed');
       }
     };
 
-    unsubPattaya = setupRemote({
-      apiKey: "AIzaSyBwNBORxwnyg-X-PGULAYL2tnv9qvckp2I",
-      authDomain: "pattaya-rent-a-car-rebuild.firebaseapp.com",
-      projectId: "pattaya-rent-a-car-rebuild",
-      storageBucket: "pattaya-rent-a-car-rebuild.firebasestorage.app",
-      messagingSenderId: "700448424476",
-      appId: "1:700448424476:web:5ddf038c6bd46b7b4615d9"
-    }, "pattaya-logs", "(default)", "RENT A CAR", setPattayaLogs, setPattayaError);
-
-    unsubCajun = setupRemote({
-      apiKey: "AIzaSyCvrKHre4sQUVnrk0eKFgQcNoexLS_WZps",
-      authDomain: "cajun-life-cafe.firebaseapp.com",
-      projectId: "cajun-life-cafe",
-      storageBucket: "cajun-life-cafe.firebasestorage.app",
-      messagingSenderId: "1006330230181",
-      appId: "1:1006330230181:web:bb9fa1db36a7ef61bd244c"
-    }, "cajun-logs", "ai-studio-88dfc183-b7e7-45b8-b831-62b1a7bbdb29", "CAJUN", setCajunLogs, setCajunError);
+    fetchRemoteLogs();
+    const remoteLogsInterval = setInterval(fetchRemoteLogs, 60_000);
 
     const unsubSiteImages = onSnapshot(collection(db, 'site_images'), (snapshot) => {
       const images = snapshot.docs.map(doc => {
@@ -830,8 +789,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
     return () => {
       unsubEmployees();
       unsubLogs();
-      if (unsubPattaya) unsubPattaya();
-      if (unsubCajun) unsubCajun();
+      clearInterval(remoteLogsInterval);
       unsubSiteImages();
     };
   }, [userProfile]);
