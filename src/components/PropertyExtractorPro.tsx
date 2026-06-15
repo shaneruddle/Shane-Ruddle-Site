@@ -417,6 +417,17 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
         bubbleStatus: 'Syncing...'
       });
 
+      await addDoc(collection(db, 'usage_logs'), {
+        userId: userProfile.uid,
+        userEmail: userProfile.email,
+        userName: userProfile.name || userProfile.displayName || userProfile.email,
+        userCompany: userProfile.company || null,
+        type: 'extractor_pro',
+        details: `Extracted: ${title} (Ref: ${refNumber})`,
+        url,
+        timestamp: serverTimestamp()
+      });
+
       addLog('SYNC_COMPLETE: Extraction data persisted to cloud storage', 'success');
       toast.success('Property data extracted successfully!');
       setShowSidebarMobile(false);
