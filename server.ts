@@ -39,18 +39,19 @@ async function startServer() {
 
   // Cross-project log aggregator
   app.get("/api/logs", async (req, res) => {
-    const sources: { name: string; envVar: string; label: string }[] = [
-      { name: "prac-admin",  envVar: "PRAC_SERVICE_ACCOUNT",  label: "RENT A CAR" },
-      { name: "cajun-admin", envVar: "CAJUN_SERVICE_ACCOUNT", label: "CAJUN" },
+    const sources: { name: string; envVar: string; label: string; collections: string[] }[] = [
+      { name: "prac-admin",  envVar: "PRAC_SERVICE_ACCOUNT",  label: "RENT A CAR", collections: ["bookings", "enquiries"] },
+      { name: "cajun-admin", envVar: "CAJUN_SERVICE_ACCOUNT", label: "CAJUN",      collections: ["system_logs", "crm_customers"] },
     ];
     const results: Record<string, { logs: any[]; error: string | null }> = {};
-    await Promise.all(sources.map(async ({ name, envVar, label }) => {
+    await Promise.all(sources.map(async ({ name, envVar, label, collections }) => {
       const remoteApp = getRemoteApp(name, envVar);
       if (!remoteApp) { results[label] = { logs: [], error: "Not configured" }; return; }
       try {
         const db = getFirestore(remoteApp as any);
-        const snap = await db.collection("usage_logs").orderBy("timestamp", "desc").limit(100).get();
-        results[label] = { logs: snap.docs.map(doc => ({ id: doc.id, ...doc.data(), source: label })), error: null };
+        const snaps = await Promise.all(collections.map(col => db.collection(col).orderBy("createdAt", "desc").limit(50).get().catch(() => db.collection(col).limit(50).get())));
+        const logs = snaps.flatMap((snap, i) => snap.docs.map(doc => ({ id: doc.id, ...doc.data(), source: label, collection: collections[i] })));
+        results[label] = { logs, error: null };
       } catch (e: any) {
         console.error(`Logs fetch failed for ${label}:`, e.message);
         results[label] = { logs: [], error: e.message.includes("PERMISSION_DENIED") ? "Access Denied" : e.message };
