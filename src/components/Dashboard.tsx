@@ -2153,8 +2153,8 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
         return 0;
       };
       if (sortOrder === 'last-active') {
-        const activeA = getTime(a.updatedAt) || getTime(a.lastLoginAt) || getTime(a.createdAt);
-        const activeB = getTime(b.updatedAt) || getTime(b.lastLoginAt) || getTime(b.createdAt);
+        const activeA = getTime(a.lastLoginAt) || getTime(a.updatedAt) || getTime(a.createdAt);
+        const activeB = getTime(b.lastLoginAt) || getTime(b.updatedAt) || getTime(b.createdAt);
         return activeB - activeA;
       }
       const timeA = getTime(a.createdAt) || getTime(a.employedFrom);
@@ -2454,6 +2454,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                             </div>
                           </td>
                           <td className="px-6 py-4">
+                            <div className="flex flex-col gap-1">
                             <div className={cn(
                               "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
                               emp.active !== false ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
@@ -2461,6 +2462,15 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                               <div className={cn("w-1.5 h-1.5 rounded-full", emp.active !== false ? "bg-green-500" : "bg-red-500")} />
                               {emp.active !== false ? 'Active' : 'Inactive'}
                             </div>
+                            {(emp as any).lastLoginAt && (
+                              <span className="text-[9px] text-black/30 pl-0.5">
+                                {(() => {
+                                  const v = (emp as any).lastLoginAt;
+                                  const d = v?.toDate ? v.toDate() : new Date(v);
+                                  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                                })()}
+                              </span>
+                            )}
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
