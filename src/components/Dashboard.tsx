@@ -2691,7 +2691,6 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                             return timeB - timeA;
                           })
                           .slice(logPage * 50, (logPage + 1) * 50)
-                          .slice(logPage * 50, (logPage + 1) * 50)
                           .map((log) => (
                           <tr key={log.id} className="border-bottom border-black/5 hover:bg-black/2 transition-colors group">
                             <td className="px-6 py-4">
@@ -2800,7 +2799,6 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                         const timeB = getTime(b.timestamp);
                         return timeB - timeA;
                       })
-                      .slice(logPage * 50, (logPage + 1) * 50)
                       .slice(logPage * 50, (logPage + 1) * 50)
                       .map((log) => (
                         <div key={log.id} className="p-4 bg-white hover:bg-black/2 transition-colors">
