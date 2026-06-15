@@ -2729,22 +2729,18 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                                 {(log.type || (log as any).action || 'activity').replace('_', ' ')}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-xs">
-                              {log.type === 'login' ? (
-                                <span className="text-black/60 italic">User logged in to the application</span>
-                              ) : log.type === 'signup' ? (
-                                <span className="text-black/60">{log.details || 'New user registered'}</span>
-                              ) : log.type?.startsWith('finance_') ? (
-                                <span className="text-black/60">{log.details}</span>
-                              ) : log.type?.includes('_update') ? (
-                                <span className="text-black/60">{log.details}</span>
-                              ) : (
-                                <div>
-                                  <div className="font-medium text-gold">{log.discountName}</div>
-                                  <div className="text-[10px] text-black/40 uppercase tracking-widest">{log.restaurantId}</div>
-                                </div>
-                              )}
-                            </td>
+                <td className="px-6 py-4 text-xs">
+                  {log.type === 'login' ? (
+                    <span className="text-black/60 italic">User logged in to the application</span>
+                  ) : log.details ? (
+                    <span className="text-black/60">{log.details}</span>
+                  ) : log.discountName ? (
+                    <div>
+                      <div className="font-medium text-gold">{log.discountName}</div>
+                      <div className="text-[10px] text-black/40 uppercase tracking-widest">{log.restaurantId}</div>
+                    </div>
+                  ) : null}
+                </td>
                           </tr>
                         ))}
                         {[...logs, ...pattayaLogs, ...cajunLogs].length === 0 && (
