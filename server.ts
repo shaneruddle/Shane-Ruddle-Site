@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import axios from "axios";
 import cors from "cors";
 import * as admin from "firebase-admin";
+import { cert } from "firebase-admin/app";
 
 dotenv.config();
 
@@ -19,7 +20,7 @@ function getRemoteApp(name: string, envVar: string): admin.app.App | null {
     try {
       // Support both raw JSON and base64-encoded JSON
       const json = raw.trim().startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf8');
-      const credential = admin.credential.cert(JSON.parse(json));
+      const credential = cert(JSON.parse(json));
       return admin.initializeApp({ credential }, name);
     } catch (e) {
       console.error(`Failed to init Firebase app "${name}":`, e);
