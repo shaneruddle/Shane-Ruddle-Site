@@ -45,12 +45,14 @@ jobs:
           PRAC_SERVICE_ACCOUNT: ${{ secrets.PRAC_SERVICE_ACCOUNT }}
           CAJUN_SERVICE_ACCOUNT: ${{ secrets.CAJUN_SERVICE_ACCOUNT }}
         run: |
+          PRAC_B64=$(printf '%s' "${PRAC_SERVICE_ACCOUNT}" | base64 -w0)
+          CAJUN_B64=$(printf '%s' "${CAJUN_SERVICE_ACCOUNT}" | base64 -w0)
           gcloud run deploy shane-ruddle-server \
             --image asia-east1-docker.pkg.dev/shane-ruddle-site/shane-ruddle/server:${{ github.sha }} \
             --region asia-east1 \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "^|^NODE_ENV=production|SMTP_HOST=${{ secrets.SMTP_HOST }}|SMTP_PORT=${{ secrets.SMTP_PORT }}|SMTP_USER=${{ secrets.SMTP_USER }}|SMTP_PASS=${SMTP_PASS}|ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}|PRAC_SERVICE_ACCOUNT=${PRAC_SERVICE_ACCOUNT}|CAJUN_SERVICE_ACCOUNT=${CAJUN_SERVICE_ACCOUNT}" \
+            --set-env-vars "NODE_ENV=production,SMTP_HOST=${{ secrets.SMTP_HOST }},SMTP_PORT=${{ secrets.SMTP_PORT }},SMTP_USER=${{ secrets.SMTP_USER }},SMTP_PASS=${SMTP_PASS},ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY},PRAC_SERVICE_ACCOUNT=${PRAC_B64},CAJUN_SERVICE_ACCOUNT=${CAJUN_B64}" \
             --quiet
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
