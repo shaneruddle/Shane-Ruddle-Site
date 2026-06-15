@@ -17,7 +17,9 @@ function getRemoteApp(name: string, envVar: string): admin.app.App | null {
     const raw = process.env[envVar];
     if (!raw) return null;
     try {
-      const credential = admin.credential.cert(JSON.parse(raw));
+      // Support both raw JSON and base64-encoded JSON
+      const json = raw.trim().startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf8');
+      const credential = admin.credential.cert(JSON.parse(json));
       return admin.initializeApp({ credential }, name);
     } catch (e) {
       console.error(`Failed to init Firebase app "${name}":`, e);
