@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db, auth } from '../firebase';
-import { collection, onSnapshot, query, where, addDoc, serverTimestamp, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, addDoc, serverTimestamp, getDocs, updateDoc, doc as fsDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { 
   Search, 
@@ -1122,6 +1122,29 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
 };
 
 const AuditTrailRow = ({ item, companies = [] }: { item: Extraction; companies?: any[] }) => {
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const handleRefreshSaleType = async () => {
+    if (!item.url || refreshing) return;
+    setRefreshing(true);
+    try {
+      const response = await fetch('/api/extract-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: item.url })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Refresh failed');
+      const newSaleType = data.meta?.saleType || 'N/A';
+      await updateDoc(fsDoc(db, 'extractions', item.id), { saleType: newSaleType });
+      toast.success(`Sale type updated: ${newSaleType}`);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to refresh sale type');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const company = companies.find(c => c.name === item.userCompany);
   const safeUrl = item.url ? (item.url.startsWith('http') ? item.url : `https://${item.url}`) : '#';
   return (
@@ -1179,7 +1202,17 @@ const AuditTrailRow = ({ item, companies = [] }: { item: Extraction; companies?:
           <span className="text-[10px] lg:text-[11px] text-[#1A1A1A] font-bold uppercase">{item.refNumber || '-'}</span>
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-[8px] lg:text-[9px] text-[#BBB] font-bold uppercase tracking-widest">Sale Type</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[8px] lg:text-[9px] text-[#BBB] font-bold uppercase tracking-widest">Sale Type</span>
+            <button
+              onClick={handleRefreshSaleType}
+              disabled={refreshing}
+              title="Refresh sale type from listing"
+              className="text-[#BBB] hover:text-[#C5A059] transition-colors disabled:opacity-40"
+            >
+              <RefreshCw className={`w-2.5 h-2.5 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
           <span className="text-[10px] lg:text-[11px] text-[#C5A059] font-bold uppercase">{item.saleType || 'N/A'}</span>
         </div>
         <div className="flex flex-col gap-1">
