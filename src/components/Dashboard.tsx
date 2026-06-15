@@ -1977,7 +1977,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
           nickname: agentUser?.nickname,
           total,
           average: total / months,
-          isActive: !agentUser || agentUser.active !== false
+          isActive: !!agentUser && agentUser.active !== false
         };
       })
       .filter(p => p.isActive)
