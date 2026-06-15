@@ -43,7 +43,7 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
         }
 
         // Fetch logs
-        const logsQuery = query(collection(db, 'usage_logs'), where('userId', '==', userProfile.uid));
+        const logsQuery = query(collection(db, 'usage_logs'), where('userId', '==', userProfile.uid), where('type', '==', 'redemption'));
         const logsSnap = await getDocs(logsQuery);
         setMyLogs(logsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as UsageLog)).sort((a, b) => {
           const timeA = a.timestamp?.toMillis?.() || 0;
