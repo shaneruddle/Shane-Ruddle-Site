@@ -5,8 +5,26 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import axios from "axios";
 import cors from "cors";
+import * as admin from "firebase-admin";
 
 dotenv.config();
+
+// --- Remote Firebase app instances (initialised once) ---
+function getRemoteApp(name: string, envVar: string): admin.app.App | null {
+  try {
+    return admin.app(name);
+  } catch {
+    const raw = process.env[envVar];
+    if (!raw) return null;
+    try {
+      const credential = admin.credential.cert(JSON.parse(raw));
+      return admin.initializeApp({ credential }, name);
+    } catch (e) {
+      console.error(`Failed to init Firebase app "${name}":`, e);
+      return null;
+    }
+  }
+}
 
 async function startServer() {
   const app = express();
@@ -14,6 +32,28 @@ async function startServer() {
 
   app.use(cors());
   app.use(express.json());
+
+  // Cross-project log aggregator
+  app.get("/api/logs", async (req, res) => {
+    const sources: { name: string; envVar: string; label: string }[] = [
+      { name: "prac-admin",  envVar: "PRAC_SERVICE_ACCOUNT",  label: "RENT A CAR" },
+      { name: "cajun-admin", envVar: "CAJUN_SERVICE_ACCOUNT", label: "CAJUN" },
+    ];
+    const results: Record<string, { logs: any[]; error: string | null }> = {};
+    await Promise.all(sources.map(async ({ name, envVar, label }) => {
+      const remoteApp = getRemoteApp(name, envVar);
+      if (!remoteApp) { results[label] = { logs: [], error: "Not configured" }; return; }
+      try {
+        const db = admin.firestore(remoteApp);
+        const snap = await db.collection("usage_logs").orderBy("timestamp", "desc").limit(100).get();
+        results[label] = { logs: snap.docs.map(doc => ({ id: doc.id, ...doc.data(), source: label })), error: null };
+      } catch (e: any) {
+        console.error(`Logs fetch failed for ${label}:`, e.message);
+        results[label] = { logs: [], error: e.message.includes("PERMISSION_DENIED") ? "Access Denied" : e.message };
+      }
+    }));
+    res.json(results);
+  });
 
   // API Route to extract property data and images from a URL
   app.post("/api/extract-images", async (req, res) => {
