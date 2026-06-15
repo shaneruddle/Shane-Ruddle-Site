@@ -2471,6 +2471,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                                 })()}
                               </span>
                             )}
+                            </div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
