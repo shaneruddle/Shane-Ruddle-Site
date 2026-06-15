@@ -559,6 +559,7 @@ export default function App() {
               type: 'login',
               timestamp: serverTimestamp()
             });
+            updateDoc(userRef, { lastLoginAt: serverTimestamp() }).catch(() => {});
           } catch (err) {
             console.error("Error logging login:", err);
             loginLogged.current = false; // Reset on failure to allow retry
