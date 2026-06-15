@@ -14,6 +14,8 @@ import {
   CheckCircle, 
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   AlertCircle,
   ExternalLink,
   Save,
