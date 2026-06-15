@@ -147,13 +147,19 @@ export default function BlogPage({ onBack }: BlogPageProps) {
           )}
           
           <div className="mt-24 p-12 bg-[#F8F8F8] rounded-[2rem] flex flex-col md:flex-row items-center gap-8">
-            <div className="w-24 h-24 rounded-full overflow-hidden flex-shrink-0 shadow-xl">
-              <img 
-                src="/input_file_3.png" 
-                alt="Shane Ruddle" 
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
+            <div className="w-24 h-24 flex-shrink-0 shadow-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" className="w-full h-full" role="img" aria-label="Shane Ruddle">
+                <defs>
+                  <linearGradient id="blogGold" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#F9F295" />
+                    <stop offset="45%" stopColor="#D4AF37" />
+                    <stop offset="100%" stopColor="#B8860B" />
+                  </linearGradient>
+                </defs>
+                <circle cx="60" cy="60" r="57" fill="#0A0A0A" />
+                <circle cx="60" cy="60" r="53" fill="none" stroke="url(#blogGold)" strokeWidth="1.2" />
+                <text x="60" y="78" textAnchor="middle" fontSize="58" fontWeight="500" letterSpacing="-2" fill="url(#blogGold)" fontFamily="system-ui, sans-serif">SR</text>
+              </svg>
             </div>
             <div>
               <h4 className="text-xl font-serif mb-2">About the Author</h4>
