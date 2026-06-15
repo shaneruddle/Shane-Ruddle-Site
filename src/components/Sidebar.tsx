@@ -185,14 +185,7 @@ export default function Sidebar({
         {(hasRole('admin') || hasRole('accounts')) && (
           <div className="flex flex-col">
             <button
-              onClick={() => {
-                if (activeTab === 'finance') {
-                  setIsFinanceExpanded(!isFinanceExpanded);
-                } else {
-                  setActiveTab('finance');
-                  setIsFinanceExpanded(true);
-                }
-              }}
+              onClick={() => setIsFinanceExpanded(!isFinanceExpanded)}
               className={navItemClass(activeTab === 'finance')}
             >
               <DollarSign className="w-4 h-4 shrink-0" />
@@ -208,7 +201,7 @@ export default function Sidebar({
                     {(['ABPC', 'ABPC Agents', 'ABPC Reports'] as FinanceSubTab[]).map((sub) => (
                       <button
                         key={sub}
-                        onClick={() => setFinanceSubTab(sub)}
+                        onClick={() => { setActiveTab('finance'); setFinanceSubTab(sub); }}
                         className={cn(
                           'text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all',
                           financeSubTab === sub
@@ -226,7 +219,7 @@ export default function Sidebar({
                     {(['ECRE', 'ECRE Agents', 'ECRE Reports'] as FinanceSubTab[]).map((sub) => (
                       <button
                         key={sub}
-                        onClick={() => setFinanceSubTab(sub)}
+                        onClick={() => { setActiveTab('finance'); setFinanceSubTab(sub); }}
                         className={cn(
                           'text-left px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all',
                           financeSubTab === sub
@@ -248,14 +241,7 @@ export default function Sidebar({
         {canAccessTools && (
           <div className="flex flex-col">
             <button
-              onClick={() => {
-                if (activeTab === 'tools') {
-                  setIsToolsExpanded(!isToolsExpanded);
-                } else {
-                  setActiveTab('tools');
-                  setIsToolsExpanded(true);
-                }
-              }}
+              onClick={() => setIsToolsExpanded(!isToolsExpanded)}
               className={cn(
                 'flex items-center gap-3 px-4 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative group',
                 activeTab === 'tools'
@@ -274,7 +260,7 @@ export default function Sidebar({
             {!isSidebarCollapsed && isToolsExpanded && (
               <div className="ml-11 flex flex-col gap-1 mt-1 mb-4">
                 <button
-                  onClick={() => setToolsSubTab('extractor-pro')}
+                  onClick={() => { setActiveTab('tools'); setToolsSubTab('extractor-pro'); }}
                   className={cn(
                     'text-left px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all',
                     toolsSubTab === 'extractor-pro'
