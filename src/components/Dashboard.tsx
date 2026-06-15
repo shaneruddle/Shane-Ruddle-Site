@@ -10,7 +10,7 @@ import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc
 import { ref, uploadString, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, Download, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, FileDown, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp, Copy, ExternalLink, Image as ImageIcon, Wrench, Layers, Shield, Info, Briefcase, Globe, RefreshCw } from 'lucide-react';
 import { migrateData } from '../services/migrationService';
-import { getBusinessInfo, saveBusinessInfo } from '../services/businessService';
+import { getBusinessInfo, saveBusinessInfo } rom '../services/businessService';
 import { BusinessInfo } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
@@ -462,7 +462,6 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
     { firstName: "Lewis", lastName: "Perfect", email: "perfectlewisashton@gmail.com", roles: ["employee"], company: "Hemingways Jomtien", mobile: "007", uid: "1738490718350x851705520968406400" },
     { firstName: "Chutikarn", lastName: "Phetcharoen", email: "jusfirstchutikarn@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", mobile: "009", uid: "1743649995469x635691858452828200" },
     { firstName: "Shane", lastName: "Puddle", email: "info@pattayarentacar.com", roles: ["employee"], company: "Pattaya Rent a Car", mobile: "0830776928", uid: "1754096406865x512038928260660800" },
-    { firstName: "Noel", lastName: "Magold", nickname: "Noel", email: "noel.magold@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Management", mobile: "0950247546", uid: "1754730171383x441187517623218050" },
     { firstName: "Aiden Scott", lastName: "Gray", nickname: "Aiden", email: "aidenscottgray@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0923879169", uid: "1756263259346x562607146057934900" },
     { firstName: "Jo", lastName: "Barbosa", email: "jobarbosa5555@gmail.com", roles: ["employee"], company: "Alan Bolton Property Consultants", position: "Real Estate Agent", mobile: "0613903936", uid: "1756263281490x915847737785749200" },
     { firstName: "Arnon", lastName: "Surison", nickname: "Cap", email: "arnonsurison@gmail.com", roles: ["employee"], company: "East Coast Real Estate", position: "Real Estate Agent", mobile: "0979247477", uid: "1756263288531x762119080127496000" },
@@ -1223,8 +1222,9 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
         
         if (duplicate) {
           const dupData = duplicate.data() as UserProfile;
-          const isRealUser = !duplicate.id.includes('x'); 
-          const isTargetRealUser = !editingEmployee.uid.includes('x');
+          const seededIdPattern = /^\d+x\d+$/;
+      const isRealUser = !seededIdPattern.test(duplicate.id); 
+          const isTargetRealUser = !seededIdPattern.test(editingEmployee.uid);
           
           // If we're editing a real user and found a duplicate seeded account for the SAME person,
           // we should prioritize the real user and allow the save.
