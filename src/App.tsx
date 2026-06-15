@@ -287,7 +287,8 @@ export default function App() {
                   displayProfile?.roles?.includes('manager') || 
                   (user?.email && ['shaneruddle@gmail.com', 'alexstein530@gmail.com'].includes(user.email));
   const isWhitelisted = isAdmin ||
-                        !!(displayProfile?.company?.trim());
+                        !!(displayProfile?.company?.trim()) ||
+                        !!(displayProfile?.roles?.length);
   const [authLoading, setAuthLoading] = useState(true);
   console.log("App rendering. AuthLoading:", authLoading);
   const [formState, setFormState] = useState({ name: '', email: '', message: '' });
