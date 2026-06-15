@@ -62,6 +62,7 @@ async function startServer() {
             userName: d.userName || d.customerName || d.name || null,
             userEmail: d.userEmail || d.user || d.admin_email || d.email || null,
             type: d.type || d.action || d.action_type || d.status || col.replace(/_/g, ' '),
+            details: d.details || d.description || null,
           };
         }));
         results[label] = { logs, error: null };
