@@ -40,8 +40,8 @@ async function startServer() {
   // Cross-project log aggregator
   app.get("/api/logs", async (req, res) => {
     const sources: { name: string; envVar: string; label: string; collections: string[] }[] = [
-      { name: "prac-admin",  envVar: "PRAC_SERVICE_ACCOUNT",  label: "RENT A CAR", collections: ["bookings", "enquiries"] },
-      { name: "cajun-admin", envVar: "CAJUN_SERVICE_ACCOUNT", label: "CAJUN",      collections: ["system_logs", "crm_customers"] },
+      { name: "prac-admin",  envVar: "PRAC_SERVICE_ACCOUNT",  label: "RENT A CAR", collections: ["system_logs"] },
+      { name: "cajun-admin", envVar: "CAJUN_SERVICE_ACCOUNT", label: "CAJUN",      collections: ["system_logs"] },
     ];
     const results: Record<string, { logs: any[]; error: string | null }> = {};
     await Promise.all(sources.map(async ({ name, envVar, label, collections }) => {
@@ -49,7 +49,7 @@ async function startServer() {
       if (!remoteApp) { results[label] = { logs: [], error: "Not configured" }; return; }
       try {
         const db = getFirestore(remoteApp as any);
-        const snaps = await Promise.all(collections.map(col => db.collection(col).orderBy("createdAt", "desc").limit(50).get().catch(() => db.collection(col).limit(50).get())));
+        const snaps = await Promise.all(collections.map(col => db.collection(col).orderBy("timestamp", "desc").limit(50).get()));
         const logs = snaps.flatMap((snap, i) => snap.docs.map(doc => {
           const d = doc.data() as any;
           const col = collections[i];
@@ -58,10 +58,10 @@ async function startServer() {
             ...d,
             source: label,
             collection: col,
-            timestamp: d.timestamp || d.createdAt || d.updatedAt || null,
-            userName: d.userName || d.customerName || d.name || d.contactName || null,
-            userEmail: d.userEmail || d.email || null,
-            type: d.type || d.action || d.status || col.replace(/_/g, ' '),
+            timestamp: d.timestamp || null,
+            userName: d.userName || d.customerName || d.name || null,
+            userEmail: d.userEmail || d.user || d.admin_email || d.email || null,
+            type: d.type || d.action || d.action_type || d.status || col.replace(/_/g, ' '),
           };
         }));
         results[label] = { logs, error: null };
