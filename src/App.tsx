@@ -850,14 +850,12 @@ export default function App() {
                       
                       {isWhitelisted && (
                         <>
-                          {isAdmin && (
-                            <button 
-                              onClick={() => setView('dashboard')}
-                              className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold hover:text-gold-dark transition-colors"
-                            >
-                              <LayoutDashboard className="w-3 h-3" /> Dashboard
-                            </button>
-                          )}
+                          <button
+                            onClick={() => setView('dashboard')}
+                            className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold hover:text-gold-dark transition-colors"
+                          >
+                            <LayoutDashboard className="w-3 h-3" /> Dashboard
+                          </button>
                           <button 
                             onClick={() => setView('portal')}
                             className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold hover:text-gold-dark transition-colors"
@@ -919,18 +917,16 @@ export default function App() {
 
                         {isWhitelisted && (
                           <>
-                            {isAdmin && (
-                              <button 
-                                onClick={() => {
-                                  setView('dashboard');
-                                  setIsMenuOpen(false);
-                                  window.scrollTo(0, 0);
-                                }}
-                                className="text-2xl font-serif tracking-widest uppercase text-gold hover:text-gold-dark transition-colors flex items-center gap-3"
-                              >
-                                <LayoutDashboard className="w-6 h-6" /> Dashboard
-                              </button>
-                            )}
+                            <button
+                              onClick={() => {
+                                setView('dashboard');
+                                setIsMenuOpen(false);
+                                window.scrollTo(0, 0);
+                              }}
+                              className="text-2xl font-serif tracking-widest uppercase text-gold hover:text-gold-dark transition-colors flex items-center gap-3"
+                            >
+                              <LayoutDashboard className="w-6 h-6" /> Dashboard
+                            </button>
                             <button 
                               onClick={() => {
                                 setView('portal');
