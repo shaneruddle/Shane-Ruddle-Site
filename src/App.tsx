@@ -540,7 +540,10 @@ export default function App() {
           }
         }
 
-        // Log login event if not already logged for this session and throttle to once every 15 mins
+        // Always update lastLoginAt so Staff Directory sort stays current
+        updateDoc(userRef, { lastLoginAt: serverTimestamp() }).catch(() => {});
+
+        // Log login event to usage_logs — throttled to once per 15 mins to avoid spam
         const lastLoginTime = localStorage.getItem(`last_login_${user.uid}`);
         const now = Date.now();
         const isThrottled = lastLoginTime && (now - parseInt(lastLoginTime) < 15 * 60 * 1000);
@@ -559,7 +562,6 @@ export default function App() {
               type: 'login',
               timestamp: serverTimestamp()
             });
-            updateDoc(userRef, { lastLoginAt: serverTimestamp() }).catch(() => {});
           } catch (err) {
             console.error("Error logging login:", err);
             loginLogged.current = false; // Reset on failure to allow retry
