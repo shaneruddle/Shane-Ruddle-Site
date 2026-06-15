@@ -3394,7 +3394,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                         </button>
                       </div>
 
-                      <div className="glass rounded-[2.5rem] overflow-x-auto [transform:rotateX(180deg)]">
+                      <div className="glass rounded-[2.5rem] overflow-x-auto w-full [transform:rotateX(180deg)]">
                         <table className="w-full text-left border-collapse min-w-[800px] [transform:rotateX(180deg)]">
                           <thead>
                             <tr className="border-bottom border-black/5 bg-black/2">
@@ -3404,6 +3404,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Lead From</th>
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Agent</th>
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Amount</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Balance</th>
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40"></th>
                             </tr>
                           </thead>
@@ -3434,6 +3435,9 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                                 <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                                   {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                                 </td>
+                                <td className="px-6 py-4 text-sm font-mono text-right text-black/50">
+                                  {formatCurrency(filteredFinanceTransactions.slice(filteredFinanceTransactions.findIndex(x => x.id === t.id)).reduce((s, tx) => s + (tx.type === 'income' ? tx.amount : -tx.amount), 0))}
+                                </td>
                                 <td className="px-6 py-4 text-right">
                                   <div className="flex justify-end gap-1 transition-opacity">
                                     <button 
@@ -3454,7 +3458,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                             ))}
                             {filteredFinanceTransactions.length === 0 && (
                               <tr>
-                                <td colSpan={7} className="px-6 py-12 text-center text-black/40 italic text-sm">
+                                <td colSpan={8} className="px-6 py-12 text-center text-black/40 italic text-sm">
                                   No transactions found matching your filters.
                                 </td>
                               </tr>
@@ -3681,7 +3685,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                         </button>
                       </div>
 
-                      <div className="glass rounded-[2.5rem] overflow-x-auto [transform:rotateX(180deg)]">
+                      <div className="glass rounded-[2.5rem] overflow-x-auto w-full [transform:rotateX(180deg)]">
                         <table className="w-full text-left border-collapse min-w-[800px] [transform:rotateX(180deg)]">
                           <thead>
                             <tr className="border-bottom border-black/5 bg-black/2">
@@ -3691,6 +3695,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Lead From</th>
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Agent</th>
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Amount</th>
+                              <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Balance</th>
                               <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40"></th>
                             </tr>
                           </thead>
@@ -3721,6 +3726,9 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                                 <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                                   {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                                 </td>
+                                <td className="px-6 py-4 text-sm font-mono text-right text-black/50">
+                                  {formatCurrency(filteredFinanceTransactions.slice(filteredFinanceTransactions.findIndex(x => x.id === t.id)).reduce((s, tx) => s + (tx.type === 'income' ? tx.amount : -tx.amount), 0))}
+                                </td>
                                 <td className="px-6 py-4 text-right">
                                   <div className="flex justify-end gap-1 transition-opacity">
                                     <button 
@@ -3741,7 +3749,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                             ))}
                             {filteredFinanceTransactions.length === 0 && (
                               <tr>
-                                <td colSpan={7} className="px-6 py-12 text-center text-black/40 italic text-sm">
+                                <td colSpan={8} className="px-6 py-12 text-center text-black/40 italic text-sm">
                                   No transactions found matching your filters.
                                 </td>
                               </tr>
