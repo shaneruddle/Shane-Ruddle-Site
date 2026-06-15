@@ -2309,59 +2309,69 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                   <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
                     <h3 className="text-xl font-serif">Staff Directory</h3>
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-black/20" />
-                      <input 
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-black/20 pointer-events-none" />
+                      <input
                         type="text"
                         placeholder="Search staff..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="bg-black/5 border-none rounded-xl pl-10 pr-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none w-full md:w-64"
+                        className="h-9 bg-black/5 border-none rounded-2xl pl-9 pr-4 text-xs focus:ring-2 focus:ring-gold/20 outline-none w-48"
                       />
                     </div>
-                    <select 
-                      value={sortOrder}
-                      onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest' | 'last-active')}
-                      className="bg-black/5 border-none rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none"
-                    >
-                      <option value="last-active">Last Login</option>
-                      <option value="newest">Newest First</option>
-                      <option value="oldest">Oldest First</option>
-                    </select>
-                    <select 
-                      value={companyFilter}
-                      onChange={(e) => setCompanyFilter(e.target.value)}
-                      className="bg-black/5 border-none rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none"
-                    >
-                      <option value="all">All Companies</option>
-                      <option value="Unassigned">Unassigned</option>
-                      {Object.keys(COMPANY_DATA).map(company => (
-                        <option key={company} value={company}>{company}</option>
-                      ))}
-                      {companies.filter(c => !COMPANY_DATA[c.name]).map(c => (
-                        <option key={c.id} value={c.name}>{c.name}</option>
-                      ))}
-                    </select>
-
-                    <select 
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value as any)}
-                      className="bg-black/5 border-none rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none"
-                    >
-                      <option value="all">All Status</option>
-                      <option value="active">Active Only</option>
-                      <option value="inactive">Inactive Only</option>
-                    </select>
-
-                    <select 
-                      value={roleFilter}
-                      onChange={(e) => setRoleFilter(e.target.value)}
-                      className="bg-black/5 border-none rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none"
-                    >
-                      <option value="all">All Roles</option>
-                      {['admin', 'manager', 'accounts', 'employee', 'agent', 'cashier', 'housekeeping'].map(role => (
-                        <option key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1)}</option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest' | 'last-active')}
+                        className="h-9 appearance-none bg-black/5 border-none rounded-2xl pl-4 pr-8 text-xs focus:ring-2 focus:ring-gold/20 outline-none cursor-pointer"
+                      >
+                        <option value="last-active">Last Login</option>
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                      </select>
+                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-black/30 pointer-events-none" />
+                    </div>
+                    <div className="relative">
+                      <select
+                        value={companyFilter}
+                        onChange={(e) => setCompanyFilter(e.target.value)}
+                        className="h-9 appearance-none bg-black/5 border-none rounded-2xl pl-4 pr-8 text-xs focus:ring-2 focus:ring-gold/20 outline-none cursor-pointer"
+                      >
+                        <option value="all">All Companies</option>
+                        <option value="Unassigned">Unassigned</option>
+                        {Object.keys(COMPANY_DATA).map(company => (
+                          <option key={company} value={company}>{company}</option>
+                        ))}
+                        {companies.filter(c => !COMPANY_DATA[c.name]).map(c => (
+                          <option key={c.id} value={c.name}>{c.name}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-black/30 pointer-events-none" />
+                    </div>
+                    <div className="relative">
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value as any)}
+                        className="h-9 appearance-none bg-black/5 border-none rounded-2xl pl-4 pr-8 text-xs focus:ring-2 focus:ring-gold/20 outline-none cursor-pointer"
+                      >
+                        <option value="all">All Status</option>
+                        <option value="active">Active Only</option>
+                        <option value="inactive">Inactive Only</option>
+                      </select>
+                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-black/30 pointer-events-none" />
+                    </div>
+                    <div className="relative">
+                      <select
+                        value={roleFilter}
+                        onChange={(e) => setRoleFilter(e.target.value)}
+                        className="h-9 appearance-none bg-black/5 border-none rounded-2xl pl-4 pr-8 text-xs focus:ring-2 focus:ring-gold/20 outline-none cursor-pointer"
+                      >
+                        <option value="all">All Roles</option>
+                        {['admin', 'manager', 'accounts', 'employee', 'agent', 'cashier', 'housekeeping'].map(role => (
+                          <option key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1)}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-black/30 pointer-events-none" />
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
                     {(hasRole('admin') || hasRole('manager') || hasRole('accounts')) && (
