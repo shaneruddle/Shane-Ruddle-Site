@@ -2375,8 +2375,8 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                   </div>
                 </div>
 
-                <div className="glass rounded-3xl overflow-hidden">
-                  <table className="w-full text-left border-collapse">
+                <div className="glass rounded-3xl overflow-hidden overflow-x-auto">
+                  <table className="w-full min-w-[900px] text-left border-collapse">
                     <thead>
                       <tr className="border-bottom border-black/5 bg-black/2">
                         <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Staff Member</th>
@@ -2391,9 +2391,10 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                     </thead>
                     <tbody>
                       {filteredEmployees.map((emp) => (
-                        <tr 
-                          key={emp.uid} 
-                          className="border-bottom border-black/5 hover:bg-black/2 transition-colors group/row"
+                        <tr
+                          key={emp.uid}
+                          className="border-bottom border-black/5 hover:bg-black/2 transition-colors group/row cursor-pointer"
+                          onClick={() => handleEditEmployee(emp)}
                         >
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
@@ -2490,7 +2491,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                           </td>
                           <td className="px-6 py-4 text-sm font-mono text-gold font-bold">{emp.discountCode || 'N/A'}</td>
                           <td className="px-6 py-4 text-right">
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-2" onClick={e => e.stopPropagation()}>
                               {onImpersonate && userProfile.roles?.includes('admin') && emp.uid !== auth.currentUser?.uid && (
                                 <button 
                                   onClick={() => onImpersonate(emp)}
