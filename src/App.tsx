@@ -232,7 +232,7 @@ const LifeOutsideSection = ({ data }: { data: BusinessInfo }) => {
               className="text-black/70 text-base font-light leading-relaxed space-y-4"
             >
               <p>
-                I used to be a PGA professional golfer, and while I don't play competitively anymore, the game taught me a lot about focus and patience. These days, I run half marathons to stay fit and clear my head, and I've recently started playing padel—which has quickly become my new obsession.
+                I used to be a PGA professional golfer, and while I don't play competitively anymore, the game taught me a lot about focus and patience. These days, I run half marathons to stay fit and clear my head, and I've recently started playing padelâwhich has quickly become my new obsession.
               </p>
               <p>
                 Whether it's on the course, the track, or the court, I'm always looking for that next challenge.
@@ -800,21 +800,19 @@ export default function App() {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                     >
-                      <div className="relative w-10 h-10 flex items-center justify-center">
-                        <img 
-                          src="/input_file_3.png" 
-                          alt="Shane Ruddle" 
-                          className="w-full h-full object-contain"
-                          referrerPolicy="no-referrer"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                            const fallback = (e.target as HTMLImageElement).nextElementSibling;
-                            if (fallback) (fallback as HTMLElement).style.display = 'flex';
-                          }}
-                        />
-                        <div className="hidden items-center justify-center w-full h-full rounded-full bg-gold/20">
-                          <Sparkles className="w-6 h-6 text-gold" />
-                        </div>
+                      <div className="relative w-10 h-10 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" className="w-full h-full" role="img" aria-label="Shane Ruddle">
+                          <defs>
+                            <linearGradient id="navGold" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor="#F9F295" />
+                              <stop offset="45%" stopColor="#D4AF37" />
+                              <stop offset="100%" stopColor="#B8860B" />
+                            </linearGradient>
+                          </defs>
+                          <circle cx="60" cy="60" r="57" fill="#0A0A0A" />
+                          <circle cx="60" cy="60" r="53" fill="none" stroke="url(#navGold)" strokeWidth="1.2" />
+                          <text x="60" y="78" textAnchor="middle" fontSize="58" fontWeight="500" letterSpacing="-2" fill="url(#navGold)" fontFamily="system-ui, sans-serif">SR</text>
+                        </svg>
                       </div>
                       <div className="text-xl font-serif tracking-widest uppercase">
                         Shane <span className="gold-gradient font-bold">Ruddle</span>
@@ -1226,21 +1224,19 @@ export default function App() {
                     <div className="grid md:grid-cols-12 gap-12 mb-24">
                       <div className="md:col-span-3">
                         <div className="flex items-center gap-4 mb-8">
-                          <div className="relative w-12 h-12 flex items-center justify-center">
-                            <img 
-                              src="/input_file_3.png" 
-                              alt="Shane Ruddle" 
-                              className="w-full h-full object-contain"
-                              referrerPolicy="no-referrer"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none';
-                                const fallback = (e.target as HTMLImageElement).nextElementSibling;
-                                if (fallback) (fallback as HTMLElement).style.display = 'flex';
-                              }}
-                            />
-                            <div className="hidden items-center justify-center w-full h-full rounded-full bg-gold/10">
-                              <Sparkles className="w-8 h-8 text-gold" />
-                            </div>
+                          <div className="relative w-12 h-12 shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" className="w-full h-full" role="img" aria-label="Shane Ruddle">
+                              <defs>
+                                <linearGradient id="footerGold" x1="0" y1="0" x2="1" y2="1">
+                                  <stop offset="0%" stopColor="#F9F295" />
+                                  <stop offset="45%" stopColor="#D4AF37" />
+                                  <stop offset="100%" stopColor="#B8860B" />
+                                </linearGradient>
+                              </defs>
+                              <circle cx="60" cy="60" r="57" fill="#0A0A0A" />
+                              <circle cx="60" cy="60" r="53" fill="none" stroke="url(#footerGold)" strokeWidth="1.2" />
+                              <text x="60" y="78" textAnchor="middle" fontSize="58" fontWeight="500" letterSpacing="-2" fill="url(#footerGold)" fontFamily="system-ui, sans-serif">SR</text>
+                            </svg>
                           </div>
                           <div className="text-2xl font-serif tracking-widest uppercase">
                             Shane <span className="gold-gradient font-bold">Ruddle</span>
@@ -1396,7 +1392,7 @@ export default function App() {
 
                     <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-black/5 gap-6">
                       <div className="text-[10px] uppercase tracking-widest text-black/20">
-                        © 2026 Shane Ruddle. All Rights Reserved.
+                        Â© 2026 Shane Ruddle. All Rights Reserved.
                       </div>
                       <div className="flex gap-8 text-[10px] uppercase tracking-widest text-black/20">
                         <button 
