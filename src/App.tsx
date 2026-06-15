@@ -543,7 +543,12 @@ export default function App() {
         // Always update lastLoginAt so Staff Directory sort stays current
         updateDoc(userRef, { lastLoginAt: serverTimestamp() }).catch(() => {});
 
-        // Log login event to usage_logs — throttled to once per 15 mins to avoid spam
+        // Always update lastLoginAt on every login
+        if (!loginLogged.current) {
+          updateDoc(userRef, { lastLoginAt: serverTimestamp() }).catch(() => {});
+        }
+
+        // Log login event throttled to once every 15 mins (to avoid spam in usage_logs)
         const lastLoginTime = localStorage.getItem(`last_login_${user.uid}`);
         const now = Date.now();
         const isThrottled = lastLoginTime && (now - parseInt(lastLoginTime) < 15 * 60 * 1000);
