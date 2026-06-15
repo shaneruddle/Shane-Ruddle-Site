@@ -10,7 +10,7 @@ import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc
 import { ref, uploadString, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, Download, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, FileDown, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp, Copy, ExternalLink, Image as ImageIcon, Wrench, Layers, Shield, Info, Briefcase, Globe, RefreshCw } from 'lucide-react';
 import { migrateData } from '../services/migrationService';
-import { getBusinessInfo, saveBusinessInfo } rom '../services/businessService';
+import { getBusinessInfo, saveBusinessInfo } from '../services/businessService';
 import { BusinessInfo } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
