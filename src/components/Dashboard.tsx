@@ -4543,7 +4543,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                   <div>
                     <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-2">Company</label>
                     <select 
-                      value={editingEmployee.companyId || ''}
+                      value={editingEmployee.companyId || companies.find(c => c.name === editingEmployee.company)?.id || ''}
                       onChange={e => {
                         const selectedCompany = companies.find(c => c.id === e.target.value);
                         setEditingEmployee({
