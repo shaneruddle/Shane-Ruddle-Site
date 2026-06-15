@@ -48,7 +48,7 @@ async function startServer() {
       const remoteApp = getRemoteApp(name, envVar);
       if (!remoteApp) { results[label] = { logs: [], error: "Not configured" }; return; }
       try {
-        const db = admin.firestore(remoteApp);
+        const db = getFirestore(remoteApp as any);
         const snap = await db.collection("usage_logs").orderBy("timestamp", "desc").limit(100).get();
         results[label] = { logs: snap.docs.map(doc => ({ id: doc.id, ...doc.data(), source: label })), error: null };
       } catch (e: any) {
