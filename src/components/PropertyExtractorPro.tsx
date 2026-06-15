@@ -1037,6 +1037,8 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                 {(() => {
                   const uniqueUsers = Array.from(new Map(history.map(h => [h.userId, { id: h.userId, name: h.userName || h.userEmail?.split('@')[0] || 'Unknown' }])).values());
                   const filteredHistory = userFilter === 'all' ? history : history.filter(h => h.userId === userFilter);
+                  const auditTotalPages = Math.ceil(filteredHistory.length / 20);
+                  const pagedHistory = filteredHistory.slice(auditPage * 20, (auditPage + 1) * 20);
                   return (
                     <>
                       <div className="flex items-center justify-between mb-6 lg:mb-8">
@@ -1092,7 +1094,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                 <div>
                   <h4 className="text-[10px] font-bold text-[#BBB] uppercase tracking-[0.2em] mb-6 px-4">Activity Log</h4>
                   <div className="grid grid-cols-1 gap-4">
-                    {filteredHistory.map((item) => (
+                    {pagedHistory.map((item) => (
                       <AuditTrailRow key={item.id} item={item} companies={companies} />
                     ))}
                     {filteredHistory.length === 0 && (
@@ -1101,6 +1103,15 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                         <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#CCC]">Log_Buffer_Empty</span>
                       </div>
                     )}
+                  {auditTotalPages > 1 && (
+                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#E5E1DA]">
+                      <span className="text-[9px] text-[#BBB] uppercase tracking-widest">Page {auditPage + 1} of {auditTotalPages} · {filteredHistory.length} entries</span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setAuditPage(p => Math.max(0, p - 1))} disabled={auditPage === 0} className="w-6 h-6 flex items-center justify-center rounded border border-[#E5E1DA] disabled:opacity-30 hover:border-[#C4A882] transition-colors"><ChevronLeft className="w-3 h-3" /></button>
+                        <button onClick={() => setAuditPage(p => Math.min(auditTotalPages - 1, p + 1))} disabled={auditPage >= auditTotalPages - 1} className="w-6 h-6 flex items-center justify-center rounded border border-[#E5E1DA] disabled:opacity-30 hover:border-[#C4A882] transition-colors"><ChevronRight className="w-3 h-3" /></button>
+                      </div>
+                    </div>
+                  )}
                   </div>
                 </div>
                     </>
