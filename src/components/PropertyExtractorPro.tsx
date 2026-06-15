@@ -112,32 +112,32 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
       const prompt = `Act as an expert property consultant and luxury real estate marketing copywriter. Generate a property description using the EXACT structure and emojis below.
 
       STRUCTURE TO FOLLOW (MANDATORY):
-      ðï¸ [Property Title] | [Project Name]
+      🏙️ [Property Title] | [Project Name]
 
-      ð° Sale: [Selling Price] THB
-      ðµ Rent: [Rental Price] THB / Month
-      ð Location: [Location]
-      ð¢ Project: [Project Name]
-      ð Size: [Size]
-      ð Ownership: [Ownership]
+      💰 Sale: [Selling Price] THB
+      💵 Rent: [Rental Price] THB / Month
+      📍 Location: [Location]
+      🏢 Project: [Project Name]
+      📐 Size: [Size]
+      🌍 Ownership: [Ownership]
 
-      â¨ Unit Details
-      ðï¸ [Bedrooms/Studio Layout]
-      ð [Bathrooms]
-      ðï¸ [Living Space Details]
-      ð½ï¸ [Kitchen/Dining Details]
+      ✨ Unit Details
+      🛏️ [Bedrooms/Studio Layout]
+      🛁 [Bathrooms]
+      🛋️ [Living Space Details]
+      🍽️ [Kitchen/Dining Details]
 
-      Why Youâll Love It
+      Why You’ll Love It
       [Short, compelling bullet points with emojis highlighting features like location, facilities, and investment value.]
 
-      ð© Available for sale or rent â Contact us today
-      ð Ref: ${meta.agent || userProfile?.name || userProfile?.displayName || 'Consultant'} | ${ref}
+      📩 Available for sale or rent – Contact us today
+      📌 Ref: ${meta.agent || userProfile?.name || userProfile?.displayName || 'Consultant'} | ${ref}
 
       Guidelines:
       1. FORMATTING: Use <p> tags for each line. Ensure there is a blank line (empty <p>&nbsp;</p>) between the main sections (Header, Price/Info, Unit Details, Why You'll Love It, and Footer).
       2. If "Selling Price" or "Rental Price" is missing, omit that specific line.
       3. For "Unit Details", expand on the beds/baths/living space with descriptive terms (e.g. "Spacious Studio Layout", "Modern Bathroom").
-      4. For "Why You'll Love It", generate 4-5 bullet points starting with relevant emojis (e.g. ð, ðï¸, ðï¸, ð¶, ð¼).
+      4. For "Why You'll Love It", generate 4-5 bullet points starting with relevant emojis (e.g. 🏊, 🛍️, 🏖️, 🚶, 💼).
       5. Tone: Professional, high-end, and inviting.
 
       Source Material:
@@ -197,7 +197,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
     // Replace <p> with newline, <li> with bullet + newline
     let formattedText = generatedCopy
       .replace(/<\/p>/g, '\n\n')
-      .replace(/<li>/g, 'â¢ ')
+      .replace(/<li>/g, '• ')
       .replace(/<\/li>/g, '\n')
       .replace(/<[^>]*>/g, ''); // Remove all other tags
     
@@ -1106,7 +1106,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                     )}
                   {auditTotalPages > 1 && (
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#E5E1DA]">
-                      <span className="text-[9px] text-[#BBB] uppercase tracking-widest">Page {auditPage + 1} of {auditTotalPages} Â· {filteredHistory.length} entries</span>
+                      <span className="text-[9px] text-[#BBB] uppercase tracking-widest">Page {auditPage + 1} of {auditTotalPages} · {filteredHistory.length} entries</span>
                       <div className="flex items-center gap-2">
                         <button onClick={() => setAuditPage(p => Math.max(0, p - 1))} disabled={auditPage === 0} className="w-6 h-6 flex items-center justify-center rounded border border-[#E5E1DA] disabled:opacity-30 hover:border-[#C4A882] transition-colors"><ChevronLeft className="w-3 h-3" /></button>
                         <button onClick={() => setAuditPage(p => Math.min(auditTotalPages - 1, p + 1))} disabled={auditPage >= auditTotalPages - 1} className="w-6 h-6 flex items-center justify-center rounded border border-[#E5E1DA] disabled:opacity-30 hover:border-[#C4A882] transition-colors"><ChevronRight className="w-3 h-3" /></button>
@@ -1199,7 +1199,7 @@ const AuditTrailRow = ({ item, companies = [] }: { item: Extraction; companies?:
                 <span className="text-[9px] lg:text-[10px] text-[#C5A059] font-bold uppercase tracking-wider truncate">
                   {item.agent || 'Unknown Agent'}
                 </span>
-                <span className="text-[8px] text-[#BBB] font-medium">â¢</span>
+                <span className="text-[8px] text-[#BBB] font-medium">•</span>
                 <span className="text-[8px] text-[#BBB] font-medium italic">
                   Recorded by {item.userName || item.userEmail?.split('@')[0] || 'System'}
                 </span>
