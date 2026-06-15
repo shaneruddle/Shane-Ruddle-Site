@@ -2766,7 +2766,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                       return matchesSearch && matchesFilter;
                     });
                     const _total = Math.ceil(_all.length / 50);
-                    if (_total <= 1) return null;
+                    if (_all.length === 0) return null;
                     return (
                       <div className="hidden md:flex items-center justify-between px-6 py-3 border-t border-black/5">
                         <span className="text-[10px] text-black/40 uppercase tracking-widest">Page {logPage + 1} of {_total} · {_all.length} entries</span>
@@ -2859,7 +2859,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                       return matchesSearch && matchesFilter;
                     });
                     const _total = Math.ceil(_all.length / 50);
-                    if (_total <= 1) return null;
+                    if (_all.length === 0) return null;
                     return (
                       <div className="md:hidden flex items-center justify-between px-4 py-3 border-t border-black/5">
                         <span className="text-[10px] text-black/40 uppercase tracking-widest">Page {logPage + 1}/{_total}</span>
