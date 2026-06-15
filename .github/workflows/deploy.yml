@@ -51,16 +51,22 @@ jobs:
         env:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PRAC_SERVICE_ACCOUNT: ${{ secrets.PRAC_SERVICE_ACCOUNT }}
+          CAJUN_SERVICE_ACCOUNT: ${{ secrets.CAJUN_SERVICE_ACCOUNT }}
         run: |
+          # Write service account JSONs to temp files to avoid special char issues in --set-env-vars
+          echo "${PRAC_SERVICE_ACCOUNT}" > /tmp/prac_sa.json
+          echo "${CAJUN_SERVICE_ACCOUNT}" > /tmp/cajun_sa.json
+          PRAC_B64=$(base64 -w0 /tmp/prac_sa.json)
+          CAJUN_B64=$(base64 -w0 /tmp/cajun_sa.json)
           gcloud run deploy shane-ruddle-server \
             --image asia-east1-docker.pkg.dev/shane-ruddle-site/shane-ruddle/server:${{ github.sha }} \
             --region asia-east1 \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=production,SMTP_HOST=${{ secrets.SMTP_HOST }},SMTP_PORT=${{ secrets.SMTP_PORT }},SMTP_USER=${{ secrets.SMTP_USER }},SMTP_PASS=${SMTP_PASS},ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}" \
+            --set-env-vars "NODE_ENV=production,SMTP_HOST=${{ secrets.SMTP_HOST }},SMTP_PORT=${{ secrets.SMTP_PORT }},SMTP_USER=${{ secrets.SMTP_USER }},SMTP_PASS=${SMTP_PASS},ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY},PRAC_SERVICE_ACCOUNT=${PRAC_B64},CAJUN_SERVICE_ACCOUNT=${CAJUN_B64}" \
             --project shane-ruddle-site \
             --quiet
-
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
