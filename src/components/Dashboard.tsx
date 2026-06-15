@@ -341,7 +341,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
 
   // Search and Sort states
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'last-active'>('newest');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'last-active'>('last-active');
   const [companyFilter, setCompanyFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -2358,9 +2358,10 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                     </div>
                     <select 
                       value={sortOrder}
-                      onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                      onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest' | 'last-active')}
                       className="bg-black/5 border-none rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-gold/20 outline-none"
                     >
+                      <option value="last-active">Last Login</option>
                       <option value="newest">Newest First</option>
                       <option value="oldest">Oldest First</option>
                     </select>
