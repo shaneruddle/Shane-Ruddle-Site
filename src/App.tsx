@@ -833,15 +833,6 @@ export default function App() {
                       ))}
                       <button 
                         onClick={() => {
-                          setView('blog');
-                          window.scrollTo(0, 0);
-                        }}
-                        className={`text-xs uppercase tracking-[0.2em] transition-colors flex items-center gap-2 ${view === 'blog' ? 'text-gold font-bold' : 'text-black/60 hover:text-gold'}`}
-                      >
-                        <FileText className="w-3 h-3" /> News
-                      </button>
-                      <button 
-                        onClick={() => {
                           setView('past-ventures');
                           window.scrollTo(0, 0);
                         }}
@@ -896,16 +887,6 @@ export default function App() {
                             {item}
                           </button>
                         ))}
-                        <button 
-                          onClick={() => {
-                            setView('blog');
-                            setIsMenuOpen(false);
-                            window.scrollTo(0, 0);
-                          }}
-                          className={`text-2xl font-serif tracking-widest uppercase transition-colors ${view === 'blog' ? 'text-gold' : 'text-black hover:text-gold'}`}
-                        >
-                          News
-                        </button>
                         <button 
                           onClick={() => {
                             setView('past-ventures');
@@ -1269,17 +1250,6 @@ export default function App() {
                               </button>
                             </li>
                           ))}
-                          <li>
-                            <button 
-                              onClick={() => {
-                                setView('blog');
-                                window.scrollTo(0, 0);
-                              }}
-                              className="text-sm text-black/40 hover:text-gold transition-colors font-light"
-                            >
-                              News
-                            </button>
-                          </li>
                           <li>
                             <button 
                               onClick={() => {
