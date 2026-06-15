@@ -50,7 +50,20 @@ async function startServer() {
       try {
         const db = getFirestore(remoteApp as any);
         const snaps = await Promise.all(collections.map(col => db.collection(col).orderBy("createdAt", "desc").limit(50).get().catch(() => db.collection(col).limit(50).get())));
-        const logs = snaps.flatMap((snap, i) => snap.docs.map(doc => ({ id: doc.id, ...doc.data(), source: label, collection: collections[i] })));
+        const logs = snaps.flatMap((snap, i) => snap.docs.map(doc => {
+          const d = doc.data() as any;
+          const col = collections[i];
+          return {
+            id: doc.id,
+            ...d,
+            source: label,
+            collection: col,
+            timestamp: d.timestamp || d.createdAt || d.updatedAt || null,
+            userName: d.userName || d.customerName || d.name || d.contactName || null,
+            userEmail: d.userEmail || d.email || null,
+            type: d.type || d.action || d.status || col.replace(/_/g, ' '),
+          };
+        }));
         results[label] = { logs, error: null };
       } catch (e: any) {
         console.error(`Logs fetch failed for ${label}:`, e.message);
