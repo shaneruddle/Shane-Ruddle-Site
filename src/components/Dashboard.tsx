@@ -3088,17 +3088,11 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                                 <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40">Month</th>
                                 <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Income</th>
                                 <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Expenses</th>
-                                {!financeSubTab.startsWith('ABPC') && (
-                                  <>
-                                    <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Transfers In</th>
-                                    <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Transfers Out</th>
-                                  </>
-                                )}
                                 <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-black/40 text-right">Net</th>
                               </tr>
                             </thead>
                             <tbody>
-                              {getIndividualAgentReport(selectedIndividualAgent).map((item) => (
+                              {getIndividualAgentReport(selectedIndividualAgent).filter((item) => item.income !== 0 || item.expenses !== 0).map((item) => (
                                 <tr key={item.month} className="border-bottom border-black/5 hover:bg-black/2 transition-colors">
                                   <td className="px-6 py-4 text-sm font-medium">
                                     {new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
@@ -3109,21 +3103,11 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                                   <td className="px-6 py-4 text-sm font-bold text-right text-red-600">
                                     {formatCurrency(item.expenses)}
                                   </td>
-                                  {!financeSubTab.startsWith('ABPC') && (
-                                    <>
-                                      <td className="px-6 py-4 text-sm font-bold text-right text-blue-600">
-                                        {formatCurrency(item.transfersIn)}
-                                      </td>
-                                      <td className="px-6 py-4 text-sm font-bold text-right text-indigo-600">
-                                        {formatCurrency(item.transfersOut)}
-                                      </td>
-                                    </>
-                                  )}
                                   <td className={`px-6 py-4 text-sm font-bold text-right ${
-                                    (item.income + (financeSubTab.startsWith('ABPC') ? 0 : item.transfersIn) - item.expenses - (financeSubTab.startsWith('ABPC') ? 0 : item.transfersOut)) >= 0 ? 'text-gold' : 'text-red-500'
+                                    (item.income - item.expenses) >= 0 ? 'text-gold' : 'text-red-500'
                                   }`}>
                                     {formatCurrency(
-                                      item.income + (financeSubTab.startsWith('ABPC') ? 0 : item.transfersIn) - item.expenses - (financeSubTab.startsWith('ABPC') ? 0 : item.transfersOut)
+                                      item.income - item.expenses
                                     )}
                                   </td>
                                 </tr>
