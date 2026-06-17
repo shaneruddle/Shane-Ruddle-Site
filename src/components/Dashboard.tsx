@@ -1234,7 +1234,21 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
     }
   };
 
-  const handleEditCompany = (company: DBCompany | null) => {
+  const handleApproveEmployee = async (emp: UserProfile, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await updateDoc(doc(db, 'users', emp.uid), {
+        active: true,
+        updatedAt: serverTimestamp()
+      });
+      toast.success(`${emp.name || emp.email || 'User'} approved — they can now log in.`);
+    } catch (err) {
+      toast.error('Failed to approve user');
+      handleFirestoreError(err, OperationType.UPDATE, `users/${emp.uid}`);
+    }
+  };
+
+    const handleEditCompany = (company: DBCompany | null) => {
     setEditingCompany(company || { name: '', website: '', logo: '', description: '' });
     setShowEditCompany(true);
   };
@@ -2502,6 +2516,15 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                           <td className="px-6 py-4 text-sm font-mono text-gold font-bold">{emp.discountCode || 'N/A'}</td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex justify-end gap-2" onClick={e => e.stopPropagation()}>
+                              {emp.active === false && hasRole('admin') && (
+                                <button
+                                  onClick={(e) => handleApproveEmployee(emp, e)}
+                                  className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all"
+                                  title="Approve — let this user log in"
+                                >
+                                  Approve
+                                </button>
+                              )}
                               {onImpersonate && userProfile.roles?.includes('admin') && emp.uid !== auth.currentUser?.uid && (
                                 <button 
                                   onClick={() => onImpersonate(emp)}
