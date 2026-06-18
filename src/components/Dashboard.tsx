@@ -2128,14 +2128,15 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
         if (typeof val === 'string') return new Date(val).getTime();
         return 0;
       };
+      const tiebreak = (a.uid || '').localeCompare(b.uid || '');
       if (sortOrder === 'last-active') {
         const activeA = getTime(a.lastLoginAt) || getTime(a.updatedAt) || getTime(a.createdAt);
         const activeB = getTime(b.lastLoginAt) || getTime(b.updatedAt) || getTime(b.createdAt);
-        return activeB - activeA;
+        return activeB - activeA || tiebreak;
       }
       const timeA = getTime(a.createdAt) || getTime(a.employedFrom);
       const timeB = getTime(b.createdAt) || getTime(b.employedFrom);
-      return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
+      return (sortOrder === 'newest' ? timeB - timeA : timeA - timeB) || tiebreak;
     });
 
   const isWhitelistedCompany = !!(userProfile.company?.trim());
