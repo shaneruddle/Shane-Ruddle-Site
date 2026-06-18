@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect, useState, useRef, FormEvent, ReactNode } from "react";
+import { useEffect, useState, useRef, FormEvent, ReactNode, lazy, Suspense } from "react";
 import { motion, useScroll, useTransform, AnimatePresence, useSpring, useMotionValue, useVelocity } from "motion/react";
 import { 
   Home, 
@@ -28,14 +28,14 @@ import {
 import { cn } from "@/src/lib/utils";
 import { BusinessInfo, fallbackData } from "@/src/types";
 import { getBusinessInfo } from "@/src/services/businessService";
-import PastVentures from "./components/PastVentures";
 import Auth from "./components/Auth";
-import Dashboard from "./components/Dashboard";
-import EmployeePortal from "./components/EmployeePortal";
-import BlogPage from "./components/BlogPage";
-import PrivacyPolicy from "./components/PrivacyPolicy";
-import TermsOfService from "./components/TermsOfService";
 import ErrorBoundary from "./components/ErrorBoundary";
+const PastVentures = lazy(() => import("./components/PastVentures"));
+const Dashboard = lazy(() => import("./components/Dashboard"));
+const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
+const BlogPage = lazy(() => import("./components/BlogPage"));
+const PrivacyPolicy = lazy(() => import("./components/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./components/TermsOfService"));
 import { auth, db, handleFirestoreError, OperationType, UserProfile } from "./firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { doc, getDoc, setDoc, onSnapshot, query, collection, where, getDocs, serverTimestamp, updateDoc, deleteDoc, addDoc, Timestamp, orderBy, limit } from "firebase/firestore";
@@ -161,6 +161,7 @@ const FounderSection = ({ data }: { data: BusinessInfo }) => {
                 alt={data.name} 
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               <div className="absolute bottom-12 left-12">
@@ -262,6 +263,7 @@ const LifeOutsideSection = ({ data }: { data: BusinessInfo }) => {
                   alt={item.title} 
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
                   referrerPolicy="no-referrer"
+                  loading="lazy"
                 />
               </div>
               <h4 className="text-lg font-bold text-black">{item.title}</h4>
@@ -944,6 +946,7 @@ export default function App() {
                 className={cn("flex flex-col flex-1", impersonatedProfile && "pt-[38px]")}
               >
                 <main className="flex-grow">
+                <Suspense fallback={<div className="fixed inset-0 z-[100] bg-white flex items-center justify-center"><div className="w-10 h-10 border-2 border-gold border-t-transparent rounded-full animate-spin" /></div>}>
                 <AnimatePresence mode="wait">
                   {view === 'past-ventures' ? (
                     <motion.div
@@ -1042,7 +1045,6 @@ export default function App() {
                       <div className="fixed inset-0 -z-10 overflow-hidden">
                         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-gold/5 blur-[120px]" />
                         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-gold/2 blur-[120px]" />
-                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03]" />
                       </div>
 
                       {/* Hero Section */}
@@ -1159,6 +1161,7 @@ export default function App() {
                                         alt={company.name} 
                                         className="max-w-full max-h-full object-contain transition-all duration-700 group-hover:invert group-hover:brightness-200 group-hover:scale-110"
                                         referrerPolicy="no-referrer"
+                                        loading="lazy"
                                         onError={(e) => {
                                           console.error(`Failed to load logo for ${company.name}`);
                                           (e.target as HTMLImageElement).style.display = 'none';
@@ -1194,6 +1197,7 @@ export default function App() {
                     </motion.div>
                   )}
                 </AnimatePresence>
+                </Suspense>
               </main>
 
               <AnimatePresence>
