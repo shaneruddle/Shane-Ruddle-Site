@@ -2142,7 +2142,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
   const isWhitelistedCompany = !!(userProfile.company?.trim());
 
   const isAbpcOrEcre = userProfile.company === 'Alan Bolton Property Consultants' || userProfile.company === 'East Coast Real Estate';
-  const canAccessTools = hasRole('admin') || hasRole('manager') || (userProfile as any).toolsAccess === true;
+  const canAccessTools = hasRole('admin') || hasRole('manager') || (userProfile as any).toolsAccess === true || isAbpcOrEcre;
 
   if (!hasRole('admin') && !hasRole('accounts') && !hasRole('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com' && !isWhitelistedCompany) {
     return (
