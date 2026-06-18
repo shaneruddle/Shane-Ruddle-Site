@@ -279,8 +279,10 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
   const isImpersonating = auth.currentUser && userProfile.uid !== auth.currentUser.uid;
 
   const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'finance' | 'settings' | 'tools'>(
-    hasRole('admin') ? 'employees' : 
-    hasRole('accounts') ? 'finance' : 'profile'
+    typeof window !== 'undefined' && window.innerWidth < 768
+      ? 'logs'
+      : hasRole('admin') ? 'employees'
+      : hasRole('accounts') ? 'finance' : 'profile'
   );
   const [employees, setEmployees] = useState<UserProfile[]>([]);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
@@ -2199,39 +2201,29 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
       </div>
 
       {/* Mobile Navigation (Bottom Bar) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-black/5 p-2 flex justify-around items-center z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-black/5 px-2 py-1 flex justify-around items-center z-50">
         {(hasRole('admin') || hasRole('manager') || hasRole('accounts')) && (
-          <button onClick={() => setActiveTab('employees')} className={`p-3 rounded-xl transition-all ${activeTab === 'employees' ? 'bg-gold text-white' : 'text-black/40'}`}>
+          <button onClick={() => setActiveTab('employees')} className={`flex flex-col items-center gap-1 px-6 py-2 rounded-xl transition-all ${activeTab === 'employees' ? 'text-gold' : 'text-black/40'}`}>
             <Users className="w-5 h-5" />
+            <span className="text-[9px] font-bold uppercase tracking-wide">Staff</span>
           </button>
         )}
         {userProfile.roles?.includes('admin') && (
-          <>
-            <button onClick={() => setActiveTab('logs')} className={`p-3 rounded-xl transition-all ${activeTab === 'logs' ? 'bg-gold text-white' : 'text-black/40'}`}>
-              <History className="w-5 h-5" />
-            </button>
-            <button onClick={() => setActiveTab('blog')} className={`p-3 rounded-xl transition-all ${activeTab === 'blog' ? 'bg-gold text-white' : 'text-black/40'}`}>
-              <FileText className="w-5 h-5" />
-            </button>
-          </>
+          <button onClick={() => setActiveTab('logs')} className={`flex flex-col items-center gap-1 px-6 py-2 rounded-xl transition-all ${activeTab === 'logs' ? 'text-gold' : 'text-black/40'}`}>
+            <History className="w-5 h-5" />
+            <span className="text-[9px] font-bold uppercase tracking-wide">Logs</span>
+          </button>
         )}
         {(hasRole('admin') || hasRole('accounts')) && (
-          <button onClick={() => setActiveTab('finance')} className={`p-3 rounded-xl transition-all ${activeTab === 'finance' ? 'bg-gold text-white' : 'text-black/40'}`}>
+          <button onClick={() => setActiveTab('finance')} className={`flex flex-col items-center gap-1 px-6 py-2 rounded-xl transition-all ${activeTab === 'finance' ? 'text-gold' : 'text-black/40'}`}>
             <DollarSign className="w-5 h-5" />
+            <span className="text-[9px] font-bold uppercase tracking-wide">Finance</span>
           </button>
         )}
-        {hasRole('admin') && (
-          <button onClick={() => setActiveTab('tools')} className={`p-3 rounded-xl transition-all ${activeTab === 'tools' ? 'bg-gold text-white' : 'text-black/40'}`}>
-            <Wrench className="w-5 h-5" />
-          </button>
-        )}
-        <button onClick={() => setActiveTab('profile')} className={`p-3 rounded-xl transition-all ${activeTab === 'profile' ? 'bg-gold text-white' : 'text-black/40'}`}>
-          <User className="w-5 h-5" />
-        </button>
       </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-8 md:p-16 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-16 pb-24 md:pb-16 overflow-y-auto">
         <div className="max-w-6xl mx-auto">
           {loading ? (
             <div className="flex items-center justify-center py-24">
@@ -2839,11 +2831,11 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                       .map((log) => (
                         <div key={log.id} className="p-4 bg-white hover:bg-black/2 transition-colors">
                           <div className="flex justify-between items-start mb-2">
-                            <span className={`inline-flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest ${log.source === 'SHANE' ? 'text-gold' : log.source === 'RENT A CAR' ? 'text-blue-500' : 'text-purple-500'}`}>
+                            <span className={`inline-flex items-center gap-1 text-xs font-bold uppercase tracking-widest ${log.source === 'SHANE' ? 'text-gold' : log.source === 'RENT A CAR' ? 'text-blue-500' : 'text-purple-500'}`}>
                               <div className={`w-1.5 h-1.5 rounded-full ${log.source === 'SHANE' ? 'bg-gold' : log.source === 'RENT A CAR' ? 'bg-blue-500' : 'bg-purple-500'}`} />
                               {log.source}
                             </span>
-                            <span className="text-[10px] font-mono text-black/40">
+                            <span className="text-xs font-mono text-black/40">
                               {(() => {
                                 const time = log.timestamp;
                                 if (!time) return '';
@@ -2851,7 +2843,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                                 if ((time as any).seconds) date = new Date((time as any).seconds * 1000);
                                 else if (typeof (time as any).toMillis === 'function') date = new Date((time as any).toMillis());
                                 else date = new Date(time as any);
-                                
+
                                 return isNaN(date.getTime()) ? '' : date.toLocaleString('en-US', {
                                   month: 'short',
                                   day: 'numeric',
@@ -2862,20 +2854,20 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <div className="text-xs font-bold text-black/80">
+                            <div className="text-sm font-bold text-black/80">
                               {log.userName || (log.userEmail ? log.userEmail.split('@')[0] : 'Unknown')}
                             </div>
-                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest ${
-                                (log.type || (log as any).action) === 'login' || (log.type || (log as any).action)?.includes('Login') ? 'bg-blue-50 text-blue-600' : 
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-widest ${
+                                (log.type || (log as any).action) === 'login' || (log.type || (log as any).action)?.includes('Login') ? 'bg-blue-50 text-blue-600' :
                                 (log.type || (log as any).action) === 'signup' || (log.type || (log as any).action)?.includes('Created') ? 'bg-green-50 text-green-600' :
                                 (log.type || (log as any).action)?.includes('finance') ? 'bg-purple-50 text-purple-600' :
                                 (log.type || (log as any).action)?.includes('Update') || (log.type || (log as any).action)?.includes('update') ? 'bg-amber-50 text-amber-600' :
                                 'bg-gold/10 text-gold'
                               }`}>
-                                {(log.type || (log as any).action || 'activity').replace('_', ' ').split(' ')[0]}
+                                {(log.type || (log as any).action || 'activity').replace('_', ' ')}
                             </span>
                           </div>
-                          <div className="mt-1 text-[10px] text-black/40 truncate">
+                          <div className="mt-2 text-sm text-black/60">
                             {log.details || (log.discountName ? `${log.discountName} @ ${log.restaurantId}` : 'Application activity')}
                           </div>
                         </div>
