@@ -143,7 +143,7 @@ const FounderSection = ({ data }: { data: BusinessInfo }) => {
   if (!data.ownerPhotos || data.ownerPhotos.length === 0) return null;
 
   return (
-    <section ref={founderRef} id="about" className="pt-10 pb-32 md:pb-48 px-6 md:px-12 bg-white overflow-hidden">
+    <section ref={founderRef} id="about" className="pt-10 pb-16 md:pb-48 px-6 md:px-12 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-24 items-center">
           <motion.div
@@ -181,7 +181,7 @@ const FounderSection = ({ data }: { data: BusinessInfo }) => {
             transition={{ delay: 0.2 }}
           >
             <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-gold mb-6 block">The Visionary</span>
-            <RevealText className="text-5xl md:text-7xl font-serif leading-tight mb-12">
+            <RevealText className="text-3xl sm:text-5xl md:text-7xl font-serif leading-tight mb-12">
               Leading with <span className="italic">Integrity</span>.
             </RevealText>
             <div className="space-y-8 text-black/60 text-lg font-light leading-relaxed">
@@ -198,7 +198,7 @@ const FounderSection = ({ data }: { data: BusinessInfo }) => {
 const LifeOutsideSection = ({ data }: { data: BusinessInfo }) => {
   const photos = data.ownerPhotos || [];
   return (
-    <section id="lifestyle" className="py-32 px-6 md:px-12 bg-white overflow-hidden">
+    <section id="lifestyle" className="py-16 md:py-32 px-6 md:px-12 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row gap-12 mb-16">
           <div className="lg:w-1/3">
@@ -206,7 +206,7 @@ const LifeOutsideSection = ({ data }: { data: BusinessInfo }) => {
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="text-4xl font-bold text-black"
+              className="text-2xl sm:text-4xl font-bold text-black"
             >
               Outside of Business
             </motion.h2>
@@ -821,7 +821,7 @@ export default function App() {
                           <text x="60" y="78" textAnchor="middle" fontSize="58" fontWeight="500" letterSpacing="-2" fill="url(#navGold)" fontFamily="system-ui, sans-serif">SR</text>
                         </svg>
                       </div>
-                      <div className="text-xl font-serif tracking-widest uppercase">
+                      <div className="hidden sm:block text-xl font-serif tracking-widest uppercase">
                         Shane <span className="gold-gradient font-bold">Ruddle</span>
                       </div>
                     </motion.div>
@@ -881,13 +881,13 @@ export default function App() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center space-y-8"
+                        className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center space-y-6 overflow-y-auto py-20"
                       >
                         {["About", "Companies", "Values", "Contact"].map((item) => (
                           <button 
                             key={item} 
                             onClick={() => navigateTo(item)}
-                            className="text-2xl font-serif tracking-widest uppercase text-black hover:text-gold transition-colors"
+                            className="text-xl font-serif tracking-widest uppercase text-black hover:text-gold transition-colors"
                           >
                             {item}
                           </button>
@@ -898,7 +898,7 @@ export default function App() {
                             setIsMenuOpen(false);
                             window.scrollTo(0, 0);
                           }}
-                          className={`text-2xl font-serif tracking-widest uppercase transition-colors ${view === 'past-ventures' ? 'text-gold' : 'text-black hover:text-gold'}`}
+                          className={`text-xl font-serif tracking-widest uppercase transition-colors ${view === 'past-ventures' ? 'text-gold' : 'text-black hover:text-gold'}`}
                         >
                           Past Ventures
                         </button>
@@ -911,7 +911,7 @@ export default function App() {
                                 setIsMenuOpen(false);
                                 window.scrollTo(0, 0);
                               }}
-                              className="text-2xl font-serif tracking-widest uppercase text-gold hover:text-gold-dark transition-colors flex items-center gap-3"
+                              className="text-xl font-serif tracking-widest uppercase text-gold hover:text-gold-dark transition-colors flex items-center gap-3"
                             >
                               <LayoutDashboard className="w-6 h-6" /> Dashboard
                             </button>
@@ -921,7 +921,7 @@ export default function App() {
                                 setIsMenuOpen(false);
                                 window.scrollTo(0, 0);
                               }}
-                              className="text-2xl font-serif tracking-widest uppercase text-gold hover:text-gold-dark transition-colors flex items-center gap-3"
+                              className="text-xl font-serif tracking-widest uppercase text-gold hover:text-gold-dark transition-colors flex items-center gap-3"
                             >
                               <Ticket className="w-6 h-6" /> Employee Discounts
                             </button>
@@ -941,7 +941,7 @@ export default function App() {
                 key="main-content"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className={cn("flex flex-col min-h-screen", impersonatedProfile && "pt-[38px]")}
+                className={cn("flex flex-col flex-1", impersonatedProfile && "pt-[38px]")}
               >
                 <main className="flex-grow">
                 <AnimatePresence mode="wait">
@@ -1056,7 +1056,7 @@ export default function App() {
                           >
                             Entrepreneurship  WITH HEART & HUSTLE
                           </motion.span>
-                          <RevealText className="text-5xl md:text-8xl font-serif font-light leading-tight mb-8">
+                          <RevealText className="text-3xl sm:text-5xl md:text-8xl font-serif font-light leading-tight mb-8">
                             {data.name} <br />
                             <span className="italic font-extralight text-black/20">Enterprises</span>
                           </RevealText>
@@ -1104,7 +1104,7 @@ export default function App() {
                       <FounderSection data={data} />
 
                       {/* Companies Section (Logo Cloud) */}
-                      <section id="companies" className="py-32 md:py-48 px-6 md:px-12 bg-[#F8F8F8] overflow-hidden">
+                      <section id="companies" className="py-16 md:py-48 px-6 md:px-12 bg-[#F8F8F8] overflow-hidden">
                         <div className="max-w-7xl mx-auto">
                           <div className="grid lg:grid-cols-12 gap-12 items-end mb-24">
                             <div className="lg:col-span-8">
@@ -1114,7 +1114,7 @@ export default function App() {
                                 viewport={{ once: true }}
                               >
                                 <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-gold mb-6 block">My Portfolio</span>
-                                <RevealText className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] text-black">
+                                <RevealText className="text-3xl sm:text-5xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] text-black">
                                   INVESTING IN <br />
                                   <span className="text-black/20">POTENTIAL.</span>
                                 </RevealText>
@@ -1207,9 +1207,9 @@ export default function App() {
 
               {/* Shared Footer - Visible for home, past-ventures, blog, privacy-policy, and terms-of-service */}
               {(view === 'home' || view === 'past-ventures' || view === 'blog' || view === 'privacy-policy' || view === 'terms-of-service') && (
-                <footer id="contact" className="pt-24 pb-12 px-6 md:px-12 border-t border-black/10 bg-white">
+                <footer id="contact" className="pt-16 md:pt-24 pb-12 px-6 md:px-12 border-t border-black/10 bg-white">
                   <div className="max-w-7xl mx-auto">
-                    <div className="grid md:grid-cols-12 gap-12 mb-24">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mb-12 md:mb-24">
                       <div className="md:col-span-3">
                         <div className="flex items-center gap-4 mb-8">
                           <div className="relative w-12 h-12 shrink-0">
@@ -1328,7 +1328,7 @@ export default function App() {
                               onSubmit={handleFormSubmit} 
                               className="space-y-4"
                             >
-                              <div className="grid grid-cols-2 gap-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <input 
                                   type="text" 
                                   placeholder="Name"
@@ -1367,7 +1367,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-black/5 gap-6">
+                    <div className="flex flex-col md:flex-row justify-between items-center pt-8 md:pt-12 border-t border-black/5 gap-6">
                       <div className="text-[10px] uppercase tracking-widest text-black/20">
                         Â© 2026 Shane Ruddle. All Rights Reserved.
                       </div>
