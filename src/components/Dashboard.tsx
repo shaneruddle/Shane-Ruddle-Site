@@ -2724,7 +2724,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                             };
                             const timeA = getTime(a.timestamp);
                             const timeB = getTime(b.timestamp);
-                            return timeB - timeA;
+                            return timeB - timeA || (a.id || '').localeCompare(b.id || '');
                           })
                           .slice(logPage * 50, (logPage + 1) * 50)
                           .map((log) => (
@@ -2833,7 +2833,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                         };
                         const timeA = getTime(a.timestamp);
                         const timeB = getTime(b.timestamp);
-                        return timeB - timeA;
+                        return timeB - timeA || (a.id || '').localeCompare(b.id || '');
                       })
                       .slice(logPage * 50, (logPage + 1) * 50)
                       .map((log) => (
