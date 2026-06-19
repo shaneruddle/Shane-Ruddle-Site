@@ -351,6 +351,8 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
   const [companyFilter, setCompanyFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [staffPage, setStaffPage] = useState(0);
+  const STAFF_PAGE_SIZE = 20;
 
   // Form states
   const [showEditEmployee, setShowEditEmployee] = useState(false);
@@ -2144,6 +2146,9 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
       return (sortOrder === 'newest' ? timeB - timeA : timeA - timeB) || tiebreak;
     });
 
+  const staffTotalPages = Math.ceil(filteredEmployees.length / STAFF_PAGE_SIZE);
+  const pagedEmployees = filteredEmployees.slice(staffPage * STAFF_PAGE_SIZE, (staffPage + 1) * STAFF_PAGE_SIZE);
+
   const isWhitelistedCompany = !!(userProfile.company?.trim());
 
   const isAbpcOrEcre = userProfile.company === 'Alan Bolton Property Consultants' || userProfile.company === 'East Coast Real Estate';
@@ -2324,14 +2329,14 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                         type="text"
                         placeholder="Search staff..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => { setSearchTerm(e.target.value); setStaffPage(0); }}
                         className="h-9 bg-black/5 border-none rounded-2xl pl-9 pr-4 text-xs focus:ring-2 focus:ring-gold/20 outline-none w-48"
                       />
                     </div>
                     <div className="relative">
                       <select
                         value={sortOrder}
-                        onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest' | 'last-active')}
+                        onChange={(e) => { setSortOrder(e.target.value as 'newest' | 'oldest' | 'last-active'); setStaffPage(0); }}
                         className="h-9 appearance-none bg-black/5 border-none rounded-2xl pl-4 pr-8 text-xs focus:ring-2 focus:ring-gold/20 outline-none cursor-pointer"
                       >
                         <option value="last-active">Last Login</option>
@@ -2343,7 +2348,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                     <div className="relative">
                       <select
                         value={companyFilter}
-                        onChange={(e) => setCompanyFilter(e.target.value)}
+                        onChange={(e) => { setCompanyFilter(e.target.value); setStaffPage(0); }}
                         className="h-9 appearance-none bg-black/5 border-none rounded-2xl pl-4 pr-8 text-xs focus:ring-2 focus:ring-gold/20 outline-none cursor-pointer"
                       >
                         <option value="all">All Companies</option>
@@ -2360,7 +2365,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                     <div className="relative">
                       <select
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value as any)}
+                        onChange={(e) => { setStatusFilter(e.target.value as any); setStaffPage(0); }}
                         className="h-9 appearance-none bg-black/5 border-none rounded-2xl pl-4 pr-8 text-xs focus:ring-2 focus:ring-gold/20 outline-none cursor-pointer"
                       >
                         <option value="all">All Status</option>
@@ -2372,7 +2377,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                     <div className="relative">
                       <select
                         value={roleFilter}
-                        onChange={(e) => setRoleFilter(e.target.value)}
+                        onChange={(e) => { setRoleFilter(e.target.value); setStaffPage(0); }}
                         className="h-9 appearance-none bg-black/5 border-none rounded-2xl pl-4 pr-8 text-xs focus:ring-2 focus:ring-gold/20 outline-none cursor-pointer"
                       >
                         <option value="all">All Roles</option>
@@ -2410,7 +2415,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredEmployees.map((emp) => (
+                      {pagedEmployees.map((emp) => (
                         <tr
                           key={emp.uid}
                           className="border-bottom border-black/5 hover:bg-black/2 transition-colors group/row cursor-pointer"
@@ -2546,6 +2551,29 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                     <div className="py-12 text-center text-black/40 text-sm italic">No employees found matching your search.</div>
                   )}
                 </div>
+                {staffTotalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 px-2">
+                    <span className="text-[10px] text-black/40 uppercase tracking-widest">
+                      Page {staffPage + 1} of {staffTotalPages} · {filteredEmployees.length} staff
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setStaffPage(p => Math.max(0, p - 1))}
+                        disabled={staffPage === 0}
+                        className="w-8 h-8 flex items-center justify-center rounded-xl bg-black/5 hover:bg-gold hover:text-white disabled:opacity-30 transition-all"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setStaffPage(p => Math.min(staffTotalPages - 1, p + 1))}
+                        disabled={staffPage >= staffTotalPages - 1}
+                        className="w-8 h-8 flex items-center justify-center rounded-xl bg-black/5 hover:bg-gold hover:text-white disabled:opacity-30 transition-all"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
 
