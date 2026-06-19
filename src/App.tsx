@@ -301,6 +301,8 @@ export default function App() {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const loginLogged = useRef(false);
+  const lastLoginAtUpdated = useRef(false);
+  const discountsChecked = useRef(false);
 
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -509,8 +511,9 @@ export default function App() {
           }
         }
 
-        // Check if we need to merge seeded data (if no discounts assigned yet)
-        if (!data.discountIds || data.discountIds.length === 0) {
+        // Check if we need to merge seeded data (if no discounts assigned yet) - only run once
+        if (!discountsChecked.current && (!data.discountIds || data.discountIds.length === 0)) {
+          discountsChecked.current = true;
           console.log("Profile has no discounts, checking for seeded data...");
           let q;
           if (user.email) {
@@ -542,11 +545,9 @@ export default function App() {
           }
         }
 
-        // Always update lastLoginAt so Staff Directory sort stays current
-        updateDoc(userRef, { lastLoginAt: serverTimestamp() }).catch(() => {});
-
-        // Always update lastLoginAt on every login
-        if (!loginLogged.current) {
+        // Update lastLoginAt once per session to keep Staff Directory sort current
+        if (!lastLoginAtUpdated.current) {
+          lastLoginAtUpdated.current = true;
           updateDoc(userRef, { lastLoginAt: serverTimestamp() }).catch(() => {});
         }
 
