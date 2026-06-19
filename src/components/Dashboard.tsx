@@ -689,7 +689,10 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
   };
 
   useEffect(() => {
-    if (!hasRole('admin') && !hasRole('accounts') && !hasRole('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com') return;
+    if (!hasRole('admin') && !hasRole('accounts') && !hasRole('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com') {
+      setLoading(false);
+      return;
+    }
 
     const usersCollection = collection(db, 'users');
     let usersQuery;
