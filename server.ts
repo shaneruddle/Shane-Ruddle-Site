@@ -431,7 +431,7 @@ async function startServer() {
   });
 
   app.post("/api/generate-copy", async (req, res) => {
-    const { prompt, model = "claude-sonnet-4-5-20251001", max_tokens = 1024 } = req.body;
+    const { prompt, model = "claude-sonnet-4-6", max_tokens = 1024 } = req.body;
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured on server" });
     try {
