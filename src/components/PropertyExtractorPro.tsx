@@ -161,7 +161,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt,
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-5-20251001',
           max_tokens: 1024,
         }),
       });
