@@ -1042,6 +1042,8 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                   const filteredHistory = userFilter === 'all' ? history : history.filter(h => h.userId === userFilter);
                   const auditTotalPages = Math.ceil(filteredHistory.length / 20);
                   const pagedHistory = filteredHistory.slice(auditPage * 20, (auditPage + 1) * 20);
+                  const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+                  const countLast30 = (userId: string) => history.filter(h => h.userId === userId && (h.timestamp?.seconds || 0) * 1000 >= thirtyDaysAgo).length;
                   return (
                     <>
                       <div className="flex items-center justify-between mb-6 lg:mb-8">
@@ -1057,7 +1059,7 @@ const PropertyExtractorPro: React.FC<PropertyExtractorProProps> = ({ userProfile
                           >
                             <option value="all">All Users</option>
                             {uniqueUsers.map(u => (
-                              <option key={u.id} value={u.id}>{u.name}</option>
+                              <option key={u.id} value={u.id}>{u.name} ({countLast30(u.id)})</option>
                             ))}
                           </select>
                         )}
