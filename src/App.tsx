@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect, useState, useRef, FormEvent, ReactNode, lazy, Suspense } from "react";
+import { useEffect, useState, useRef, FormEvent, ReactNode, lazy, Suspense, Component } from "react";
 import { motion, useScroll, useTransform, AnimatePresence, useSpring, useMotionValue, useVelocity } from "motion/react";
 import { 
   Home, 
@@ -27,8 +27,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import { BusinessInfo, fallbackData } from "@/src/types";
-import { getBusinessInfo } from "@/src/services/businessService";
-import Auth from "./components/Auth";
 import ErrorBoundary from "./components/ErrorBoundary";
 const PastVentures = lazy(() => import("./components/PastVentures"));
 const Dashboard = lazy(() => import("./components/Dashboard"));
@@ -36,10 +34,63 @@ const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
 const BlogPage = lazy(() => import("./components/BlogPage"));
 const PrivacyPolicy = lazy(() => import("./components/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./components/TermsOfService"));
-import { auth, db, handleFirestoreError, OperationType, UserProfile } from "./firebase";
-import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
-import { doc, getDoc, setDoc, onSnapshot, query, collection, where, getDocs, serverTimestamp, updateDoc, deleteDoc, addDoc, Timestamp, orderBy, limit } from "firebase/firestore";
+const Auth = lazy(() => import("./components/Auth"));
+// Types only - erased at compile time, so these don't pull the Firebase SDKs into the bundle.
+import type { UserProfile } from "./firebase";
+import type { User as FirebaseUser } from "firebase/auth";
 import { Toaster, toast } from "sonner";
+
+// Firebase (auth + Firestore) and the business-info service are loaded on demand rather than
+// imported at the top of this file. Together they're ~1MB of the production bundle, and
+// pulling them in eagerly blocks the very first paint of the homepage. Kicking off the import
+// here (module load time) lets the browser fetch/parse them in the background while React
+// renders the initial UI from cached/fallback data; every use below awaits this same promise,
+// which resolves instantly after the first time.
+const firebaseReady = Promise.all([
+  import("./firebase"),
+  import("firebase/auth"),
+  import("firebase/firestore"),
+  import("@/src/services/businessService"),
+]).then(([fb, fbAuth, fbFirestore, biz]) => ({
+  auth: fb.auth,
+  db: fb.db,
+  handleFirestoreError: fb.handleFirestoreError,
+  OperationType: fb.OperationType,
+  onAuthStateChanged: fbAuth.onAuthStateChanged,
+  doc: fbFirestore.doc,
+  setDoc: fbFirestore.setDoc,
+  onSnapshot: fbFirestore.onSnapshot,
+  query: fbFirestore.query,
+  collection: fbFirestore.collection,
+  where: fbFirestore.where,
+  getDocs: fbFirestore.getDocs,
+  serverTimestamp: fbFirestore.serverTimestamp,
+  updateDoc: fbFirestore.updateDoc,
+  deleteDoc: fbFirestore.deleteDoc,
+  addDoc: fbFirestore.addDoc,
+  getBusinessInfo: biz.getBusinessInfo,
+}));
+
+// If the lazy-loaded Auth widget fails to load (e.g. a network hiccup, an ad-blocker, or a
+// genuine Firebase outage), this keeps that failure contained to the login button instead of
+// letting it bubble up through Suspense and take down the whole homepage via the top-level
+// ErrorBoundary.
+class SilentErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error) {
+    console.error('Auth widget failed to load:', error?.message || String(error));
+  }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
 
 const icons = {
   Home,
@@ -352,17 +403,21 @@ export default function App() {
   const scale = useTransform(scrollYProgress, [0, 0.1], [1, 0.95]);
 
   useEffect(() => {
+    let isMounted = true;
+    let unsubscribeAuth = () => {};
+
     async function fetchData() {
       try {
         console.log("Fetching business info...");
+        const { getBusinessInfo } = await firebaseReady;
         const result = await getBusinessInfo();
         console.log("Business info fetched:", result);
-        setData(result);
+        if (isMounted) setData(result);
       } catch (error) {
         // This should rarely happen now as getBusinessInfo has multiple fallbacks
         console.error("Critical failure fetching business info:", error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     }
     fetchData();
@@ -374,15 +429,19 @@ export default function App() {
     };
     window.addEventListener('click', handleGlobalClick);
 
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      console.log("Auth state changed. User:", firebaseUser?.uid, "Email:", firebaseUser?.email, "AuthLoading:", authLoading);
-      setUser(firebaseUser);
-      if (!firebaseUser) {
-        setUserProfile(null);
-        setAuthLoading(false);
-        loginLogged.current = false;
-      }
-    });
+    (async () => {
+      const { auth, onAuthStateChanged } = await firebaseReady;
+      if (!isMounted) return;
+      unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+        console.log("Auth state changed. User:", firebaseUser?.uid, "Email:", firebaseUser?.email, "AuthLoading:", authLoading);
+        setUser(firebaseUser);
+        if (!firebaseUser) {
+          setUserProfile(null);
+          setAuthLoading(false);
+          loginLogged.current = false;
+        }
+      });
+    })();
 
     // Safety timeout to ensure auth loading doesn't get stuck
     const authTimeout = setTimeout(() => {
@@ -396,7 +455,8 @@ export default function App() {
     window.addEventListener('scroll', handleScroll);
 
     return () => {
-      unsubscribe();
+      isMounted = false;
+      unsubscribeAuth();
       clearTimeout(authTimeout);
       window.removeEventListener('click', handleGlobalClick);
       window.removeEventListener('scroll', handleScroll);
@@ -424,12 +484,20 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
 
+    let isMounted = true;
+    let unsubProfile = () => {};
+
     setAuthLoading(true);
-    const userRef = doc(db, "users", user.uid);
-    
-    // Use onSnapshot for real-time profile updates
-    const unsubProfile = onSnapshot(userRef, 
-      async (docSnap) => {
+
+    (async () => {
+      const { doc, db, onSnapshot, query, collection, where, getDocs, updateDoc, addDoc, setDoc, deleteDoc, serverTimestamp, auth, handleFirestoreError, OperationType } = await firebaseReady;
+      if (!isMounted) return;
+
+      const userRef = doc(db, "users", user.uid);
+
+      // Use onSnapshot for real-time profile updates
+      unsubProfile = onSnapshot(userRef,
+        async (docSnap) => {
         if (!auth.currentUser) {
           setAuthLoading(false);
           return;
@@ -720,8 +788,12 @@ export default function App() {
         // Error already logged by handleFirestoreError
       }
     });
+    })();
 
-    return () => unsubProfile();
+    return () => {
+      isMounted = false;
+      unsubProfile();
+    };
   }, [user]);
 
   // Login toast notifications removed
@@ -866,7 +938,11 @@ export default function App() {
                         </>
                       )}
 
-                      <Auth key="desktop-auth" user={user} loading={authLoading} />
+                      <SilentErrorBoundary>
+                        <Suspense fallback={null}>
+                          <Auth key="desktop-auth" user={user} loading={authLoading} />
+                        </Suspense>
+                      </SilentErrorBoundary>
                     </div>
 
                     <button 
@@ -932,7 +1008,11 @@ export default function App() {
                         )}
 
                         <div className="pt-8 border-t border-black/5 w-full flex justify-center">
-                          <Auth key="mobile-auth" user={user} loading={authLoading} />
+                          <SilentErrorBoundary>
+                            <Suspense fallback={null}>
+                              <Auth key="mobile-auth" user={user} loading={authLoading} />
+                            </Suspense>
+                          </SilentErrorBoundary>
                         </div>
                       </motion.div>
                     )}
