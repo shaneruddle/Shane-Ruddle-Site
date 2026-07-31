@@ -2311,6 +2311,13 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
             <span className="text-[9px] font-bold uppercase tracking-wide">Finance</span>
           </button>
         )}
+        {/* Personal news feed - visible only to shaneruddle@gmail.com */}
+        {canAccessFeed && (
+          <button onClick={() => setActiveTab('feed')} className={`flex flex-col items-center gap-1 px-6 py-2 rounded-xl transition-all ${activeTab === 'feed' ? 'text-gold' : 'text-black/40'}`}>
+            <Rss className="w-5 h-5" />
+            <span className="text-[9px] font-bold uppercase tracking-wide">Feed</span>
+          </button>
+        )}
       </nav>
 
       {/* Main Content Area */}
