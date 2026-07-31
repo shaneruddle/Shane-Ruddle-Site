@@ -8,7 +8,7 @@ import { db, auth, storage, handleFirestoreError, OperationType, UserProfile, Di
 import { initializeApp, getApp } from 'firebase/app';
 import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy, limit, getFirestore, getDocs } from 'firebase/firestore';
 import { ref, uploadString, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, Download, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, FileDown, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp, Copy, ExternalLink, Image as ImageIcon, Wrench, Layers, Shield, Info, Briefcase, Globe, RefreshCw } from 'lucide-react';
+import { Users, User, History, Edit2, CheckCircle, Loader2, ArrowLeft, Sparkles, Database, Upload, Download, LogOut, Trash2, AlertCircle, Settings, Plus, X, FileText, FileDown, ShieldCheck, DollarSign, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, ArrowLeftRight, Search, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp, Copy, ExternalLink, Image as ImageIcon, Wrench, Layers, Shield, Info, Briefcase, Globe, RefreshCw, Rss } from 'lucide-react';
 import { migrateData } from '../services/migrationService';
 import { getBusinessInfo, saveBusinessInfo } from '../services/businessService';
 import { BusinessInfo } from '../types';
@@ -23,6 +23,47 @@ interface DashboardProps {
   onBack: () => void;
   onImpersonate?: (profile: UserProfile) => void;
 }
+
+// --- Feed tab (visible only to shaneruddle@gmail.com) ---
+type FeedSourceId = 'bbc' | 'sky' | 'bangkokpost' | 'pattayanews' | 'nationthailand';
+
+interface FeedItem {
+  title: string;
+  link: string;
+  pubDate: number; // ms epoch, 0 if unknown/unparsable
+  description: string;
+  source: FeedSourceId;
+}
+
+const FEED_SOURCES: { id: FeedSourceId; label: string }[] = [
+  { id: 'bbc', label: 'BBC News' },
+  { id: 'sky', label: 'Sky News' },
+  { id: 'bangkokpost', label: 'Bangkok Post' },
+  { id: 'pattayanews', label: 'The Pattaya News' },
+  { id: 'nationthailand', label: 'The Nation Thailand' },
+];
+
+const fetchFeedSource = async (sourceId: FeedSourceId): Promise<FeedItem[]> => {
+  const res = await fetch(`/api/rss-proxy?source=${sourceId}`);
+  if (!res.ok) throw new Error(`Failed to load ${sourceId}`);
+  const xmlText = await res.text();
+  const xml = new DOMParser().parseFromString(xmlText, 'application/xml');
+  if (xml.querySelector('parsererror')) throw new Error(`Invalid feed: ${sourceId}`);
+
+  return Array.from(xml.querySelectorAll('item')).map((item) => {
+    let title = item.querySelector('title')?.textContent?.trim() || '(untitled)';
+    if (sourceId === 'nationthailand') {
+      // Google News appends " - Nation Thailand" to every title from this source.
+      title = title.replace(/\s*-\s*Nation Thailand\s*$/i, '');
+    }
+    const link = item.querySelector('link')?.textContent?.trim() || '#';
+    const pubDateRaw = item.querySelector('pubDate')?.textContent?.trim();
+    const pubDate = pubDateRaw ? new Date(pubDateRaw).getTime() || 0 : 0;
+    const rawDescription = item.querySelector('description')?.textContent || '';
+    const description = rawDescription.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().slice(0, 200);
+    return { title, link, pubDate, description, source: sourceId };
+  });
+};
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-TH', { 
@@ -277,13 +318,21 @@ const ReportDocument = React.forwardRef<HTMLDivElement, any>(({
 export default function Dashboard({ userProfile, onBack, onImpersonate }: DashboardProps) {
   const hasRole = (role: string) => userProfile.roles?.includes(role as any) || (userProfile as any).role === role;
   const isImpersonating = auth.currentUser && userProfile.uid !== auth.currentUser.uid;
+  // Checked against the real signed-in account (not the possibly-impersonated userProfile), so
+  // this stays hidden even from other admins previewing the dashboard as Shane.
+  const canAccessFeed = auth.currentUser?.email === 'shaneruddle@gmail.com';
 
-  const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'finance' | 'settings' | 'tools'>(
+  const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'finance' | 'settings' | 'tools' | 'feed'>(
     typeof window !== 'undefined' && window.innerWidth < 768
       ? 'logs'
       : hasRole('admin') ? 'employees'
       : hasRole('accounts') ? 'finance' : 'profile'
   );
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
+  const [feedLoading, setFeedLoading] = useState(false);
+  const [feedErrors, setFeedErrors] = useState<Record<FeedSourceId, string>>({} as Record<FeedSourceId, string>);
+  const [feedLoadedOnce, setFeedLoadedOnce] = useState(false);
+  const [feedFilter, setFeedFilter] = useState<'all' | FeedSourceId>('all');
   const [employees, setEmployees] = useState<UserProfile[]>([]);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [logs, setLogs] = useState<UsageLog[]>([]);
@@ -1330,6 +1379,32 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
     fetchBusinessInfo();
   }, []);
 
+  const loadFeeds = async () => {
+    setFeedLoading(true);
+    const results = await Promise.allSettled(FEED_SOURCES.map((s) => fetchFeedSource(s.id)));
+    const merged: FeedItem[] = [];
+    const errors: Record<FeedSourceId, string> = {} as Record<FeedSourceId, string>;
+    results.forEach((result, i) => {
+      const id = FEED_SOURCES[i].id;
+      if (result.status === 'fulfilled') {
+        merged.push(...result.value);
+      } else {
+        errors[id] = 'Could not load this feed right now.';
+      }
+    });
+    merged.sort((a, b) => b.pubDate - a.pubDate);
+    setFeedItems(merged);
+    setFeedErrors(errors);
+    setFeedLoading(false);
+    setFeedLoadedOnce(true);
+  };
+
+  useEffect(() => {
+    if (activeTab === 'feed' && canAccessFeed && !feedLoadedOnce && !feedLoading) {
+      loadFeeds();
+    }
+  }, [activeTab, canAccessFeed]);
+
   const handlePersonalPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -2189,6 +2264,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
         settingsSubTab={settingsSubTab}
         setSettingsSubTab={setSettingsSubTab}
         canAccessTools={canAccessTools}
+        canAccessFeed={canAccessFeed}
         onBack={onBack}
       />
 
@@ -4350,6 +4426,109 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
 
                 {toolsSubTab === 'extractor-pro' && (
                   <PropertyExtractorPro userProfile={userProfile} />
+                )}
+              </motion.div>
+            )}
+
+            {activeTab === 'feed' && canAccessFeed && (
+              <motion.div
+                key="feed"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-8"
+              >
+                <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
+                  <div className="flex items-center gap-4">
+                    <div className="p-4 bg-gold/10 rounded-2xl">
+                      <Rss className="w-6 h-6 text-gold" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-serif tracking-tight">News <span className="italic text-gold">Feed</span></h2>
+                      <p className="text-xs text-black/40 uppercase tracking-widest font-bold">Your favourite outlets, in one place</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={loadFeeds}
+                    disabled={feedLoading}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-black/10 text-[10px] font-bold uppercase tracking-widest hover:bg-black/5 transition-all disabled:opacity-50"
+                  >
+                    <RefreshCw className={cn("w-3 h-3", feedLoading && "animate-spin")} />
+                    Refresh
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setFeedFilter('all')}
+                    className={cn(
+                      "px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all",
+                      feedFilter === 'all' ? 'bg-black text-white' : 'bg-black/5 text-black/50 hover:bg-black/10'
+                    )}
+                  >
+                    All
+                  </button>
+                  {FEED_SOURCES.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => setFeedFilter(s.id)}
+                      className={cn(
+                        "px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all",
+                        feedFilter === s.id ? 'bg-black text-white' : 'bg-black/5 text-black/50 hover:bg-black/10'
+                      )}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+
+                {Object.keys(feedErrors).length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(feedErrors).map(([id, msg]) => (
+                      <div key={id} className="text-[10px] px-3 py-1.5 rounded-full bg-red-50 text-red-500 font-bold uppercase tracking-widest">
+                        {FEED_SOURCES.find((s) => s.id === id)?.label}: {msg}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {feedLoading && feedItems.length === 0 ? (
+                  <div className="flex items-center justify-center py-24">
+                    <Loader2 className="w-6 h-6 animate-spin text-gold" />
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {feedItems
+                      .filter((item) => feedFilter === 'all' || item.source === feedFilter)
+                      .slice(0, 150)
+                      .map((item, idx) => (
+                        <a
+                          key={`${item.source}-${idx}-${item.link}`}
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block p-6 rounded-2xl border border-black/5 hover:border-gold/40 hover:shadow-lg transition-all group"
+                        >
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-gold">
+                              {FEED_SOURCES.find((s) => s.id === item.source)?.label}
+                            </span>
+                            {item.pubDate > 0 && (
+                              <span className="text-[9px] text-black/30 uppercase tracking-widest">
+                                {new Date(item.pubDate).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="text-lg font-medium mb-2 group-hover:text-gold transition-colors">{item.title}</h3>
+                          {item.description && (
+                            <p className="text-sm text-black/50 leading-relaxed line-clamp-2">{item.description}</p>
+                          )}
+                        </a>
+                      ))}
+                    {feedItems.filter((item) => feedFilter === 'all' || item.source === feedFilter).length === 0 && !feedLoading && (
+                      <p className="text-black/30 text-sm text-center py-12">No articles to show.</p>
+                    )}
+                  </div>
                 )}
               </motion.div>
             )}

@@ -4,11 +4,11 @@ import { auth } from '../firebase';
 import { cn } from '@/src/lib/utils';
 import {
   Users, Database, FileText, History, DollarSign, Wrench,
-  User, Settings, LogOut, ArrowLeft, ChevronDown, ChevronLeft, ChevronRight
+  User, Settings, LogOut, ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Rss
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
-type ActiveTab = 'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'finance' | 'settings' | 'tools';
+type ActiveTab = 'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'finance' | 'settings' | 'tools' | 'feed';
 type FinanceSubTab = 'ABPC' | 'ECRE' | 'ABPC Agents' | 'ECRE Agents' | 'ABPC Reports' | 'ECRE Reports';
 type ToolsSubTab = 'extractor-pro' | 'general';
 
@@ -36,6 +36,7 @@ interface SidebarProps {
   setSettingsSubTab: (v: 'general' | 'privacy') => void;
   // Permissions
   canAccessTools: boolean;
+  canAccessFeed: boolean;
   onBack: () => void;
 }
 
@@ -67,6 +68,7 @@ export default function Sidebar({
   settingsSubTab,
   setSettingsSubTab,
   canAccessTools,
+  canAccessFeed,
   onBack,
 }: SidebarProps) {
   const hasRole = (role: string) =>
@@ -273,6 +275,15 @@ export default function Sidebar({
               </div>
             )}
           </div>
+        )}
+
+        {/* Personal news feed - visible only to shaneruddle@gmail.com */}
+        {canAccessFeed && (
+          <button onClick={() => setActiveTab('feed')} className={navItemClass(activeTab === 'feed')}>
+            <Rss className="w-4 h-4 shrink-0" />
+            <span className={labelClass}>Feed</span>
+            {isSidebarCollapsed && <Tooltip label="Feed" />}
+          </button>
         )}
 
         {/* My Profile */}
