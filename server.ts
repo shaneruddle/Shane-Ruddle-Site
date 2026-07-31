@@ -338,8 +338,10 @@ async function startServer() {
       return res.status(400).json({ error: "Unknown feed source" });
     }
     try {
+      // A generic browser UA rather than a self-identifying bot UA - some outlets' WordPress
+      // security plugins reject anything that reads as a bot, even for their own public feed.
       const response = await axios.get(feedUrl, {
-        headers: { "User-Agent": "Mozilla/5.0 (compatible; ShaneRuddleSite-FeedReader/1.0)" },
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" },
         timeout: 10000,
       });
       res.set("Content-Type", "application/xml; charset=utf-8");
