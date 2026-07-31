@@ -60,7 +60,14 @@ const fetchFeedSource = async (sourceId: FeedSourceId): Promise<FeedItem[]> => {
     const pubDateRaw = item.querySelector('pubDate')?.textContent?.trim();
     const pubDate = pubDateRaw ? new Date(pubDateRaw).getTime() || 0 : 0;
     const rawDescription = item.querySelector('description')?.textContent || '';
-    const description = rawDescription.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().slice(0, 200);
+    // Parsing as HTML (rather than a tag-stripping regex) both removes markup and decodes
+    // entities like &nbsp;/&amp; in one pass, since descriptions can contain either.
+    let description = new DOMParser().parseFromString(rawDescription, 'text/html').body.textContent || '';
+    if (sourceId === 'nationthailand') {
+      // Google News also appends the source name to the description, not just the title.
+      description = description.replace(/\s*Nation Thailand\s*$/i, '');
+    }
+    description = description.replace(/\s+/g, ' ').trim().slice(0, 200);
     return { title, link, pubDate, description, source: sourceId };
   });
 };
