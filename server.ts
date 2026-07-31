@@ -11,6 +11,19 @@ import { getFirestore } from "firebase-admin/firestore";
 
 dotenv.config();
 
+// --- News Feed sources (Dashboard > Feed) ---
+// Fixed whitelist rather than an arbitrary ?url= param, so this endpoint can't be used as an
+// open proxy to fetch any URL on the server's behalf.
+const RSS_FEED_SOURCES: Record<string, string> = {
+  bbc: "http://feeds.bbci.co.uk/news/rss.xml",
+  sky: "https://feeds.skynews.com/feeds/rss/home.xml",
+  bangkokpost: "https://www.bangkokpost.com/rss/data/topstories.xml",
+  pattayanews: "https://thepattayanews.com/feed/",
+  // The Nation Thailand doesn't publish a working native RSS feed anymore, so this substitutes
+  // a Google News search scoped to their site as an approximation of their coverage.
+  nationthailand: "https://news.google.com/rss/search?q=site:nationthailand.com&hl=en-TH&gl=TH&ceid=TH:en",
+};
+
 // --- Remote Firebase app instances (initialised once) ---
 function getRemoteApp(name: string, envVar: string): admin.app.App | null {
   try {
@@ -313,6 +326,27 @@ async function startServer() {
       res.send(response.data);
     } catch (error) {
       res.status(500).send("Failed to proxy image");
+    }
+  });
+
+  // Proxies a fixed whitelist of RSS feeds (see RSS_FEED_SOURCES above) so the browser can read
+  // them without hitting CORS, and so news outlets never see this site's visitors directly.
+  app.get("/api/rss-proxy", async (req, res) => {
+    const source = req.query.source as string;
+    const feedUrl = RSS_FEED_SOURCES[source];
+    if (!feedUrl) {
+      return res.status(400).json({ error: "Unknown feed source" });
+    }
+    try {
+      const response = await axios.get(feedUrl, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; ShaneRuddleSite-FeedReader/1.0)" },
+        timeout: 10000,
+      });
+      res.set("Content-Type", "application/xml; charset=utf-8");
+      res.set("Cache-Control", "public, max-age=300");
+      res.send(response.data);
+    } catch (error) {
+      res.status(502).json({ error: "Failed to fetch feed" });
     }
   });
 
