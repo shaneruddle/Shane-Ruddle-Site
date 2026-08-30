@@ -9,7 +9,7 @@ import * as admin from "firebase-admin";
 import { cert, initializeApp as initializeAdminApp, initializeApp as initializeRemoteApp, getApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
-import { getFleetStatus, getMonthlyFinances, getPayrollSummary, pracCapabilities } from "./server/pracService.ts";
+import { findVehicles, getFleetStatus, getMonthlyFinances, getPayrollSummary, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
 
 dotenv.config();
 
@@ -111,6 +111,20 @@ async function startServer() {
       console.error('PRAC fleet request failed:', error);
       res.status(502).json({ error: 'Unable to read fleet data from PRAC.' });
     }
+  });
+
+  app.get('/api/prac/vehicles', async (req, res) => {
+    const access = await requirePracAccess(req, res, 'operations');
+    if (!access || !access.remoteApp) return;
+    try { res.json(await findVehicles(getFirestore(access.remoteApp as any), String(req.query.q || ''))); }
+    catch { res.status(502).json({ error: 'Unable to search PRAC vehicles.' }); }
+  });
+
+  app.get('/api/prac/schema', async (req, res) => {
+    const access = await requirePracAccess(req, res, 'financials');
+    if (!access || !access.remoteApp) return;
+    try { res.json(await inspectPracSchema(getFirestore(access.remoteApp as any))); }
+    catch { res.status(502).json({ error: 'Unable to inspect the PRAC schema.' }); }
   });
 
   app.get('/api/prac/finance/monthly', async (req, res) => {

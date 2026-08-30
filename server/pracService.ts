@@ -127,6 +127,24 @@ export async function getFleetStatus(db: Firestore) {
   };
 }
 
+export async function findVehicles(db: Firestore, search: string) {
+  const fleet = await getFleetStatus(db);
+  const needle = search.trim().toLowerCase();
+  return { query: search, matches: fleet.vehicles.filter((vehicle) => !needle || [vehicle.name, vehicle.registration, vehicle.category, vehicle.status].filter(Boolean).join(' ').toLowerCase().includes(needle)) };
+}
+
+export async function inspectPracSchema(db: Firestore) {
+  const names = [...configuredCollections('fleet'), ...configuredCollections('finance'), ...configuredCollections('payroll')];
+  const collections = await Promise.all(names.map(async (name) => {
+    try {
+      const snapshot = await db.collection(name).limit(3).get();
+      const fields = [...new Set(snapshot.docs.flatMap((doc) => Object.keys(doc.data())))].sort();
+      return { name, documentsSampled: snapshot.size, fields };
+    } catch { return { name, documentsSampled: 0, fields: [] as string[] }; }
+  }));
+  return { collections: collections.filter((collection) => collection.documentsSampled > 0) };
+}
+
 export async function getMonthlyFinances(db: Firestore, month: string) {
   assertMonth(month);
   const records = (await readFirstAvailableCollection(db, configuredCollections('finance')))
