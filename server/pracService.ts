@@ -162,11 +162,11 @@ export async function inspectPracSchema(db: Firestore) {
 export async function discoverPracData(db: Firestore) {
   const collections = await Promise.all(DISCOVERY_COLLECTIONS.map(async (name) => {
     try {
-      const snapshot = await db.collection(name).limit(5).get();
-      const samples = snapshot.docs.map((doc) => doc.data());
+      const snapshot = await db.collection(name).limit(25).get();
+      const samples = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       const fields = [...new Set(samples.flatMap((sample) => Object.keys(sample)))].sort();
       const balanceFields = fields.filter((field) => /balance|cash|available|bank|total/i.test(field));
-      return { name, documentsSampled: snapshot.size, fields, balanceFields };
+      return { name, documentsSampled: snapshot.size, fields, balanceFields, samples };
     } catch { return null; }
   }));
   return collections.filter(Boolean);

@@ -167,10 +167,10 @@ async function startServer() {
     if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'The PRAC assistant is not configured.' });
     try {
       const db = getFirestore(access.remoteApp as any);
-      const context: Record<string, unknown> = { fleet: await getFleetStatus(db), bookings: await getBookingSummary(db) };
+      const context: Record<string, unknown> = { fleet: await getFleetStatus(db), bookings: await getBookingSummary(db), discovery: await discoverPracData(db) };
       const response = await axios.post('https://api.openai.com/v1/responses', {
         model: 'gpt-4.1-mini', max_output_tokens: 500,
-        instructions: 'You are Shane OS for Pattaya Rent a Car. Answer only from the supplied live data. Be concise, conversational, and state when data is unavailable. Never invent figures or reveal data not in context. Cash balance and payroll are not currently available, so say that clearly rather than estimating.',
+        instructions: 'You are Shane OS for Pattaya Rent a Car. Answer only from the supplied live data. Be concise and state which collection/field supports financial or booking answers. Use the discovery samples to identify balances and dates; never invent figures.',
         input: `Question: ${question}\n\nAuthorised live PRAC context:\n${JSON.stringify(context)}`,
       }, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` }, timeout: 60000 });
       const answer = response.data?.output_text || response.data?.output
@@ -204,9 +204,9 @@ async function startServer() {
       if (!access.remoteApp) return res.status(503).json({ error: 'PRAC data is not configured.' });
       const db = getFirestore(access.remoteApp as any);
       const fleet = await getFleetStatus(db);
-      const context: Record<string, unknown> = { fleet: fleet.totals, bookings: (await getBookingSummary(db)).totals };
+      const context: Record<string, unknown> = { fleet: fleet.totals, bookings: (await getBookingSummary(db)).totals, discovery: await discoverPracData(db) };
       const session = await axios.post('https://api.openai.com/v1/realtime/client_secrets', {
-        session: { type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } }, instructions: `You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Answer from this authorised live PRAC snapshot only. Never invent figures. Cash balance and payroll are not available in this snapshot, so say that clearly. Snapshot: ${JSON.stringify(context)}` },
+        session: { type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } }, instructions: `You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Answer only from this authorised live data. Use the discovery samples to identify balances and dates, and never invent figures. Snapshot: ${JSON.stringify(context)}` },
       }, { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' } });
       res.json({ clientSecret: session.data?.value || session.data?.client_secret?.value });
     } catch (error: any) { res.status(error?.response?.status || 502).json({ error: 'Unable to start voice mode.' }); }
