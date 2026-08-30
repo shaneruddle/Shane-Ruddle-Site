@@ -123,16 +123,26 @@ function classifyVehicleStatus(status: string) {
   return 'other';
 }
 
+function vehicleOperationalStatus(record: PracRecord) {
+  const namedStatus = firstString(record, ['status', 'availability', 'rentalStatus', 'state', 'carStatus', 'vehicleStatus', 'currentStatus', 'availabilityStatus']);
+  if (namedStatus) return namedStatus;
+  if (record.isAvailable === true || record.available === true) return 'available';
+  if (record.isAvailable === false || record.available === false) return 'not available';
+  if (record.isRented === true || record.rented === true) return 'rented';
+  if (record.inMaintenance === true || record.underMaintenance === true) return 'maintenance';
+  return 'unknown';
+}
+
 export async function getFleetStatus(db: Firestore) {
   const records = await readFirstAvailableCollection(db, configuredCollections('fleet'));
   const vehicles = records.map((record) => {
-    const status = firstString(record, ['status', 'availability', 'rentalStatus', 'state']) || 'unknown';
-    const make = firstString(record, ['make', 'brand', 'manufacturer']);
-    const model = firstString(record, ['model', 'vehicleModel']);
+    const status = vehicleOperationalStatus(record);
+    const make = firstString(record, ['make', 'brand', 'manufacturer', 'carMake', 'vehicleMake', 'carBrand']);
+    const model = firstString(record, ['model', 'vehicleModel', 'carModel', 'modelName']);
     return {
       id: record.id,
-      name: [make, model].filter(Boolean).join(' ') || firstString(record, ['name', 'vehicleName', 'title', 'registration']) || `Vehicle ${record.id}`,
-      registration: firstString(record, ['registration', 'plate', 'licensePlate']),
+      name: [make, model].filter(Boolean).join(' ') || firstString(record, ['name', 'vehicleName', 'carName', 'title', 'registration', 'plate', 'licensePlate']) || `Vehicle ${record.id}`,
+      registration: firstString(record, ['registration', 'plate', 'licensePlate', 'license', 'registrationNumber']),
       status,
       category: firstString(record, ['category', 'type', 'vehicleType']),
     };
