@@ -157,7 +157,12 @@ async function startServer() {
         instructions: 'You are Shane OS for Pattaya Rent a Car. Answer only from the supplied live data. Be concise, conversational, and state when data is unavailable. Never invent figures or reveal data not in context.',
         input: `Question: ${question}\n\nAuthorised live PRAC context:\n${JSON.stringify(context)}`,
       }, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` }, timeout: 60000 });
-      res.json({ answer: response.data?.output_text || 'I could not form an answer.' });
+      const answer = response.data?.output_text || response.data?.output
+        ?.flatMap((item: any) => item.content || [])
+        .map((item: any) => item.text || item.value || '')
+        .filter(Boolean)
+        .join('');
+      res.json({ answer: answer || 'I could not form an answer.' });
     } catch (error: any) {
       console.error('PRAC assistant failed:', error?.response?.data || error?.message);
       res.status(error?.response?.status || 502).json({ error: error?.response?.data?.error?.message || 'The PRAC assistant could not answer right now.' });
