@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { cn } from '@/src/lib/utils';
 import PropertyExtractorPro from './PropertyExtractorPro';
+import PracOperations from './PracOperations';
 import Sidebar from './Sidebar';
 
 interface DashboardProps {
@@ -329,7 +330,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
   // this stays hidden even from other admins previewing the dashboard as Shane.
   const canAccessFeed = auth.currentUser?.email === 'shaneruddle@gmail.com';
 
-  const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'finance' | 'settings' | 'tools' | 'feed'>(
+  const [activeTab, setActiveTab] = useState<'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'finance' | 'settings' | 'tools' | 'feed' | 'prac'>(
     typeof window !== 'undefined' && window.innerWidth < 768
       ? 'logs'
       : hasRole('admin') ? 'employees'
@@ -2235,6 +2236,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
 
   const isAbpcOrEcre = userProfile.company === 'Alan Bolton Property Consultants' || userProfile.company === 'East Coast Real Estate';
   const canAccessTools = hasRole('admin') || hasRole('manager') || (userProfile as any).toolsAccess === true || isAbpcOrEcre;
+  const canAccessPrac = hasRole('admin') || hasRole('manager') || hasRole('accounts') || userProfile.company === 'Pattaya Rent a Car';
 
   if (!hasRole('admin') && !hasRole('accounts') && !hasRole('manager') && auth.currentUser?.email !== 'shaneruddle@gmail.com' && !isWhitelistedCompany) {
     return (
@@ -2272,6 +2274,7 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
         setSettingsSubTab={setSettingsSubTab}
         canAccessTools={canAccessTools}
         canAccessFeed={canAccessFeed}
+        canAccessPrac={canAccessPrac}
         onBack={onBack}
       />
 
@@ -2309,6 +2312,12 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
           <button onClick={() => setActiveTab('finance')} className={`flex flex-col items-center gap-1 px-6 py-2 rounded-xl transition-all ${activeTab === 'finance' ? 'text-gold' : 'text-black/40'}`}>
             <DollarSign className="w-5 h-5" />
             <span className="text-[9px] font-bold uppercase tracking-wide">Finance</span>
+          </button>
+        )}
+        {canAccessPrac && (
+          <button onClick={() => setActiveTab('prac')} className={`flex flex-col items-center gap-1 px-6 py-2 rounded-xl transition-all ${activeTab === 'prac' ? 'text-gold' : 'text-black/40'}`}>
+            <Wrench className="w-5 h-5" />
+            <span className="text-[9px] font-bold uppercase tracking-wide">PRAC</span>
           </button>
         )}
         {/* Personal news feed - visible only to shaneruddle@gmail.com */}
@@ -4441,6 +4450,12 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                 {toolsSubTab === 'extractor-pro' && (
                   <PropertyExtractorPro userProfile={userProfile} />
                 )}
+              </motion.div>
+            )}
+
+            {activeTab === 'prac' && canAccessPrac && (
+              <motion.div key="prac" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <PracOperations userProfile={userProfile} />
               </motion.div>
             )}
 

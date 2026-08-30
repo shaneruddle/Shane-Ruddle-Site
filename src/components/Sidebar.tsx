@@ -4,11 +4,11 @@ import { auth } from '../firebase';
 import { cn } from '@/src/lib/utils';
 import {
   Users, Database, FileText, History, DollarSign, Wrench,
-  User, Settings, LogOut, ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Rss
+  User, Settings, LogOut, ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Rss, Car
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
-type ActiveTab = 'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'finance' | 'settings' | 'tools' | 'feed';
+type ActiveTab = 'employees' | 'logs' | 'companies' | 'profile' | 'blog' | 'finance' | 'settings' | 'tools' | 'feed' | 'prac';
 type FinanceSubTab = 'ABPC' | 'ECRE' | 'ABPC Agents' | 'ECRE Agents' | 'ABPC Reports' | 'ECRE Reports';
 type ToolsSubTab = 'extractor-pro' | 'general';
 
@@ -37,6 +37,7 @@ interface SidebarProps {
   // Permissions
   canAccessTools: boolean;
   canAccessFeed: boolean;
+  canAccessPrac: boolean;
   onBack: () => void;
 }
 
@@ -69,6 +70,7 @@ export default function Sidebar({
   setSettingsSubTab,
   canAccessTools,
   canAccessFeed,
+  canAccessPrac,
   onBack,
 }: SidebarProps) {
   const hasRole = (role: string) =>
@@ -181,6 +183,14 @@ export default function Sidebar({
               {isSidebarCollapsed && <Tooltip label="System Logs" />}
             </button>
           </>
+        )}
+
+        {canAccessPrac && (
+          <button onClick={() => setActiveTab('prac')} className={navItemClass(activeTab === 'prac')}>
+            <Car className="w-4 h-4 shrink-0" />
+            <span className={labelClass}>PRAC Operations</span>
+            {isSidebarCollapsed && <Tooltip label="PRAC Operations" />}
+          </button>
         )}
 
         {/* Finance */}

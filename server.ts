@@ -6,8 +6,10 @@ import dotenv from "dotenv";
 import axios from "axios";
 import cors from "cors";
 import * as admin from "firebase-admin";
-import { cert, initializeApp as initializeRemoteApp, getApp } from "firebase-admin/app";
+import { cert, initializeApp as initializeAdminApp, initializeApp as initializeRemoteApp, getApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
+import { getFleetStatus, getMonthlyFinances, getPayrollSummary, pracCapabilities } from "./server/pracService.ts";
 
 dotenv.config();
 
@@ -43,12 +45,97 @@ function getRemoteApp(name: string, envVar: string): admin.app.App | null {
   }
 }
 
+// Cloud Run uses its attached service account for this project's Firebase Admin SDK.
+// This app verifies website tokens and reads role records; PRAC data remains isolated in its remote app.
+function getPrimaryAdminApp(): admin.app.App {
+  try {
+    return getApp() as unknown as admin.app.App;
+  } catch {
+    return initializeAdminApp() as unknown as admin.app.App;
+  }
+}
+
+type PracPermission = 'operations' | 'financials';
+
+async function requirePracAccess(req: express.Request, res: express.Response, permission: PracPermission) {
+  const bearer = req.header('authorization');
+  if (!bearer?.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'A signed-in session is required.' });
+    return null;
+  }
+
+  try {
+    const primaryApp = getPrimaryAdminApp();
+    const token = await getAuth(primaryApp as any).verifyIdToken(bearer.slice(7));
+    const profile = (await getFirestore(primaryApp as any).collection('users').doc(token.uid).get()).data() || {};
+    const roles = new Set<string>([
+      ...(Array.isArray(profile.roles) ? profile.roles : []),
+      ...(profile.role ? [profile.role] : []),
+    ]);
+    const isAdmin = roles.has('admin') || token.email?.toLowerCase() === 'shaneruddle@gmail.com';
+    const isPracStaff = profile.company === 'Pattaya Rent a Car';
+    const allowed = permission === 'financials'
+      ? isAdmin || roles.has('accounts')
+      : isAdmin || roles.has('manager') || roles.has('accounts') || isPracStaff;
+
+    if (!allowed) {
+      res.status(403).json({ error: 'You do not have permission to view this PRAC data.' });
+      return null;
+    }
+    return { remoteApp: getRemoteApp('prac-admin', 'PRAC_SERVICE_ACCOUNT') };
+  } catch (error) {
+    console.error('PRAC access verification failed:', error);
+    res.status(401).json({ error: 'Your session could not be verified.' });
+    return null;
+  }
+}
+
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
 
   app.use(cors());
   app.use(express.json());
+
+  app.get('/api/prac/capabilities', (_req, res) => {
+    res.json(pracCapabilities);
+  });
+
+  app.get('/api/prac/fleet', async (req, res) => {
+    const access = await requirePracAccess(req, res, 'operations');
+    if (!access) return;
+    if (!access.remoteApp) return res.status(503).json({ error: 'PRAC data is not configured.' });
+    try {
+      res.json(await getFleetStatus(getFirestore(access.remoteApp as any)));
+    } catch (error) {
+      console.error('PRAC fleet request failed:', error);
+      res.status(502).json({ error: 'Unable to read fleet data from PRAC.' });
+    }
+  });
+
+  app.get('/api/prac/finance/monthly', async (req, res) => {
+    const access = await requirePracAccess(req, res, 'financials');
+    if (!access) return;
+    if (!access.remoteApp) return res.status(503).json({ error: 'PRAC data is not configured.' });
+    try {
+      res.json(await getMonthlyFinances(getFirestore(access.remoteApp as any), String(req.query.month || '')));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to read PRAC financial data.';
+      res.status(message.includes('YYYY-MM') ? 400 : 502).json({ error: message });
+    }
+  });
+
+  app.get('/api/prac/payroll/summary', async (req, res) => {
+    const access = await requirePracAccess(req, res, 'financials');
+    if (!access) return;
+    if (!access.remoteApp) return res.status(503).json({ error: 'PRAC data is not configured.' });
+    try {
+      res.json(await getPayrollSummary(getFirestore(access.remoteApp as any), String(req.query.month || '')));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to read PRAC payroll data.';
+      res.status(message.includes('YYYY-MM') ? 400 : 502).json({ error: message });
+    }
+  });
 
   // Cross-project log aggregator
   app.get("/api/logs", async (req, res) => {
@@ -561,4 +648,3 @@ async function startServer() {
 }
 
 startServer();
-
