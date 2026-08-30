@@ -204,9 +204,11 @@ async function startServer() {
       if (!access.remoteApp) return res.status(503).json({ error: 'PRAC data is not configured.' });
       const db = getFirestore(access.remoteApp as any);
       const fleet = await getFleetStatus(db);
-      const context: Record<string, unknown> = { fleet: fleet.totals, bookings: (await getBookingSummary(db)).totals, discovery: await discoverPracData(db) };
+      // Realtime limits session instructions to 16k tokens. Keep the initial voice
+      // context deliberately small; deeper questions belong to dedicated data tools.
+      const context: Record<string, unknown> = { fleet: fleet.totals, bookings: (await getBookingSummary(db)).totals };
       const session = await axios.post('https://api.openai.com/v1/realtime/client_secrets', {
-        session: { type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } }, instructions: `You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Answer only from this authorised live data. Use the discovery samples to identify balances and dates, and never invent figures. Snapshot: ${JSON.stringify(context)}` },
+        session: { type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } }, instructions: `You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Answer only from this authorised live data. Never invent figures. Snapshot: ${JSON.stringify(context)}` },
       }, { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' } });
       res.json({ clientSecret: session.data?.value || session.data?.client_secret?.value });
     } catch (error: any) {
