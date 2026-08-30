@@ -209,7 +209,7 @@ async function startServer() {
       const context: Record<string, unknown> = { fleet: fleet.totals, bookings: (await getBookingSummary(db)).totals };
       const session = await axios.post('https://api.openai.com/v1/realtime/client_secrets', {
         session: {
-          type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } },
+          type: 'realtime', model: 'gpt-realtime', audio: { input: { transcription: { model: 'gpt-4o-mini-transcribe' } }, output: { voice: 'marin' } },
           instructions: `You are Shane OS for Pattaya Rent a Car. Always speak and respond in English, even if the user is in Thailand or uses a Thai or Japanese word. Switch language only if the user explicitly asks you to. Speak naturally and concisely. Before answering any question about fleet, bookings, finance, cash, bank, or balances, call get_prac_live_data. Only answer from the returned data and never invent figures. Snapshot: ${JSON.stringify(context)}`,
           tools: [{ type: 'function', name: 'get_prac_live_data', description: 'Read current authorised Pattaya Rent a Car data. Use this before answering fleet, booking, cash, bank, balance, income, expense, or finance questions.', parameters: { type: 'object', properties: { topic: { type: 'string', enum: ['fleet', 'bookings', 'finance'] }, query: { type: 'string', description: 'The customer question, used to select relevant finance fields.' } }, required: ['topic', 'query'], additionalProperties: false } }],
         },
