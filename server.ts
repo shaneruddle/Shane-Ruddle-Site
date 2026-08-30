@@ -209,7 +209,10 @@ async function startServer() {
         session: { type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } }, instructions: `You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Answer only from this authorised live data. Use the discovery samples to identify balances and dates, and never invent figures. Snapshot: ${JSON.stringify(context)}` },
       }, { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' } });
       res.json({ clientSecret: session.data?.value || session.data?.client_secret?.value });
-    } catch (error: any) { res.status(error?.response?.status || 502).json({ error: 'Unable to start voice mode.' }); }
+    } catch (error: any) {
+      console.error('OpenAI Realtime session failed:', error?.response?.data || error?.message);
+      res.status(error?.response?.status || 502).json({ error: error?.response?.data?.error?.message || 'Unable to start voice mode.' });
+    }
   });
 
   // Cross-project log aggregator
