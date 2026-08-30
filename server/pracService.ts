@@ -96,6 +96,15 @@ function bangkokDayRange() {
   return { date: `${values.year}-${values.month}-${values.day}`, start, end: new Date(start.getTime() + 24 * 60 * 60 * 1000) };
 }
 
+function bangkokMonthRange(month?: string) {
+  const today = bangkokDayRange().date;
+  const selected = month || today.slice(0, 7);
+  assertMonth(selected);
+  const [year, monthNumber] = selected.split('-').map(Number);
+  const start = new Date(Date.UTC(year, monthNumber - 1, 1, -7));
+  return { month: selected, start, end: new Date(Date.UTC(year, monthNumber, 1, -7)) };
+}
+
 function classifyVehicleStatus(status: string) {
   const normalized = status.trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
 
@@ -209,6 +218,35 @@ export async function getCurrentAccountBalances(db: Firestore) {
   };
 }
 
+export async function getMonthlyTransactionSummary(db: Firestore, requestedMonth = '') {
+  const { month, start, end } = bangkokMonthRange(requestedMonth || undefined);
+  const snapshot = await db.collection('transactions').where('date', '>=', start).where('date', '<', end).get();
+  const by = (key: 'type' | 'category') => {
+    const totals = new Map<string, { records: number; amount: number }>();
+    snapshot.docs.forEach((doc) => {
+      const record = doc.data();
+      const label = firstString(record, [key]) || 'Unclassified';
+      const current = totals.get(label) || { records: 0, amount: 0 };
+      current.records += 1; current.amount += firstNumber(record, ['amount']); totals.set(label, current);
+    });
+    return [...totals.entries()].map(([label, value]) => ({ label, ...value })).sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount));
+  };
+  const records = snapshot.docs.map((doc) => doc.data());
+  const classify = (record: Record<string, unknown>) => `${firstString(record, ['type']) || ''} ${firstString(record, ['category']) || ''}`.toLowerCase();
+  const income = records.filter((record) => /income|revenue|sale|rental income/.test(classify(record))).reduce((sum, record) => sum + firstNumber(record, ['amount']), 0);
+  const expenses = records.filter((record) => /expense|cost|refund|salary|maintenance/.test(classify(record))).reduce((sum, record) => sum + firstNumber(record, ['amount']), 0);
+  const classified = records.filter((record) => /income|revenue|sale|rental income|expense|cost|refund|salary|maintenance/.test(classify(record))).length;
+  const summaries = await db.collection('finance_summaries').limit(100).get();
+  const latest = summaries.docs.map((doc) => ({ id: doc.id, ...doc.data() } as PracRecord)).sort((a, b) => (asDate(b.lastUpdated)?.getTime() || 0) - (asDate(a.lastUpdated)?.getTime() || 0))[0];
+  return {
+    sourceCollection: 'transactions', month,
+    definition: 'Transactions dated in the selected Bangkok calendar month. Income and expense totals include only records with recognisable type/category labels; unclassified records are reported separately.',
+    totals: { records: records.length, income, expenses, net: income - expenses, classifiedRecords: classified, unclassifiedRecords: records.length - classified },
+    byType: by('type'), byCategory: by('category'),
+    latestFinanceSummary: latest ? { sourceCollection: 'finance_summaries', lastUpdated: asDate(latest.lastUpdated)?.toISOString() || null, totalIncome: firstNumber(latest, ['totalIncome']), totalExpense: firstNumber(latest, ['totalExpense']) } : null,
+  };
+}
+
 export async function inspectPracSchema(db: Firestore) {
   const names = [...configuredCollections('fleet'), ...configuredCollections('bookings'), ...configuredCollections('finance')];
   const collections = await Promise.all(names.map(async (name) => {
@@ -287,6 +325,7 @@ export async function getRealtimePracData(db: Firestore, topic: 'fleet' | 'booki
     generatedAt: new Date().toISOString(),
     query,
     currentAccounts: await getCurrentAccountBalances(db),
+    currentMonthSummary: await getMonthlyTransactionSummary(db),
     note: 'These are matching fields and recent record values from authorised finance/account collections. State the field and collection used; do not combine values unless the records explicitly represent a total.',
     collections: discovery
       .filter((collection: any) => ['accounts', 'transactions', 'finance_summaries', 'vehicleFinance'].includes(collection.name))
