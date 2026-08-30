@@ -173,6 +173,22 @@ async function startServer() {
     } catch { res.status(502).json({ error: 'Unable to load conversation.' }); }
   });
 
+  app.delete('/api/conversations/:id', async (req, res) => {
+    const access = await requireTaskAccess(req, res);
+    if (!access) return;
+    try {
+      const conversation = access.db.collection('conversations').doc(req.params.id);
+      const saved = await conversation.get();
+      if (!saved.exists || saved.data()?.userId !== access.token.uid) return res.status(404).json({ error: 'Conversation not found.' });
+      const messages = await conversation.collection('messages').get();
+      const batch = access.db.batch();
+      messages.docs.forEach((message) => batch.delete(message.ref));
+      batch.delete(conversation);
+      await batch.commit();
+      res.status(204).end();
+    } catch (error) { console.error('Conversation delete failed:', error); res.status(502).json({ error: 'Unable to delete conversation.' }); }
+  });
+
   app.post('/api/conversations/:id/messages', async (req, res) => {
     const access = await requireTaskAccess(req, res);
     if (!access) return;
