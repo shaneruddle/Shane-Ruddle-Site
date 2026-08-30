@@ -9,7 +9,7 @@ import * as admin from "firebase-admin";
 import { cert, initializeApp as initializeAdminApp, initializeApp as initializeRemoteApp, getApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
-import { discoverPracData, findVehicles, getBookingSummary, getFleetStatus, getMonthlyFinances, getPayrollSummary, getRealtimePracData, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
+import { auditPracDataMapping, discoverPracData, findVehicles, getBookingSummary, getFleetStatus, getMonthlyFinances, getPayrollSummary, getRealtimePracData, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
 
 dotenv.config();
 
@@ -132,6 +132,13 @@ async function startServer() {
     if (!access || !access.remoteApp) return;
     try { res.json(await discoverPracData(getFirestore(access.remoteApp as any))); }
     catch { res.status(502).json({ error: 'Unable to inspect PRAC data.' }); }
+  });
+
+  app.get('/api/prac/mapping-audit', async (req, res) => {
+    const access = await requirePracAccess(req, res, 'financials');
+    if (!access || !access.remoteApp) return;
+    try { res.json(await auditPracDataMapping(getFirestore(access.remoteApp as any))); }
+    catch { res.status(502).json({ error: 'Unable to audit PRAC data sources.' }); }
   });
 
   app.get('/api/prac/finance/monthly', async (req, res) => {

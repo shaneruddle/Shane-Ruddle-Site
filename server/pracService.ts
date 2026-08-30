@@ -10,6 +10,7 @@ const COLLECTIONS = {
 };
 
 const DISCOVERY_COLLECTIONS = ['accounts', 'bookings', 'cars', 'customers', 'enquiries', 'finance_summaries', 'rentals', 'transactions', 'vehicleFinance', 'vehicle_logs'];
+const MAPPING_COLLECTIONS = ['accounts', 'bookings', 'rentals', 'transactions', 'finance_summaries', 'vehicleFinance'];
 
 function configuredCollections(kind: keyof typeof COLLECTIONS) {
   const envName = `PRAC_${kind.toUpperCase()}_COLLECTIONS`;
@@ -157,6 +158,31 @@ export async function inspectPracSchema(db: Firestore) {
     } catch { return { name, documentsSampled: 0, fields: [] as string[] }; }
   }));
   return { collections: collections.filter((collection) => collection.documentsSampled > 0) };
+}
+
+export async function auditPracDataMapping(db: Firestore) {
+  const collections = await Promise.all(MAPPING_COLLECTIONS.map(async (name) => {
+    try {
+      const snapshot = await db.collection(name).limit(250).get();
+      const fieldStats = new Map<string, { present: number; types: Set<string> }>();
+      snapshot.docs.forEach((doc) => Object.entries(doc.data()).forEach(([field, value]) => {
+        const stat = fieldStats.get(field) || { present: 0, types: new Set<string>() };
+        stat.present += 1;
+        stat.types.add(value instanceof Date || (value && typeof value === 'object' && 'toDate' in value) ? 'date' : Array.isArray(value) ? 'array' : value === null ? 'null' : typeof value);
+        fieldStats.set(field, stat);
+      }));
+      const fields = [...fieldStats.entries()].map(([name, stat]) => ({ name, present: stat.present, types: [...stat.types].sort() })).sort((a, b) => a.name.localeCompare(b.name));
+      return {
+        name,
+        recordsSampled: snapshot.size,
+        fields,
+        candidateDateFields: fields.filter((field) => /date|time|created|updated|pickup|dropoff|start|end/i.test(field.name)).map((field) => field.name),
+        candidateMoneyFields: fields.filter((field) => /cash|bank|balance|amount|total|income|expense|revenue|price|cost|paid/i.test(field.name)).map((field) => field.name),
+        candidateStatusFields: fields.filter((field) => /status|state|type|category/i.test(field.name)).map((field) => field.name),
+      };
+    } catch { return null; }
+  }));
+  return { generatedAt: new Date().toISOString(), collections: collections.filter(Boolean) };
 }
 
 export async function discoverPracData(db: Firestore) {
