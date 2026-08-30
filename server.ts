@@ -73,6 +73,17 @@ function conversationRecord(id: string, data: Record<string, unknown>) {
   return { id, title: typeof data.title === 'string' ? data.title : 'New conversation', companyNickname: typeof data.companyNickname === 'string' ? data.companyNickname : 'PRAC', createdAt: taskTimestamp(data.createdAt), updatedAt: taskTimestamp(data.updatedAt) };
 }
 
+// Estimates use the current configured model rates. Store the raw token counts too,
+// so historical spend can be recalculated if pricing changes.
+async function recordOpenAiUsage(db: FirebaseFirestore.Firestore, userId: string, operation: string, response: any) {
+  const usage = response?.usage;
+  const inputTokens = Number(usage?.input_tokens || 0);
+  const outputTokens = Number(usage?.output_tokens || 0);
+  if (!inputTokens && !outputTokens) return;
+  const estimatedUsd = (inputTokens * 0.40 + outputTokens * 1.60) / 1_000_000;
+  await db.collection('api_usage').add({ provider: 'openai', model: 'gpt-4.1-mini', operation, userId, inputTokens, outputTokens, estimatedUsd, createdAt: FieldValue.serverTimestamp() });
+}
+
 async function requireTaskAccess(req: express.Request, res: express.Response) {
   const bearer = req.header('authorization');
   if (!bearer?.startsWith('Bearer ')) { res.status(401).json({ error: 'A signed-in session is required.' }); return null; }
@@ -123,7 +134,7 @@ async function requirePracAccess(req: express.Request, res: express.Response, pe
       res.status(403).json({ error: 'You do not have permission to view this PRAC data.' });
       return null;
     }
-    return { remoteApp: getRemoteApp('prac-admin', 'PRAC_SERVICE_ACCOUNT'), canViewFinancials: isAdmin || roles.has('accounts') };
+    return { token, db: getFirestore(primaryApp as any), remoteApp: getRemoteApp('prac-admin', 'PRAC_SERVICE_ACCOUNT'), canViewFinancials: isAdmin || roles.has('accounts') };
   } catch (error) {
     console.error('PRAC access verification failed:', error);
     res.status(401).json({ error: 'Your session could not be verified.' });
@@ -203,6 +214,24 @@ async function startServer() {
       await conversation.update(updates); const message = await conversation.collection('messages').add({ role, text, createdAt: FieldValue.serverTimestamp() });
       res.status(201).json({ message: { id: message.id, role, text } });
     } catch { res.status(502).json({ error: 'Unable to save message.' }); }
+  });
+
+  app.get('/api/costs', async (req, res) => {
+    const access = await requireTaskAccess(req, res);
+    if (!access) return;
+    try {
+      const roles = new Set<string>(Array.isArray(access.profile.roles) ? access.profile.roles : []);
+      const isAdmin = roles.has('admin') || access.token.email?.toLowerCase() === 'shaneruddle@gmail.com';
+      const snapshot = await access.db.collection('api_usage').limit(1000).get();
+      const records = snapshot.docs.map((doc) => doc.data()).filter((record) => isAdmin || record.userId === access.token.uid);
+      const totalUsd = records.reduce((total, record) => total + Number(record.estimatedUsd || 0), 0);
+      const today = new Date().toISOString().slice(0, 10); const month = today.slice(0, 7);
+      const created = (record: any) => taskTimestamp(record.createdAt) || '';
+      const todayUsd = records.filter((record) => created(record).slice(0, 10) === today).reduce((total, record) => total + Number(record.estimatedUsd || 0), 0);
+      const monthUsd = records.filter((record) => created(record).slice(0, 7) === month).reduce((total, record) => total + Number(record.estimatedUsd || 0), 0);
+      const byOperation = Object.entries(records.reduce<Record<string, { calls: number; estimatedUsd: number }>>((result, record) => { const operation = String(record.operation || 'other'); result[operation] = result[operation] || { calls: 0, estimatedUsd: 0 }; result[operation].calls += 1; result[operation].estimatedUsd += Number(record.estimatedUsd || 0); return result; }, {})).map(([operation, value]) => ({ operation, ...value }));
+      res.json({ estimatedUsd: totalUsd, todayUsd, monthUsd, calls: records.length, byOperation, note: 'Estimate includes typed Shane OS responses where OpenAI returns token usage. Browser Realtime voice sessions are not billable-token visible to this server.' });
+    } catch (error) { console.error('Cost summary failed:', error); res.status(502).json({ error: 'Unable to load API costs.' }); }
   });
 
   app.get('/api/tasks', async (req, res) => {
@@ -380,10 +409,12 @@ async function startServer() {
         tools: [{ type: 'function', name: 'create_group_task', description: 'Create a shared Shane Ruddle task only when the user explicitly asks to create or add one.', parameters: { type: 'object', properties: { title: { type: 'string' }, companyNickname: { type: 'string' }, notes: { type: 'string' }, priority: { type: 'string', enum: ['low', 'medium', 'high'] } }, required: ['title', 'companyNickname'], additionalProperties: false } }],
         input: `Conversation history:\n${history.map((item: any) => `${item.role}: ${item.text}`).join('\n')}\n\nCurrent user message: ${question}\n\nAuthorised live PRAC context:\n${JSON.stringify(context)}`,
       }, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` }, timeout: 60000 });
+      await recordOpenAiUsage(access.db, access.token.uid, 'Shane OS typed chat', response.data);
       const functionCall = response.data?.output?.find((item: any) => item.type === 'function_call' && item.name === 'create_group_task');
       if (functionCall) {
         const task = await createSharedTask(access, JSON.parse(functionCall.arguments || '{}'));
         const followUp = await axios.post('https://api.openai.com/v1/responses', { model: 'gpt-4.1-mini', instructions, previous_response_id: response.data.id, input: [{ type: 'function_call_output', call_id: functionCall.call_id, output: JSON.stringify({ task }) }] }, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` }, timeout: 60000 });
+        await recordOpenAiUsage(access.db, access.token.uid, 'Shane OS task follow-up', followUp.data);
         return res.json({ answer: followUp.data?.output_text || `Created task: ${task.title} (${task.companyNickname}).`, task });
       }
       const answer = response.data?.output_text || response.data?.output

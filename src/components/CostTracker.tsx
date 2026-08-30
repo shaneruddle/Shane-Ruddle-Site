@@ -1,0 +1,13 @@
+import React, { useEffect, useState } from 'react';
+import { BarChart3, RefreshCw } from 'lucide-react';
+import { auth } from '../firebase';
+
+type CostSummary = { estimatedUsd: number; todayUsd: number; monthUsd: number; calls: number; byOperation: { operation: string; calls: number; estimatedUsd: number }[]; note: string };
+const money = (value: number) => `$${value.toFixed(value < 0.01 ? 4 : 2)}`;
+
+export default function CostTracker() {
+  const [summary, setSummary] = useState<CostSummary | null>(null); const [error, setError] = useState(''); const [loading, setLoading] = useState(true);
+  const load = async () => { setLoading(true); try { const token = await auth.currentUser?.getIdToken(); const response = await fetch('/api/costs', { headers: { Authorization: `Bearer ${token}` } }); const body = await response.json(); if (!response.ok) throw new Error(body.error || 'Unable to load costs.'); setSummary(body); setError(''); } catch (loadError) { setError(loadError instanceof Error ? loadError.message : 'Unable to load costs.'); } finally { setLoading(false); } };
+  useEffect(() => { void load(); }, []);
+  return <section className="rounded-xl border border-black/10 bg-white p-4"><div className="flex items-center justify-between gap-3"><div className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-black/55" /><div><h2 className="text-sm font-semibold">API cost tracker</h2><p className="text-xs text-black/45">Estimated OpenAI usage</p></div></div><button onClick={() => void load()} className="rounded-md p-2 hover:bg-black/5" title="Refresh costs"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /></button></div>{error && <p className="mt-3 text-sm text-red-600">{error}</p>}{summary && <><div className="mt-4 grid gap-2 sm:grid-cols-3"><div className="rounded-lg bg-[#f7f7f8] p-3"><p className="text-xs text-black/45">Today</p><strong className="text-lg">{money(summary.todayUsd)}</strong></div><div className="rounded-lg bg-[#f7f7f8] p-3"><p className="text-xs text-black/45">This month</p><strong className="text-lg">{money(summary.monthUsd)}</strong></div><div className="rounded-lg bg-[#f7f7f8] p-3"><p className="text-xs text-black/45">All recorded</p><strong className="text-lg">{money(summary.estimatedUsd)}</strong><span className="ml-2 text-xs text-black/45">{summary.calls} calls</span></div></div><div className="mt-3 space-y-1">{summary.byOperation.map((item) => <div key={item.operation} className="flex justify-between text-sm"><span className="text-black/60">{item.operation} · {item.calls}</span><span>{money(item.estimatedUsd)}</span></div>)}</div><p className="mt-3 text-xs leading-relaxed text-black/45">{summary.note}</p></>}</section>;
+}
