@@ -10,7 +10,7 @@ const COLLECTIONS = {
 };
 
 const DISCOVERY_COLLECTIONS = ['accounts', 'bookings', 'cars', 'customers', 'enquiries', 'finance_summaries', 'rentals', 'transactions', 'vehicleFinance', 'vehicle_logs'];
-const MAPPING_COLLECTIONS = ['accounts', 'bookings', 'rentals', 'transactions', 'finance_summaries', 'vehicleFinance'];
+const MAPPING_COLLECTIONS = ['accounts', 'bookings', 'cars', 'rentals', 'transactions', 'finance_summaries', 'vehicleFinance'];
 
 function configuredCollections(kind: keyof typeof COLLECTIONS) {
   const envName = `PRAC_${kind.toUpperCase()}_COLLECTIONS`;
@@ -151,6 +151,7 @@ export async function getFleetStatus(db: Firestore) {
     sourceCollection: records[0]?.sourceCollection || configuredCollections('fleet')[0],
     generatedAt: new Date().toISOString(),
     totals: { fleet: vehicles.length, available, rented, maintenance, other: vehicles.length - available - rented - maintenance },
+    statusIsReliable: available + rented + maintenance > 0,
     statusBreakdown,
     vehicles,
   };
