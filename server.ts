@@ -369,10 +369,8 @@ async function startServer() {
         return res.json({ answer: `There are ${fleet.totals.available} available vehicles right now, from the live ${fleet.sourceCollection} collection.`, source: 'live_fleet' });
       }
       if (vehicleCountMatch) {
-        const fleet = await getFleetStatus(db);
-        const search = vehicleCountMatch[1].trim().toLowerCase();
-        const count = fleet.vehicles.filter((vehicle) => `${vehicle.name} ${vehicle.category || ''}`.toLowerCase().includes(search)).length;
-        return res.json({ answer: `There are ${count} ${vehicleCountMatch[1].trim()} vehicles in the live fleet, from the ${fleet.sourceCollection} collection.`, source: 'live_fleet' });
+        const matches = await findVehicles(db, vehicleCountMatch[1].trim());
+        return res.json({ answer: `There are ${matches.matches.length} ${vehicleCountMatch[1].trim()} vehicles in the live fleet, from the ${matches.matches[0]?.sourceCollection || 'cars'} collection.`, source: 'live_fleet' });
       }
       const context: Record<string, unknown> = { fleet: await getFleetStatus(db), bookings: await getBookingSummary(db), discovery: await discoverPracData(db) };
       const instructions = 'You are Shane OS for Pattaya Rent a Car. Continue the conversation naturally using the supplied conversation history. Always respond in English unless the user explicitly asks for another language. Answer only from the supplied live data. Be concise and state which collection/field supports financial or booking answers. Use the discovery samples to identify balances and dates; never invent figures. When the user raises an actionable idea, you may briefly offer to queue it as a task, but do not create it unless the user explicitly asks to create or add a task. Use PRAC as the company nickname unless the user names another company.';

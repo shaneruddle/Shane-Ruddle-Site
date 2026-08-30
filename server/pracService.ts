@@ -52,6 +52,12 @@ function firstNumber(record: Record<string, unknown>, fields: string[]) {
   return 0;
 }
 
+// Fleet questions are phrased naturally (for example, "Fortuners"), while the
+// source records normally use the singular make/model name ("Fortuner").
+function searchableVehicleText(value: string) {
+  return value.toLowerCase().replace(/\b([a-z0-9]+)s\b/g, '$1').replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
 async function readFirstAvailableCollection(db: Firestore, names: string[], limit = 500): Promise<PracRecord[]> {
   let lastError: Error | null = null;
 
@@ -152,8 +158,8 @@ export async function getFleetStatus(db: Firestore) {
 
 export async function findVehicles(db: Firestore, search: string) {
   const fleet = await getFleetStatus(db);
-  const needle = search.trim().toLowerCase();
-  return { query: search, matches: fleet.vehicles.filter((vehicle) => !needle || [vehicle.name, vehicle.registration, vehicle.category, vehicle.status].filter(Boolean).join(' ').toLowerCase().includes(needle)) };
+  const needle = searchableVehicleText(search);
+  return { query: search, matches: fleet.vehicles.filter((vehicle) => !needle || searchableVehicleText([vehicle.name, vehicle.registration, vehicle.category, vehicle.status].filter(Boolean).join(' ')).includes(needle)) };
 }
 
 export async function getBookingSummary(db: Firestore) {
