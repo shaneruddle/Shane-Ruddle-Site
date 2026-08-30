@@ -1,9 +1,6 @@
 // refactored
 // v2
-import React, { useState, useEffect, useRef } from 'react';
-import Papa from 'papaparse';
-import jsPDF from 'jspdf';
-import domtoimage from 'dom-to-image-more';
+import React, { lazy, Suspense, useState, useEffect, useRef } from 'react';
 import { db, auth, storage, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog, DBCompany, BlogPost, FinanceTransaction, SiteImage } from '../firebase';
 import { initializeApp, getApp } from 'firebase/app';
 import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, orderBy, limit, getFirestore, getDocs } from 'firebase/firestore';
@@ -15,9 +12,10 @@ import { BusinessInfo } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { cn } from '@/src/lib/utils';
-import PropertyExtractorPro from './PropertyExtractorPro';
 import PracOperations from './PracOperations';
 import Sidebar from './Sidebar';
+
+const PropertyExtractorPro = lazy(() => import('./PropertyExtractorPro'));
 
 interface DashboardProps {
   userProfile: UserProfile;
@@ -1173,9 +1171,10 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
     setShowExportPreview(true);
   };
 
-  const executeExportCSV = (data: any[], fileName: string) => {
+  const executeExportCSV = async (data: any[], fileName: string) => {
     setIsExportingFromPreview(true);
     try {
+      const { default: Papa } = await import('papaparse');
       const csv = Papa.unparse(data);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
@@ -1469,12 +1468,13 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
     }
   };
 
-  const handleABPCUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleABPCUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploadingCSV(true);
     const toastId = toast.loading('Parsing ABPC data...');
+    const { default: Papa } = await import('papaparse');
 
     Papa.parse(file, {
       complete: async (results) => {
@@ -1604,12 +1604,13 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
     }
   };
 
-  const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCSVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploadingCSV(true);
     const toastId = toast.loading('Parsing CSV data...');
+    const { default: Papa } = await import('papaparse');
 
     Papa.parse(file, {
       complete: async (results) => {
@@ -2123,6 +2124,10 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
     
     const toastId = toast.loading('Generating PDF...');
     try {
+      const [{ default: domtoimage }, { default: jsPDF }] = await Promise.all([
+        import('dom-to-image-more'),
+        import('jspdf'),
+      ]);
       // Use dom-to-image-more which handles modern CSS (oklch, oklab, backdrop-filter) much better than html2canvas
       const dataUrl = await domtoimage.toPng(previewReportRef.current, {
         quality: 1.0,
@@ -4448,7 +4453,9 @@ export default function Dashboard({ userProfile, onBack, onImpersonate }: Dashbo
                 </div>
 
                 {toolsSubTab === 'extractor-pro' && (
-                  <PropertyExtractorPro userProfile={userProfile} />
+                  <Suspense fallback={<div className="py-16 text-center text-sm text-black/40">Loading Extractor Pro...</div>}>
+                    <PropertyExtractorPro userProfile={userProfile} />
+                  </Suspense>
                 )}
               </motion.div>
             )}

@@ -46,30 +46,37 @@ import { Toaster, toast } from "sonner";
 // here (module load time) lets the browser fetch/parse them in the background while React
 // renders the initial UI from cached/fallback data; every use below awaits this same promise,
 // which resolves instantly after the first time.
-const firebaseReady = Promise.all([
-  import("./firebase"),
-  import("firebase/auth"),
-  import("firebase/firestore"),
-  import("@/src/services/businessService"),
-]).then(([fb, fbAuth, fbFirestore, biz]) => ({
-  auth: fb.auth,
-  db: fb.db,
-  handleFirestoreError: fb.handleFirestoreError,
-  OperationType: fb.OperationType,
-  onAuthStateChanged: fbAuth.onAuthStateChanged,
-  doc: fbFirestore.doc,
-  setDoc: fbFirestore.setDoc,
-  onSnapshot: fbFirestore.onSnapshot,
-  query: fbFirestore.query,
-  collection: fbFirestore.collection,
-  where: fbFirestore.where,
-  getDocs: fbFirestore.getDocs,
-  serverTimestamp: fbFirestore.serverTimestamp,
-  updateDoc: fbFirestore.updateDoc,
-  deleteDoc: fbFirestore.deleteDoc,
-  addDoc: fbFirestore.addDoc,
-  getBusinessInfo: biz.getBusinessInfo,
-}));
+let firebaseReady: Promise<any> | null = null;
+
+function loadFirebase() {
+  // This starts only after React has painted the fallback homepage, keeping the
+  // first visit responsive even on slower mobile connections.
+  firebaseReady ??= Promise.all([
+    import("./firebase"),
+    import("firebase/auth"),
+    import("firebase/firestore"),
+    import("@/src/services/businessService"),
+  ]).then(([fb, fbAuth, fbFirestore, biz]) => ({
+    auth: fb.auth,
+    db: fb.db,
+    handleFirestoreError: fb.handleFirestoreError,
+    OperationType: fb.OperationType,
+    onAuthStateChanged: fbAuth.onAuthStateChanged,
+    doc: fbFirestore.doc,
+    setDoc: fbFirestore.setDoc,
+    onSnapshot: fbFirestore.onSnapshot,
+    query: fbFirestore.query,
+    collection: fbFirestore.collection,
+    where: fbFirestore.where,
+    getDocs: fbFirestore.getDocs,
+    serverTimestamp: fbFirestore.serverTimestamp,
+    updateDoc: fbFirestore.updateDoc,
+    deleteDoc: fbFirestore.deleteDoc,
+    addDoc: fbFirestore.addDoc,
+    getBusinessInfo: biz.getBusinessInfo,
+  }));
+  return firebaseReady;
+}
 
 // If the lazy-loaded Auth widget fails to load (e.g. a network hiccup, an ad-blocker, or a
 // genuine Firebase outage), this keeps that failure contained to the login button instead of
@@ -328,7 +335,7 @@ const LifeOutsideSection = ({ data }: { data: BusinessInfo }) => {
 
 export default function App() {
   const [data, setData] = useState<BusinessInfo>(fallbackData);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [view, setView] = useState<'home' | 'past-ventures' | 'dashboard' | 'portal' | 'blog' | 'privacy-policy' | 'terms-of-service'>('home');
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -409,7 +416,7 @@ export default function App() {
     async function fetchData() {
       try {
         console.log("Fetching business info...");
-        const { getBusinessInfo } = await firebaseReady;
+        const { getBusinessInfo } = await loadFirebase();
         const result = await getBusinessInfo();
         console.log("Business info fetched:", result);
         if (isMounted) setData(result);
@@ -430,7 +437,7 @@ export default function App() {
     window.addEventListener('click', handleGlobalClick);
 
     (async () => {
-      const { auth, onAuthStateChanged } = await firebaseReady;
+      const { auth, onAuthStateChanged } = await loadFirebase();
       if (!isMounted) return;
       unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
         console.log("Auth state changed. User:", firebaseUser?.uid, "Email:", firebaseUser?.email, "AuthLoading:", authLoading);
@@ -490,7 +497,7 @@ export default function App() {
     setAuthLoading(true);
 
     (async () => {
-      const { doc, db, onSnapshot, query, collection, where, getDocs, updateDoc, addDoc, setDoc, deleteDoc, serverTimestamp, auth, handleFirestoreError, OperationType } = await firebaseReady;
+      const { doc, db, onSnapshot, query, collection, where, getDocs, updateDoc, addDoc, setDoc, deleteDoc, serverTimestamp, auth, handleFirestoreError, OperationType } = await loadFirebase();
       if (!isMounted) return;
 
       const userRef = doc(db, "users", user.uid);
