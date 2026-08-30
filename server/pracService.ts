@@ -4,13 +4,16 @@ type PracRecord = Record<string, unknown> & { id: string; sourceCollection: stri
 
 const COLLECTIONS = {
   fleet: ['cars', 'website_cars'],
-  finance: ['transactions', 'vehicleFinance', 'finance_summaries'],
+  finance: ['transactions', 'finance_summaries'],
   payroll: [],
   bookings: ['bookings', 'rentals'],
+  customers: ['customers'],
+  enquiries: ['enquiries'],
+  maintenance: ['vehicle_logs'],
 };
 
 const DISCOVERY_COLLECTIONS = ['accounts', 'bookings', 'cars', 'customers', 'enquiries', 'finance_summaries', 'rentals', 'transactions', 'vehicleFinance', 'vehicle_logs'];
-const MAPPING_COLLECTIONS = ['accounts', 'bookings', 'cars', 'rentals', 'transactions', 'finance_summaries', 'vehicleFinance'];
+const MAPPING_COLLECTIONS = ['accounts', 'bookings', 'cars', 'rentals', 'transactions', 'finance_summaries', 'customers', 'enquiries', 'vehicle_logs'];
 
 function configuredCollections(kind: keyof typeof COLLECTIONS) {
   const envName = `PRAC_${kind.toUpperCase()}_COLLECTIONS`;
@@ -78,6 +81,14 @@ async function readFirstAvailableCollection(db: Firestore, names: string[], limi
 
   if (lastError) throw lastError;
   return [];
+}
+
+async function readMappedCollections(db: Firestore, names: string[], limit = 500): Promise<PracRecord[]> {
+  const snapshots = await Promise.all(names.map(async (name) => {
+    try { const snapshot = await db.collection(name).limit(limit).get(); return snapshot.docs.map((document) => ({ id: document.id, sourceCollection: name, ...document.data() } as PracRecord)); }
+    catch { return [] as PracRecord[]; }
+  }));
+  return snapshots.flat();
 }
 
 function recordMonth(record: PracRecord) {
@@ -174,14 +185,14 @@ export async function findVehicles(db: Firestore, search: string) {
 }
 
 export async function getBookingSummary(db: Firestore) {
-  const records = await readFirstAvailableCollection(db, configuredCollections('bookings'));
+  const records = await readMappedCollections(db, configuredCollections('bookings'));
   const now = new Date();
   const active = records.filter((record) => /active|confirmed|ongoing|rented/i.test(firstString(record, ['status', 'bookingStatus', 'state']) || ''));
   const upcoming = records.filter((record) => {
     const date = asDate(record.startDate || record.pickupDate || record.fromDate);
     return date && date >= now && /pending|confirmed|booked/i.test(firstString(record, ['status', 'bookingStatus', 'state']) || '');
   });
-  return { sourceCollection: records[0]?.sourceCollection || configuredCollections('bookings')[0], totals: { records: records.length, active: active.length, upcoming: upcoming.length } };
+  return { sourceCollections: [...new Set(records.map((record) => record.sourceCollection))], totals: { records: records.length, active: active.length, upcoming: upcoming.length } };
 }
 
 export async function getBookingsReceivedToday(db: Firestore) {
@@ -266,6 +277,24 @@ export async function getMonthlyTransactionSummary(db: Firestore, requestedMonth
   };
 }
 
+export async function getCustomerAndMaintenanceSummary(db: Firestore) {
+  const [customers, enquiries, logs] = await Promise.all([
+    readMappedCollections(db, configuredCollections('customers')),
+    readMappedCollections(db, configuredCollections('enquiries')),
+    readMappedCollections(db, configuredCollections('maintenance')),
+  ]);
+  const enquiryStatus = enquiries.reduce<Record<string, number>>((totals, record) => { const status = firstString(record, ['status', 'state', 'enquiryStatus', 'stage']) || 'unknown'; totals[status] = (totals[status] || 0) + 1; return totals; }, {});
+  const maintenanceStatus = logs.reduce<Record<string, number>>((totals, record) => { const status = firstString(record, ['status', 'state', 'type', 'logType']) || 'unknown'; totals[status] = (totals[status] || 0) + 1; return totals; }, {});
+  return {
+    sources: { customers: 'customers', enquiries: 'enquiries', maintenance: 'vehicle_logs' },
+    totals: { customers: customers.length, enquiries: enquiries.length, vehicleLogs: logs.length },
+    enquiryStatus,
+    maintenanceStatus,
+    recentEnquiries: enquiries.slice(0, 20).map((record) => ({ id: record.id, customer: firstString(record, ['customerName', 'name', 'customer']), status: firstString(record, ['status', 'state', 'enquiryStatus', 'stage']) || 'unknown', vehicle: firstString(record, ['vehicleName', 'carName', 'requestedCarType', 'vehicleType']), createdAt: asDate(record.createdAt || record.date || record.timestamp)?.toISOString() || null })),
+    recentVehicleLogs: logs.slice(0, 20).map((record) => ({ id: record.id, vehicle: firstString(record, ['vehicleName', 'carName', 'vehicle', 'registration', 'plate']), status: firstString(record, ['status', 'state', 'type', 'logType']) || 'unknown', date: asDate(record.date || record.createdAt || record.logDate)?.toISOString() || null, notes: firstString(record, ['notes', 'description', 'details', 'title']) })),
+  };
+}
+
 export async function inspectPracSchema(db: Firestore) {
   const names = [...configuredCollections('fleet'), ...configuredCollections('bookings'), ...configuredCollections('finance')];
   const collections = await Promise.all(names.map(async (name) => {
@@ -331,12 +360,13 @@ function compactValue(value: unknown, depth = 0): unknown {
   return String(value);
 }
 
-export async function getRealtimePracData(db: Firestore, topic: 'fleet' | 'bookings' | 'finance', query = '') {
+export async function getRealtimePracData(db: Firestore, topic: 'fleet' | 'bookings' | 'finance' | 'operations', query = '') {
   if (topic === 'fleet') {
     const fleet = await getFleetStatus(db);
     return { source: fleet.sourceCollection, generatedAt: fleet.generatedAt, totals: fleet.totals, statusBreakdown: fleet.statusBreakdown, vehicles: fleet.vehicles.slice(0, 50) };
   }
   if (topic === 'bookings') return { summary: await getBookingSummary(db), receivedToday: await getBookingsReceivedToday(db), todaySchedule: await getTodayBookingSchedule(db) };
+  if (topic === 'operations') return getCustomerAndMaintenanceSummary(db);
 
   const keyword = /cash|bank|balance|account/i.test(query) ? /cash|bank|balance|account/i : /amount|total|income|expense|revenue|balance|cash|bank/i;
   const discovery = await discoverPracData(db);
@@ -347,7 +377,7 @@ export async function getRealtimePracData(db: Firestore, topic: 'fleet' | 'booki
     currentMonthSummary: await getMonthlyTransactionSummary(db),
     note: 'These are matching fields and recent record values from authorised finance/account collections. State the field and collection used; do not combine values unless the records explicitly represent a total.',
     collections: discovery
-      .filter((collection: any) => ['accounts', 'transactions', 'finance_summaries', 'vehicleFinance'].includes(collection.name))
+      .filter((collection: any) => ['accounts', 'transactions', 'finance_summaries'].includes(collection.name))
       .map((collection: any) => ({
         name: collection.name,
         matchingFields: collection.fields.filter((field: string) => keyword.test(field)),
