@@ -88,6 +88,14 @@ function assertMonth(month: string) {
   }
 }
 
+function bangkokDayRange() {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
+  const year = Number(values.year); const month = Number(values.month); const day = Number(values.day);
+  const start = new Date(Date.UTC(year, month - 1, day, -7));
+  return { date: `${values.year}-${values.month}-${values.day}`, start, end: new Date(start.getTime() + 24 * 60 * 60 * 1000) };
+}
+
 function classifyVehicleStatus(status: string) {
   const normalized = status.trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
 
@@ -146,6 +154,34 @@ export async function getBookingSummary(db: Firestore) {
     return date && date >= now && /pending|confirmed|booked/i.test(firstString(record, ['status', 'bookingStatus', 'state']) || '');
   });
   return { sourceCollection: records[0]?.sourceCollection || configuredCollections('bookings')[0], totals: { records: records.length, active: active.length, upcoming: upcoming.length } };
+}
+
+export async function getBookingsReceivedToday(db: Firestore) {
+  const { date, start, end } = bangkokDayRange();
+  const snapshot = await db.collection('bookings').where('createdAt', '>=', start).where('createdAt', '<', end).get();
+  const statuses = snapshot.docs.reduce<Record<string, number>>((counts, doc) => {
+    const status = firstString(doc.data(), ['status', 'paymentStatus']) || 'unknown';
+    counts[status] = (counts[status] || 0) + 1;
+    return counts;
+  }, {});
+  return { sourceCollection: 'bookings', date, totals: { received: snapshot.size }, statusBreakdown: statuses, definition: 'Bookings with createdAt during the current Bangkok calendar day.' };
+}
+
+export async function getCurrentAccountBalances(db: Firestore) {
+  const snapshot = await db.collection('accounts').limit(100).get();
+  const accounts = snapshot.docs.map((doc) => {
+    const record = doc.data();
+    const type = firstString(record, ['type', 'accountType', 'name', 'accountName']) || 'Unnamed account';
+    return { id: doc.id, type, balance: firstNumber(record, ['balance']) };
+  });
+  const cashAccounts = accounts.filter((account) => /cash/i.test(account.type));
+  return {
+    sourceCollection: 'accounts',
+    definition: 'Current balance from accounts.balance. Cash total includes only account records whose type identifies them as cash.',
+    cashBalance: cashAccounts.length ? cashAccounts.reduce((sum, account) => sum + account.balance, 0) : null,
+    cashAccounts,
+    accounts,
+  };
 }
 
 export async function inspectPracSchema(db: Firestore) {
@@ -218,13 +254,14 @@ export async function getRealtimePracData(db: Firestore, topic: 'fleet' | 'booki
     const fleet = await getFleetStatus(db);
     return { source: fleet.sourceCollection, generatedAt: fleet.generatedAt, totals: fleet.totals, statusBreakdown: fleet.statusBreakdown, vehicles: fleet.vehicles.slice(0, 50) };
   }
-  if (topic === 'bookings') return await getBookingSummary(db);
+  if (topic === 'bookings') return { summary: await getBookingSummary(db), receivedToday: await getBookingsReceivedToday(db) };
 
   const keyword = /cash|bank|balance|account/i.test(query) ? /cash|bank|balance|account/i : /amount|total|income|expense|revenue|balance|cash|bank/i;
   const discovery = await discoverPracData(db);
   return {
     generatedAt: new Date().toISOString(),
     query,
+    currentAccounts: await getCurrentAccountBalances(db),
     note: 'These are matching fields and recent record values from authorised finance/account collections. State the field and collection used; do not combine values unless the records explicitly represent a total.',
     collections: discovery
       .filter((collection: any) => ['accounts', 'transactions', 'finance_summaries', 'vehicleFinance'].includes(collection.name))
