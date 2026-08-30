@@ -169,6 +169,29 @@ async function startServer() {
     }
   });
 
+  app.post('/api/prac/speech', async (req, res) => {
+    const access = await requirePracAccess(req, res, 'operations');
+    if (!access) return;
+    const text = typeof req.body?.text === 'string' ? req.body.text.trim().slice(0, 4000) : '';
+    if (!text || !process.env.OPENAI_API_KEY) return res.status(400).json({ error: 'Speech is not available.' });
+    try {
+      const audio = await axios.post('https://api.openai.com/v1/audio/speech', { model: 'gpt-4o-mini-tts', voice: 'maple', input: text, response_format: 'mp3' }, { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' }, responseType: 'arraybuffer', timeout: 60000 });
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.send(Buffer.from(audio.data));
+    } catch (error: any) { res.status(error?.response?.status || 502).json({ error: 'OpenAI speech could not be generated.' }); }
+  });
+
+  app.post('/api/prac/realtime-session', async (req, res) => {
+    const access = await requirePracAccess(req, res, 'operations');
+    if (!access) return;
+    try {
+      const session = await axios.post('https://api.openai.com/v1/realtime/client_secrets', {
+        session: { type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } }, instructions: 'You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Explain that live PRAC data questions can also be asked in the text chat while tool calling is being connected.' },
+      }, { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' } });
+      res.json({ clientSecret: session.data?.value || session.data?.client_secret?.value });
+    } catch (error: any) { res.status(error?.response?.status || 502).json({ error: 'Unable to start voice mode.' }); }
+  });
+
   // Cross-project log aggregator
   app.get("/api/logs", async (req, res) => {
     const sources: { name: string; envVar: string; label: string; collections: string[] }[] = [
