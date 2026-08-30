@@ -69,6 +69,10 @@ function taskRecord(id: string, data: Record<string, unknown>) {
   return { id, ...data, createdAt: taskTimestamp(data.createdAt), updatedAt: taskTimestamp(data.updatedAt), dueDate: typeof data.dueDate === 'string' ? data.dueDate : null };
 }
 
+function conversationRecord(id: string, data: Record<string, unknown>) {
+  return { id, title: typeof data.title === 'string' ? data.title : 'New conversation', companyNickname: typeof data.companyNickname === 'string' ? data.companyNickname : 'PRAC', createdAt: taskTimestamp(data.createdAt), updatedAt: taskTimestamp(data.updatedAt) };
+}
+
 async function requireTaskAccess(req: express.Request, res: express.Response) {
   const bearer = req.header('authorization');
   if (!bearer?.startsWith('Bearer ')) { res.status(401).json({ error: 'A signed-in session is required.' }); return null; }
@@ -136,6 +140,53 @@ async function startServer() {
 
   app.get('/api/prac/capabilities', (_req, res) => {
     res.json(pracCapabilities);
+  });
+
+  app.get('/api/conversations', async (req, res) => {
+    const access = await requireTaskAccess(req, res);
+    if (!access) return;
+    try {
+      const snapshot = await access.db.collection('conversations').where('userId', '==', access.token.uid).limit(100).get();
+      const conversations = snapshot.docs.map((doc) => conversationRecord(doc.id, doc.data())).sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+      res.json({ conversations });
+    } catch { res.status(502).json({ error: 'Unable to load conversations.' }); }
+  });
+
+  app.post('/api/conversations', async (req, res) => {
+    const access = await requireTaskAccess(req, res);
+    if (!access) return;
+    const companyNickname = typeof req.body?.companyNickname === 'string' ? req.body.companyNickname.trim().slice(0, 32) : 'PRAC';
+    try {
+      const document = await access.db.collection('conversations').add({ userId: access.token.uid, companyNickname: companyNickname || 'PRAC', title: 'New conversation', createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+      const saved = await document.get(); res.status(201).json({ conversation: conversationRecord(document.id, saved.data() || {}) });
+    } catch { res.status(502).json({ error: 'Unable to create conversation.' }); }
+  });
+
+  app.get('/api/conversations/:id', async (req, res) => {
+    const access = await requireTaskAccess(req, res);
+    if (!access) return;
+    try {
+      const conversation = await access.db.collection('conversations').doc(req.params.id).get();
+      if (!conversation.exists || conversation.data()?.userId !== access.token.uid) return res.status(404).json({ error: 'Conversation not found.' });
+      const messages = await conversation.ref.collection('messages').limit(300).get();
+      res.json({ conversation: conversationRecord(conversation.id, conversation.data() || {}), messages: messages.docs.map((doc) => ({ id: doc.id, role: doc.data().role, text: doc.data().text, createdAt: taskTimestamp(doc.data().createdAt) })).sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || ''))) });
+    } catch { res.status(502).json({ error: 'Unable to load conversation.' }); }
+  });
+
+  app.post('/api/conversations/:id/messages', async (req, res) => {
+    const access = await requireTaskAccess(req, res);
+    if (!access) return;
+    const role = req.body?.role === 'assistant' ? 'assistant' : req.body?.role === 'user' ? 'user' : null;
+    const text = typeof req.body?.text === 'string' ? req.body.text.trim().slice(0, 4000) : '';
+    if (!role || !text) return res.status(400).json({ error: 'A message role and text are required.' });
+    try {
+      const conversation = access.db.collection('conversations').doc(req.params.id); const saved = await conversation.get();
+      if (!saved.exists || saved.data()?.userId !== access.token.uid) return res.status(404).json({ error: 'Conversation not found.' });
+      const updates: Record<string, unknown> = { updatedAt: FieldValue.serverTimestamp() };
+      if (role === 'user' && saved.data()?.title === 'New conversation') updates.title = text.slice(0, 72);
+      await conversation.update(updates); const message = await conversation.collection('messages').add({ role, text, createdAt: FieldValue.serverTimestamp() });
+      res.status(201).json({ message: { id: message.id, role, text } });
+    } catch { res.status(502).json({ error: 'Unable to save message.' }); }
   });
 
   app.get('/api/tasks', async (req, res) => {

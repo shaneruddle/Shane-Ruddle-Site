@@ -1,86 +1,24 @@
-import React, { useRef, useState } from 'react';
-import { Mic, PhoneOff, Send, Sparkles } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Menu, MessageSquarePlus, Mic, PhoneOff, Send, Sparkles } from 'lucide-react';
 import { auth, UserProfile } from '../firebase';
 
 type Message = { role: 'assistant' | 'user'; text: string };
+type Conversation = { id: string; title: string; companyNickname: string; updatedAt?: string | null };
+const greeting: Message = { role: 'assistant', text: 'I am Shane OS. Ask me about Pattaya Rent a Car.' };
 
 export default function PracOperations({ userProfile: _userProfile }: { userProfile: UserProfile }) {
-  const [text, setText] = useState('');
-  const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', text: 'I am Shane OS. Ask me about Pattaya Rent a Car.' }]);
-  const [live, setLive] = useState(false);
-  const peer = useRef<RTCPeerConnection | null>(null);
-  const dataChannel = useRef<RTCDataChannel | null>(null);
-  const transcriptItems = useRef(new Set<string>());
-
-  const authorisedRequest = async (path: string, init?: RequestInit) => {
-    const token = await auth.currentUser?.getIdToken();
-    const response = await fetch(path, { ...init, headers: { ...(init?.headers || {}), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } });
-    const body = await response.json();
-    if (!response.ok) throw new Error(body.error || 'Request failed.');
-    return body;
-  };
-
-  const stop = () => {
-    peer.current?.getSenders().forEach((sender) => sender.track?.stop());
-    peer.current?.close();
-    peer.current = null;
-    dataChannel.current = null;
-    setLive(false);
-  };
-
-  const handleToolCall = async (message: any, channel: RTCDataChannel) => {
-    const args = JSON.parse(message.arguments || '{}');
-    const path = message.name === 'get_prac_live_data' ? '/api/prac/realtime-tool' : '/api/tasks/from-assistant';
-    const output = await authorisedRequest(path, { method: 'POST', body: JSON.stringify(args) });
-    if (message.name === 'create_group_task') window.dispatchEvent(new Event('tasks:changed'));
-    channel.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: message.call_id, output: JSON.stringify(output) } }));
-    channel.send(JSON.stringify({ type: 'response.create' }));
-  };
-
-  const voice = async () => {
-    const session = await authorisedRequest('/api/prac/realtime-session', { method: 'POST' });
-    if (!session.clientSecret) throw new Error(session.error || 'Voice mode is unavailable.');
-    const pc = new RTCPeerConnection();
-    peer.current = pc;
-    const channel = pc.createDataChannel('oai-events');
-    dataChannel.current = channel;
-    channel.onmessage = async (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'conversation.item.input_audio_transcription.completed' && message.transcript && !transcriptItems.current.has(message.item_id)) {
-        transcriptItems.current.add(message.item_id); setMessages((items) => [...items, { role: 'user', text: message.transcript }]); return;
-      }
-      if (message.type === 'response.output_audio_transcript.done' && message.transcript && !transcriptItems.current.has(message.item_id)) {
-        transcriptItems.current.add(message.item_id); setMessages((items) => [...items, { role: 'assistant', text: message.transcript }]); return;
-      }
-      if (message.type !== 'response.function_call_arguments.done' || !['get_prac_live_data', 'create_group_task'].includes(message.name)) return;
-      try { await handleToolCall(message, channel); }
-      catch { channel.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: message.call_id, output: JSON.stringify({ error: 'The requested task or data operation failed.' }) } })); channel.send(JSON.stringify({ type: 'response.create' })); }
-    };
-    const audio = new Audio(); audio.autoplay = true;
-    pc.ontrack = (event) => { audio.srcObject = event.streams[0]; };
-    (await navigator.mediaDevices.getUserMedia({ audio: true })).getTracks().forEach((track) => pc.addTrack(track));
-    const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
-    const answer = await fetch('https://api.openai.com/v1/realtime/calls', { method: 'POST', headers: { Authorization: `Bearer ${session.clientSecret}`, 'Content-Type': 'application/sdp' }, body: offer.sdp });
-    if (!answer.ok) throw new Error(`Realtime connection failed (${answer.status}).`);
-    await pc.setRemoteDescription({ type: 'answer', sdp: await answer.text() });
-    setLive(true);
-  };
-
-  const send = async () => {
-    if (!text.trim()) return;
-    const question = text; setText(''); setMessages((items) => [...items, { role: 'user', text: question }]);
-    if (live && dataChannel.current?.readyState === 'open') {
-      dataChannel.current.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: [{ type: 'input_text', text: question }] } }));
-      dataChannel.current.send(JSON.stringify({ type: 'response.create' }));
-      return;
-    }
-    try {
-      const history = [...messages, { role: 'user' as const, text: question }].slice(-12);
-      const body = await authorisedRequest('/api/prac/assistant', { method: 'POST', body: JSON.stringify({ question, history }) });
-      if (body.task) window.dispatchEvent(new Event('tasks:changed'));
-      setMessages((items) => [...items, { role: 'assistant', text: body.answer || 'I could not form an answer.' }]);
-    } catch (error) { setMessages((items) => [...items, { role: 'assistant', text: error instanceof Error ? error.message : 'Unable to answer right now.' }]); }
-  };
-
-  return <section className="mx-auto flex min-h-[72vh] max-w-5xl flex-col overflow-hidden rounded-[2rem] border border-black/10 bg-white"><header className="flex items-center justify-between border-b p-5"><div><p className="text-xs font-bold tracking-widest text-gold">SHANE OS</p><h1 className="font-serif text-2xl">Pattaya Rent a Car</h1></div><button onClick={() => live ? stop() : void voice().catch((error) => setMessages((items) => [...items, { role: 'assistant', text: error.message }]))} className="rounded-xl bg-black p-3 text-white">{live ? <PhoneOff /> : <Mic />}</button></header><div className="flex-1 space-y-4 bg-[#fcfbf8] p-6">{messages.map((message, index) => <div key={index} className={message.role === 'user' ? 'text-right' : ''}><span className={message.role === 'user' ? 'inline-block rounded-2xl bg-black px-4 py-3 text-white' : 'inline-block max-w-[80%] rounded-2xl bg-white px-4 py-3 shadow-sm'}>{message.role === 'assistant' && <Sparkles className="mr-2 inline h-4 w-4 text-gold" />}{message.text}</span></div>)}</div><footer className="flex gap-2 border-t p-4"><input value={text} onChange={(event) => setText(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && void send()} className="flex-1 rounded-xl border px-4" placeholder="Message Shane OS..."/><button onClick={() => void send()} className="rounded-xl bg-black p-3 text-white"><Send /></button></footer></section>;
+  const [text, setText] = useState(''); const [messages, setMessages] = useState<Message[]>([greeting]); const [live, setLive] = useState(false); const [historyOpen, setHistoryOpen] = useState(false); const [conversations, setConversations] = useState<Conversation[]>([]); const [conversationId, setConversationId] = useState<string | null>(null);
+  const peer = useRef<RTCPeerConnection | null>(null); const dataChannel = useRef<RTCDataChannel | null>(null); const transcriptItems = useRef(new Set<string>());
+  const authorisedRequest = async (path: string, init?: RequestInit) => { const token = await auth.currentUser?.getIdToken(); const response = await fetch(path, { ...init, headers: { ...(init?.headers || {}), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }); const body = await response.json(); if (!response.ok) throw new Error(body.error || 'Request failed.'); return body; };
+  const loadConversations = async () => { try { const body = await authorisedRequest('/api/conversations'); setConversations(body.conversations || []); } catch { /* History is optional; chat remains available if it cannot load. */ } };
+  useEffect(() => { void loadConversations(); }, []);
+  const ensureConversation = async () => { if (conversationId) return conversationId; const body = await authorisedRequest('/api/conversations', { method: 'POST', body: JSON.stringify({ companyNickname: 'PRAC' }) }); setConversationId(body.conversation.id); setConversations((items) => [body.conversation, ...items]); return body.conversation.id as string; };
+  const saveMessage = async (role: Message['role'], value: string) => { try { const id = await ensureConversation(); await authorisedRequest(`/api/conversations/${id}/messages`, { method: 'POST', body: JSON.stringify({ role, text: value }) }); await loadConversations(); } catch { /* A transient save failure must not interrupt a live conversation. */ } };
+  const openConversation = async (id: string) => { try { stop(); const body = await authorisedRequest(`/api/conversations/${id}`); setConversationId(id); setMessages(body.messages?.length ? body.messages : [greeting]); setHistoryOpen(false); } catch { /* Keep the current conversation visible on failure. */ } };
+  const newConversation = () => { stop(); setConversationId(null); setMessages([greeting]); setText(''); setHistoryOpen(false); };
+  const stop = () => { peer.current?.getSenders().forEach((sender) => sender.track?.stop()); peer.current?.close(); peer.current = null; dataChannel.current = null; setLive(false); };
+  const handleToolCall = async (message: any, channel: RTCDataChannel) => { const args = JSON.parse(message.arguments || '{}'); const path = message.name === 'get_prac_live_data' ? '/api/prac/realtime-tool' : '/api/tasks/from-assistant'; const output = await authorisedRequest(path, { method: 'POST', body: JSON.stringify(args) }); if (message.name === 'create_group_task') window.dispatchEvent(new Event('tasks:changed')); channel.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: message.call_id, output: JSON.stringify(output) } })); channel.send(JSON.stringify({ type: 'response.create' })); };
+  const voice = async () => { const session = await authorisedRequest('/api/prac/realtime-session', { method: 'POST' }); if (!session.clientSecret) throw new Error(session.error || 'Voice mode is unavailable.'); const pc = new RTCPeerConnection(); peer.current = pc; const channel = pc.createDataChannel('oai-events'); dataChannel.current = channel; channel.onmessage = async (event) => { const message = JSON.parse(event.data); if (message.type === 'conversation.item.input_audio_transcription.completed' && message.transcript && !transcriptItems.current.has(message.item_id)) { transcriptItems.current.add(message.item_id); setMessages((items) => [...items, { role: 'user', text: message.transcript }]); void saveMessage('user', message.transcript); return; } if (message.type === 'response.output_audio_transcript.done' && message.transcript && !transcriptItems.current.has(message.item_id)) { transcriptItems.current.add(message.item_id); setMessages((items) => [...items, { role: 'assistant', text: message.transcript }]); void saveMessage('assistant', message.transcript); return; } if (message.type !== 'response.function_call_arguments.done' || !['get_prac_live_data', 'create_group_task'].includes(message.name)) return; try { await handleToolCall(message, channel); } catch { channel.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: message.call_id, output: JSON.stringify({ error: 'The requested task or data operation failed.' }) } })); channel.send(JSON.stringify({ type: 'response.create' })); } }; const audio = new Audio(); audio.autoplay = true; pc.ontrack = (event) => { audio.srcObject = event.streams[0]; }; (await navigator.mediaDevices.getUserMedia({ audio: true })).getTracks().forEach((track) => pc.addTrack(track)); const offer = await pc.createOffer(); await pc.setLocalDescription(offer); const answer = await fetch('https://api.openai.com/v1/realtime/calls', { method: 'POST', headers: { Authorization: `Bearer ${session.clientSecret}`, 'Content-Type': 'application/sdp' }, body: offer.sdp }); if (!answer.ok) throw new Error(`Realtime connection failed (${answer.status}).`); await pc.setRemoteDescription({ type: 'answer', sdp: await answer.text() }); setLive(true); };
+  const send = async () => { if (!text.trim()) return; const question = text; setText(''); setMessages((items) => [...items, { role: 'user', text: question }]); void saveMessage('user', question); if (live && dataChannel.current?.readyState === 'open') { dataChannel.current.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: [{ type: 'input_text', text: question }] } })); dataChannel.current.send(JSON.stringify({ type: 'response.create' })); return; } try { const history = [...messages, { role: 'user' as const, text: question }].slice(-12); const body = await authorisedRequest('/api/prac/assistant', { method: 'POST', body: JSON.stringify({ question, history }) }); if (body.task) window.dispatchEvent(new Event('tasks:changed')); const answer = body.answer || 'I could not form an answer.'; setMessages((items) => [...items, { role: 'assistant', text: answer }]); void saveMessage('assistant', answer); } catch (error) { const answer = error instanceof Error ? error.message : 'Unable to answer right now.'; setMessages((items) => [...items, { role: 'assistant', text: answer }]); void saveMessage('assistant', answer); } };
+  return <section className="mx-auto flex min-h-[72vh] max-w-5xl overflow-hidden rounded-[2rem] border border-black/10 bg-white"><aside className={`${historyOpen ? 'block' : 'hidden'} w-72 shrink-0 border-r bg-[#fcfbf8] p-4 md:block`}><div className="mb-4 flex items-center justify-between"><p className="text-xs font-bold tracking-widest text-gold">CONVERSATIONS</p><button onClick={newConversation} title="New conversation" className="rounded-lg border p-2"><MessageSquarePlus className="h-4 w-4" /></button></div><div className="space-y-2">{conversations.map((conversation) => <button key={conversation.id} onClick={() => void openConversation(conversation.id)} className={`w-full rounded-xl p-3 text-left text-sm ${conversation.id === conversationId ? 'bg-black text-white' : 'bg-white hover:bg-stone-100'}`}><strong className="block truncate">{conversation.title}</strong><span className="mt-1 block text-xs opacity-55">{conversation.companyNickname}</span></button>)}{conversations.length === 0 && <p className="text-sm text-black/40">Your saved conversations will appear here.</p>}</div></aside><div className="flex min-w-0 flex-1 flex-col"><header className="flex items-center justify-between border-b p-5"><div className="flex items-center gap-3"><button onClick={() => setHistoryOpen((value) => !value)} className="rounded-xl border p-2 md:hidden"><Menu className="h-4 w-4" /></button><div><p className="text-xs font-bold tracking-widest text-gold">SHANE OS</p><h1 className="font-serif text-2xl">Pattaya Rent a Car</h1></div></div><div className="flex gap-2"><button onClick={newConversation} title="New conversation" className="rounded-xl border p-3 md:hidden"><MessageSquarePlus className="h-5 w-5" /></button><button onClick={() => live ? stop() : void voice().catch((error) => setMessages((items) => [...items, { role: 'assistant', text: error.message }]))} className="rounded-xl bg-black p-3 text-white">{live ? <PhoneOff /> : <Mic />}</button></div></header><div className="flex-1 space-y-4 overflow-y-auto bg-[#fcfbf8] p-6">{messages.map((message, index) => <div key={index} className={message.role === 'user' ? 'text-right' : ''}><span className={message.role === 'user' ? 'inline-block rounded-2xl bg-black px-4 py-3 text-white' : 'inline-block max-w-[80%] rounded-2xl bg-white px-4 py-3 shadow-sm'}>{message.role === 'assistant' && <Sparkles className="mr-2 inline h-4 w-4 text-gold" />}{message.text}</span></div>)}</div><footer className="flex gap-2 border-t p-4"><input value={text} onChange={(event) => setText(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && void send()} className="flex-1 rounded-xl border px-4" placeholder="Message Shane OS..."/><button onClick={() => void send()} className="rounded-xl bg-black p-3 text-white"><Send /></button></footer></div></section>;
 }
