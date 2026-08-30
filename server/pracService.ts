@@ -84,6 +84,18 @@ function assertMonth(month: string) {
   }
 }
 
+function classifyVehicleStatus(status: string) {
+  const normalized = status.trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+
+  // Classification is deliberately exclusive. The previous substring matching could
+  // count "not available" as available and "out of service" as rented.
+  if (/maintenance|repair|service|workshop|out of service|off road/.test(normalized)) return 'maintenance';
+  if (/^not available$|unavailable|inactive|retired|sold/.test(normalized)) return 'other';
+  if (/rented|on rent|hired|booked|checked out|on hire/.test(normalized)) return 'rented';
+  if (/^available$|^ready$|available now|ready to rent/.test(normalized)) return 'available';
+  return 'other';
+}
+
 export async function getFleetStatus(db: Firestore) {
   const records = await readFirstAvailableCollection(db, configuredCollections('fleet'));
   const vehicles = records.map((record) => {
@@ -96,14 +108,21 @@ export async function getFleetStatus(db: Firestore) {
       category: firstString(record, ['category', 'type', 'vehicleType']),
     };
   });
-  const available = vehicles.filter(({ status }) => /available|ready|active/i.test(status)).length;
-  const rented = vehicles.filter(({ status }) => /rented|booked|out|hired/i.test(status)).length;
-  const maintenance = vehicles.filter(({ status }) => /maintenance|repair|service/i.test(status)).length;
+  const classifiedVehicles = vehicles.map((vehicle) => ({ ...vehicle, bucket: classifyVehicleStatus(vehicle.status) }));
+  const available = classifiedVehicles.filter(({ bucket }) => bucket === 'available').length;
+  const rented = classifiedVehicles.filter(({ bucket }) => bucket === 'rented').length;
+  const maintenance = classifiedVehicles.filter(({ bucket }) => bucket === 'maintenance').length;
+  const statusBreakdown = vehicles.reduce<Record<string, number>>((counts, vehicle) => {
+    const status = vehicle.status || 'unknown';
+    counts[status] = (counts[status] || 0) + 1;
+    return counts;
+  }, {});
 
   return {
     sourceCollection: records[0]?.sourceCollection || configuredCollections('fleet')[0],
     generatedAt: new Date().toISOString(),
     totals: { fleet: vehicles.length, available, rented, maintenance, other: vehicles.length - available - rented - maintenance },
+    statusBreakdown,
     vehicles,
   };
 }
