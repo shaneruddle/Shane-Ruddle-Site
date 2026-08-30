@@ -170,7 +170,7 @@ async function startServer() {
       const context: Record<string, unknown> = { fleet: await getFleetStatus(db), bookings: await getBookingSummary(db), discovery: await discoverPracData(db) };
       const response = await axios.post('https://api.openai.com/v1/responses', {
         model: 'gpt-4.1-mini', max_output_tokens: 500,
-        instructions: 'You are Shane OS for Pattaya Rent a Car. Answer only from the supplied live data. Be concise and state which collection/field supports financial or booking answers. Use the discovery samples to identify balances and dates; never invent figures.',
+        instructions: 'You are Shane OS for Pattaya Rent a Car. Always respond in English unless the user explicitly asks for another language. Answer only from the supplied live data. Be concise and state which collection/field supports financial or booking answers. Use the discovery samples to identify balances and dates; never invent figures.',
         input: `Question: ${question}\n\nAuthorised live PRAC context:\n${JSON.stringify(context)}`,
       }, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` }, timeout: 60000 });
       const answer = response.data?.output_text || response.data?.output
@@ -210,7 +210,7 @@ async function startServer() {
       const session = await axios.post('https://api.openai.com/v1/realtime/client_secrets', {
         session: {
           type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } },
-          instructions: `You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Before answering any question about fleet, bookings, finance, cash, bank, or balances, call get_prac_live_data. Only answer from the returned data and never invent figures. Snapshot: ${JSON.stringify(context)}`,
+          instructions: `You are Shane OS for Pattaya Rent a Car. Always speak and respond in English, even if the user is in Thailand or uses a Thai or Japanese word. Switch language only if the user explicitly asks you to. Speak naturally and concisely. Before answering any question about fleet, bookings, finance, cash, bank, or balances, call get_prac_live_data. Only answer from the returned data and never invent figures. Snapshot: ${JSON.stringify(context)}`,
           tools: [{ type: 'function', name: 'get_prac_live_data', description: 'Read current authorised Pattaya Rent a Car data. Use this before answering fleet, booking, cash, bank, balance, income, expense, or finance questions.', parameters: { type: 'object', properties: { topic: { type: 'string', enum: ['fleet', 'bookings', 'finance'] }, query: { type: 'string', description: 'The customer question, used to select relevant finance fields.' } }, required: ['topic', 'query'], additionalProperties: false } }],
         },
       }, { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' } });
