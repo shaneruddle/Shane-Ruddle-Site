@@ -9,7 +9,7 @@ import * as admin from "firebase-admin";
 import { cert, initializeApp as initializeAdminApp, initializeApp as initializeRemoteApp, getApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
-import { findVehicles, getFleetStatus, getMonthlyFinances, getPayrollSummary, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
+import { findVehicles, getBookingSummary, getFleetStatus, getMonthlyFinances, getPayrollSummary, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
 
 dotenv.config();
 
@@ -160,11 +160,10 @@ async function startServer() {
     if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'The PRAC assistant is not configured.' });
     try {
       const db = getFirestore(access.remoteApp as any);
-      const context: Record<string, unknown> = { fleet: await getFleetStatus(db) };
+      const context: Record<string, unknown> = { fleet: await getFleetStatus(db), bookings: await getBookingSummary(db) };
       if (access.canViewFinancials) {
         const month = new Date().toISOString().slice(0, 7);
         context.monthlyFinance = await getMonthlyFinances(db, month);
-        context.payroll = await getPayrollSummary(db, month);
       }
       const response = await axios.post('https://api.openai.com/v1/responses', {
         model: 'gpt-4.1-mini', max_output_tokens: 500,
@@ -202,13 +201,12 @@ async function startServer() {
       if (!access.remoteApp) return res.status(503).json({ error: 'PRAC data is not configured.' });
       const db = getFirestore(access.remoteApp as any);
       const fleet = await getFleetStatus(db);
-      const context: Record<string, unknown> = { fleet: fleet.totals };
+      const context: Record<string, unknown> = { fleet: fleet.totals, bookings: (await getBookingSummary(db)).totals };
       if (access.canViewFinancials) {
         const month = new Date().toISOString().slice(0, 7);
-        const [finance, payroll] = await Promise.all([getMonthlyFinances(db, month), getPayrollSummary(db, month)]);
+        const finance = await getMonthlyFinances(db, month);
         context.month = month;
         context.monthlyFinance = finance.totals;
-        context.payroll = payroll.totals;
       }
       const session = await axios.post('https://api.openai.com/v1/realtime/client_secrets', {
         session: { type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } }, instructions: `You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Answer from this authorised live PRAC snapshot only. Never invent figures. Snapshot: ${JSON.stringify(context)}` },

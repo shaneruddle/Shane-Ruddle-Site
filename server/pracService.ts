@@ -3,9 +3,10 @@ import type { Firestore } from 'firebase-admin/firestore';
 type PracRecord = Record<string, unknown> & { id: string; sourceCollection: string };
 
 const COLLECTIONS = {
-  fleet: ['vehicles', 'fleet', 'cars'],
-  finance: ['finance', 'transactions', 'financial_transactions'],
-  payroll: ['payroll', 'payroll_runs', 'payroll_summary'],
+  fleet: ['cars', 'website_cars'],
+  finance: ['transactions', 'vehicleFinance', 'finance_summaries'],
+  payroll: [],
+  bookings: ['bookings', 'rentals'],
 };
 
 function configuredCollections(kind: keyof typeof COLLECTIONS) {
@@ -133,8 +134,19 @@ export async function findVehicles(db: Firestore, search: string) {
   return { query: search, matches: fleet.vehicles.filter((vehicle) => !needle || [vehicle.name, vehicle.registration, vehicle.category, vehicle.status].filter(Boolean).join(' ').toLowerCase().includes(needle)) };
 }
 
+export async function getBookingSummary(db: Firestore) {
+  const records = await readFirstAvailableCollection(db, configuredCollections('bookings'));
+  const now = new Date();
+  const active = records.filter((record) => /active|confirmed|ongoing|rented/i.test(firstString(record, ['status', 'bookingStatus', 'state']) || ''));
+  const upcoming = records.filter((record) => {
+    const date = asDate(record.startDate || record.pickupDate || record.fromDate);
+    return date && date >= now && /pending|confirmed|booked/i.test(firstString(record, ['status', 'bookingStatus', 'state']) || '');
+  });
+  return { sourceCollection: records[0]?.sourceCollection || configuredCollections('bookings')[0], totals: { records: records.length, active: active.length, upcoming: upcoming.length } };
+}
+
 export async function inspectPracSchema(db: Firestore) {
-  const names = [...configuredCollections('fleet'), ...configuredCollections('finance'), ...configuredCollections('payroll')];
+  const names = [...configuredCollections('fleet'), ...configuredCollections('bookings'), ...configuredCollections('finance')];
   const collections = await Promise.all(names.map(async (name) => {
     try {
       const snapshot = await db.collection(name).limit(3).get();
