@@ -75,7 +75,8 @@ export default function PracOperations({ userProfile: _userProfile }: { userProf
       return;
     }
     try {
-      const body = await authorisedRequest('/api/prac/assistant', { method: 'POST', body: JSON.stringify({ question }) });
+      const history = [...messages, { role: 'user' as const, text: question }].slice(-12);
+      const body = await authorisedRequest('/api/prac/assistant', { method: 'POST', body: JSON.stringify({ question, history }) });
       if (body.task) window.dispatchEvent(new Event('tasks:changed'));
       setMessages((items) => [...items, { role: 'assistant', text: body.answer || 'I could not form an answer.' }]);
     } catch (error) { setMessages((items) => [...items, { role: 'assistant', text: error instanceof Error ? error.message : 'Unable to answer right now.' }]); }
