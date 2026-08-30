@@ -233,6 +233,17 @@ async function startServer() {
     } catch (error) { console.error('Task update failed:', error); res.status(502).json({ error: 'Unable to update task.' }); }
   });
 
+  app.delete('/api/tasks/:id', async (req, res) => {
+    const access = await requireTaskAccess(req, res);
+    if (!access) return;
+    try {
+      const document = access.db.collection('tasks').doc(req.params.id);
+      if (!(await document.get()).exists) return res.status(404).json({ error: 'Task not found.' });
+      await document.delete();
+      res.status(204).end();
+    } catch (error) { console.error('Task delete failed:', error); res.status(502).json({ error: 'Unable to delete task.' }); }
+  });
+
   app.get('/api/prac/fleet', async (req, res) => {
     const access = await requirePracAccess(req, res, 'operations');
     if (!access) return;
