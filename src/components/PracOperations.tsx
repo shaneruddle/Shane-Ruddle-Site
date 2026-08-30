@@ -9,6 +9,7 @@ export default function PracOperations({ userProfile: _userProfile }: { userProf
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', text: 'I am Shane OS. Ask me about Pattaya Rent a Car.' }]);
   const [live, setLive] = useState(false);
   const peer = useRef<RTCPeerConnection | null>(null);
+  const dataChannel = useRef<RTCDataChannel | null>(null);
   const transcriptItems = useRef(new Set<string>());
 
   const authorisedRequest = async (path: string, init?: RequestInit) => {
@@ -23,6 +24,7 @@ export default function PracOperations({ userProfile: _userProfile }: { userProf
     peer.current?.getSenders().forEach((sender) => sender.track?.stop());
     peer.current?.close();
     peer.current = null;
+    dataChannel.current = null;
     setLive(false);
   };
 
@@ -41,6 +43,7 @@ export default function PracOperations({ userProfile: _userProfile }: { userProf
     const pc = new RTCPeerConnection();
     peer.current = pc;
     const channel = pc.createDataChannel('oai-events');
+    dataChannel.current = channel;
     channel.onmessage = async (event) => {
       const message = JSON.parse(event.data);
       if (message.type === 'conversation.item.input_audio_transcription.completed' && message.transcript && !transcriptItems.current.has(message.item_id)) {
@@ -66,6 +69,11 @@ export default function PracOperations({ userProfile: _userProfile }: { userProf
   const send = async () => {
     if (!text.trim()) return;
     const question = text; setText(''); setMessages((items) => [...items, { role: 'user', text: question }]);
+    if (live && dataChannel.current?.readyState === 'open') {
+      dataChannel.current.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: [{ type: 'input_text', text: question }] } }));
+      dataChannel.current.send(JSON.stringify({ type: 'response.create' }));
+      return;
+    }
     try {
       const body = await authorisedRequest('/api/prac/assistant', { method: 'POST', body: JSON.stringify({ question }) });
       if (body.task) window.dispatchEvent(new Event('tasks:changed'));
