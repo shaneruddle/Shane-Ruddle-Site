@@ -9,6 +9,8 @@ const COLLECTIONS = {
   bookings: ['bookings', 'rentals'],
 };
 
+const DISCOVERY_COLLECTIONS = ['accounts', 'bookings', 'cars', 'customers', 'enquiries', 'finance_summaries', 'rentals', 'transactions', 'vehicleFinance', 'vehicle_logs'];
+
 function configuredCollections(kind: keyof typeof COLLECTIONS) {
   const envName = `PRAC_${kind.toUpperCase()}_COLLECTIONS`;
   const configured = process.env[envName]
@@ -155,6 +157,19 @@ export async function inspectPracSchema(db: Firestore) {
     } catch { return { name, documentsSampled: 0, fields: [] as string[] }; }
   }));
   return { collections: collections.filter((collection) => collection.documentsSampled > 0) };
+}
+
+export async function discoverPracData(db: Firestore) {
+  const collections = await Promise.all(DISCOVERY_COLLECTIONS.map(async (name) => {
+    try {
+      const snapshot = await db.collection(name).limit(5).get();
+      const samples = snapshot.docs.map((doc) => doc.data());
+      const fields = [...new Set(samples.flatMap((sample) => Object.keys(sample)))].sort();
+      const balanceFields = fields.filter((field) => /balance|cash|available|bank|total/i.test(field));
+      return { name, documentsSampled: snapshot.size, fields, balanceFields };
+    } catch { return null; }
+  }));
+  return collections.filter(Boolean);
 }
 
 export async function getMonthlyFinances(db: Firestore, month: string) {

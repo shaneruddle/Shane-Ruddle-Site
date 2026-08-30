@@ -9,7 +9,7 @@ import * as admin from "firebase-admin";
 import { cert, initializeApp as initializeAdminApp, initializeApp as initializeRemoteApp, getApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
-import { findVehicles, getBookingSummary, getFleetStatus, getMonthlyFinances, getPayrollSummary, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
+import { discoverPracData, findVehicles, getBookingSummary, getFleetStatus, getMonthlyFinances, getPayrollSummary, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
 
 dotenv.config();
 
@@ -127,6 +127,13 @@ async function startServer() {
     catch { res.status(502).json({ error: 'Unable to inspect the PRAC schema.' }); }
   });
 
+  app.get('/api/prac/discovery', async (req, res) => {
+    const access = await requirePracAccess(req, res, 'financials');
+    if (!access || !access.remoteApp) return;
+    try { res.json(await discoverPracData(getFirestore(access.remoteApp as any))); }
+    catch { res.status(502).json({ error: 'Unable to inspect PRAC data.' }); }
+  });
+
   app.get('/api/prac/finance/monthly', async (req, res) => {
     const access = await requirePracAccess(req, res, 'financials');
     if (!access) return;
@@ -161,13 +168,9 @@ async function startServer() {
     try {
       const db = getFirestore(access.remoteApp as any);
       const context: Record<string, unknown> = { fleet: await getFleetStatus(db), bookings: await getBookingSummary(db) };
-      if (access.canViewFinancials) {
-        const month = new Date().toISOString().slice(0, 7);
-        context.monthlyFinance = await getMonthlyFinances(db, month);
-      }
       const response = await axios.post('https://api.openai.com/v1/responses', {
         model: 'gpt-4.1-mini', max_output_tokens: 500,
-        instructions: 'You are Shane OS for Pattaya Rent a Car. Answer only from the supplied live data. Be concise, conversational, and state when data is unavailable. Never invent figures or reveal data not in context.',
+        instructions: 'You are Shane OS for Pattaya Rent a Car. Answer only from the supplied live data. Be concise, conversational, and state when data is unavailable. Never invent figures or reveal data not in context. Cash balance and payroll are not currently available, so say that clearly rather than estimating.',
         input: `Question: ${question}\n\nAuthorised live PRAC context:\n${JSON.stringify(context)}`,
       }, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` }, timeout: 60000 });
       const answer = response.data?.output_text || response.data?.output
@@ -202,14 +205,8 @@ async function startServer() {
       const db = getFirestore(access.remoteApp as any);
       const fleet = await getFleetStatus(db);
       const context: Record<string, unknown> = { fleet: fleet.totals, bookings: (await getBookingSummary(db)).totals };
-      if (access.canViewFinancials) {
-        const month = new Date().toISOString().slice(0, 7);
-        const finance = await getMonthlyFinances(db, month);
-        context.month = month;
-        context.monthlyFinance = finance.totals;
-      }
       const session = await axios.post('https://api.openai.com/v1/realtime/client_secrets', {
-        session: { type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } }, instructions: `You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Answer from this authorised live PRAC snapshot only. Never invent figures. Snapshot: ${JSON.stringify(context)}` },
+        session: { type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } }, instructions: `You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Answer from this authorised live PRAC snapshot only. Never invent figures. Cash balance and payroll are not available in this snapshot, so say that clearly. Snapshot: ${JSON.stringify(context)}` },
       }, { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' } });
       res.json({ clientSecret: session.data?.value || session.data?.client_secret?.value });
     } catch (error: any) { res.status(error?.response?.status || 502).json({ error: 'Unable to start voice mode.' }); }
