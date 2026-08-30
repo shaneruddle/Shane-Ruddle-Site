@@ -172,6 +172,47 @@ export async function discoverPracData(db: Firestore) {
   return collections.filter(Boolean);
 }
 
+function compactValue(value: unknown, depth = 0): unknown {
+  if (value instanceof Date) return value.toISOString();
+  if (value && typeof value === 'object' && 'toDate' in value && typeof (value as { toDate?: unknown }).toDate === 'function') {
+    return ((value as { toDate: () => Date }).toDate()).toISOString();
+  }
+  if (typeof value === 'string') return value.slice(0, 240);
+  if (typeof value === 'number' || typeof value === 'boolean' || value === null) return value;
+  if (Array.isArray(value)) return depth ? `[${value.length} items]` : value.slice(0, 5).map((item) => compactValue(item, depth + 1));
+  if (value && typeof value === 'object') {
+    if (depth) return '[object]';
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>).slice(0, 15).map(([key, item]) => [key, compactValue(item, depth + 1)]));
+  }
+  return String(value);
+}
+
+export async function getRealtimePracData(db: Firestore, topic: 'fleet' | 'bookings' | 'finance', query = '') {
+  if (topic === 'fleet') {
+    const fleet = await getFleetStatus(db);
+    return { source: fleet.sourceCollection, generatedAt: fleet.generatedAt, totals: fleet.totals, statusBreakdown: fleet.statusBreakdown, vehicles: fleet.vehicles.slice(0, 50) };
+  }
+  if (topic === 'bookings') return await getBookingSummary(db);
+
+  const keyword = /cash|bank|balance|account/i.test(query) ? /cash|bank|balance|account/i : /amount|total|income|expense|revenue|balance|cash|bank/i;
+  const discovery = await discoverPracData(db);
+  return {
+    generatedAt: new Date().toISOString(),
+    query,
+    note: 'These are matching fields and recent record values from authorised finance/account collections. State the field and collection used; do not combine values unless the records explicitly represent a total.',
+    collections: discovery
+      .filter((collection: any) => ['accounts', 'transactions', 'finance_summaries', 'vehicleFinance'].includes(collection.name))
+      .map((collection: any) => ({
+        name: collection.name,
+        matchingFields: collection.fields.filter((field: string) => keyword.test(field)),
+        records: collection.samples.slice(0, 8).map((sample: Record<string, unknown>) => {
+          const values = Object.fromEntries(Object.entries(sample).filter(([key]) => key === 'id' || keyword.test(key)).map(([key, value]) => [key, compactValue(value)]));
+          return Object.keys(values).length > 1 ? values : { id: sample.id, sample: compactValue(sample) };
+        }),
+      })),
+  };
+}
+
 export async function getMonthlyFinances(db: Firestore, month: string) {
   assertMonth(month);
   const records = (await readFirstAvailableCollection(db, configuredCollections('finance')))

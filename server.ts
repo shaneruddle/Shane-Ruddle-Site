@@ -9,7 +9,7 @@ import * as admin from "firebase-admin";
 import { cert, initializeApp as initializeAdminApp, initializeApp as initializeRemoteApp, getApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
-import { discoverPracData, findVehicles, getBookingSummary, getFleetStatus, getMonthlyFinances, getPayrollSummary, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
+import { discoverPracData, findVehicles, getBookingSummary, getFleetStatus, getMonthlyFinances, getPayrollSummary, getRealtimePracData, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
 
 dotenv.config();
 
@@ -208,13 +208,28 @@ async function startServer() {
       // context deliberately small; deeper questions belong to dedicated data tools.
       const context: Record<string, unknown> = { fleet: fleet.totals, bookings: (await getBookingSummary(db)).totals };
       const session = await axios.post('https://api.openai.com/v1/realtime/client_secrets', {
-        session: { type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } }, instructions: `You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Answer only from this authorised live data. Never invent figures. Snapshot: ${JSON.stringify(context)}` },
+        session: {
+          type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } },
+          instructions: `You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Before answering any question about fleet, bookings, finance, cash, bank, or balances, call get_prac_live_data. Only answer from the returned data and never invent figures. Snapshot: ${JSON.stringify(context)}`,
+          tools: [{ type: 'function', name: 'get_prac_live_data', description: 'Read current authorised Pattaya Rent a Car data. Use this before answering fleet, booking, cash, bank, balance, income, expense, or finance questions.', parameters: { type: 'object', properties: { topic: { type: 'string', enum: ['fleet', 'bookings', 'finance'] }, query: { type: 'string', description: 'The customer question, used to select relevant finance fields.' } }, required: ['topic', 'query'], additionalProperties: false } }],
+        },
       }, { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' } });
       res.json({ clientSecret: session.data?.value || session.data?.client_secret?.value });
     } catch (error: any) {
       console.error('OpenAI Realtime session failed:', error?.response?.data || error?.message);
       res.status(error?.response?.status || 502).json({ error: error?.response?.data?.error?.message || 'Unable to start voice mode.' });
     }
+  });
+
+  app.post('/api/prac/realtime-tool', async (req, res) => {
+    const access = await requirePracAccess(req, res, 'operations');
+    if (!access || !access.remoteApp) return;
+    const topic = req.body?.topic;
+    const query = typeof req.body?.query === 'string' ? req.body.query.slice(0, 1000) : '';
+    if (!['fleet', 'bookings', 'finance'].includes(topic)) return res.status(400).json({ error: 'Unsupported PRAC data topic.' });
+    if (topic === 'finance' && !access.canViewFinancials) return res.status(403).json({ error: 'You do not have permission to view PRAC financial data.' });
+    try { res.json(await getRealtimePracData(getFirestore(access.remoteApp as any), topic, query)); }
+    catch (error) { console.error('PRAC Realtime tool failed:', error); res.status(502).json({ error: 'Unable to read live PRAC data.' }); }
   });
 
   // Cross-project log aggregator
