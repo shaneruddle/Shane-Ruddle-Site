@@ -47,6 +47,18 @@ import { Toaster, toast } from "sonner";
 // renders the initial UI from cached/fallback data; every use below awaits this same promise,
 // which resolves instantly after the first time.
 let firebaseReady: Promise<any> | null = null;
+const BUSINESS_CACHE_KEY = 'shane_ruddle_business_info_v3';
+
+function readCachedBusinessInfo(): BusinessInfo {
+  try {
+    const cached = localStorage.getItem(BUSINESS_CACHE_KEY);
+    if (!cached) return fallbackData;
+    const parsed = JSON.parse(cached);
+    return parsed?.data && Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000 ? parsed.data : fallbackData;
+  } catch {
+    return fallbackData;
+  }
+}
 
 function loadFirebase() {
   // This starts only after React has painted the fallback homepage, keeping the
@@ -334,7 +346,7 @@ const LifeOutsideSection = ({ data }: { data: BusinessInfo }) => {
 };
 
 export default function App() {
-  const [data, setData] = useState<BusinessInfo>(fallbackData);
+  const [data, setData] = useState<BusinessInfo>(readCachedBusinessInfo);
   const [isLoading, setIsLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [view, setView] = useState<'home' | 'past-ventures' | 'dashboard' | 'portal' | 'blog' | 'privacy-policy' | 'terms-of-service'>('home');
@@ -427,28 +439,25 @@ export default function App() {
         if (isMounted) setIsLoading(false);
       }
     }
-    fetchData();
+    // The public landing page must remain stable on first paint. Refreshing public
+    // content is useful, but it should not compete with layout, images, and animation.
+    const dataTimer = window.setTimeout(fetchData, 8000);
 
-    const handleGlobalClick = (e: MouseEvent) => {
-      const target = e.target as any;
-      // ONLY LOG SAFE PROPERTIES TO PREVENT CIRCULAR STRUCTURE ERROR
-      console.log('GLOBAL CLICK AT:', e.clientX, e.clientY, 'TARGET TAG:', target?.tagName, 'ID:', target?.id);
-    };
-    window.addEventListener('click', handleGlobalClick);
-
-    (async () => {
-      const { auth, onAuthStateChanged } = await loadFirebase();
-      if (!isMounted) return;
-      unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-        console.log("Auth state changed. User:", firebaseUser?.uid, "Email:", firebaseUser?.email, "AuthLoading:", authLoading);
-        setUser(firebaseUser);
-        if (!firebaseUser) {
-          setUserProfile(null);
-          setAuthLoading(false);
-          loginLogged.current = false;
-        }
-      });
-    })();
+    const authTimer = window.setTimeout(() => {
+      (async () => {
+        const { auth, onAuthStateChanged } = await loadFirebase();
+        if (!isMounted) return;
+        unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+          console.log("Auth state changed. User:", firebaseUser?.uid, "Email:", firebaseUser?.email, "AuthLoading:", authLoading);
+          setUser(firebaseUser);
+          if (!firebaseUser) {
+            setUserProfile(null);
+            setAuthLoading(false);
+            loginLogged.current = false;
+          }
+        });
+      })();
+    }, 1200);
 
     // Safety timeout to ensure auth loading doesn't get stuck
     const authTimeout = setTimeout(() => {
@@ -464,8 +473,9 @@ export default function App() {
     return () => {
       isMounted = false;
       unsubscribeAuth();
+      clearTimeout(dataTimer);
+      clearTimeout(authTimer);
       clearTimeout(authTimeout);
-      window.removeEventListener('click', handleGlobalClick);
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
