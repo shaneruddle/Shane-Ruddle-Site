@@ -82,7 +82,7 @@ async function requirePracAccess(req: express.Request, res: express.Response, pe
       res.status(403).json({ error: 'You do not have permission to view this PRAC data.' });
       return null;
     }
-    return { remoteApp: getRemoteApp('prac-admin', 'PRAC_SERVICE_ACCOUNT') };
+    return { remoteApp: getRemoteApp('prac-admin', 'PRAC_SERVICE_ACCOUNT'), canViewFinancials: isAdmin || roles.has('accounts') };
   } catch (error) {
     console.error('PRAC access verification failed:', error);
     res.status(401).json({ error: 'Your session could not be verified.' });
@@ -134,6 +134,33 @@ async function startServer() {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to read PRAC payroll data.';
       res.status(message.includes('YYYY-MM') ? 400 : 502).json({ error: message });
+    }
+  });
+
+  app.post('/api/prac/assistant', async (req, res) => {
+    const access = await requirePracAccess(req, res, 'operations');
+    if (!access) return;
+    const question = typeof req.body?.question === 'string' ? req.body.question.trim().slice(0, 2000) : '';
+    if (!question) return res.status(400).json({ error: 'Ask a PRAC question first.' });
+    if (!access.remoteApp) return res.status(503).json({ error: 'PRAC data is not configured.' });
+    if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'The PRAC assistant is not configured.' });
+    try {
+      const db = getFirestore(access.remoteApp as any);
+      const context: Record<string, unknown> = { fleet: await getFleetStatus(db) };
+      if (access.canViewFinancials) {
+        const month = new Date().toISOString().slice(0, 7);
+        context.monthlyFinance = await getMonthlyFinances(db, month);
+        context.payroll = await getPayrollSummary(db, month);
+      }
+      const response = await axios.post('https://api.openai.com/v1/responses', {
+        model: 'gpt-4.1-mini', max_output_tokens: 500,
+        instructions: 'You are Shane OS for Pattaya Rent a Car. Answer only from the supplied live data. Be concise, conversational, and state when data is unavailable. Never invent figures or reveal data not in context.',
+        input: `Question: ${question}\n\nAuthorised live PRAC context:\n${JSON.stringify(context)}`,
+      }, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` }, timeout: 60000 });
+      res.json({ answer: response.data?.output_text || 'I could not form an answer.' });
+    } catch (error: any) {
+      console.error('PRAC assistant failed:', error?.response?.data || error?.message);
+      res.status(error?.response?.status || 502).json({ error: error?.response?.data?.error?.message || 'The PRAC assistant could not answer right now.' });
     }
   });
 
