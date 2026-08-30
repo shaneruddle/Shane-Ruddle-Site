@@ -81,6 +81,19 @@ async function requireTaskAccess(req: express.Request, res: express.Response) {
   } catch (error) { console.error('Task access verification failed:', error); res.status(401).json({ error: 'Your session could not be verified.' }); return null; }
 }
 
+async function createSharedTask(access: NonNullable<Awaited<ReturnType<typeof requireTaskAccess>>>, input: Record<string, unknown>) {
+  const title = typeof input.title === 'string' ? input.title.trim().slice(0, 180) : '';
+  const companyNickname = typeof input.companyNickname === 'string' ? input.companyNickname.trim().slice(0, 32) : '';
+  const notes = typeof input.notes === 'string' ? input.notes.trim().slice(0, 4000) : '';
+  const priority = TASK_PRIORITIES.includes(input.priority as typeof TASK_PRIORITIES[number]) ? input.priority : 'medium';
+  const dueDate = typeof input.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input.dueDate) ? input.dueDate : null;
+  if (!title || !companyNickname) throw new Error('A title and company nickname are required.');
+  const task = { title, companyNickname, notes, priority, dueDate, status: 'draft', createdBy: access.token.uid, createdByName: access.profile.name || access.token.email || 'Unknown', createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() };
+  const document = await access.db.collection('tasks').add(task);
+  const saved = await document.get();
+  return taskRecord(document.id, saved.data() || task);
+}
+
 async function requirePracAccess(req: express.Request, res: express.Response, permission: PracPermission) {
   const bearer = req.header('authorization');
   if (!bearer?.startsWith('Bearer ')) {
@@ -138,18 +151,15 @@ async function startServer() {
   app.post('/api/tasks', async (req, res) => {
     const access = await requireTaskAccess(req, res);
     if (!access) return;
-    const title = typeof req.body?.title === 'string' ? req.body.title.trim().slice(0, 180) : '';
-    const companyNickname = typeof req.body?.companyNickname === 'string' ? req.body.companyNickname.trim().slice(0, 32) : '';
-    const notes = typeof req.body?.notes === 'string' ? req.body.notes.trim().slice(0, 4000) : '';
-    const priority = TASK_PRIORITIES.includes(req.body?.priority) ? req.body.priority : 'medium';
-    const dueDate = typeof req.body?.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(req.body.dueDate) ? req.body.dueDate : null;
-    if (!title || !companyNickname) return res.status(400).json({ error: 'A title and company nickname are required.' });
-    try {
-      const task = { title, companyNickname, notes, priority, dueDate, status: 'draft', createdBy: access.token.uid, createdByName: access.profile.name || access.token.email || 'Unknown', createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() };
-      const document = await access.db.collection('tasks').add(task);
-      const saved = await document.get();
-      res.status(201).json({ task: taskRecord(document.id, saved.data() || task) });
-    } catch (error) { console.error('Task create failed:', error); res.status(502).json({ error: 'Unable to create task.' }); }
+    try { res.status(201).json({ task: await createSharedTask(access, req.body || {}) }); }
+    catch (error) { const message = error instanceof Error ? error.message : 'Unable to create task.'; console.error('Task create failed:', error); res.status(message.includes('required') ? 400 : 502).json({ error: message }); }
+  });
+
+  app.post('/api/tasks/from-assistant', async (req, res) => {
+    const access = await requireTaskAccess(req, res);
+    if (!access) return;
+    try { res.status(201).json({ task: await createSharedTask(access, req.body || {}) }); }
+    catch (error) { const message = error instanceof Error ? error.message : 'Unable to create task.'; console.error('Assistant task create failed:', error); res.status(message.includes('required') ? 400 : 502).json({ error: message }); }
   });
 
   app.patch('/api/tasks/:id', async (req, res) => {
@@ -274,11 +284,19 @@ async function startServer() {
     try {
       const db = getFirestore(access.remoteApp as any);
       const context: Record<string, unknown> = { fleet: await getFleetStatus(db), bookings: await getBookingSummary(db), discovery: await discoverPracData(db) };
+      const instructions = 'You are Shane OS for Pattaya Rent a Car. Always respond in English unless the user explicitly asks for another language. Answer only from the supplied live data. Be concise and state which collection/field supports financial or booking answers. Use the discovery samples to identify balances and dates; never invent figures. If and only if the user explicitly asks to create or add a task, call create_group_task. Use PRAC as the company nickname unless the user names another company.';
       const response = await axios.post('https://api.openai.com/v1/responses', {
         model: 'gpt-4.1-mini', max_output_tokens: 500,
-        instructions: 'You are Shane OS for Pattaya Rent a Car. Always respond in English unless the user explicitly asks for another language. Answer only from the supplied live data. Be concise and state which collection/field supports financial or booking answers. Use the discovery samples to identify balances and dates; never invent figures.',
+        instructions,
+        tools: [{ type: 'function', name: 'create_group_task', description: 'Create a shared Shane Ruddle task only when the user explicitly asks to create or add one.', parameters: { type: 'object', properties: { title: { type: 'string' }, companyNickname: { type: 'string' }, notes: { type: 'string' }, priority: { type: 'string', enum: ['low', 'medium', 'high'] } }, required: ['title', 'companyNickname'], additionalProperties: false } }],
         input: `Question: ${question}\n\nAuthorised live PRAC context:\n${JSON.stringify(context)}`,
       }, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` }, timeout: 60000 });
+      const functionCall = response.data?.output?.find((item: any) => item.type === 'function_call' && item.name === 'create_group_task');
+      if (functionCall) {
+        const task = await createSharedTask(access, JSON.parse(functionCall.arguments || '{}'));
+        const followUp = await axios.post('https://api.openai.com/v1/responses', { model: 'gpt-4.1-mini', instructions, previous_response_id: response.data.id, input: [{ type: 'function_call_output', call_id: functionCall.call_id, output: JSON.stringify({ task }) }] }, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` }, timeout: 60000 });
+        return res.json({ answer: followUp.data?.output_text || `Created task: ${task.title} (${task.companyNickname}).`, task });
+      }
       const answer = response.data?.output_text || response.data?.output
         ?.flatMap((item: any) => item.content || [])
         .map((item: any) => item.text || item.value || '')
@@ -316,8 +334,8 @@ async function startServer() {
       const session = await axios.post('https://api.openai.com/v1/realtime/client_secrets', {
         session: {
           type: 'realtime', model: 'gpt-realtime', audio: { input: { transcription: { model: 'gpt-4o-mini-transcribe' } }, output: { voice: 'marin' } },
-          instructions: `You are Shane OS for Pattaya Rent a Car. Always speak and respond in English, even if the user is in Thailand or uses a Thai or Japanese word. Switch language only if the user explicitly asks you to. Speak naturally and concisely. Before answering any question about fleet, bookings, finance, cash, bank, or balances, call get_prac_live_data. For “bookings received today”, use receivedToday. For today’s pickups or returns, use todaySchedule. For “current cash balance”, use currentAccounts.cashBalance and cashAccounts only. For this month’s income, expenses, or profit, use currentMonthSummary and disclose if it has unclassified records. Only answer from the returned data and never invent figures. Snapshot: ${JSON.stringify(context)}`,
-          tools: [{ type: 'function', name: 'get_prac_live_data', description: 'Read current authorised Pattaya Rent a Car data. Use this before answering fleet, booking, cash, bank, balance, income, expense, or finance questions.', parameters: { type: 'object', properties: { topic: { type: 'string', enum: ['fleet', 'bookings', 'finance'] }, query: { type: 'string', description: 'The customer question, used to select relevant finance fields.' } }, required: ['topic', 'query'], additionalProperties: false } }],
+          instructions: `You are Shane OS for Pattaya Rent a Car. Always speak and respond in English, even if the user is in Thailand or uses a Thai or Japanese word. Switch language only if the user explicitly asks you to. Speak naturally and concisely. Create a group task only when the user explicitly asks you to create or add one; use PRAC as its company nickname unless another company is named. Before answering any question about fleet, bookings, finance, cash, bank, or balances, call get_prac_live_data. For “bookings received today”, use receivedToday. For today’s pickups or returns, use todaySchedule. For “current cash balance”, use currentAccounts.cashBalance and cashAccounts only. For this month’s income, expenses, or profit, use currentMonthSummary and disclose if it has unclassified records. Only answer from the returned data and never invent figures. Snapshot: ${JSON.stringify(context)}`,
+          tools: [{ type: 'function', name: 'get_prac_live_data', description: 'Read current authorised Pattaya Rent a Car data. Use this before answering fleet, booking, cash, bank, balance, income, expense, or finance questions.', parameters: { type: 'object', properties: { topic: { type: 'string', enum: ['fleet', 'bookings', 'finance'] }, query: { type: 'string', description: 'The customer question, used to select relevant finance fields.' } }, required: ['topic', 'query'], additionalProperties: false } }, { type: 'function', name: 'create_group_task', description: 'Create a shared Shane Ruddle task only when the user explicitly asks to create or add one. Do not create a task merely because the user discusses an idea.', parameters: { type: 'object', properties: { title: { type: 'string' }, companyNickname: { type: 'string' }, notes: { type: 'string' }, priority: { type: 'string', enum: ['low', 'medium', 'high'] } }, required: ['title', 'companyNickname'], additionalProperties: false } }],
         },
       }, { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' } });
       res.json({ clientSecret: session.data?.value || session.data?.client_secret?.value });
