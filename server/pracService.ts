@@ -167,6 +167,31 @@ export async function getBookingsReceivedToday(db: Firestore) {
   return { sourceCollection: 'bookings', date, totals: { received: snapshot.size }, statusBreakdown: statuses, definition: 'Bookings with createdAt during the current Bangkok calendar day.' };
 }
 
+function bookingScheduleEntry(record: Record<string, unknown>) {
+  return {
+    bookingId: typeof record.id === 'string' ? record.id : undefined,
+    customer: firstString(record, ['customerName', 'customer', 'name']),
+    vehicle: firstString(record, ['vehicleName', 'carName', 'car', 'vehicle', 'requestedCarType']),
+    status: firstString(record, ['status', 'paymentStatus']) || 'unknown',
+  };
+}
+
+export async function getTodayBookingSchedule(db: Firestore) {
+  const { date, start, end } = bangkokDayRange();
+  const [pickups, returns] = await Promise.all([
+    db.collection('bookings').where('startDate', '>=', start).where('startDate', '<', end).get(),
+    db.collection('bookings').where('endDate', '>=', start).where('endDate', '<', end).get(),
+  ]);
+  return {
+    sourceCollection: 'bookings',
+    date,
+    definition: 'Scheduled pickups use bookings.startDate; scheduled returns use bookings.endDate for the current Bangkok calendar day.',
+    totals: { pickups: pickups.size, returns: returns.size },
+    pickups: pickups.docs.map((doc) => bookingScheduleEntry({ id: doc.id, ...doc.data() })),
+    returns: returns.docs.map((doc) => bookingScheduleEntry({ id: doc.id, ...doc.data() })),
+  };
+}
+
 export async function getCurrentAccountBalances(db: Firestore) {
   const snapshot = await db.collection('accounts').limit(100).get();
   const accounts = snapshot.docs.map((doc) => {
@@ -254,7 +279,7 @@ export async function getRealtimePracData(db: Firestore, topic: 'fleet' | 'booki
     const fleet = await getFleetStatus(db);
     return { source: fleet.sourceCollection, generatedAt: fleet.generatedAt, totals: fleet.totals, statusBreakdown: fleet.statusBreakdown, vehicles: fleet.vehicles.slice(0, 50) };
   }
-  if (topic === 'bookings') return { summary: await getBookingSummary(db), receivedToday: await getBookingsReceivedToday(db) };
+  if (topic === 'bookings') return { summary: await getBookingSummary(db), receivedToday: await getBookingsReceivedToday(db), todaySchedule: await getTodayBookingSchedule(db) };
 
   const keyword = /cash|bank|balance|account/i.test(query) ? /cash|bank|balance|account/i : /amount|total|income|expense|revenue|balance|cash|bank/i;
   const discovery = await discoverPracData(db);

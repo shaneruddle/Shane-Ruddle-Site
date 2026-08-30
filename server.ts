@@ -9,7 +9,7 @@ import * as admin from "firebase-admin";
 import { cert, initializeApp as initializeAdminApp, initializeApp as initializeRemoteApp, getApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
-import { auditPracDataMapping, discoverPracData, findVehicles, getBookingSummary, getBookingsReceivedToday, getCurrentAccountBalances, getFleetStatus, getMonthlyFinances, getPayrollSummary, getRealtimePracData, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
+import { auditPracDataMapping, discoverPracData, findVehicles, getBookingSummary, getBookingsReceivedToday, getCurrentAccountBalances, getFleetStatus, getMonthlyFinances, getPayrollSummary, getRealtimePracData, getTodayBookingSchedule, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
 
 dotenv.config();
 
@@ -167,6 +167,13 @@ async function startServer() {
     catch { res.status(502).json({ error: 'Unable to read today\'s PRAC bookings.' }); }
   });
 
+  app.get('/api/prac/bookings/today/schedule', async (req, res) => {
+    const access = await requirePracAccess(req, res, 'operations');
+    if (!access || !access.remoteApp) return;
+    try { res.json(await getTodayBookingSchedule(getFirestore(access.remoteApp as any))); }
+    catch { res.status(502).json({ error: 'Unable to read today\'s PRAC schedule.' }); }
+  });
+
   app.get('/api/prac/payroll/summary', async (req, res) => {
     const access = await requirePracAccess(req, res, 'financials');
     if (!access) return;
@@ -231,7 +238,7 @@ async function startServer() {
       const session = await axios.post('https://api.openai.com/v1/realtime/client_secrets', {
         session: {
           type: 'realtime', model: 'gpt-realtime', audio: { input: { transcription: { model: 'gpt-4o-mini-transcribe' } }, output: { voice: 'marin' } },
-          instructions: `You are Shane OS for Pattaya Rent a Car. Always speak and respond in English, even if the user is in Thailand or uses a Thai or Japanese word. Switch language only if the user explicitly asks you to. Speak naturally and concisely. Before answering any question about fleet, bookings, finance, cash, bank, or balances, call get_prac_live_data. For “bookings received today”, use receivedToday. For “current cash balance”, use currentAccounts.cashBalance and cashAccounts only. Only answer from the returned data and never invent figures. Snapshot: ${JSON.stringify(context)}`,
+          instructions: `You are Shane OS for Pattaya Rent a Car. Always speak and respond in English, even if the user is in Thailand or uses a Thai or Japanese word. Switch language only if the user explicitly asks you to. Speak naturally and concisely. Before answering any question about fleet, bookings, finance, cash, bank, or balances, call get_prac_live_data. For “bookings received today”, use receivedToday. For today’s pickups or returns, use todaySchedule. For “current cash balance”, use currentAccounts.cashBalance and cashAccounts only. Only answer from the returned data and never invent figures. Snapshot: ${JSON.stringify(context)}`,
           tools: [{ type: 'function', name: 'get_prac_live_data', description: 'Read current authorised Pattaya Rent a Car data. Use this before answering fleet, booking, cash, bank, balance, income, expense, or finance questions.', parameters: { type: 'object', properties: { topic: { type: 'string', enum: ['fleet', 'bookings', 'finance'] }, query: { type: 'string', description: 'The customer question, used to select relevant finance fields.' } }, required: ['topic', 'query'], additionalProperties: false } }],
         },
       }, { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' } });
