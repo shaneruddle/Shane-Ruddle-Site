@@ -8,7 +8,7 @@ import cors from "cors";
 import * as admin from "firebase-admin";
 import { cert, initializeApp as initializeAdminApp, initializeApp as initializeRemoteApp, getApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
+import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { auditPracDataMapping, discoverPracData, findVehicles, getBookingSummary, getBookingsReceivedToday, getCurrentAccountBalances, getFleetStatus, getMonthlyFinances, getMonthlyTransactionSummary, getPayrollSummary, getRealtimePracData, getTodayBookingSchedule, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
 
 dotenv.config();
@@ -56,6 +56,30 @@ function getPrimaryAdminApp(): admin.app.App {
 }
 
 type PracPermission = 'operations' | 'financials';
+const TASK_STATUSES = ['draft', 'ready_for_review', 'approved', 'in_progress', 'completed', 'cancelled', 'failed'] as const;
+const TASK_PRIORITIES = ['low', 'medium', 'high'] as const;
+
+function taskTimestamp(value: unknown) {
+  return value && typeof value === 'object' && 'toDate' in value && typeof (value as { toDate?: unknown }).toDate === 'function'
+    ? (value as { toDate: () => Date }).toDate().toISOString()
+    : null;
+}
+
+function taskRecord(id: string, data: Record<string, unknown>) {
+  return { id, ...data, createdAt: taskTimestamp(data.createdAt), updatedAt: taskTimestamp(data.updatedAt), dueDate: typeof data.dueDate === 'string' ? data.dueDate : null };
+}
+
+async function requireTaskAccess(req: express.Request, res: express.Response) {
+  const bearer = req.header('authorization');
+  if (!bearer?.startsWith('Bearer ')) { res.status(401).json({ error: 'A signed-in session is required.' }); return null; }
+  try {
+    const primaryApp = getPrimaryAdminApp();
+    const token = await getAuth(primaryApp as any).verifyIdToken(bearer.slice(7));
+    const profile = (await getFirestore(primaryApp as any).collection('users').doc(token.uid).get()).data() || {};
+    if (profile.active === false) { res.status(403).json({ error: 'Your account is not active.' }); return null; }
+    return { token, profile, db: getFirestore(primaryApp as any) };
+  } catch (error) { console.error('Task access verification failed:', error); res.status(401).json({ error: 'Your session could not be verified.' }); return null; }
+}
 
 async function requirePracAccess(req: express.Request, res: express.Response, permission: PracPermission) {
   const bearer = req.header('authorization');
@@ -99,6 +123,53 @@ async function startServer() {
 
   app.get('/api/prac/capabilities', (_req, res) => {
     res.json(pracCapabilities);
+  });
+
+  app.get('/api/tasks', async (req, res) => {
+    const access = await requireTaskAccess(req, res);
+    if (!access) return;
+    try {
+      const snapshot = await access.db.collection('tasks').limit(200).get();
+      const tasks = snapshot.docs.map((doc) => taskRecord(doc.id, doc.data())).sort((a: any, b: any) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+      res.json({ tasks });
+    } catch (error) { console.error('Task list failed:', error); res.status(502).json({ error: 'Unable to load tasks.' }); }
+  });
+
+  app.post('/api/tasks', async (req, res) => {
+    const access = await requireTaskAccess(req, res);
+    if (!access) return;
+    const title = typeof req.body?.title === 'string' ? req.body.title.trim().slice(0, 180) : '';
+    const companyNickname = typeof req.body?.companyNickname === 'string' ? req.body.companyNickname.trim().slice(0, 32) : '';
+    const notes = typeof req.body?.notes === 'string' ? req.body.notes.trim().slice(0, 4000) : '';
+    const priority = TASK_PRIORITIES.includes(req.body?.priority) ? req.body.priority : 'medium';
+    const dueDate = typeof req.body?.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(req.body.dueDate) ? req.body.dueDate : null;
+    if (!title || !companyNickname) return res.status(400).json({ error: 'A title and company nickname are required.' });
+    try {
+      const task = { title, companyNickname, notes, priority, dueDate, status: 'draft', createdBy: access.token.uid, createdByName: access.profile.name || access.token.email || 'Unknown', createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() };
+      const document = await access.db.collection('tasks').add(task);
+      const saved = await document.get();
+      res.status(201).json({ task: taskRecord(document.id, saved.data() || task) });
+    } catch (error) { console.error('Task create failed:', error); res.status(502).json({ error: 'Unable to create task.' }); }
+  });
+
+  app.patch('/api/tasks/:id', async (req, res) => {
+    const access = await requireTaskAccess(req, res);
+    if (!access) return;
+    const updates: Record<string, unknown> = { updatedAt: FieldValue.serverTimestamp() };
+    if (typeof req.body?.title === 'string' && req.body.title.trim()) updates.title = req.body.title.trim().slice(0, 180);
+    if (typeof req.body?.companyNickname === 'string' && req.body.companyNickname.trim()) updates.companyNickname = req.body.companyNickname.trim().slice(0, 32);
+    if (typeof req.body?.notes === 'string') updates.notes = req.body.notes.trim().slice(0, 4000);
+    if (TASK_STATUSES.includes(req.body?.status)) updates.status = req.body.status;
+    if (TASK_PRIORITIES.includes(req.body?.priority)) updates.priority = req.body.priority;
+    if (typeof req.body?.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(req.body.dueDate)) updates.dueDate = req.body.dueDate;
+    if (req.body?.dueDate === null) updates.dueDate = null;
+    try {
+      const document = access.db.collection('tasks').doc(req.params.id);
+      if (!(await document.get()).exists) return res.status(404).json({ error: 'Task not found.' });
+      await document.update(updates);
+      const saved = await document.get();
+      res.json({ task: taskRecord(document.id, saved.data() || {}) });
+    } catch (error) { console.error('Task update failed:', error); res.status(502).json({ error: 'Unable to update task.' }); }
   });
 
   app.get('/api/prac/fleet', async (req, res) => {
