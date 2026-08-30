@@ -185,8 +185,19 @@ async function startServer() {
     const access = await requirePracAccess(req, res, 'operations');
     if (!access) return;
     try {
+      if (!access.remoteApp) return res.status(503).json({ error: 'PRAC data is not configured.' });
+      const db = getFirestore(access.remoteApp as any);
+      const fleet = await getFleetStatus(db);
+      const context: Record<string, unknown> = { fleet: fleet.totals };
+      if (access.canViewFinancials) {
+        const month = new Date().toISOString().slice(0, 7);
+        const [finance, payroll] = await Promise.all([getMonthlyFinances(db, month), getPayrollSummary(db, month)]);
+        context.month = month;
+        context.monthlyFinance = finance.totals;
+        context.payroll = payroll.totals;
+      }
       const session = await axios.post('https://api.openai.com/v1/realtime/client_secrets', {
-        session: { type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } }, instructions: 'You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Explain that live PRAC data questions can also be asked in the text chat while tool calling is being connected.' },
+        session: { type: 'realtime', model: 'gpt-realtime', audio: { output: { voice: 'marin' } }, instructions: `You are Shane OS for Pattaya Rent a Car. Speak naturally and concisely. Answer from this authorised live PRAC snapshot only. Never invent figures. Snapshot: ${JSON.stringify(context)}` },
       }, { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' } });
       res.json({ clientSecret: session.data?.value || session.data?.client_secret?.value });
     } catch (error: any) { res.status(error?.response?.status || 502).json({ error: 'Unable to start voice mode.' }); }
