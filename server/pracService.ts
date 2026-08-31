@@ -248,6 +248,39 @@ export async function getCurrentAccountBalances(db: Firestore) {
   };
 }
 
+function safeSearchTerms(question: string) {
+  const ignored = new Set(['how', 'many', 'do', 'we', 'have', 'are', 'there', 'in', 'the', 'fleet', 'car', 'cars', 'vehicle', 'vehicles', 'active', 'current', 'today', 'a', 'an', 'of', 'and', 'with', 'pattaya', 'rent', 'rental']);
+  return question.toLowerCase().replace(/[^a-z0-9]+/g, ' ').split(' ').filter(Boolean)
+    .map((word) => word.endsWith('s') ? word.slice(0, -1) : word)
+    .filter((word) => !ignored.has(word));
+}
+
+// This is the only answer path enabled during the verified-data rebuild. It is
+// deterministic and limited to fields confirmed in the relationship audit.
+export async function getVerifiedPracSafeAnswer(db: Firestore, question: string) {
+  const normalized = question.toLowerCase();
+  if (/\b(cash|bank)\b.*\b(balance|balances)\b|\b(balance|balances)\b.*\b(cash|bank)\b/.test(normalized)) {
+    const accounts = await getCurrentAccountBalances(db);
+    return { answer: `Current cash balance is ${accounts.cashBalance ?? 'not available'} from ${accounts.cashAccounts.length} accounts where accounts.type is Cash.`, source: 'accounts.balance' };
+  }
+  if (/\b(bookings?|reservations?)\b.*\b(received|created)\b.*\btoday\b|\btoday\b.*\b(bookings?|reservations?)\b/.test(normalized)) {
+    const bookings = await getBookingsReceivedToday(db);
+    return { answer: `${bookings.totals.received} bookings were received today, using bookings.createdAt in the Bangkok calendar day.`, source: 'bookings.createdAt' };
+  }
+  if (/\b(how many|number of|count)\b/.test(normalized) && /\b(cars?|vehicles?|fleet)\b/.test(normalized)) {
+    const snapshot = await db.collection('cars').get();
+    const cars = snapshot.docs.map((document) => ({ id: document.id, ...document.data() } as PracRecord));
+    const terms = safeSearchTerms(question);
+    const matches = terms.length ? cars.filter((car) => {
+      const haystack = searchableVehicleText([firstString(car, ['make']), firstString(car, ['model']), firstString(car, ['name'])].filter(Boolean).join(' '));
+      return terms.every((term) => haystack.includes(term));
+    }) : cars;
+    const active = matches.filter((car) => car.isActive === true).length;
+    return { answer: `There are ${active} active and ${matches.length} total matching vehicles, using cars.make, cars.model, cars.name, and cars.isActive.`, source: 'cars' };
+  }
+  return null;
+}
+
 export async function getMonthlyTransactionSummary(db: Firestore, requestedMonth = '') {
   const { month, start, end } = bangkokMonthRange(requestedMonth || undefined);
   const snapshot = await db.collection('transactions').where('date', '>=', start).where('date', '<', end).get();

@@ -9,7 +9,7 @@ import * as admin from "firebase-admin";
 import { cert, initializeApp as initializeAdminApp, initializeApp as initializeRemoteApp, getApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
-import { auditPracDataMapping, discoverPracData, findVehicles, getBookingSummary, getBookingsReceivedToday, getCurrentAccountBalances, getCustomerAndMaintenanceSummary, getFleetStatus, getMonthlyFinances, getMonthlyTransactionSummary, getPayrollSummary, getRealtimePracData, getTodayBookingSchedule, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
+import { auditPracDataMapping, discoverPracData, findVehicles, getBookingSummary, getBookingsReceivedToday, getCurrentAccountBalances, getCustomerAndMaintenanceSummary, getFleetStatus, getMonthlyFinances, getMonthlyTransactionSummary, getPayrollSummary, getRealtimePracData, getTodayBookingSchedule, getVerifiedPracSafeAnswer, inspectPracSchema, pracCapabilities } from "./server/pracService.ts";
 
 dotenv.config();
 
@@ -391,8 +391,11 @@ async function startServer() {
     const question = typeof req.body?.question === 'string' ? req.body.question.trim().slice(0, 2000) : '';
     const history = Array.isArray(req.body?.history) ? req.body.history.slice(-12).map((item: any) => ({ role: item?.role === 'assistant' ? 'Shane OS' : 'User', text: typeof item?.text === 'string' ? item.text.slice(0, 2000) : '' })).filter((item: any) => item.text) : [];
     if (!question) return res.status(400).json({ error: 'Ask a PRAC question first.' });
-    if (PRAC_SAFE_MODE) return res.json({ answer: 'Shane OS is in verified-data rebuild mode. I will not provide PRAC operational or financial figures until the cars, rentals, bookings, and accounts relationships have been validated.' });
     if (!access.remoteApp) return res.status(503).json({ error: 'PRAC data is not configured.' });
+    if (PRAC_SAFE_MODE) {
+      const verified = await getVerifiedPracSafeAnswer(getFirestore(access.remoteApp as any), question);
+      return res.json(verified || { answer: 'Shane OS is in verified-data rebuild mode. I can currently answer only verified fleet inventory, current cash balance, and bookings received today. Availability, finance summaries, and voice remain paused.' });
+    }
     if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'The PRAC assistant is not configured.' });
     try {
       const db = getFirestore(access.remoteApp as any);
