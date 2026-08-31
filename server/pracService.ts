@@ -319,6 +319,18 @@ export async function auditPracDataMapping(db: Firestore) {
         fieldStats.set(field, stat);
       }));
       const fields = [...fieldStats.entries()].map(([name, stat]) => ({ name, present: stat.present, types: [...stat.types].sort() })).sort((a, b) => a.name.localeCompare(b.name));
+      const exampleFields = fields.filter((field) => /car|vehicle|registration|plate|booking|rental|status|state|date|start|end|pickup|dropoff|available|rented|maintenance|balance|amount|type|category/i.test(field.name)).map((field) => field.name);
+      const examples = snapshot.docs.slice(0, 5).map((doc) => {
+        const data = doc.data();
+        return { id: doc.id, values: Object.fromEntries(exampleFields.slice(0, 24).flatMap((field) => {
+          const value = data[field];
+          if (value === undefined) return [];
+          if (typeof value === 'string') return [[field, value.slice(0, 100)]];
+          if (typeof value === 'number' || typeof value === 'boolean' || value === null) return [[field, value]];
+          if (value && typeof value === 'object' && 'toDate' in value && typeof (value as any).toDate === 'function') return [[field, (value as any).toDate().toISOString()]];
+          return [[field, Array.isArray(value) ? `[${value.length} items]` : '[object]']];
+        })) };
+      });
       return {
         name,
         recordsSampled: snapshot.size,
@@ -326,6 +338,8 @@ export async function auditPracDataMapping(db: Firestore) {
         candidateDateFields: fields.filter((field) => /date|time|created|updated|pickup|dropoff|start|end/i.test(field.name)).map((field) => field.name),
         candidateMoneyFields: fields.filter((field) => /cash|bank|balance|amount|total|income|expense|revenue|price|cost|paid/i.test(field.name)).map((field) => field.name),
         candidateStatusFields: fields.filter((field) => /status|state|type|category/i.test(field.name)).map((field) => field.name),
+        candidateRelationFields: fields.filter((field) => /car|vehicle|registration|plate|booking|rental|customer/i.test(field.name)).map((field) => field.name),
+        examples,
       };
     } catch { return null; }
   }));
