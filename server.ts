@@ -13,6 +13,10 @@ import { auditPracDataMapping, discoverPracData, findVehicles, getBookingSummary
 
 dotenv.config();
 
+// Do not allow plausible-but-unverified operational answers while the PRAC
+// collection relationships are being rebuilt from the data verification audit.
+const PRAC_SAFE_MODE = true;
+
 // --- News Feed sources (Dashboard > Feed) ---
 // Fixed whitelist rather than an arbitrary ?url= param, so this endpoint can't be used as an
 // open proxy to fetch any URL on the server's behalf.
@@ -387,6 +391,7 @@ async function startServer() {
     const question = typeof req.body?.question === 'string' ? req.body.question.trim().slice(0, 2000) : '';
     const history = Array.isArray(req.body?.history) ? req.body.history.slice(-12).map((item: any) => ({ role: item?.role === 'assistant' ? 'Shane OS' : 'User', text: typeof item?.text === 'string' ? item.text.slice(0, 2000) : '' })).filter((item: any) => item.text) : [];
     if (!question) return res.status(400).json({ error: 'Ask a PRAC question first.' });
+    if (PRAC_SAFE_MODE) return res.json({ answer: 'Shane OS is in verified-data rebuild mode. I will not provide PRAC operational or financial figures until the cars, rentals, bookings, and accounts relationships have been validated.' });
     if (!access.remoteApp) return res.status(503).json({ error: 'PRAC data is not configured.' });
     if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'The PRAC assistant is not configured.' });
     try {
@@ -445,6 +450,7 @@ async function startServer() {
   app.post('/api/prac/realtime-session', async (req, res) => {
     const access = await requirePracAccess(req, res, 'operations');
     if (!access) return;
+    if (PRAC_SAFE_MODE) return res.status(503).json({ error: 'Voice mode is temporarily unavailable while Shane OS is rebuilt from verified PRAC data.' });
     try {
       if (!access.remoteApp) return res.status(503).json({ error: 'PRAC data is not configured.' });
       const db = getFirestore(access.remoteApp as any);
