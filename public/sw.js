@@ -8,7 +8,7 @@
 //  - Same-origin static assets (JS/CSS/images/fonts): stale-while-revalidate, so the app keeps
 //    working offline after the first visit and picks up new deploys in the background.
 
-const CACHE_NAME = 'shane-ruddle-shell-v1';
+const CACHE_NAME = 'shane-ruddle-shell-v2';
 const SHELL_URL = '/index.html';
 
 self.addEventListener('install', (event) => {
