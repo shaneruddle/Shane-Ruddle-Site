@@ -13,9 +13,10 @@ import { auditPracDataMapping, discoverPracData, findVehicles, getBookingSummary
 
 dotenv.config();
 
-// Do not allow plausible-but-unverified operational answers while the PRAC
-// collection relationships are being rebuilt from the data verification audit.
-const PRAC_SAFE_MODE = true;
+// Fleet availability is now computed from a verified rentals join (see
+// getFleetStatus in server/pracService.ts) instead of a cars.status field that
+// never existed in this data, so it's safe to answer live again.
+const PRAC_SAFE_MODE = false;
 
 // --- News Feed sources (Dashboard > Feed) ---
 // Fixed whitelist rather than an arbitrary ?url= param, so this endpoint can't be used as an
@@ -346,8 +347,7 @@ async function startServer() {
   });
 
   app.get('/api/prac/finance/cash-balance', async (req, res) => {
-    const access = await requirePracAccess(req, res, 'financials');
-    if (!access || !access.remoteApp) return;
+    const access = await requirePracAccess(req, res, 'financials');    if (!access || !access.remoteApp) return;
     try { res.json(await getCurrentAccountBalances(getFirestore(access.remoteApp as any))); }
     catch { res.status(502).json({ error: 'Unable to read PRAC account balances.' }); }
   });
@@ -464,7 +464,7 @@ async function startServer() {
       const session = await axios.post('https://api.openai.com/v1/realtime/client_secrets', {
         session: {
           type: 'realtime', model: 'gpt-realtime', audio: { input: { transcription: { model: 'gpt-4o-mini-transcribe' } }, output: { voice: 'marin' } },
-          instructions: `You are Shane OS for Pattaya Rent a Car. Always speak and respond in English, even if the user is in Thailand or uses a Thai or Japanese word. Switch language only if the user explicitly asks you to. Speak naturally and concisely. When an actionable idea arises, you may offer to queue a task, but create a group task only when the user explicitly asks you to create or add one; use PRAC as its company nickname unless another company is named. Before answering every fleet, booking, customer, enquiry, maintenance, finance, cash, bank, or balance question, call get_prac_live_data with the relevant topic. Use operations for customers, enquiries, and vehicle logs. Never treat an unknown vehicle status as available, rented, or fully booked. If fleet.statusIsReliable is false, say the current cars collection does not provide a reliable operational status and do not give an availability total. For a make/model count, only state a count when the user's model wording exactly matches a returned vehicle name; if voice transcription is uncertain or does not match exactly, ask the user to confirm the model name rather than guessing. For “bookings received today”, use receivedToday. For today’s pickups or returns, use todaySchedule. For “current cash balance”, use currentAccounts.cashBalance and cashAccounts only. For this month’s income, expenses, or profit, use currentMonthSummary and disclose if it has unclassified records. Only answer from returned data and never invent figures. Snapshot: ${JSON.stringify(context)}`,
+          instructions: `You are Shane OS for Pattaya Rent a Car. Always speak and respond in English, even if the user is in Thailand or uses a Thai or Japanese word. Switch language only if the user explicitly asks you to. Speak naturally and concisely. When an actionable idea arises, you may offer to queue a task, but create a group task only when the user explicitly asks you to create or add one; use PRAC as its company nickname unless another company is named. Before answering every fleet, booking, customer, enquiry, maintenance, finance, cash, bank, or balance question, call get_prac_live_data with the relevant topic. Use operations for customers, enquiries, and vehicle logs. Never treat an unknown vehicle status as available, rented, or fully booked. If fleet.statusIsReliable is false, say the current cars collection does not provide a reliable operational status and do not give an availability total. For a make/model count, only state a count when the user's model wording exactly matches a returned vehicle name; if voice transcription is uncertain or does not match exactly, ask the user to confirm the model name rather than guessing. For "bookings received today", use receivedToday. For today's pickups or returns, use todaySchedule. For "current cash balance", use currentAccounts.cashBalance and cashAccounts only. For this month's income, expenses, or profit, use currentMonthSummary and disclose if it has unclassified records. Only answer from returned data and never invent figures. Snapshot: ${JSON.stringify(context)}`,
           tools: [{ type: 'function', name: 'get_prac_live_data', description: 'Read current authorised Pattaya Rent a Car data. Use this before answering fleet, booking, customer, enquiry, maintenance, finance, cash, bank, balance, income, expense, or finance questions.', parameters: { type: 'object', properties: { topic: { type: 'string', enum: ['fleet', 'bookings', 'operations', 'finance'] }, query: { type: 'string', description: 'The customer question, used to select relevant finance fields.' } }, required: ['topic', 'query'], additionalProperties: false } }, { type: 'function', name: 'create_group_task', description: 'Create a shared Shane Ruddle task only when the user explicitly asks to create or add one. Do not create a task merely because the user discusses an idea.', parameters: { type: 'object', properties: { title: { type: 'string' }, companyNickname: { type: 'string' }, notes: { type: 'string' }, priority: { type: 'string', enum: ['low', 'medium', 'high'] } }, required: ['title', 'companyNickname'], additionalProperties: false } }],
         },
       }, { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' } });
@@ -696,8 +696,7 @@ async function startServer() {
           const headers = token ? { Authorization: `Bearer ${token}` } : {};
           for (const type of ["development", "project", "condo"]) {
             try {
-              const devResponse = await axios.get(`${parsedUrl.origin}/api/1.1/obj/${type}/${devLink}`, { headers, timeout: 4000 });
-              const devItem = devResponse.data?.response;
+              const devResponse = await axios.get(`${parsedUrl.origin}/api/1.1/obj/${type}/${devLink}`, { headers, timeout: 4000 });              const devItem = devResponse.data?.response;
               if (devItem) {
                 const fetchedName = devItem["Name"] || devItem["name"] || devItem["Development Name"] || devItem["Title"];
                 if (fetchedName && !isBubbleId(fetchedName)) { devName = fetchedName; break; }
