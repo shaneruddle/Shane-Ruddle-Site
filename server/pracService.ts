@@ -307,6 +307,52 @@ export async function inspectPracSchema(db: Firestore) {
   return { collections: collections.filter((collection) => collection.documentsSampled > 0) };
 }
 
+async function verifyFleetRelationships(db: Firestore) {
+  const [carsSnapshot, bookingsSnapshot, rentalsSnapshot] = await Promise.all([
+    db.collection('cars').get(),
+    db.collection('bookings').limit(500).get(),
+    db.collection('rentals').limit(500).get(),
+  ]);
+  const carIds = new Set(carsSnapshot.docs.map((document) => document.id));
+  const bookings = new Map(bookingsSnapshot.docs.map((document) => [document.id, document.data()]));
+  const rentals = rentalsSnapshot.docs.map((document) => ({ id: document.id, ...document.data() } as PracRecord));
+  const joinedCars = rentals.filter((rental) => typeof rental.carId === 'string' && carIds.has(rental.carId));
+  const joinedBookings = joinedCars.filter((rental) => typeof rental.bookingId === 'string' && bookings.has(rental.bookingId));
+  const sameInstant = (left: unknown, right: unknown) => {
+    const a = asDate(left); const b = asDate(right);
+    return Boolean(a && b && a.getTime() === b.getTime());
+  };
+  const statusBreakdown = rentals.reduce<Record<string, number>>((counts, rental) => {
+    const status = firstString(rental, ['status']) || 'unknown';
+    counts[status] = (counts[status] || 0) + 1;
+    return counts;
+  }, {});
+  const activeFlags = carsSnapshot.docs.reduce<Record<string, number>>((counts, document) => {
+    const value = document.data().isActive;
+    const label = typeof value === 'boolean' ? String(value) : 'missing';
+    counts[label] = (counts[label] || 0) + 1;
+    return counts;
+  }, {});
+  const modelExamples = carsSnapshot.docs.slice(0, 12).map((document) => {
+    const car = document.data();
+    return { id: document.id, make: firstString(car, ['make']), model: firstString(car, ['model']), name: firstString(car, ['name']), isActive: car.isActive === true };
+  });
+
+  return {
+    cars: { records: carsSnapshot.size, isActive: activeFlags, modelExamples },
+    joins: {
+      rentalsWithKnownCarId: { matched: joinedCars.length, total: rentals.length },
+      rentalsWithKnownBookingId: { matched: joinedBookings.length, total: joinedCars.length },
+    },
+    rentalStatuses: statusBreakdown,
+    dateSemantics: {
+      dateOutMatchesBookingStart: joinedBookings.filter((rental) => sameInstant(rental.dateOut, bookings.get(String(rental.bookingId))?.startDate)).length,
+      dateInMatchesBookingEnd: joinedBookings.filter((rental) => sameInstant(rental.dateIn, bookings.get(String(rental.bookingId))?.endDate)).length,
+      compared: joinedBookings.length,
+    },
+  };
+}
+
 export async function auditPracDataMapping(db: Firestore) {
   const collections = await Promise.all(MAPPING_COLLECTIONS.map(async (name) => {
     try {
@@ -343,7 +389,7 @@ export async function auditPracDataMapping(db: Firestore) {
       };
     } catch { return null; }
   }));
-  return { generatedAt: new Date().toISOString(), collections: collections.filter(Boolean) };
+  return { generatedAt: new Date().toISOString(), collections: collections.filter(Boolean), fleetRelationshipVerification: await verifyFleetRelationships(db) };
 }
 
 export async function discoverPracData(db: Firestore) {
