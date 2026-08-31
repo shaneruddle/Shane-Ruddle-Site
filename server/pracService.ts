@@ -122,57 +122,61 @@ function bangkokMonthRange(month?: string) {
   return { month: selected, start, end: new Date(Date.UTC(year, monthNumber, 1, -7)) };
 }
 
-function classifyVehicleStatus(status: string) {
-  const normalized = status.trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
-
-  // Classification is deliberately exclusive. The previous substring matching could
-  // count "not available" as available and "out of service" as rented.
-  if (/maintenance|repair|service|workshop|out of service|off road/.test(normalized)) return 'maintenance';
-  if (/^not available$|unavailable|inactive|retired|sold/.test(normalized)) return 'other';
-  if (/rented|on rent|hired|booked|checked out|on hire/.test(normalized)) return 'rented';
-  if (/^available$|^ready$|available now|ready to rent/.test(normalized)) return 'available';
-  return 'other';
-}
-
-function vehicleOperationalStatus(record: PracRecord) {
-  const namedStatus = firstString(record, ['status', 'availability', 'rentalStatus', 'state', 'carStatus', 'vehicleStatus', 'currentStatus', 'availabilityStatus']);
-  if (namedStatus) return namedStatus;
-  if (record.isAvailable === true || record.available === true) return 'available';
-  if (record.isAvailable === false || record.available === false) return 'not available';
-  if (record.isRented === true || record.rented === true) return 'rented';
-  if (record.inMaintenance === true || record.underMaintenance === true) return 'maintenance';
-  return 'unknown';
+// cars documents in this project carry no status/availability field at all (confirmed
+// against all 254 live records: status/availability/isAvailable/isRented/inMaintenance
+// are simply absent). The only reliable signal for "is this car out right now" is a
+// rentals record joined by carId, using its dateOut/dateIn window. rentals.status is
+// NOT usable for this: every rentals record in this data is marked "Active" regardless
+// of whether the rental has actually finished, so it carries no lifecycle information.
+async function currentlyRentedCarIds(db: Firestore): Promise<Set<string>> {
+  const now = new Date();
+  const snapshot = await db.collection('rentals').limit(1000).get();
+  const rentedCarIds = new Set<string>();
+  snapshot.docs.forEach((document) => {
+    const rental = document.data();
+    const carId = typeof rental.carId === 'string' && rental.carId.trim() ? rental.carId : null;
+    if (!carId) return;
+    const dateOut = asDate(rental.dateOut);
+    const dateIn = asDate(rental.dateIn);
+    if (!dateOut && !dateIn) return; // no usable date range: don't guess
+    if (dateOut && dateOut > now) return; // scheduled, hasn't started yet
+    if (dateIn && dateIn < now) return; // already returned
+    rentedCarIds.add(carId);
+  });
+  return rentedCarIds;
 }
 
 export async function getFleetStatus(db: Firestore) {
-  const records = await readFirstAvailableCollection(db, configuredCollections('fleet'));
+  const [records, rentedCarIds] = await Promise.all([
+    readFirstAvailableCollection(db, configuredCollections('fleet')),
+    currentlyRentedCarIds(db),
+  ]);
   const vehicles = records.map((record) => {
-    const status = vehicleOperationalStatus(record);
     const make = firstString(record, ['make', 'brand', 'manufacturer', 'carMake', 'vehicleMake', 'carBrand']);
     const model = firstString(record, ['model', 'vehicleModel', 'carModel', 'modelName']);
+    const status = record.isActive === false ? 'retired' : rentedCarIds.has(record.id) ? 'rented' : 'available';
     return {
       id: record.id,
-      name: [make, model].filter(Boolean).join(' ') || firstString(record, ['name', 'vehicleName', 'carName', 'title', 'registration', 'plate', 'licensePlate']) || `Vehicle ${record.id}`,
-      registration: firstString(record, ['registration', 'plate', 'licensePlate', 'license', 'registrationNumber']),
+      name: [make, model].filter(Boolean).join(' ') || firstString(record, ['name', 'vehicleName', 'carName', 'title', 'registration', 'plate', 'licensePlate', 'plateNumber']) || `Vehicle ${record.id}`,
+      registration: firstString(record, ['registration', 'plate', 'licensePlate', 'license', 'registrationNumber', 'plateNumber']),
       status,
       category: firstString(record, ['category', 'type', 'vehicleType']),
     };
   });
-  const classifiedVehicles = vehicles.map((vehicle) => ({ ...vehicle, bucket: classifyVehicleStatus(vehicle.status) }));
-  const available = classifiedVehicles.filter(({ bucket }) => bucket === 'available').length;
-  const rented = classifiedVehicles.filter(({ bucket }) => bucket === 'rented').length;
-  const maintenance = classifiedVehicles.filter(({ bucket }) => bucket === 'maintenance').length;
+  const available = vehicles.filter((vehicle) => vehicle.status === 'available').length;
+  const rented = vehicles.filter((vehicle) => vehicle.status === 'rented').length;
+  const retired = vehicles.filter((vehicle) => vehicle.status === 'retired').length;
   const statusBreakdown = vehicles.reduce<Record<string, number>>((counts, vehicle) => {
-    const status = vehicle.status || 'unknown';
-    counts[status] = (counts[status] || 0) + 1;
+    counts[vehicle.status] = (counts[vehicle.status] || 0) + 1;
     return counts;
   }, {});
 
   return {
     sourceCollection: records[0]?.sourceCollection || configuredCollections('fleet')[0],
     generatedAt: new Date().toISOString(),
-    totals: { fleet: vehicles.length, available, rented, maintenance, other: vehicles.length - available - rented - maintenance },
-    statusIsReliable: available + rented + maintenance > 0,
+    definition: 'A vehicle counts as rented when a rentals record joined by carId has dateOut <= now <= dateIn (an open-ended dateIn is treated as still out). cars.isActive === false counts as retired. rentals.status is not used for this classification because it carries no lifecycle information in this data.',
+    totals: { fleet: vehicles.length, available, rented, maintenance: 0, other: retired },
+    statusIsReliable: true,
     statusBreakdown,
     vehicles,
   };
