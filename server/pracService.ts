@@ -389,7 +389,8 @@ export async function auditPracDataMapping(db: Firestore) {
       };
     } catch { return null; }
   }));
-  return { generatedAt: new Date().toISOString(), collections: collections.filter(Boolean), fleetRelationshipVerification: await verifyFleetRelationships(db) };
+  const fleetRelationshipVerification = await verifyFleetRelationships(db).catch((error) => ({ error: error instanceof Error ? error.message : 'Unknown verification failure.' }));
+  return { generatedAt: new Date().toISOString(), collections: collections.filter(Boolean), fleetRelationshipVerification };
 }
 
 export async function discoverPracData(db: Firestore) {
