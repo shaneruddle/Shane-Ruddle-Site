@@ -1,10 +1,10 @@
-// Keep releases reliable: this worker deliberately does not cache the app shell.
-// Hashed assets are already cached efficiently by Firebase Hosting.
+// Retire the legacy PWA worker. It previously allowed an obsolete app shell to
+// outlive a deployment, which is unacceptable for a live operational tool.
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
-      .then(() => self.clients.claim())
+      .then(() => self.registration.unregister())
   );
 });
