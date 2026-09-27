@@ -16,7 +16,6 @@ import {
   X,
   Linkedin,
   History,
-  LayoutDashboard,
   Ticket,
   ShieldCheck,
   ArrowUp,
@@ -31,7 +30,6 @@ import { BusinessInfo, fallbackData } from "@/src/types";
 import ErrorBoundary from "./components/ErrorBoundary";
 import HomePage from "./components/HomePage";
 const PastVentures = lazy(() => import("./components/PastVentures"));
-const Dashboard = lazy(() => import("./components/Dashboard"));
 const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
 const BlogPage = lazy(() => import("./components/BlogPage"));
 const PrivacyPolicy = lazy(() => import("./components/PrivacyPolicy"));
@@ -206,7 +204,7 @@ export default function App() {
   const [data, setData] = useState<BusinessInfo>(fallbackData);
   const [isLoading, setIsLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [view, setView] = useState<'home' | 'past-ventures' | 'dashboard' | 'portal' | 'blog' | 'privacy-policy' | 'terms-of-service'>('home');
+  const [view, setView] = useState<'home' | 'past-ventures' | 'portal' | 'blog' | 'privacy-policy' | 'terms-of-service'>('home');
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [impersonatedProfile, setImpersonatedProfile] = useState<UserProfile | null>(null);
@@ -663,7 +661,7 @@ export default function App() {
       
       {/* Back to Top Button */}
       <AnimatePresence>
-        {showBackToTop && view !== 'dashboard' && view !== 'portal' && (
+        {showBackToTop && view !== 'portal' && (
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -780,14 +778,8 @@ export default function App() {
                         <>
                           <span className="w-px h-5 bg-black/10" aria-hidden />
                           <button
-                            onClick={() => setView('dashboard')}
+                            onClick={() => { setView('portal'); window.scrollTo(0, 0); }}
                             className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-deep hover:text-ink transition-colors whitespace-nowrap"
-                          >
-                            <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
-                          </button>
-                          <button
-                            onClick={() => setView('portal')}
-                            className="hidden xl:flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-deep hover:text-ink transition-colors whitespace-nowrap"
                           >
                             <Ticket className="w-3.5 h-3.5" /> Discounts
                           </button>
@@ -846,16 +838,6 @@ export default function App() {
 
                         {isWhitelisted && (
                           <>
-                            <button
-                              onClick={() => {
-                                setView('dashboard');
-                                setIsMenuOpen(false);
-                                window.scrollTo(0, 0);
-                              }}
-                              className="text-xl font-serif tracking-widest uppercase text-gold hover:text-gold-dark transition-colors flex items-center gap-3"
-                            >
-                              <LayoutDashboard className="w-6 h-6" /> Dashboard
-                            </button>
                             <button 
                               onClick={() => {
                                 setView('portal');
@@ -908,30 +890,6 @@ export default function App() {
                         window.scrollTo(0, 0);
                       }} />
                     </motion.div>
-                  ) : view === 'dashboard' && displayProfile ? (
-                    <motion.div
-                      key="dashboard"
-                      initial={{ opacity: 0, scale: 0.98 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.98 }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      <Dashboard 
-                        userProfile={displayProfile} 
-                        onBack={() => setView('home')} 
-                        onNavigate={(v) => { setView(v); window.scrollTo(0, 0); }}
-                        onImpersonate={(profile) => {
-                          const isRealAdmin = userProfile?.roles?.includes('admin') || user?.email === 'shaneruddle@gmail.com';
-                          if (isRealAdmin) {
-                            setImpersonatedProfile(profile);
-                            toast.success(`Now viewing as ${profile.name || profile.email}`);
-                            setIsMenuOpen(false);
-                          } else {
-                            toast.error("Only administrators can impersonate users.");
-                          }
-                        }}
-                      />
-                    </motion.div>
                   ) : view === 'portal' && displayProfile ? (
                     <motion.div
                       key="portal"
@@ -940,7 +898,7 @@ export default function App() {
                       exit={{ opacity: 0, scale: 0.98 }}
                       transition={{ duration: 0.4 }}
                     >
-                      <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} onNavigate={(v) => { setView(v); window.scrollTo(0, 0); }} />
+                      <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} />
                     </motion.div>
                   ) : view === 'blog' ? (
                     <motion.div
@@ -1074,13 +1032,13 @@ export default function App() {
                             <li>
                               <button 
                                 onClick={() => {
-                                  setView('dashboard');
+                                  setView('portal');
                                   window.scrollTo(0, 0);
                                 }}
-                                className="text-sm text-gold hover:text-gold-dark transition-colors font-bold uppercase tracking-widest mt-4 flex items-center gap-2"
+                                className="text-sm text-gold hover:text-white transition-colors font-semibold uppercase tracking-widest mt-4 flex items-center gap-2"
                               >
-                                <LayoutDashboard className="w-3 h-3" />
-                                Dashboard
+                                <Ticket className="w-3 h-3" />
+                                Discounts
                               </button>
                             </li>
                           )}

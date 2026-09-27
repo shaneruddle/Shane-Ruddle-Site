@@ -1,9 +1,9 @@
-import { ArrowUpRight, LayoutDashboard, LogOut, Ticket } from 'lucide-react';
+import { ArrowUpRight, LogOut, Ticket } from 'lucide-react';
 import { auth } from '../firebase';
 
-export type PortalView = 'dashboard' | 'portal';
+export type PortalView = 'portal';
 
-// Shared top bar for the logged-in area (Workspace + Discounts) so both pages feel like one product.
+// Top bar for the logged-in staff area (Discounts).
 export default function PortalHeader({
   active,
   name,
@@ -45,11 +45,10 @@ export default function PortalHeader({
             <circle cx="60" cy="60" r="53" fill="none" stroke="url(#portalGold)" strokeWidth="3" />
             <text x="60" y="78" textAnchor="middle" fontSize="58" fontWeight="500" letterSpacing="-2" fill="url(#portalGold)" fontFamily="system-ui, sans-serif">SR</text>
           </svg>
-          <span className="hidden md:block text-sm font-semibold tracking-wide">Shane OS</span>
+          <span className="hidden md:block text-sm font-semibold tracking-wide">Staff</span>
         </button>
 
         <nav className="flex items-center gap-1">
-          {tab('dashboard', 'Workspace', LayoutDashboard)}
           {tab('portal', 'Discounts', Ticket)}
         </nav>
 

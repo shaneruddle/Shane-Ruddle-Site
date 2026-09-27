@@ -11,7 +11,6 @@ RUN npm install --omit=dev
 # Copy pre-built frontend from CI and server code
 COPY dist ./dist
 COPY server.ts ./server.ts
-COPY server ./server
 COPY public ./public
 
 # Install tsx to run TypeScript server directly
