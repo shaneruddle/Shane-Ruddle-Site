@@ -37,7 +37,7 @@ export const fallbackData: BusinessInfo = {
       description: "Beachfront dining and drinks in Jomtien.",
       services: ["Beachfront Dining", "Seafood Specialties", "Sunset Lounge", "Relaxed Vibe"],
       icon: "Hotel",
-      logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1738212884463x913848644166320500/Hemingways_Logo_Jomtien.png",
+      logo: "/images/logo-hemingways-jomtien.webp",
       url: "https://www.hemingwaysjomtien.com"
     },
     {
@@ -45,7 +45,7 @@ export const fallbackData: BusinessInfo = {
       description: "The classic Hemingways experience in central Pattaya.",
       services: ["International Dining", "Craft Cocktails", "Live Sports", "Central Location"],
       icon: "Hotel",
-      logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1738212870086x950453333007466100/Hemingways_Logo_Pattaya.png",
+      logo: "/images/logo-hemingways-pattaya.webp",
       url: "https://www.hemingwayspattaya.com"
     },
     {
@@ -61,7 +61,7 @@ export const fallbackData: BusinessInfo = {
       description: "Reliable car rental services in Pattaya.",
       services: ["Car Rental", "Short-term Rentals", "Long-term Leasing", "Airport Delivery"],
       icon: "Car",
-      logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1738212991154x209166829233646600/PRAC-Logo-2.png",
+      logo: "/images/logo-prac.webp",
       url: "https://www.pattayarentacar.com"
     },
     {
@@ -77,7 +77,7 @@ export const fallbackData: BusinessInfo = {
       description: "Leading real estate agency on the Eastern Seaboard.",
       services: ["Property Sales", "Market Analysis", "Investment Advice", "Relocation Services"],
       icon: "Home",
-      logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1754730947495x779512689180206200/LOGO-Square%202016%203.5x3.jpg",
+      logo: "/images/logo-ecre.webp",
       url: "https://www.thaiproperty.com"
     }
   ],
