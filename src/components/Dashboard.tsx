@@ -20,14 +20,14 @@ function Panel({ title, description, icon: Icon, children, defaultOpen = false }
   const [open, setOpen] = useState(defaultOpen);
   const [mounted, setMounted] = useState(defaultOpen);
   return (
-    <section className="rounded-2xl border border-black/[0.08] bg-white overflow-hidden">
+    <section className="rounded-[16px] border border-black/[0.08] bg-white overflow-hidden">
       <button
         type="button"
         onClick={() => { setOpen((o) => !o); setMounted(true); }}
         aria-expanded={open}
         className="w-full flex items-center gap-3 px-4 sm:px-5 py-4 text-left hover:bg-black/[0.02] transition-colors"
       >
-        <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-cream text-gold-deep shrink-0">
+        <span className="flex items-center justify-center w-9 h-9 rounded-[12px] bg-cream text-gold-deep shrink-0">
           <Icon className="w-[18px] h-[18px]" />
         </span>
         <span className="flex-1 min-w-0">
@@ -71,7 +71,7 @@ export default function Dashboard({ userProfile, onBack, onNavigate }: Dashboard
         {canAccessPrac ? (
           <PracOperations userProfile={userProfile} />
         ) : (
-          <div className="rounded-2xl border border-black/[0.08] bg-white p-10 text-center">
+          <div className="rounded-[16px] border border-black/[0.08] bg-white p-10 text-center">
             <Car className="mx-auto mb-4 h-7 w-7 text-black/40" />
             <h2 className="text-lg font-semibold">Operations access required</h2>
           </div>

@@ -58,7 +58,7 @@ const CompanyCard = ({ company, wide = false }: { company: Company; wide?: boole
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={`group flex h-full bg-white border border-black/[0.08] rounded-2xl overflow-hidden transition-all duration-300 hover:border-gold/60 hover:shadow-xl hover:shadow-black/[0.06] hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-gold ${wide ? "flex-col sm:flex-row" : "flex-col"}`}
+      className={`group flex h-full bg-white border border-black/[0.08] rounded-[16px] overflow-hidden transition-all duration-300 hover:border-gold/60 hover:shadow-xl hover:shadow-black/[0.06] hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-gold ${wide ? "flex-col sm:flex-row" : "flex-col"}`}
     >
       <div className={`bg-cream flex items-center justify-center p-7 ${wide ? "h-36 sm:h-auto sm:w-2/5 shrink-0" : "h-36"}`}>
         {company.logo && !logoFailed ? (
@@ -178,7 +178,7 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
             <Eyebrow>Values</Eyebrow>
             <h2 className="font-serif text-4xl md:text-5xl leading-tight">What every business is built on.</h2>
           </Reveal>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-cream-line border border-cream-line rounded-2xl overflow-hidden">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-cream-line border border-cream-line rounded-[16px] overflow-hidden">
             {data.values.map((v, i) => (
               <div key={v} className="bg-cream p-6 md:p-10">
                 <span className="block font-serif text-lg text-gold-deep mb-3">{String(i + 1).padStart(2, "0")}</span>
@@ -242,7 +242,7 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             {LIFESTYLE.filter((l) => photos[l.photoIndex]).map((l) => (
               <figure key={l.title}>
-                  <div className="aspect-[4/3] rounded-xl overflow-hidden bg-cream-line">
+                  <div className="aspect-[4/3] rounded-[12px] overflow-hidden bg-cream-line">
                     <img
                       src={photos[l.photoIndex]}
                       alt={l.title}

@@ -172,8 +172,8 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate }: Empl
             <h1 className="text-4xl md:text-5xl font-serif font-normal leading-tight">Welcome, {(userProfile.name || 'Employee').split(' ')[0]}</h1>
             <p className="text-black/55 mt-2">{userProfile.company || 'Shane Ruddle group of companies'}</p>
           </div>
-          <div className="bg-ink text-white rounded-2xl px-5 py-4 flex items-center gap-4">
-            <div className="p-2.5 bg-white/10 rounded-xl text-gold">
+          <div className="bg-ink text-white rounded-[16px] px-5 py-4 flex items-center gap-4">
+            <div className="p-2.5 bg-white/10 rounded-[12px] text-gold">
               <QrCode className="w-6 h-6" />
             </div>
             <div>
