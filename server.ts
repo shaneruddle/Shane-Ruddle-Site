@@ -132,6 +132,9 @@ async function startServer() {
     }
   });
 
+  // Unknown API routes return a real 404 instead of falling through to the SPA's index.html.
+  app.all('/api/*', (_req, res) => { res.status(404).json({ error: 'Not found' }); });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
