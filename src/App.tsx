@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState, useRef, FormEvent, ReactNode, lazy, Suspense, Component } from "react";
-import { motion, useScroll, useTransform, AnimatePresence, useSpring, useMotionValue, useVelocity } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { 
   Home, 
   Car, 
@@ -29,6 +29,7 @@ import {
 import { cn } from "@/src/lib/utils";
 import { BusinessInfo, fallbackData } from "@/src/types";
 import ErrorBoundary from "./components/ErrorBoundary";
+import HomePage from "./components/HomePage";
 const PastVentures = lazy(() => import("./components/PastVentures"));
 const Dashboard = lazy(() => import("./components/Dashboard"));
 const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
@@ -133,22 +134,6 @@ const icons = {
   Sparkles
 };
 
-const RevealText = ({ children, className = "" }: { children: ReactNode, className?: string }) => {
-  return (
-    <div className={cn("overflow-hidden", className)}>
-      <motion.span
-        initial={{ y: "100%" }}
-        whileInView={{ y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8, ease: [0.6, 0.01, -0.05, 0.95] }}
-        className="block"
-      >
-        {children}
-      </motion.span>
-    </div>
-  );
-};
-
 const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void }) => {
   if (!company) return null;
 
@@ -214,149 +199,6 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
         </div>
       </motion.div>
     </motion.div>
-  );
-};
-
-const FounderSection = ({ data }: { data: BusinessInfo }) => {
-  const founderRef = useRef(null);
-  const { scrollYProgress: founderScroll } = useScroll({
-    target: founderRef,
-    offset: ["start end", "end start"]
-  });
-  const founderY = useTransform(founderScroll, [0, 1], [0, -100]);
-
-  if (!data.ownerPhotos || data.ownerPhotos.length === 0) return null;
-
-  return (
-    <section ref={founderRef} id="about" className="pt-10 pb-16 md:pb-48 px-6 md:px-12 bg-white overflow-hidden">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-24 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="relative"
-          >
-            <motion.div 
-              style={{ y: founderY }}
-              className="relative aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl"
-            >
-              <img 
-                src={data.ownerPhotos[0]} 
-                alt={data.name} 
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              <div className="absolute bottom-12 left-12">
-                <h3 className="text-3xl font-serif text-white mb-2">{data.name}</h3>
-                <p className="text-white/60 text-sm uppercase tracking-widest">Founder & CEO</p>
-              </div>
-            </motion.div>
-            
-            {/* Decorative elements */}
-            <div className="absolute -top-12 -left-12 w-48 h-48 bg-gold/5 rounded-full blur-3xl -z-10" />
-            <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-gold/10 rounded-full blur-3xl -z-10" />
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-          >
-            <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-gold mb-6 block">The Visionary</span>
-            <RevealText className="text-3xl sm:text-5xl md:text-7xl font-serif leading-tight mb-12">
-              Leading with <span className="italic">Integrity</span>.
-            </RevealText>
-            <div className="space-y-8 text-black/60 text-lg font-light leading-relaxed">
-              <p>{data.about}</p>
-            </div>
-
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const LifeOutsideSection = ({ data }: { data: BusinessInfo }) => {
-  const photos = data.ownerPhotos || [];
-  return (
-    <section id="lifestyle" className="py-16 md:py-32 px-6 md:px-12 bg-white overflow-hidden">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row gap-12 mb-16">
-          <div className="lg:w-1/3">
-            <motion.h2 
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="text-2xl sm:text-4xl font-bold text-black"
-            >
-              Outside of Business
-            </motion.h2>
-          </div>
-          <div className="lg:w-2/3">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="flex gap-4 mb-6"
-            >
-              <span className="text-4xl text-red-600 font-serif leading-none">"</span>
-              <p className="text-lg md:text-xl font-light italic text-black/80 leading-relaxed">
-                Life isn't all about business. I've always believed that staying active and challenging yourself outside of work helps you show up better inside it.
-              </p>
-              <span className="text-4xl text-red-600 font-serif leading-none self-end">"</span>
-            </motion.div>
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="text-black/70 text-base font-light leading-relaxed space-y-4"
-            >
-              <p>
-                I used to be a PGA professional golfer, and while I don't play competitively anymore, the game taught me a lot about focus and patience. These days, I run half marathons to stay fit and clear my head, and I've recently started playing padelâwhich has quickly become my new obsession.
-              </p>
-              <p>
-                Whether it's on the course, the track, or the court, I'm always looking for that next challenge.
-              </p>
-            </motion.div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { title: "Family", img: photos[4] || "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2070&auto=format&fit=crop" },
-            { title: "Sports", img: photos[2] || "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?q=80&w=2070&auto=format&fit=crop" },
-            { title: "Team", img: photos[3] || "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop" },
-            { title: "Friends", img: photos[1] || "https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=2070&auto=format&fit=crop" }
-          ].map((item, idx) => (
-            <motion.div 
-              key={idx}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
-              className="flex flex-col"
-            >
-              <div className="aspect-[16/9] rounded-lg overflow-hidden mb-3 shadow-sm">
-                <img 
-                  src={item.img} 
-                  alt={item.title} 
-                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
-                  referrerPolicy="no-referrer"
-                  loading="lazy"
-                />
-              </div>
-              <h4 className="text-lg font-bold text-black">{item.title}</h4>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 };
 
@@ -429,13 +271,7 @@ export default function App() {
     setIsMenuOpen(false);
   };
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
 
-  const opacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.1], [1, 0.95]);
 
   useEffect(() => {
     let isMounted = true;
@@ -886,77 +722,74 @@ export default function App() {
               {/* Navigation - Visible for home, past-ventures, blog, privacy-policy, and terms-of-service */}
               {(view === 'home' || view === 'past-ventures' || view === 'blog' || view === 'privacy-policy' || view === 'terms-of-service') && (
                 <>
-                  <nav 
-                    onClick={() => console.log('NAV CLICKED')}
+                  <nav
                     className={cn(
-                      "fixed left-0 right-0 z-[10000] flex items-center justify-between transition-all duration-500 pointer-events-auto",
+                      "fixed left-0 right-0 z-[10000] transition-shadow duration-300 bg-white/95 backdrop-blur-md border-b",
                       impersonatedProfile ? "top-[38px]" : "top-0",
-                      isScrolled 
-                        ? "px-6 py-4 md:px-12 md:py-4 bg-white/90 backdrop-blur-xl border-b border-black/5 shadow-sm" 
-                        : "px-6 py-6 md:px-12 md:py-8 bg-transparent"
+                      isScrolled ? "border-black/10 shadow-sm" : "border-transparent"
                     )}
                   >
-                    <motion.div 
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-3 cursor-pointer"
+                    <div className="max-w-7xl mx-auto h-16 md:h-[72px] px-5 md:px-12 flex items-center justify-between gap-6">
+                    <button
+                      type="button"
+                      aria-label="Shane Ruddle — home"
+                      className="flex items-center gap-3 shrink-0"
                       onClick={() => {
                         setView('home');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                     >
-                      <div className="relative w-10 h-10 shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" className="w-full h-full" role="img" aria-label="Shane Ruddle">
-                          <defs>
-                            <linearGradient id="navGold" x1="0" y1="0" x2="1" y2="1">
-                              <stop offset="0%" stopColor="#F9F295" />
-                              <stop offset="45%" stopColor="#D4AF37" />
-                              <stop offset="100%" stopColor="#B8860B" />
-                            </linearGradient>
-                          </defs>
-                          <circle cx="60" cy="60" r="57" fill="#0A0A0A" />
-                          <circle cx="60" cy="60" r="53" fill="none" stroke="url(#navGold)" strokeWidth="1.2" />
-                          <text x="60" y="78" textAnchor="middle" fontSize="58" fontWeight="500" letterSpacing="-2" fill="url(#navGold)" fontFamily="system-ui, sans-serif">SR</text>
-                        </svg>
-                      </div>
-                      <div className="hidden sm:block text-xl font-serif tracking-widest uppercase">
-                        Shane <span className="gold-gradient font-bold">Ruddle</span>
-                      </div>
-                    </motion.div>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" className="w-9 h-9 shrink-0" aria-hidden="true">
+                        <defs>
+                          <linearGradient id="navGold" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor="#F9F295" />
+                            <stop offset="45%" stopColor="#D4AF37" />
+                            <stop offset="100%" stopColor="#B8860B" />
+                          </linearGradient>
+                        </defs>
+                        <circle cx="60" cy="60" r="57" fill="#0A0A0A" />
+                        <circle cx="60" cy="60" r="53" fill="none" stroke="url(#navGold)" strokeWidth="1.2" />
+                        <text x="60" y="78" textAnchor="middle" fontSize="58" fontWeight="500" letterSpacing="-2" fill="url(#navGold)" fontFamily="system-ui, sans-serif">SR</text>
+                      </svg>
+                      <span className="hidden sm:block font-serif text-xl tracking-[0.18em] uppercase whitespace-nowrap">
+                        Shane <span className="font-semibold">Ruddle</span>
+                      </span>
+                    </button>
 
-                    <div className="hidden md:flex items-center space-x-8">
+                    <div className="hidden lg:flex items-center gap-7 min-w-0">
                       {["About", "Companies", "Values", "Contact"].map((item) => (
-                        <button 
-                          key={item} 
+                        <button
+                          key={item}
                           onClick={() => navigateTo(item)}
-                          className="text-xs uppercase tracking-[0.2em] text-black/60 hover:text-gold transition-colors"
+                          className="text-[11px] font-medium uppercase tracking-[0.18em] text-black/60 hover:text-ink transition-colors whitespace-nowrap"
                         >
                           {item}
                         </button>
                       ))}
-                      <button 
+                      <button
                         onClick={() => {
                           setView('past-ventures');
                           window.scrollTo(0, 0);
                         }}
-                        className={`text-xs uppercase tracking-[0.2em] transition-colors flex items-center gap-2 ${view === 'past-ventures' ? 'text-gold font-bold' : 'text-black/60 hover:text-gold'}`}
+                        className={`text-[11px] font-medium uppercase tracking-[0.18em] transition-colors whitespace-nowrap ${view === 'past-ventures' ? 'text-gold-deep' : 'text-black/60 hover:text-ink'}`}
                       >
-                        <History className="w-3 h-3" /> Past Ventures
+                        Past Ventures
                       </button>
-                      
+
                       {isWhitelisted && (
                         <>
+                          <span className="w-px h-5 bg-black/10" aria-hidden />
                           <button
                             onClick={() => setView('dashboard')}
-                            className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold hover:text-gold-dark transition-colors"
+                            className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-deep hover:text-ink transition-colors whitespace-nowrap"
                           >
-                            <LayoutDashboard className="w-3 h-3" /> Dashboard
+                            <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
                           </button>
-                          <button 
+                          <button
                             onClick={() => setView('portal')}
-                            className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold hover:text-gold-dark transition-colors"
+                            className="hidden xl:flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-deep hover:text-ink transition-colors whitespace-nowrap"
                           >
-                            <Ticket className="w-3 h-3" /> Discounts
+                            <Ticket className="w-3.5 h-3.5" /> Discounts
                           </button>
                         </>
                       )}
@@ -972,12 +805,14 @@ export default function App() {
                       </SilentErrorBoundary>
                     </div>
 
-                    <button 
-                      className="md:hidden text-black p-2 hover:bg-black/5 rounded-full transition-colors"
+                    <button
+                      aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+                      className="lg:hidden text-ink p-2 -mr-2 hover:bg-black/5 rounded-full transition-colors"
                       onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
                       {isMenuOpen ? <X /> : <Menu />}
                     </button>
+                    </div>
                   </nav>
 
                   {/* Mobile Menu */}
@@ -1151,162 +986,9 @@ export default function App() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 0.8 }}
+                      transition={{ duration: 0.25 }}
                     >
-                      {/* Background Atmosphere */}
-                      <div className="fixed inset-0 -z-10 overflow-hidden">
-                        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-gold/5 blur-[120px]" />
-                        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-gold/2 blur-[120px]" />
-                      </div>
-
-                      {/* Hero Section */}
-                      <section className="relative h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
-                        <motion.div style={{ opacity, scale }} className="max-w-4xl">
-                          <motion.span 
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="text-xs md:text-sm uppercase tracking-[0.4em] text-gold mb-6 block"
-                          >
-                            Entrepreneurship  WITH HEART & HUSTLE
-                          </motion.span>
-                          <RevealText className="text-3xl sm:text-5xl md:text-8xl font-serif font-light leading-tight mb-8">
-                            {data.name} <br />
-                            <span className="italic font-extralight text-black/20">Enterprises</span>
-                          </RevealText>
-                          <motion.p 
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.6 }}
-                            className="text-lg md:text-xl text-black/60 font-light max-w-2xl mx-auto mb-12"
-                          >
-                            Shane Ruddle companies: investing in people, places, and potential.
-                          </motion.p>
-                          <motion.div 
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.8 }}
-                            className="flex flex-col md:flex-row items-center justify-center gap-6"
-                          >
-                            <a 
-                              href="#companies"
-                              className="group flex items-center gap-2 px-8 py-4 bg-black text-white text-xs uppercase tracking-[0.2em] font-bold rounded-full hover:bg-gold transition-all"
-                            >
-                              Explore Portfolio <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </a>
-                            <a 
-                              href="#about"
-                              className="text-xs uppercase tracking-[0.2em] text-black/40 hover:text-gold transition-colors"
-                            >
-                              My Story
-                            </a>
-                          </motion.div>
-                        </motion.div>
-
-                        <motion.div 
-                          animate={{ y: [0, 10, 0] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-                        >
-                          <span className="text-[10px] uppercase tracking-[0.3em] text-black/20">Scroll</span>
-                          <div className="w-px h-12 bg-gradient-to-b from-black/20 to-transparent" />
-                        </motion.div>
-                      </section>
-
-                      {/* Founder Section */}
-                      {/* Founder Section */}
-                      <FounderSection data={data} />
-
-                      {/* Companies Section (Logo Cloud) */}
-                      <section id="companies" className="py-16 md:py-48 px-6 md:px-12 bg-[#F8F8F8] overflow-hidden">
-                        <div className="max-w-7xl mx-auto">
-                          <div className="grid lg:grid-cols-12 gap-12 items-end mb-24">
-                            <div className="lg:col-span-8">
-                              <motion.div
-                                initial={{ opacity: 0, x: -30 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: true }}
-                              >
-                                <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-gold mb-6 block">My Portfolio</span>
-                                <RevealText className="text-3xl sm:text-5xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] text-black">
-                                  INVESTING IN <br />
-                                  <span className="text-black/20">POTENTIAL.</span>
-                                </RevealText>
-                              </motion.div>
-                            </div>
-                            <div className="lg:col-span-4">
-                              <motion.p 
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.2 }}
-                                className="text-black/60 text-lg font-light leading-relaxed"
-                              >
-                                A diverse ecosystem of businesses built on the foundation of heart, hustle, and high-performance standards.
-                              </motion.p>
-                            </div>
-                          </div>
-
-                          {/* Logo Grid - "Brand Wall" Style */}
-                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px bg-black/[0.08] border border-black/[0.08] overflow-hidden rounded-[2.5rem] shadow-2xl shadow-black/5">
-                            {(() => {
-                              const companies = Array.isArray(data.companies) ? data.companies : [];
-                              return companies.map((company, index) => (
-                                <motion.div
-                                  key={company.name}
-                                  initial={{ opacity: 0 }}
-                                  whileInView={{ opacity: 1 }}
-                                  viewport={{ once: true }}
-                                  transition={{ delay: index * 0.05 }}
-                                  onClick={() => setSelectedCompany(company)}
-                                  className="group relative bg-white aspect-[4/3] flex items-center justify-center p-8 md:p-12 transition-all duration-700 hover:bg-black cursor-pointer"
-                                >
-                                  <div className="relative z-10 w-full h-full flex items-center justify-center">
-                                    {company.logo ? (
-                                      <img 
-                                        src={(() => {
-                                          const logo = company.logo.trim();
-                                          if (logo.startsWith('data:')) return logo.replace(/\s/g, '');
-                                          if (logo.startsWith('http') || logo.startsWith('/')) return logo;
-                                          return `/${logo}`;
-                                        })()} 
-                                        alt={company.name} 
-                                        className="max-w-full max-h-full object-contain transition-all duration-700 group-hover:invert group-hover:brightness-200 group-hover:scale-110"
-                                        referrerPolicy="no-referrer"
-                                        loading="lazy"
-                                        decoding="async"
-                                        onError={(e) => {
-                                          console.error(`Failed to load logo for ${company.name}`);
-                                          (e.target as HTMLImageElement).style.display = 'none';
-                                          const fallback = (e.target as HTMLImageElement).nextElementSibling;
-                                          if (fallback) (fallback as HTMLElement).style.display = 'flex';
-                                        }}
-                                      />
-                                    ) : null}
-                                    <div className={`${company.logo ? 'hidden' : 'flex'} items-center justify-center w-full h-full text-[9px] font-mono font-bold uppercase tracking-[0.3em] text-black/20 group-hover:text-gold transition-colors text-center leading-relaxed`}>
-                                      {company.name}
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Hover Info */}
-                                  <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                                  <div className="absolute bottom-6 left-6 right-6 z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em]">
-                                        View Details
-                                      </span>
-                                      <ArrowUpRight className="w-4 h-4 text-gold" />
-                                    </div>
-                                  </div>
-                                </motion.div>
-                              ));
-                            })()}
-                          </div>
-                        </div>
-                      </section>
-
-                      {/* Outside of Business Section */}
-                      <LifeOutsideSection data={data} />
+                      <HomePage data={data} />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -1324,7 +1006,7 @@ export default function App() {
 
               {/* Shared Footer - Visible for home, past-ventures, blog, privacy-policy, and terms-of-service */}
               {(view === 'home' || view === 'past-ventures' || view === 'blog' || view === 'privacy-policy' || view === 'terms-of-service') && (
-                <footer id="contact" className="pt-16 md:pt-24 pb-12 px-6 md:px-12 border-t border-black/10 bg-white">
+                <footer id="contact" className="pt-20 md:pt-28 pb-10 px-6 md:px-12 bg-ink text-white scroll-mt-16">
                   <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mb-12 md:mb-24">
                       <div className="md:col-span-3">
@@ -1343,16 +1025,16 @@ export default function App() {
                               <text x="60" y="78" textAnchor="middle" fontSize="58" fontWeight="500" letterSpacing="-2" fill="url(#footerGold)" fontFamily="system-ui, sans-serif">SR</text>
                             </svg>
                           </div>
-                          <div className="text-2xl font-serif tracking-widest uppercase">
-                            Shane <span className="gold-gradient font-bold">Ruddle</span>
+                          <div className="text-2xl font-serif tracking-[0.18em] uppercase">
+                            Shane <span className="font-semibold text-gold">Ruddle</span>
                           </div>
                         </div>
-                        <p className="text-black/40 font-light max-w-sm mb-8">
-                          A legacy of trust and excellence in the heart of Pattaya. Connecting global clients with local opportunities.
+                        <p className="text-white/55 font-light max-w-sm mb-8 leading-relaxed">
+                          Real estate, hospitality and mobility businesses in Pattaya, Thailand.
                         </p>
                         <div className="flex gap-4">
                           {[Linkedin].map((Icon, i) => (
-                            <a key={i} href="https://www.linkedin.com/in/shaneruddle/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-black/10 flex items-center justify-center hover:border-gold hover:text-gold transition-all">
+                            <a key={i} href="https://www.linkedin.com/in/shaneruddle/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:border-gold hover:text-gold transition-all">
                               <Icon className="w-4 h-4" />
                             </a>
                           ))}
@@ -1360,13 +1042,13 @@ export default function App() {
                       </div>
                       
                       <div className="md:col-span-2">
-                        <h5 className="text-xs uppercase tracking-[0.2em] font-bold mb-8">Navigation</h5>
+                        <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-6">Navigation</h5>
                         <ul className="space-y-4">
                           {["About", "Companies", "Values", "Contact"].map((item) => (
                             <li key={item}>
                               <button 
                                 onClick={() => navigateTo(item)} 
-                                className="text-sm text-black/40 hover:text-gold transition-colors font-light text-left"
+                                className="text-sm text-white/60 hover:text-white transition-colors font-light text-left"
                               >
                                 {item}
                               </button>
@@ -1378,7 +1060,7 @@ export default function App() {
                                 setView('past-ventures');
                                 window.scrollTo(0, 0);
                               }}
-                              className="text-sm text-black/40 hover:text-gold transition-colors font-light"
+                              className="text-sm text-white/60 hover:text-white transition-colors font-light"
                             >
                               Past Ventures
                             </button>
@@ -1405,15 +1087,15 @@ export default function App() {
                       </div>
 
                       <div className="md:col-span-2">
-                        <h5 className="text-xs uppercase tracking-[0.2em] font-bold mb-8">Contact</h5>
-                        <ul className="space-y-4 text-sm text-black/40 font-light">
+                        <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-6">Contact</h5>
+                        <ul className="space-y-3 text-sm text-white/60 font-light">
                           <li>Pattaya City, Chon Buri</li>
                           <li>Thailand</li>
                         </ul>
                       </div>
 
                       <div className="md:col-span-5">
-                        <h5 className="text-xs uppercase tracking-[0.2em] font-bold mb-8">Get in Touch</h5>
+                        <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-6">Get in Touch</h5>
                         <AnimatePresence mode="wait">
                           {submitted ? (
                             <motion.div 
@@ -1421,12 +1103,12 @@ export default function App() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -10 }}
-                              className="p-8 bg-gold/5 border border-gold/20 rounded-[24px] text-center"
+                              className="p-8 bg-white/5 border border-gold/30 rounded-2xl text-center"
                             >
                               <div className="w-12 h-12 bg-gold/20 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <Sparkles className="w-6 h-6 text-gold" />
                               </div>
-                              <p className="text-sm text-black/60 font-light leading-relaxed mb-8">
+                              <p className="text-sm text-white/70 font-light leading-relaxed mb-8">
                                 Thank you very much for getting in touch, I will get back to you as soon as possible. Thank you! Shane Ruddle
                               </p>
                               <button 
@@ -1452,7 +1134,7 @@ export default function App() {
                                   required
                                   value={formState.name}
                                   onChange={(e) => setFormState({...formState, name: e.target.value})}
-                                  className="bg-black/[0.02] border border-black/10 rounded-lg px-4 py-3 text-sm font-light focus:outline-none focus:border-gold transition-colors w-full"
+                                  className="bg-white/[0.04] border border-white/15 text-white placeholder:text-white/40 rounded-lg px-4 py-3 text-sm font-light focus:outline-none focus:border-gold transition-colors w-full"
                                 />
                                 <input 
                                   type="email" 
@@ -1460,7 +1142,7 @@ export default function App() {
                                   required
                                   value={formState.email}
                                   onChange={(e) => setFormState({...formState, email: e.target.value})}
-                                  className="bg-black/[0.02] border border-black/10 rounded-lg px-4 py-3 text-sm font-light focus:outline-none focus:border-gold transition-colors w-full"
+                                  className="bg-white/[0.04] border border-white/15 text-white placeholder:text-white/40 rounded-lg px-4 py-3 text-sm font-light focus:outline-none focus:border-gold transition-colors w-full"
                                 />
                               </div>
                               <textarea 
@@ -1469,12 +1151,12 @@ export default function App() {
                                 rows={4}
                                 value={formState.message}
                                 onChange={(e) => setFormState({...formState, message: e.target.value})}
-                                className="bg-black/[0.02] border border-black/10 rounded-lg px-4 py-3 text-sm font-light focus:outline-none focus:border-gold transition-colors w-full resize-none"
+                                className="bg-white/[0.04] border border-white/15 text-white placeholder:text-white/40 rounded-lg px-4 py-3 text-sm font-light focus:outline-none focus:border-gold transition-colors w-full resize-none"
                               />
                               <button 
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full bg-gold text-black font-bold py-3 rounded-lg text-xs uppercase tracking-widest hover:bg-black hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full bg-gold text-black font-bold py-3 rounded-lg text-xs uppercase tracking-widest hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 {isSubmitting ? "Sending..." : "Send Message"}
                               </button>
@@ -1484,11 +1166,11 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row justify-between items-center pt-8 md:pt-12 border-t border-black/5 gap-6">
-                      <div className="text-[10px] uppercase tracking-widest text-black/20">
-                        Â© 2026 Shane Ruddle. All Rights Reserved.
+                    <div className="flex flex-col md:flex-row justify-between items-center pt-8 md:pt-12 border-t border-white/10 gap-6">
+                      <div className="text-[10px] uppercase tracking-widest text-white/40">
+                        © 2026 Shane Ruddle. All Rights Reserved.
                       </div>
-                      <div className="flex gap-8 text-[10px] uppercase tracking-widest text-black/20">
+                      <div className="flex gap-8 text-[10px] uppercase tracking-widest text-white/40">
                         <button 
                           onClick={() => {
                             setView('privacy-policy');
