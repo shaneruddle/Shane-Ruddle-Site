@@ -663,7 +663,7 @@ export default function App() {
       
       {/* Back to Top Button */}
       <AnimatePresence>
-        {showBackToTop && (
+        {showBackToTop && view !== 'dashboard' && view !== 'portal' && (
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -919,6 +919,7 @@ export default function App() {
                       <Dashboard 
                         userProfile={displayProfile} 
                         onBack={() => setView('home')} 
+                        onNavigate={(v) => { setView(v); window.scrollTo(0, 0); }}
                         onImpersonate={(profile) => {
                           const isRealAdmin = userProfile?.roles?.includes('admin') || user?.email === 'shaneruddle@gmail.com';
                           if (isRealAdmin) {
@@ -939,7 +940,7 @@ export default function App() {
                       exit={{ opacity: 0, scale: 0.98 }}
                       transition={{ duration: 0.4 }}
                     >
-                      <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} />
+                      <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} onNavigate={(v) => { setView(v); window.scrollTo(0, 0); }} />
                     </motion.div>
                   ) : view === 'blog' ? (
                     <motion.div

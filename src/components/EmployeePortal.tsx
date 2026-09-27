@@ -5,13 +5,14 @@ import { Tag, History, QrCode, ArrowLeft, Loader2, CheckCircle, Sparkles, Ticket
 import { motion, AnimatePresence } from 'motion/react';
 import { updateDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
+import PortalHeader, { PortalView } from './PortalHeader';
 
 interface EmployeePortalProps {
   userProfile: UserProfile;
   onBack: () => void;
 }
 
-export default function EmployeePortal({ userProfile, onBack }: EmployeePortalProps) {
+export default function EmployeePortal({ userProfile, onBack, onNavigate }: EmployeePortalProps & { onNavigate?: (view: PortalView) => void }) {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [myLogs, setMyLogs] = useState<UsageLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -162,64 +163,47 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] py-24 px-6 md:px-12">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+    <div className="min-h-screen bg-cream">
+      <PortalHeader active="portal" name={userProfile.name || userProfile.email} onNavigate={onNavigate} onBack={onBack} />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+        <div className="grid md:grid-cols-[1fr_auto] gap-6 items-end mb-8">
           <div>
-          <div className="flex items-center justify-between mb-4">
-            <button onClick={onBack} className="flex items-center gap-2 text-xs uppercase tracking-widest text-black/40 hover:text-gold transition-colors">
-              <ArrowLeft className="w-4 h-4" /> Back to Portfolio
-            </button>
-            <button 
-              onClick={() => auth.signOut()}
-              className="flex items-center gap-2 text-xs uppercase tracking-widest text-black/40 hover:text-red-500 transition-colors"
-            >
-              <LogOut className="w-4 h-4" /> Sign Out
-            </button>
+            <span className="block text-[11px] font-medium uppercase tracking-[0.3em] text-gold-deep mb-3">Employee discounts</span>
+            <h1 className="text-4xl md:text-5xl font-serif font-normal leading-tight">Welcome, {(userProfile.name || 'Employee').split(' ')[0]}</h1>
+            <p className="text-black/55 mt-2">{userProfile.company || 'Shane Ruddle group of companies'}</p>
           </div>
-            <h1 className="text-4xl font-serif">Employee <span className="italic">Portal</span></h1>
-            <div className="flex items-center gap-3 mt-2">
-              <p className="text-black/60 font-light">Welcome, <span className="font-bold text-black">{userProfile.name || 'Employee'}</span></p>
-              <div className="w-1 h-1 rounded-full bg-gold/40" />
-              <p className="text-gold font-serif italic">{userProfile.company || 'My Group of Companies'}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setActiveTab('offers')}
-              className={`px-6 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'offers' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'bg-black/5 text-black/40 hover:bg-black/10'}`}
-            >
-              <Ticket className="w-3 h-3" /> Offers
-            </button>
-            <button 
-              onClick={() => setActiveTab('profile')}
-              className={`px-6 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'profile' ? 'bg-gold text-white shadow-lg shadow-gold/20' : 'bg-black/5 text-black/40 hover:bg-black/10'}`}
-            >
-              <User className="w-3 h-3" /> Profile
-            </button>
-          </div>
-
-          <div className="glass px-6 py-4 rounded-3xl flex items-center gap-4">
-            <div className="p-3 bg-gold/10 rounded-2xl text-gold">
+          <div className="bg-ink text-white rounded-2xl px-5 py-4 flex items-center gap-4">
+            <div className="p-2.5 bg-white/10 rounded-xl text-gold">
               <QrCode className="w-6 h-6" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-widest font-bold text-black/40">Your Discount Code</div>
-              <div className="text-xl font-serif text-gold">{userProfile.discountCode || 'SR-EMP-001'}</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-white/55">Your discount code</div>
+              <div className="text-2xl font-serif text-gold whitespace-nowrap">{userProfile.discountCode || 'SR-EMP-001'}</div>
             </div>
           </div>
         </div>
 
+        <div className="flex items-center gap-2 mb-10 border-b border-black/10">
+          {([['offers', 'Offers', Ticket], ['profile', 'Profile', User]] as const).map(([key, label, Icon]) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`-mb-px flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === key ? 'border-gold-deep text-ink' : 'border-transparent text-black/50 hover:text-ink'}`}
+            >
+              <Icon className="w-4 h-4" /> {label}
+            </button>
+          ))}
+        </div>
+
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-8 h-8 animate-spin text-gold" />
+            <Loader2 className="w-8 h-8 animate-spin text-gold-deep" />
           </div>
         ) : activeTab === 'offers' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div>
               <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
-                <Tag className="w-5 h-5 text-gold" /> Available Offers
+                <Tag className="w-5 h-5 text-gold-deep" /> Available Offers
               </h3>
               <div className="space-y-6">
                 {discounts.length === 0 ? (
@@ -245,10 +229,10 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
                           <h4 className="text-lg font-serif mb-1">{discount.name}</h4>
                           <p className="text-xs text-black/40 mb-4 uppercase tracking-widest font-bold">{discount.restaurantId}</p>
                         </div>
-                        <div className="text-3xl font-serif text-gold">{discount.percentage}%</div>
+                        <div className="text-3xl font-serif text-gold-deep">{discount.percentage}%</div>
                       </div>
                       <p className="text-sm text-black/60 font-light mb-6">{discount.description}</p>
-                      <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-gold">
+                      <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-gold-deep">
                         {selectedDiscount?.id === discount.id ? (
                           <span className="flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Selected</span>
                         ) : (
@@ -273,14 +257,14 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
                   >
                     <div className="text-center mb-8">
                       <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <QrCode className="w-8 h-8 text-gold" />
+                        <QrCode className="w-8 h-8 text-gold-deep" />
                       </div>
                       <h3 className="text-2xl font-serif mb-2">Redeem Discount</h3>
                       <p className="text-sm text-black/40 uppercase tracking-widest font-bold">Show this screen to the cashier</p>
                     </div>
 
                     <div className="bg-black/5 rounded-3xl p-6 mb-8 text-center border border-black/5">
-                      <div className="text-4xl font-serif text-gold mb-2">{selectedDiscount.percentage}% OFF</div>
+                      <div className="text-4xl font-serif text-gold-deep mb-2">{selectedDiscount.percentage}% OFF</div>
                       <div className="text-lg font-serif mb-1">{selectedDiscount.name}</div>
                       <div className="text-xs uppercase tracking-widest text-black/40 font-bold">{selectedDiscount.restaurantId}</div>
                     </div>
@@ -296,7 +280,7 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
                       </div>
                       <div className="flex justify-between text-xs uppercase tracking-widest font-bold text-black/40 border-b border-black/5 pb-2">
                         <span>Code</span>
-                        <span className="text-gold">{userProfile.discountCode}</span>
+                        <span className="text-gold-deep">{userProfile.discountCode}</span>
                       </div>
                     </div>
 
@@ -329,7 +313,7 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
                     className="space-y-6"
                   >
                     <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
-                      <History className="w-5 h-5 text-gold" /> Recent Usage
+                      <History className="w-5 h-5 text-gold-deep" /> Recent Usage
                     </h3>
                     <div className="space-y-4">
                       {myLogs.length === 0 ? (
@@ -345,7 +329,7 @@ export default function EmployeePortal({ userProfile, onBack }: EmployeePortalPr
                                 {log.timestamp?.toDate().toLocaleDateString()}
                               </div>
                             </div>
-                            <div className="text-xs font-bold text-gold">REDEEMED</div>
+                            <div className="text-xs font-bold text-gold-deep">REDEEMED</div>
                           </div>
                         ))
                       )}

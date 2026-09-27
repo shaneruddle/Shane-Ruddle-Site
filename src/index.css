@@ -335,3 +335,19 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ============================================================
+   Logged-in workspace (Shane OS): sans headings, flatten cards
+   that are nested inside a Dashboard panel.
+   ============================================================ */
+.portal-ui :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.portal-panel-body > section {
+  border-width: 0;
+  border-radius: 0;
+  margin-bottom: 0;
+  box-shadow: none;
+}
