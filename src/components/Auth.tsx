@@ -19,6 +19,8 @@ interface AuthProps {
   user: any;
   loading: boolean;
   key?: string;
+  autoOpen?: boolean;
+  onAutoOpened?: () => void;
 }
 
 declare global {
@@ -28,7 +30,7 @@ declare global {
   }
 }
 
-export default function Auth({ user, loading }: AuthProps) {
+export default function Auth({ user, loading, autoOpen, onAutoOpened }: AuthProps) {
   const [showModal, setShowModal] = useState(false);
   console.log("Auth rendering. User:", user?.uid, "Loading:", loading, "ShowModal:", showModal);
   const [mode, setMode] = useState<'login' | 'register' | 'reset' | 'phone'>('login');
@@ -208,6 +210,14 @@ export default function Auth({ user, loading }: AuthProps) {
       console.error('Logout error:', error instanceof Error ? error.message : 'Unknown error');
     }
   };
+
+  // Opened from the lightweight homepage login button: show the modal once Firebase is ready.
+  useEffect(() => {
+    if (autoOpen && !loading && !user) {
+      setShowModal(true);
+      onAutoOpened?.();
+    }
+  }, [autoOpen, loading, user]);
 
   const toggleModal = (val: boolean) => {
     console.log("--- TOGGLING MODAL ---", val);

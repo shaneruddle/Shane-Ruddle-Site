@@ -23,7 +23,8 @@ import {
   ExternalLink,
   Calendar,
   MapPin,
-  FileText
+  FileText,
+  LogIn
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import { BusinessInfo, fallbackData } from "@/src/types";
@@ -47,16 +48,20 @@ import { Toaster, toast } from "sonner";
 // renders the initial UI from cached/fallback data; every use below awaits this same promise,
 // which resolves instantly after the first time.
 let firebaseReady: Promise<any> | null = null;
-const BUSINESS_CACHE_KEY = 'shane_ruddle_business_info_v3';
 
-function readCachedBusinessInfo(): BusinessInfo {
+// Homepage content is bundled (see fallbackData in types.ts). The old Firestore-backed cache
+// held ~770KB of base64 images; remove it so it stops costing localStorage/parse time.
+try { localStorage.removeItem('shane_ruddle_business_info_v3'); } catch { /* ignore */ }
+
+// Firebase (~700KB) is only loaded for people who have signed in before on this device, or
+// when someone clicks "Employee Login". Anonymous visitors never download it.
+const SESSION_HINT_KEY = 'sr_has_session';
+function hasSessionHint(): boolean {
   try {
-    const cached = localStorage.getItem(BUSINESS_CACHE_KEY);
-    if (!cached) return fallbackData;
-    const parsed = JSON.parse(cached);
-    return parsed?.data && Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000 ? parsed.data : fallbackData;
+    if (localStorage.getItem(SESSION_HINT_KEY)) return true;
+    return Object.keys(localStorage).some(k => k.startsWith('last_login_'));
   } catch {
-    return fallbackData;
+    return false;
   }
 }
 
@@ -67,8 +72,7 @@ function loadFirebase() {
     import("./firebase"),
     import("firebase/auth"),
     import("firebase/firestore"),
-    import("@/src/services/businessService"),
-  ]).then(([fb, fbAuth, fbFirestore, biz]) => ({
+  ]).then(([fb, fbAuth, fbFirestore]) => ({
     auth: fb.auth,
     db: fb.db,
     handleFirestoreError: fb.handleFirestoreError,
@@ -85,7 +89,6 @@ function loadFirebase() {
     updateDoc: fbFirestore.updateDoc,
     deleteDoc: fbFirestore.deleteDoc,
     addDoc: fbFirestore.addDoc,
-    getBusinessInfo: biz.getBusinessInfo,
   }));
   return firebaseReady;
 }
@@ -94,6 +97,18 @@ function loadFirebase() {
 // genuine Firebase outage), this keeps that failure contained to the login button instead of
 // letting it bubble up through Suspense and take down the whole homepage via the top-level
 // ErrorBoundary.
+// Lightweight stand-in for the Auth widget so the homepage doesn't load Firebase up front.
+const LoginButton = ({ onClick }: { onClick: () => void }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="flex items-center gap-2 px-6 py-2 bg-gold text-black text-xs font-bold uppercase tracking-widest rounded-full hover:bg-gold-dark transition-all shadow-lg shadow-gold/20 cursor-pointer whitespace-nowrap"
+  >
+    <LogIn className="w-4 h-4" />
+    Employee Login
+  </button>
+);
+
 class SilentErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
   constructor(props: { children: ReactNode }) {
     super(props);
@@ -346,7 +361,7 @@ const LifeOutsideSection = ({ data }: { data: BusinessInfo }) => {
 };
 
 export default function App() {
-  const [data, setData] = useState<BusinessInfo>(readCachedBusinessInfo);
+  const [data, setData] = useState<BusinessInfo>(fallbackData);
   const [isLoading, setIsLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [view, setView] = useState<'home' | 'past-ventures' | 'dashboard' | 'portal' | 'blog' | 'privacy-policy' | 'terms-of-service'>('home');
@@ -361,8 +376,9 @@ export default function App() {
   const isWhitelisted = isAdmin ||
                         !!(displayProfile?.company?.trim()) ||
                         !!(displayProfile?.roles?.length);
-  const [authLoading, setAuthLoading] = useState(true);
-  console.log("App rendering. AuthLoading:", authLoading);
+  const [authActive, setAuthActive] = useState<boolean>(hasSessionHint);
+  const [openLoginOnReady, setOpenLoginOnReady] = useState(false);
+  const [authLoading, setAuthLoading] = useState<boolean>(authActive);
   const [formState, setFormState] = useState({ name: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -423,47 +439,6 @@ export default function App() {
 
   useEffect(() => {
     let isMounted = true;
-    let unsubscribeAuth = () => {};
-
-    async function fetchData() {
-      try {
-        console.log("Fetching business info...");
-        const { getBusinessInfo } = await loadFirebase();
-        const result = await getBusinessInfo();
-        console.log("Business info fetched:", result);
-        if (isMounted) setData(result);
-      } catch (error) {
-        // This should rarely happen now as getBusinessInfo has multiple fallbacks
-        console.error("Critical failure fetching business info:", error);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    }
-    // The public landing page must remain stable on first paint. Refreshing public
-    // content is useful, but it should not compete with layout, images, and animation.
-    const dataTimer = window.setTimeout(fetchData, 8000);
-
-    const authTimer = window.setTimeout(() => {
-      (async () => {
-        const { auth, onAuthStateChanged } = await loadFirebase();
-        if (!isMounted) return;
-        unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-          console.log("Auth state changed. User:", firebaseUser?.uid, "Email:", firebaseUser?.email, "AuthLoading:", authLoading);
-          setUser(firebaseUser);
-          if (!firebaseUser) {
-            setUserProfile(null);
-            setAuthLoading(false);
-            loginLogged.current = false;
-          }
-        });
-      })();
-    }, 1200);
-
-    // Safety timeout to ensure auth loading doesn't get stuck
-    const authTimeout = setTimeout(() => {
-      setAuthLoading(false);
-    }, 5000);
-
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
       setShowBackToTop(window.scrollY > 500);
@@ -472,13 +447,44 @@ export default function App() {
 
     return () => {
       isMounted = false;
-      unsubscribeAuth();
-      clearTimeout(dataTimer);
-      clearTimeout(authTimer);
-      clearTimeout(authTimeout);
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  // Start the Firebase auth listener only when needed (returning user or login click).
+  useEffect(() => {
+    if (!authActive) return;
+    let isMounted = true;
+    let unsubscribeAuth = () => {};
+    setAuthLoading(true);
+    const start = () => {
+      loadFirebase().then(({ auth, onAuthStateChanged }) => {
+        if (!isMounted) return;
+        unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+          setUser(firebaseUser);
+          try {
+            if (firebaseUser) localStorage.setItem(SESSION_HINT_KEY, '1');
+            else localStorage.removeItem(SESSION_HINT_KEY);
+          } catch { /* ignore */ }
+          if (!firebaseUser) {
+            setUserProfile(null);
+            setAuthLoading(false);
+            loginLogged.current = false;
+          }
+        });
+      }).catch(() => isMounted && setAuthLoading(false));
+    };
+    // Returning users: wait until the page is idle so the homepage paints first.
+    const w = window as any;
+    const idleId = openLoginOnReady ? (start(), 0) : (w.requestIdleCallback ? w.requestIdleCallback(start, { timeout: 2000 }) : window.setTimeout(start, 800));
+    const authTimeout = window.setTimeout(() => isMounted && setAuthLoading(false), 5000);
+    return () => {
+      isMounted = false;
+      unsubscribeAuth();
+      if (idleId) (w.cancelIdleCallback ? w.cancelIdleCallback(idleId) : clearTimeout(idleId));
+      clearTimeout(authTimeout);
+    };
+  }, [authActive]);
 
   // Real-time companies listener - removed to save quota, using initial fetch only
   useEffect(() => {
@@ -957,7 +963,11 @@ export default function App() {
 
                       <SilentErrorBoundary>
                         <Suspense fallback={null}>
-                          <Auth key="desktop-auth" user={user} loading={authLoading} />
+                          {authActive ? (
+                              <Auth key="desktop-auth" user={user} loading={authLoading} autoOpen={openLoginOnReady} onAutoOpened={() => setOpenLoginOnReady(false)} />
+                            ) : (
+                              <LoginButton onClick={() => { setOpenLoginOnReady(true); setAuthActive(true); setIsMenuOpen(false); }} />
+                            )}
                         </Suspense>
                       </SilentErrorBoundary>
                     </div>
@@ -1027,7 +1037,11 @@ export default function App() {
                         <div className="pt-8 border-t border-black/5 w-full flex justify-center">
                           <SilentErrorBoundary>
                             <Suspense fallback={null}>
-                              <Auth key="mobile-auth" user={user} loading={authLoading} />
+                              {authActive ? (
+                              <Auth key="mobile-auth" user={user} loading={authLoading} autoOpen={openLoginOnReady} onAutoOpened={() => setOpenLoginOnReady(false)} />
+                            ) : (
+                              <LoginButton onClick={() => { setOpenLoginOnReady(true); setAuthActive(true); setIsMenuOpen(false); }} />
+                            )}
                             </Suspense>
                           </SilentErrorBoundary>
                         </div>
@@ -1253,13 +1267,14 @@ export default function App() {
                                         src={(() => {
                                           const logo = company.logo.trim();
                                           if (logo.startsWith('data:')) return logo.replace(/\s/g, '');
-                                          if (logo.startsWith('http')) return logo;
+                                          if (logo.startsWith('http') || logo.startsWith('/')) return logo;
                                           return `/${logo}`;
                                         })()} 
                                         alt={company.name} 
                                         className="max-w-full max-h-full object-contain transition-all duration-700 group-hover:invert group-hover:brightness-200 group-hover:scale-110"
                                         referrerPolicy="no-referrer"
                                         loading="lazy"
+                                        decoding="async"
                                         onError={(e) => {
                                           console.error(`Failed to load logo for ${company.name}`);
                                           (e.target as HTMLImageElement).style.display = 'none';

@@ -17,68 +17,77 @@ export interface BusinessInfo {
   notificationEmail?: string;
 }
 
+// Public homepage content. Bundled statically so the homepage never waits on Firestore.
+// Images live in /public/images (optimised WebP). Edit here to change homepage copy.
 export const fallbackData: BusinessInfo = {
   name: "Shane Ruddle",
-  tagline: "Shane Ruddle companies: investing in people, places, and potential.",
-  about: "I lead a premier group of companies in Pattaya, Thailand, specializing in real estate, luxury car rentals, hospitality, and lifestyle services. With years of local experience, I am dedicated to providing exceptional service and value to clients worldwide.",
+  tagline: "Building businesses that create lasting value for both people and places.",
+  about: "Originally from the UK and a former PGA professional golfer, Shane Ruddle is a Pattaya-based entrepreneur with over two decades of experience in Thailand. He is the owner of Alan Bolton Property Consultants and East Coast Real Estate, overseeing a diverse business portfolio that spans real estate, hospitality, car rentals, and tech. He is also a vocal advocate for professionalizing the Thai real estate industry through national licensing and ethical standards.",
   companies: [
     {
-      name: "Alan Bolton Property Consultants",
-      description: "Pattaya's leading property consultants, offering expert advice on sales, rentals, and investments.",
-      services: ["Property Sales", "Luxury Rentals", "Investment Consulting", "Property Management"],
-      icon: "Home",
-      logo: "input_file_5.png",
-      url: "https://www.pattaya-property.net/"
-    },
-    {
-      name: "Pattaya Rent a Car",
-      description: "Premium and luxury vehicle rentals providing the best driving experience in Pattaya.",
-      services: ["Luxury Car Fleet", "Short-term Rentals", "Long-term Leasing", "Chauffeur Services"],
-      icon: "Car",
-      logo: "input_file_6.png",
-      url: "https://www.pattayarentacar.com/"
-    },
-    {
-      name: "Hemingways Pattaya",
-      description: "The flagship restaurant and bar in central Pattaya, known for its vibrant atmosphere and international cuisine.",
-      services: ["International Dining", "Craft Cocktails", "Live Sports", "Central Location"],
+      name: "Hemingways Lakeside",
+      description: "Pattaya's premier lakeside dining experience.",
+      services: ["Lakeside Views", "Family Friendly", "Garden Seating", "Private Events"],
       icon: "Hotel",
-      logo: "input_file_2.png",
-      url: "https://www.hemingwayspattaya.com/"
+      logo: "/images/logo-hemingways-lakeside.webp",
+      url: "https://www.hemingwayslakeside.com"
     },
     {
       name: "Hemingways Jomtien",
-      description: "A stunning beachfront destination in Jomtien, offering fresh seafood and sunset views.",
+      description: "Beachfront dining and drinks in Jomtien.",
       services: ["Beachfront Dining", "Seafood Specialties", "Sunset Lounge", "Relaxed Vibe"],
       icon: "Hotel",
-      logo: "input_file_1.png",
-      url: "https://www.hemingwaysjomtien.com/"
+      logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1738212884463x913848644166320500/Hemingways_Logo_Jomtien.png",
+      url: "https://www.hemingwaysjomtien.com"
     },
     {
-      name: "Hemingways Lakeside",
-      description: "A tranquil dining experience by the lake, perfect for families and peaceful evenings.",
-      services: ["Lakeside Views", "Family Friendly", "Garden Seating", "Private Events"],
+      name: "Hemingways Pattaya",
+      description: "The classic Hemingways experience in central Pattaya.",
+      services: ["International Dining", "Craft Cocktails", "Live Sports", "Central Location"],
       icon: "Hotel",
-      logo: "input_file_0.png",
-      url: "https://www.hemingwayslakeside.com/"
+      logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1738212870086x950453333007466100/Hemingways_Logo_Pattaya.png",
+      url: "https://www.hemingwayspattaya.com"
     },
     {
       name: "Cajun Life Cafe",
-      description: "Authentic Cajun flavors and a vibrant lifestyle cafe experience in the heart of Pattaya.",
+      description: "Authentic Cajun flavors in the heart of Thailand.",
       services: ["Cajun Cuisine", "Specialty Coffee", "Live Music", "Community Hub"],
       icon: "Sparkles",
-      logo: "input_file_4.png",
-      url: "https://www.cajunlifecafe.com/"
+      logo: "/images/logo-cajun-life-cafe.webp",
+      url: "https://www.cajunlifecafe.com"
+    },
+    {
+      name: "Pattaya Rent a Car",
+      description: "Reliable car rental services in Pattaya.",
+      services: ["Car Rental", "Short-term Rentals", "Long-term Leasing", "Airport Delivery"],
+      icon: "Car",
+      logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1738212991154x209166829233646600/PRAC-Logo-2.png",
+      url: "https://www.pattayarentacar.com"
+    },
+    {
+      name: "Alan Bolton Property Consultants",
+      description: "Expert real estate advice and property management.",
+      services: ["Property Sales", "Rentals", "Investment Consulting", "Property Management"],
+      icon: "Home",
+      logo: "/images/logo-abpc.webp",
+      url: "https://www.pattaya-property.net"
     },
     {
       name: "East Coast Real Estate",
-      description: "Owner of real estate agency in the Eastern Seaboard market.",
+      description: "Leading real estate agency on the Eastern Seaboard.",
       services: ["Property Sales", "Market Analysis", "Investment Advice", "Relocation Services"],
       icon: "Home",
-      logo: "input_file_3.png",
-      url: "https://www.thaiproperty.com/"
+      logo: "https://6022e9b060237f7418814624aea7f151.cdn.bubble.io/f1754730947495x779512689180206200/LOGO-Square%202016%203.5x3.jpg",
+      url: "https://www.thaiproperty.com"
     }
   ],
-  values: ["Trust", "People-First", "Excellence", "Integrity"],
-  ownerPhotos: []
+  values: ["Trust", "Local Expertise", "People-First Approach", "Accountability", "Professionalism", "Lasting Value"],
+  // [0] portrait, [1] friends, [2] sports, [3] team, [4] family
+  ownerPhotos: [
+    "/images/shane-portrait.webp",
+    "/images/life-friends.webp",
+    "/images/life-sports.webp",
+    "/images/life-team.webp",
+    "/images/life-family.webp"
+  ]
 };
