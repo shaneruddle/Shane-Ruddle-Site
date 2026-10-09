@@ -171,6 +171,45 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
         </div>
       </section>
 
+      {/* Recognition */}
+      <section id="recognition" className="bg-ink text-white py-20 md:py-28 px-6 md:px-12 scroll-mt-20">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+          <Reveal className="lg:col-span-5">
+            <figure className="max-w-sm mx-auto lg:max-w-md">
+              <img
+                src="/images/award-best-agent-pattaya-2026.webp"
+                alt="Shane Ruddle on the red carpet holding The Best Agent in Pattaya trophy and plaque at the Thailand Real Estate Agent Awards 2026"
+                width={900}
+                height={1350}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-auto aspect-[2/3] object-cover rounded-3xl"
+              />
+              <figcaption className="mt-4 text-[11px] uppercase tracking-[0.18em] text-white/55">
+                Park Hyatt Bangkok · 8 October 2026
+              </figcaption>
+            </figure>
+          </Reveal>
+          <Reveal className="lg:col-span-7" delay={0.1}>
+            <Eyebrow dark>Recognition</Eyebrow>
+            <h2 className="font-serif text-4xl md:text-6xl leading-[1.08] mb-7">
+              The Best Agent in <span className="italic text-gold">Pattaya.</span>
+            </h2>
+            <p className="text-lg md:text-xl text-white/70 font-light leading-relaxed max-w-xl mb-8">
+              East Coast Real Estate was named The Best Agent in Pattaya at the Thailand Real Estate Agent Awards 2026 by Dot Property.
+            </p>
+            <a
+              href="https://thaiproperty.com/blog/east-coast-real-estate-wins-best-agent-in-pattaya-2026"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-gold hover:text-white transition-colors"
+            >
+              Read the story <ArrowUpRight className="w-4 h-4" />
+            </a>
+          </Reveal>
+        </div>
+      </section>
+
       {/* Values */}
       <section id="values" className="bg-cream border-y border-cream-line py-20 md:py-28 px-6 md:px-12 scroll-mt-20">
         <div className="max-w-7xl mx-auto">
