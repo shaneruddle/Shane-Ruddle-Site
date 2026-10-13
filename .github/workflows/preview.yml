@@ -5,6 +5,8 @@ on:
   push:
     branches-ignore:
       - main
+permissions:
+  contents: write
 jobs:
   preview:
     runs-on: ubuntu-latest
@@ -38,4 +40,8 @@ jobs:
         run: |
           CHANNEL=$(echo "${GITHUB_REF_NAME}" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9-' '-' | cut -c1-36 | sed 's/-*$//')
           firebase hosting:channel:deploy "$CHANNEL" --expires 14d --project shane-ruddle-site --json | tee deploy.json
-          echo "Preview URL:" && grep -o 'https://[^"]*web.app' deploy.json | head -1
+          URL=$(grep -o 'https://[^"]*web.app' deploy.json | head -1)
+          echo "Preview URL: $URL"
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" -f body="Preview: $URL" >/dev/null
+        env:
+          GH_TOKEN: ${{ github.token }}
