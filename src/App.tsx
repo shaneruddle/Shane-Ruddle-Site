@@ -200,15 +200,58 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
   );
 };
 
+// URL routing. Each view has a real path so pages can be linked, shared and indexed.
+// Firebase Hosting rewrites every path to index.html, so the app resolves the view here.
+type View = 'home' | 'past-ventures' | 'portal' | 'blog' | 'privacy-policy' | 'terms-of-service';
+
+const VIEW_PATHS: Record<View, string> = {
+  'home': '/',
+  'past-ventures': '/past-ventures',
+  'portal': '/portal',
+  'blog': '/articles',
+  'privacy-policy': '/privacy',
+  'terms-of-service': '/terms',
+};
+
+// Homepage sections that have their own URL (path -> element id on the homepage).
+const SECTION_PATHS: Record<string, string> = {
+  '/about': 'about',
+  '/businesses': 'companies',
+  '/contact': 'contact',
+};
+const SECTION_IDS_TO_PATH: Record<string, string> = Object.fromEntries(
+  Object.entries(SECTION_PATHS).map(([path, id]) => [id, path])
+);
+
+function routeFromPath(pathname: string): { view: View; section?: string } {
+  const path = pathname.replace(/\/+$/, '') || '/';
+  if (path.startsWith('/articles')) return { view: 'blog' };
+  const view = (Object.keys(VIEW_PATHS) as View[]).find(v => VIEW_PATHS[v] === path);
+  if (view) return { view };
+  if (SECTION_PATHS[path]) return { view: 'home', section: SECTION_PATHS[path] };
+  return { view: 'home' };
+}
+
+const initialRoute = routeFromPath(window.location.pathname);
+const startsOnPortal = initialRoute.view === 'portal';
+
 export default function App() {
   const [data, setData] = useState<BusinessInfo>(fallbackData);
   const [isLoading, setIsLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [view, setView] = useState<'home' | 'past-ventures' | 'portal' | 'blog' | 'privacy-policy' | 'terms-of-service'>('home');
+  const [view, setViewState] = useState<View>(initialRoute.view);
+  const setView = (next: View) => {
+    setViewState(next);
+    if (window.location.pathname !== VIEW_PATHS[next]) {
+      window.history.pushState(null, '', VIEW_PATHS[next]);
+    }
+  };
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [impersonatedProfile, setImpersonatedProfile] = useState<UserProfile | null>(null);
   const displayProfile = impersonatedProfile || userProfile;
+  // Public nav/footer show everywhere except inside the signed-in portal (they also carry the login button).
+  const showPublicChrome = view !== 'portal' || !displayProfile;
   const isAdmin = displayProfile?.roles?.includes('admin') || 
                   displayProfile?.roles?.includes('accounts') || 
                   displayProfile?.roles?.includes('manager') || 
@@ -216,8 +259,9 @@ export default function App() {
   const isWhitelisted = isAdmin ||
                         !!(displayProfile?.company?.trim()) ||
                         !!(displayProfile?.roles?.length);
-  const [authActive, setAuthActive] = useState<boolean>(hasSessionHint);
-  const [openLoginOnReady, setOpenLoginOnReady] = useState(false);
+  // Landing directly on /portal starts auth straight away and, for first-time visitors, opens the login.
+  const [authActive, setAuthActive] = useState<boolean>(() => hasSessionHint() || startsOnPortal);
+  const [openLoginOnReady, setOpenLoginOnReady] = useState(() => startsOnPortal && !hasSessionHint());
   const [authLoading, setAuthLoading] = useState<boolean>(authActive);
   const [formState, setFormState] = useState({ name: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -252,8 +296,12 @@ export default function App() {
   };
 
   const navigateTo = (section: string) => {
+    const sectionPath = SECTION_IDS_TO_PATH[section.toLowerCase()] || '/';
+    if (window.location.pathname !== sectionPath) {
+      window.history.pushState(null, '', sectionPath);
+    }
     if (view !== 'home') {
-      setView('home');
+      setViewState('home');
       setTimeout(() => {
         const element = document.getElementById(section.toLowerCase());
         if (element) {
@@ -270,6 +318,23 @@ export default function App() {
   };
 
 
+
+  // Browser back/forward, plus scrolling to a section when the page opens on /about, /businesses or /contact.
+  useEffect(() => {
+    const scrollToSection = (id?: string) => {
+      if (!id) return;
+      setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 100);
+    };
+    scrollToSection(initialRoute.section);
+    const handlePopState = () => {
+      const route = routeFromPath(window.location.pathname);
+      setViewState(route.view);
+      if (route.section) scrollToSection(route.section);
+      else window.scrollTo(0, 0);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -718,7 +783,7 @@ export default function App() {
           ) : (
             <div className="flex flex-col min-h-screen">
               {/* Navigation - Visible for home, past-ventures, blog, privacy-policy, and terms-of-service */}
-              {(view === 'home' || view === 'past-ventures' || view === 'blog' || view === 'privacy-policy' || view === 'terms-of-service') && (
+              {showPublicChrome && (
                 <>
                   <nav
                     className={cn(
@@ -900,6 +965,10 @@ export default function App() {
                     >
                       <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} />
                     </motion.div>
+                  ) : view === 'portal' && authLoading ? (
+                    <div key="portal-loading" className="fixed inset-0 z-[100] bg-white flex items-center justify-center">
+                      <div className="w-10 h-10 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+                    </div>
                   ) : view === 'blog' ? (
                     <motion.div
                       key="blog"
@@ -964,7 +1033,7 @@ export default function App() {
               </AnimatePresence>
 
               {/* Shared Footer - Visible for home, past-ventures, blog, privacy-policy, and terms-of-service */}
-              {(view === 'home' || view === 'past-ventures' || view === 'blog' || view === 'privacy-policy' || view === 'terms-of-service') && (
+              {showPublicChrome && (
                 <footer id="contact" className="pt-20 md:pt-28 pb-10 px-6 md:px-12 bg-ink text-white scroll-mt-16">
                   <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mb-12 md:mb-24">

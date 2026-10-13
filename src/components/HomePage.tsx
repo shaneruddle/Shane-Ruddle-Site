@@ -18,7 +18,7 @@ const SECTORS: { title: string; blurb: string; names: string[] }[] = [
   },
   {
     title: "Mobility",
-    blurb: "Car rental in Pattaya since 2009.",
+    blurb: "Car rental in Pattaya since 2010.",
     names: ["Pattaya Rent a Car"],
   },
 ];
