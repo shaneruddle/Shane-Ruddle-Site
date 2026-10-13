@@ -19,6 +19,7 @@ import ReactMarkdown from 'react-markdown';
 import { cn } from '../lib/utils';
 import { navigate, handleLinkClick } from '../lib/navigation';
 import NewsletterSignup from './NewsletterSignup';
+import { applyPageMeta, PAGE_META } from '../seo';
 
 // Each article lives at /articles/<slug> (slug field, or the doc id when no slug is set).
 const articlePath = (post: BlogPost) => `/articles/${post.slug || post.id}`;
@@ -78,6 +79,17 @@ export default function BlogPage({ onBack }: BlogPageProps) {
   });
 
   const selectedPost = slug ? posts.find(p => (p.slug || p.id) === slug) || null : null;
+
+  useEffect(() => {
+    if (selectedPost) {
+      applyPageMeta({
+        title: `${selectedPost.title} | Shane Ruddle`,
+        description: selectedPost.metaDescription || selectedPost.body.replace(/[#*_>`\[\]]/g, '').slice(0, 155),
+      });
+    } else if (!slug) {
+      applyPageMeta(PAGE_META['/articles']);
+    }
+  }, [selectedPost, slug]);
 
   if (slug && !selectedPost) {
     return (

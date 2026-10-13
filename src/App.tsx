@@ -31,6 +31,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import NewsletterSignup from "./components/NewsletterSignup";
 import { SOCIAL_LINKS } from "./components/socialLinks";
 import { handleLinkClick } from "./lib/navigation";
+import { PAGE_META, applyPageMeta } from "./seo";
 import HomePage from "./components/HomePage";
 const PastVentures = lazy(() => import("./components/PastVentures"));
 const AboutPage = lazy(() => import("./components/AboutPage"));
@@ -278,6 +279,12 @@ export default function App() {
   const loginLogged = useRef(false);
   const lastLoginAtUpdated = useRef(false);
   const discountsChecked = useRef(false);
+
+  // Keep the tab title and meta description in step with the current page (articles set their own).
+  useEffect(() => {
+    const meta = PAGE_META[VIEW_PATHS[view]];
+    if (meta && !(view === 'blog' && window.location.pathname !== '/articles')) applyPageMeta(meta);
+  }, [view]);
 
   // Browser back/forward, and in-app links (they push a path and dispatch popstate).
   useEffect(() => {
