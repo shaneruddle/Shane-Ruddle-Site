@@ -132,6 +132,42 @@ async function startServer() {
     }
   });
 
+  // Newsletter sign-up: adds the contact to the Brevo list. The API key stays server-side.
+  app.post("/api/newsletter", async (req, res) => {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const firstName = String(req.body?.firstName || "").trim().slice(0, 80);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+      return res.status(400).json({ error: "Please enter a valid email address." });
+    }
+    const apiKey = process.env.BREVO_API_KEY;
+    const listId = Number(process.env.BREVO_LIST_ID);
+    if (!apiKey || !listId) {
+      console.error("Newsletter sign-up received but BREVO_API_KEY / BREVO_LIST_ID are not set.");
+      return res.status(503).json({ error: "Sign-ups are temporarily unavailable. Please try again later." });
+    }
+    try {
+      const response = await fetch("https://api.brevo.com/v3/contacts", {
+        method: "POST",
+        headers: { "api-key": apiKey, "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          email,
+          listIds: [listId],
+          updateEnabled: true,
+          ...(firstName ? { attributes: { FIRSTNAME: firstName } } : {}),
+        }),
+      });
+      if (!response.ok) {
+        const detail = await response.text();
+        console.error("Brevo sign-up failed:", response.status, detail.slice(0, 300));
+        return res.status(502).json({ error: "Could not subscribe right now. Please try again." });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Brevo sign-up error:", error instanceof Error ? error.message : error);
+      res.status(502).json({ error: "Could not subscribe right now. Please try again." });
+    }
+  });
+
   // Unknown API routes return a real 404 instead of falling through to the SPA's index.html.
   app.all('/api/*', (_req, res) => { res.status(404).json({ error: 'Not found' }); });
 

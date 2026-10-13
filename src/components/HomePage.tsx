@@ -5,7 +5,7 @@ import { BusinessInfo, Company } from "../types";
 
 // Public homepage. Content comes from fallbackData in src/types.ts (bundled, no Firestore).
 
-const SECTORS: { title: string; blurb: string; names: string[] }[] = [
+export const SECTORS: { title: string; blurb: string; names: string[] }[] = [
   {
     title: "Real Estate",
     blurb: "Sales, rentals and investment advice across Pattaya and the Eastern Seaboard.",
@@ -50,7 +50,7 @@ const Eyebrow = ({ children, dark = false }: { children: ReactNode; dark?: boole
 
 const domainOf = (url?: string) => (url || "").replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "");
 
-const CompanyCard = ({ company, wide = false }: { company: Company; wide?: boolean }) => {
+export const CompanyCard = ({ company, wide = false }: { company: Company; wide?: boolean }) => {
   const [logoFailed, setLogoFailed] = useState(false);
   const href = company.url?.startsWith("http") ? company.url : `https://${company.url}`;
   return (

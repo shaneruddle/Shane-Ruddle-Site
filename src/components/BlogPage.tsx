@@ -17,6 +17,15 @@ import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestor
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '../lib/utils';
+import { navigate, handleLinkClick } from '../lib/navigation';
+import NewsletterSignup from './NewsletterSignup';
+
+// Each article lives at /articles/<slug> (slug field, or the doc id when no slug is set).
+const articlePath = (post: BlogPost) => `/articles/${post.slug || post.id}`;
+const slugFromPath = (pathname: string) => {
+  const m = pathname.match(/^\/articles\/([^/]+)\/?$/);
+  return m ? decodeURIComponent(m[1]) : null;
+};
 
 interface BlogPageProps {
   onBack: () => void;
@@ -29,7 +38,13 @@ export default function BlogPage({ onBack }: BlogPageProps) {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<typeof CATEGORIES[number]>('All');
-  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  const [slug, setSlug] = useState<string | null>(() => slugFromPath(window.location.pathname));
+
+  useEffect(() => {
+    const onPop = () => setSlug(slugFromPath(window.location.pathname));
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
 
   useEffect(() => {
     const blogRef = collection(db, 'blog');
@@ -62,6 +77,24 @@ export default function BlogPage({ onBack }: BlogPageProps) {
     return matchesSearch && matchesCategory;
   });
 
+  const selectedPost = slug ? posts.find(p => (p.slug || p.id) === slug) || null : null;
+
+  if (slug && !selectedPost) {
+    return (
+      <div className="min-h-screen bg-[#FDFDFD] pt-40 pb-24 px-6 text-center">
+        {loading ? (
+          <div className="w-12 h-12 border-2 border-gold border-t-transparent rounded-full animate-spin mx-auto" />
+        ) : (
+          <>
+            <h1 className="text-4xl font-serif mb-4">Article not found</h1>
+            <p className="text-black/50 mb-8">It may have been moved or unpublished.</p>
+            <a href="/articles" onClick={handleLinkClick} className="text-gold-deep font-bold uppercase tracking-widest text-[11px]">All articles</a>
+          </>
+        )}
+      </div>
+    );
+  }
+
   if (selectedPost) {
     return (
       <motion.div 
@@ -90,10 +123,10 @@ export default function BlogPage({ onBack }: BlogPageProps) {
             <motion.button 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              onClick={() => setSelectedPost(null)}
+              onClick={() => navigate('/articles')}
               className="flex items-center gap-2 text-white/60 hover:text-gold transition-colors mb-8 uppercase tracking-widest text-xs font-bold"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to News
+              <ArrowLeft className="w-4 h-4" /> All articles
             </motion.button>
             
             <motion.div
@@ -166,13 +199,20 @@ export default function BlogPage({ onBack }: BlogPageProps) {
               <p className="text-black/60 font-light leading-relaxed mb-4">
                 Shane Ruddle is a visionary entrepreneur based in Pattaya, Thailand, with a diverse portfolio of successful ventures in real estate, hospitality, and automotive sectors.
               </p>
-              <button 
-                onClick={onBack}
+              <a
+                href="/about"
+                onClick={handleLinkClick}
                 className="text-gold font-bold uppercase tracking-widest text-[10px] hover:text-gold-dark transition-colors"
               >
-                View Full Portfolio
-              </button>
+                More about Shane
+              </a>
             </div>
+          </div>
+
+          <div className="mt-12 p-8 md:p-12 bg-ink rounded-[2rem]">
+            <h4 className="text-3xl font-serif text-white mb-2">Get the next article by email</h4>
+            <p className="text-white/60 font-light mb-6">One email a week on property, business and life in Pattaya.</p>
+            <NewsletterSignup dark source="article" />
           </div>
         </div>
       </motion.div>
@@ -249,13 +289,14 @@ export default function BlogPage({ onBack }: BlogPageProps) {
         ) : filteredPosts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredPosts.map((post, idx) => (
-              <motion.div
+              <motion.a
                 key={post.id}
+                href={articlePath(post)}
+                onClick={handleLinkClick}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                onClick={() => setSelectedPost(post)}
-                className="group cursor-pointer"
+                className="group cursor-pointer block"
               >
                 <div className="relative aspect-[16/10] rounded-[2rem] overflow-hidden mb-6 shadow-xl shadow-black/5">
                   {post.imageUrl ? (
@@ -298,7 +339,7 @@ export default function BlogPage({ onBack }: BlogPageProps) {
                     Read Article <ArrowRight className="w-3 h-3" />
                   </div>
                 </div>
-              </motion.div>
+              </motion.a>
             ))}
           </div>
         ) : (

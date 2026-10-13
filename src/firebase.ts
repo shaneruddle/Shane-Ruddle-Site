@@ -165,6 +165,7 @@ export interface UsageLog {
 export interface BlogPost {
   id: string;
   title: string;
+  slug?: string; // URL segment for /articles/<slug>; falls back to the doc id
   metaDescription?: string;
   keywords?: string;
   body: string;

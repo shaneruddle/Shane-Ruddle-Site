@@ -28,8 +28,15 @@ import {
 import { cn } from "@/src/lib/utils";
 import { BusinessInfo, fallbackData } from "@/src/types";
 import ErrorBoundary from "./components/ErrorBoundary";
+import NewsletterSignup from "./components/NewsletterSignup";
+import { SOCIAL_LINKS } from "./components/socialLinks";
+import { handleLinkClick } from "./lib/navigation";
 import HomePage from "./components/HomePage";
 const PastVentures = lazy(() => import("./components/PastVentures"));
+const AboutPage = lazy(() => import("./components/AboutPage"));
+const BusinessesPage = lazy(() => import("./components/BusinessesPage"));
+const NewsletterPage = lazy(() => import("./components/NewsletterPage"));
+const ContactPage = lazy(() => import("./components/ContactPage"));
 const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
 const BlogPage = lazy(() => import("./components/BlogPage"));
 const PrivacyPolicy = lazy(() => import("./components/PrivacyPolicy"));
@@ -202,10 +209,14 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
 
 // URL routing. Each view has a real path so pages can be linked, shared and indexed.
 // Firebase Hosting rewrites every path to index.html, so the app resolves the view here.
-type View = 'home' | 'past-ventures' | 'portal' | 'blog' | 'privacy-policy' | 'terms-of-service';
+type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'past-ventures' | 'portal' | 'blog' | 'privacy-policy' | 'terms-of-service';
 
 const VIEW_PATHS: Record<View, string> = {
   'home': '/',
+  'about': '/about',
+  'businesses': '/businesses',
+  'newsletter': '/newsletter',
+  'contact': '/contact',
   'past-ventures': '/past-ventures',
   'portal': '/portal',
   'blog': '/articles',
@@ -213,23 +224,20 @@ const VIEW_PATHS: Record<View, string> = {
   'terms-of-service': '/terms',
 };
 
-// Homepage sections that have their own URL (path -> element id on the homepage).
-const SECTION_PATHS: Record<string, string> = {
-  '/about': 'about',
-  '/businesses': 'companies',
-  '/contact': 'contact',
-};
-const SECTION_IDS_TO_PATH: Record<string, string> = Object.fromEntries(
-  Object.entries(SECTION_PATHS).map(([path, id]) => [id, path])
-);
+// Public navigation (header, mobile menu, footer).
+const NAV_LINKS: { label: string; view: View }[] = [
+  { label: 'About', view: 'about' },
+  { label: 'Businesses', view: 'businesses' },
+  { label: 'Articles', view: 'blog' },
+  { label: 'Past Ventures', view: 'past-ventures' },
+  { label: 'Contact', view: 'contact' },
+];
 
-function routeFromPath(pathname: string): { view: View; section?: string } {
+function routeFromPath(pathname: string): { view: View } {
   const path = pathname.replace(/\/+$/, '') || '/';
   if (path.startsWith('/articles')) return { view: 'blog' };
   const view = (Object.keys(VIEW_PATHS) as View[]).find(v => VIEW_PATHS[v] === path);
-  if (view) return { view };
-  if (SECTION_PATHS[path]) return { view: 'home', section: SECTION_PATHS[path] };
-  return { view: 'home' };
+  return { view: view || 'home' };
 }
 
 const initialRoute = routeFromPath(window.location.pathname);
@@ -263,9 +271,6 @@ export default function App() {
   const [authActive, setAuthActive] = useState<boolean>(() => hasSessionHint() || startsOnPortal);
   const [openLoginOnReady, setOpenLoginOnReady] = useState(() => startsOnPortal && !hasSessionHint());
   const [authLoading, setAuthLoading] = useState<boolean>(authActive);
-  const [formState, setFormState] = useState({ name: '', email: '', message: '' });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -274,63 +279,12 @@ export default function App() {
   const lastLoginAtUpdated = useRef(false);
   const discountsChecked = useRef(false);
 
-  const handleFormSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formState),
-      });
-      if (!response.ok) throw new Error('Failed to send message');
-      setSubmitted(true);
-      toast.success("Thank you very much for getting in touch, I will get back to you as soon as possible. Thank you! Shane Ruddle");
-      setFormState({ name: '', email: '', message: '' });
-      setTimeout(() => setSubmitted(false), 5000);
-    } catch (error) {
-      console.error("Error sending contact form:", error instanceof Error ? error.message : 'Unknown error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const navigateTo = (section: string) => {
-    const sectionPath = SECTION_IDS_TO_PATH[section.toLowerCase()] || '/';
-    if (window.location.pathname !== sectionPath) {
-      window.history.pushState(null, '', sectionPath);
-    }
-    if (view !== 'home') {
-      setViewState('home');
-      setTimeout(() => {
-        const element = document.getElementById(section.toLowerCase());
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    } else {
-      const element = document.getElementById(section.toLowerCase());
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-    setIsMenuOpen(false);
-  };
-
-
-
-  // Browser back/forward, plus scrolling to a section when the page opens on /about, /businesses or /contact.
+  // Browser back/forward, and in-app links (they push a path and dispatch popstate).
   useEffect(() => {
-    const scrollToSection = (id?: string) => {
-      if (!id) return;
-      setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 100);
-    };
-    scrollToSection(initialRoute.section);
     const handlePopState = () => {
-      const route = routeFromPath(window.location.pathname);
-      setViewState(route.view);
-      if (route.section) scrollToSection(route.section);
-      else window.scrollTo(0, 0);
+      setViewState(routeFromPath(window.location.pathname).view);
+      setIsMenuOpen(false);
+      window.scrollTo(0, 0);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -793,14 +747,11 @@ export default function App() {
                     )}
                   >
                     <div className="max-w-7xl mx-auto h-16 md:h-[72px] px-5 md:px-12 flex items-center justify-between gap-6">
-                    <button
-                      type="button"
+                    <a
+                      href="/"
                       aria-label="Shane Ruddle — home"
                       className="flex items-center gap-3 shrink-0"
-                      onClick={() => {
-                        setView('home');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
+                      onClick={handleLinkClick}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" className="w-9 h-9 shrink-0" aria-hidden="true">
                         <defs>
@@ -817,27 +768,20 @@ export default function App() {
                       <span className="hidden sm:block font-serif text-xl tracking-[0.18em] uppercase whitespace-nowrap">
                         Shane <span className="font-semibold">Ruddle</span>
                       </span>
-                    </button>
+                    </a>
 
                     <div className="hidden lg:flex items-center gap-7 min-w-0">
-                      {["About", "Companies", "Values", "Contact"].map((item) => (
-                        <button
-                          key={item}
-                          onClick={() => navigateTo(item)}
-                          className="text-[11px] font-medium uppercase tracking-[0.18em] text-black/60 hover:text-ink transition-colors whitespace-nowrap"
+                      {NAV_LINKS.map((link) => (
+                        <a
+                          key={link.view}
+                          href={VIEW_PATHS[link.view]}
+                          onClick={handleLinkClick}
+                          aria-current={view === link.view ? 'page' : undefined}
+                          className={`text-[11px] font-medium uppercase tracking-[0.18em] transition-colors whitespace-nowrap ${view === link.view ? 'text-gold-deep' : 'text-black/60 hover:text-ink'}`}
                         >
-                          {item}
-                        </button>
+                          {link.label}
+                        </a>
                       ))}
-                      <button
-                        onClick={() => {
-                          setView('past-ventures');
-                          window.scrollTo(0, 0);
-                        }}
-                        className={`text-[11px] font-medium uppercase tracking-[0.18em] transition-colors whitespace-nowrap ${view === 'past-ventures' ? 'text-gold-deep' : 'text-black/60 hover:text-ink'}`}
-                      >
-                        Past Ventures
-                      </button>
 
                       {isWhitelisted && (
                         <>
@@ -881,25 +825,16 @@ export default function App() {
                         exit={{ opacity: 0, y: -20 }}
                         className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center space-y-6 overflow-y-auto py-20"
                       >
-                        {["About", "Companies", "Values", "Contact"].map((item) => (
-                          <button 
-                            key={item} 
-                            onClick={() => navigateTo(item)}
-                            className="text-xl font-serif tracking-widest uppercase text-black hover:text-gold transition-colors"
+                        {NAV_LINKS.map((link) => (
+                          <a
+                            key={link.view}
+                            href={VIEW_PATHS[link.view]}
+                            onClick={handleLinkClick}
+                            className={`text-xl font-serif tracking-widest uppercase transition-colors ${view === link.view ? 'text-gold' : 'text-black hover:text-gold'}`}
                           >
-                            {item}
-                          </button>
+                            {link.label}
+                          </a>
                         ))}
-                        <button 
-                          onClick={() => {
-                            setView('past-ventures');
-                            setIsMenuOpen(false);
-                            window.scrollTo(0, 0);
-                          }}
-                          className={`text-xl font-serif tracking-widest uppercase transition-colors ${view === 'past-ventures' ? 'text-gold' : 'text-black hover:text-gold'}`}
-                        >
-                          Past Ventures
-                        </button>
 
                         {isWhitelisted && (
                           <>
@@ -942,7 +877,35 @@ export default function App() {
                 <main className="flex-grow">
                 <Suspense fallback={<div className="fixed inset-0 z-[100] bg-white flex items-center justify-center"><div className="w-10 h-10 border-2 border-gold border-t-transparent rounded-full animate-spin" /></div>}>
                 <AnimatePresence mode="wait">
-                  {view === 'past-ventures' ? (
+                  {view === 'about' ? (
+                    <motion.div key="about" initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <AboutPage />
+                    </motion.div>
+                  ) : view === 'businesses' ? (
+                    <motion.div key="businesses" initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <BusinessesPage data={data} />
+                    </motion.div>
+                  ) : view === 'newsletter' ? (
+                    <motion.div key="newsletter" initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <NewsletterPage />
+                    </motion.div>
+                  ) : view === 'contact' ? (
+                    <motion.div key="contact" initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <ContactPage />
+                    </motion.div>
+                  ) : view === 'past-ventures' ? (
                     <motion.div
                       key="past-ventures"
                       initial={{ opacity: 0, y: 20 }}
@@ -1032,7 +995,7 @@ export default function App() {
                 )}
               </AnimatePresence>
 
-              {/* Shared Footer - Visible for home, past-ventures, blog, privacy-policy, and terms-of-service */}
+              {/* Shared footer - all public pages */}
               {showPublicChrome && (
                 <footer id="contact" className="pt-20 md:pt-28 pb-10 px-6 md:px-12 bg-ink text-white scroll-mt-16">
                   <div className="max-w-7xl mx-auto">
@@ -1061,8 +1024,8 @@ export default function App() {
                           Real estate, hospitality and mobility businesses in Pattaya, Thailand.
                         </p>
                         <div className="flex gap-4">
-                          {[Linkedin].map((Icon, i) => (
-                            <a key={i} href="https://www.linkedin.com/in/shaneruddle/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:border-gold hover:text-gold transition-all">
+                          {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+                            <a key={label} href={href} aria-label={label} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:border-gold hover:text-gold transition-all">
                               <Icon className="w-4 h-4" />
                             </a>
                           ))}
@@ -1072,27 +1035,17 @@ export default function App() {
                       <div className="md:col-span-2">
                         <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-6">Navigation</h5>
                         <ul className="space-y-4">
-                          {["About", "Companies", "Values", "Contact"].map((item) => (
-                            <li key={item}>
-                              <button 
-                                onClick={() => navigateTo(item)} 
-                                className="text-sm text-white/60 hover:text-white transition-colors font-light text-left"
+                          {[...NAV_LINKS, { label: 'Newsletter', view: 'newsletter' as View }].map((link) => (
+                            <li key={link.view}>
+                              <a
+                                href={VIEW_PATHS[link.view]}
+                                onClick={handleLinkClick}
+                                className="text-sm text-white/60 hover:text-white transition-colors font-light"
                               >
-                                {item}
-                              </button>
+                                {link.label}
+                              </a>
                             </li>
                           ))}
-                          <li>
-                            <button 
-                              onClick={() => {
-                                setView('past-ventures');
-                                window.scrollTo(0, 0);
-                              }}
-                              className="text-sm text-white/60 hover:text-white transition-colors font-light"
-                            >
-                              Past Ventures
-                            </button>
-                          </li>
                           {(displayProfile?.roles?.includes('admin') || 
                             displayProfile?.roles?.includes('accounts') || 
                             displayProfile?.roles?.includes('manager') || 
@@ -1123,74 +1076,15 @@ export default function App() {
                       </div>
 
                       <div className="md:col-span-5">
-                        <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-6">Get in Touch</h5>
-                        <AnimatePresence mode="wait">
-                          {submitted ? (
-                            <motion.div 
-                              key="success-message"
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                              className="p-8 bg-white/5 border border-gold/30 rounded-2xl text-center"
-                            >
-                              <div className="w-12 h-12 bg-gold/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <Sparkles className="w-6 h-6 text-gold" />
-                              </div>
-                              <p className="text-sm text-white/70 font-light leading-relaxed mb-8">
-                                Thank you very much for getting in touch, I will get back to you as soon as possible. Thank you! Shane Ruddle
-                              </p>
-                              <button 
-                                onClick={() => setSubmitted(false)}
-                                className="text-[10px] uppercase tracking-widest font-bold text-gold hover:text-gold-dark transition-colors"
-                              >
-                                Send another message
-                              </button>
-                            </motion.div>
-                          ) : (
-                            <motion.form 
-                              key="contact-form"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                              onSubmit={handleFormSubmit} 
-                              className="space-y-4"
-                            >
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <input 
-                                  type="text" 
-                                  placeholder="Name"
-                                  required
-                                  value={formState.name}
-                                  onChange={(e) => setFormState({...formState, name: e.target.value})}
-                                  className="bg-white/[0.04] border border-white/15 text-white placeholder:text-white/40 rounded-lg px-4 py-3 text-sm font-light focus:outline-none focus:border-gold transition-colors w-full"
-                                />
-                                <input 
-                                  type="email" 
-                                  placeholder="Email"
-                                  required
-                                  value={formState.email}
-                                  onChange={(e) => setFormState({...formState, email: e.target.value})}
-                                  className="bg-white/[0.04] border border-white/15 text-white placeholder:text-white/40 rounded-lg px-4 py-3 text-sm font-light focus:outline-none focus:border-gold transition-colors w-full"
-                                />
-                              </div>
-                              <textarea 
-                                placeholder="Message"
-                                required
-                                rows={4}
-                                value={formState.message}
-                                onChange={(e) => setFormState({...formState, message: e.target.value})}
-                                className="bg-white/[0.04] border border-white/15 text-white placeholder:text-white/40 rounded-lg px-4 py-3 text-sm font-light focus:outline-none focus:border-gold transition-colors w-full resize-none"
-                              />
-                              <button 
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="w-full bg-gold text-black font-bold py-3 rounded-lg text-xs uppercase tracking-widest hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                {isSubmitting ? "Sending..." : "Send Message"}
-                              </button>
-                            </motion.form>
-                          )}
-                        </AnimatePresence>
+                        <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-6">Newsletter</h5>
+                        <p className="text-sm text-white/55 font-light leading-relaxed mb-5">
+                          One email a week on property, business and life in Pattaya.
+                        </p>
+                        {view === 'newsletter' ? (
+                          <a href="/newsletter" className="text-sm text-gold">Sign up above ↑</a>
+                        ) : (
+                          <NewsletterSignup dark source="footer" />
+                        )}
                       </div>
                     </div>
 
@@ -1199,24 +1093,12 @@ export default function App() {
                         © 2026 Shane Ruddle. All Rights Reserved.
                       </div>
                       <div className="flex gap-8 text-[10px] uppercase tracking-widest text-white/40">
-                        <button 
-                          onClick={() => {
-                            setView('privacy-policy');
-                            window.scrollTo(0, 0);
-                          }}
-                          className="hover:text-gold transition-colors"
-                        >
+                        <a href={VIEW_PATHS['privacy-policy']} onClick={handleLinkClick} className="hover:text-gold transition-colors">
                           Privacy Policy
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setView('terms-of-service');
-                            window.scrollTo(0, 0);
-                          }}
-                          className="hover:text-gold transition-colors"
-                        >
+                        </a>
+                        <a href={VIEW_PATHS['terms-of-service']} onClick={handleLinkClick} className="hover:text-gold transition-colors">
                           Terms of Service
-                        </button>
+                        </a>
                       </div>
                     </div>
                   </div>
