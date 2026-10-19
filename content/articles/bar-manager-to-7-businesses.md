@@ -45,7 +45,7 @@ Hemingways Jomtien was pure timing. I'd told a mutual friend I had money to inve
 
 Alan Bolton Property Consultants took years. I'd known Alan for a long time and helped him with his social media and online marketing, acting as his boots on the ground after he moved back to the UK. One day I asked if he'd ever sell. What followed was years of back and forth: when he was ready, I wasn't, and when I was, he wasn't. Eventually he rang and said, "Enough's enough," and this time I was in a position to buy.
 
-After Hemingways Lakeside came Cajun Life Cafe, which was a chance to reward loyalty. I gave a long-standing member of my team the option to buy in with me.
+After Hemingways Lakeside came Cajun Life Cafe, which was [a chance to reward loyalty](/articles/hiring-foreign-staff-in-pattaya). I gave a long-standing member of my team the option to buy in with me.
 
 East Coast Real Estate came from paying attention. At a meeting of Pattaya agency owners, David Gray, East Coast's owner, made an off-the-cuff remark about selling. Nobody reacted, but I made a note of it and called him the next day. He said there was nothing in it, but we met anyway, and I made it clear that if he ever wanted to sell, I'd like to hear first. Out of the blue, he later rang to say he was ready to retire, and I had first refusal.
 
