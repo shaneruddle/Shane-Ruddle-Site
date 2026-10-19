@@ -13,7 +13,9 @@ import {
   Sparkles
 } from 'lucide-react';
 import type { BlogPost } from '../firebase';
-import { format } from 'date-fns';
+// Dates are shown in Pattaya time so every visitor sees the publish date as written.
+const formatPostDate = (d: Date, month: 'long' | 'short') =>
+  d.toLocaleDateString('en-US', { month, day: '2-digit', year: 'numeric', timeZone: 'Asia/Bangkok' });
 import ReactMarkdown from 'react-markdown';
 import { cn } from '../lib/utils';
 import { navigate, handleLinkClick } from '../lib/navigation';
@@ -181,7 +183,7 @@ export default function BlogPage({ onBack }: BlogPageProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-gold" />
-                  {selectedPost.createdAt ? format(selectedPost.createdAt.toDate(), 'MMMM dd, yyyy') : 'Recently'}
+                  {selectedPost.createdAt ? formatPostDate(selectedPost.createdAt.toDate(), 'long') : 'Recently'}
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-gold" />
@@ -355,7 +357,7 @@ export default function BlogPage({ onBack }: BlogPageProps) {
                   <div className="flex items-center gap-4 text-[10px] uppercase tracking-widest text-black/40 mb-4 font-bold">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3 text-gold" />
-                      {post.createdAt ? format(post.createdAt.toDate(), 'MMM dd, yyyy') : 'Recently'}
+                      {post.createdAt ? formatPostDate(post.createdAt.toDate(), 'short') : 'Recently'}
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3 text-gold" />

@@ -83,7 +83,7 @@ export function renderPage(path: string): string {
 }
 
 const fmtDate = (iso?: string) =>
-  iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "";
+  iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Bangkok" }) : "";
 
 export function renderArticleList(articles: StaticArticle[]): string {
   return renderToString(
