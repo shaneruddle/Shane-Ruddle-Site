@@ -49,6 +49,7 @@ function page({ urlPath, title, description, body, ogType = "website", image = D
     `<meta name="twitter:title" content="${esc(title)}" />`,
     `<meta name="twitter:description" content="${esc(description)}" />`,
     `<meta name="twitter:image" content="${esc(image)}" />`,
+    `<link rel="alternate" type="application/rss+xml" title="Shane Ruddle — Articles" href="${SITE_URL}/rss.xml" />`,
     ...schemas.map(jsonLd),
   ].join("\n    ");
 
@@ -173,10 +174,41 @@ for (const a of articles) {
     body: ssr.renderArticle(a),
     ogType: "article",
     image: a.imageUrl || DEFAULT_OG_IMAGE,
-    schemas: [schema],
+    schemas: [schema, {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
+        { "@type": "ListItem", position: 2, name: "Articles", item: `${SITE_URL}/articles` },
+        { "@type": "ListItem", position: 3, name: a.title, item: SITE_URL + urlPath },
+      ],
+    }],
   }));
   urls.push({ loc: urlPath, lastmod: a.updatedAt });
 }
+
+// ---- rss.xml (latest articles, for feed readers and newsletter tools) ----
+const rssDate = (iso) => (iso ? new Date(iso).toUTCString() : "");
+const rss = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Shane Ruddle — Articles</title>
+    <link>${SITE_URL}/articles</link>
+    <description>${esc(PAGE_META["/articles"].description)}</description>
+    <language>en-gb</language>
+    <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/rss+xml" />
+${articles.slice(0, 50).map((a) => `    <item>
+      <title>${esc(a.title)}</title>
+      <link>${SITE_URL}/articles/${esc(a.slug)}</link>
+      <guid isPermaLink="true">${SITE_URL}/articles/${esc(a.slug)}</guid>
+      <description>${esc(a.description)}</description>
+      ${a.category ? `<category>${esc(a.category)}</category>` : ""}
+      ${a.createdAt ? `<pubDate>${rssDate(a.createdAt)}</pubDate>` : ""}
+    </item>`).join("\n")}
+  </channel>
+</rss>
+`;
+fs.writeFileSync(path.join(DIST, "rss.xml"), rss);
 
 // ---- sitemap.xml + robots.txt ----
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

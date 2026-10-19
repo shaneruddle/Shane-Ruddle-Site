@@ -2,7 +2,6 @@
 // Produces the HTML that search engines and social crawlers see; the browser app replaces it on load.
 import { ReactNode } from "react";
 import { renderToString } from "react-dom/server";
-import ReactMarkdown from "react-markdown";
 import HomePage from "../components/HomePage";
 import AboutPage from "../components/AboutPage";
 import BusinessesPage from "../components/BusinessesPage";
@@ -12,6 +11,7 @@ import PastVentures from "../components/PastVentures";
 import PrivacyPolicy from "../components/PrivacyPolicy";
 import TermsOfService from "../components/TermsOfService";
 import PageHero from "../components/PageHero";
+import ArticleView from "../components/ArticleView";
 import { fallbackData } from "../types";
 
 export { FILE_ARTICLES } from "../lib/fileArticles";
@@ -109,18 +109,13 @@ export function renderArticleList(articles: StaticArticle[]): string {
 export function renderArticle(a: StaticArticle): string {
   return renderToString(
     <Shell>
-      <article className="pt-28 pb-24 px-6">
-        <div className="max-w-4xl mx-auto">
-          <a href="/articles" className="text-xs uppercase tracking-widest text-gold-deep">All articles</a>
-          <p className="mt-8 text-xs uppercase tracking-widest text-black/40">{[a.category, fmtDate(a.createdAt)].filter(Boolean).join(" · ")}</p>
-          <h1 className="font-serif text-4xl md:text-6xl leading-tight mt-2 mb-6">{a.title}</h1>
-          <p className="text-sm text-black/50 mb-10">By {a.authorName || "Shane Ruddle"}</p>
-          {a.imageUrl && <img src={a.imageUrl} alt={a.title} className="w-full rounded-3xl mb-10" />}
-          <div className="markdown-body text-black/70 font-light leading-relaxed text-lg">
-            <ReactMarkdown>{a.body}</ReactMarkdown>
-          </div>
-        </div>
-      </article>
+      <ArticleView
+        title={a.title}
+        body={a.body}
+        category={a.category}
+        createdAt={a.createdAt ? new Date(a.createdAt) : undefined}
+        imageUrl={a.imageUrl}
+      />
     </Shell>
   );
 }

@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useState, useRef, FormEvent, ReactNode, lazy, Suspense, Component } from "react";
+import { preloaded } from "./lib/preload";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Home, 
@@ -41,6 +42,11 @@ const NewsletterPage = lazy(() => import("./components/NewsletterPage"));
 const ContactPage = lazy(() => import("./components/ContactPage"));
 const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
 const BlogPage = lazy(() => import("./components/BlogPage"));
+// Use the copy main.tsx preloaded on article pages, so there is no blank loading frame.
+const BlogPageView = (props: { onBack: () => void }) => {
+  const Preloaded = preloaded.BlogPage;
+  return Preloaded ? <Preloaded {...props} /> : <BlogPage {...props} />;
+};
 const PrivacyPolicy = lazy(() => import("./components/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./components/TermsOfService"));
 const Auth = lazy(() => import("./components/Auth"));
@@ -957,7 +963,7 @@ export default function App() {
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ duration: 0.4 }}
                     >
-                      <BlogPage onBack={() => {
+                      <BlogPageView onBack={() => {
                         setView('home');
                         window.scrollTo(0, 0);
                       }} />

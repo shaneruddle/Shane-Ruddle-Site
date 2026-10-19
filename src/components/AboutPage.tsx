@@ -8,7 +8,7 @@ const MILESTONES: { year: string; title: string; text: string }[] = [
   { year: "2007", title: "First businesses in Pattaya", text: "Pattaya Job Centre, connecting Thai job seekers with employers, and Pattaya Guide, a pocket guide for visitors that I ran for ten years." },
   { year: "2009", title: "Fairways Golf Range", text: "A golf driving range and resort — a natural fit after my years as a PGA professional." },
   { year: "2010", title: "Pattaya Rent a Car", text: "Car and motorbike rental for visitors and residents. Still running, and still the business I've owned the longest." },
-  { year: "2015", title: "Birdie Thailand", text: "Co-founded a golf app for score tracking and community." },
+  { year: "2015", title: "Birdie Thailand", text: "Co-founded a golf handicap system to keep my tournament fair. It grew to members across Thailand before I handed it over to a golf charity." },
   { year: "2018", title: "Hemingways Jomtien", text: "The first Hemingways restaurant and bar, followed by Hemingways Pattaya in 2022 and Hemingways Lakeside in 2023." },
   { year: "2022", title: "Alan Bolton Property Consultants", text: "Took ownership of an established Pattaya real estate consultancy." },
   { year: "2024", title: "Cajun Life Cafe", text: "Added a Cajun kitchen to the hospitality group." },

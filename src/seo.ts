@@ -59,6 +59,7 @@ export const PAGE_META: Record<string, PageMeta> = {
 export const SAME_AS = [
   "https://www.facebook.com/shane.ruddle",
   "https://www.linkedin.com/in/shaneruddle/",
+  "https://x.com/shaneruddle",
 ];
 
 const ORGANISATIONS: { name: string; url: string }[] = [

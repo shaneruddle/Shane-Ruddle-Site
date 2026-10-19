@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { trackEvent } from "../lib/analytics";
 
@@ -22,9 +22,23 @@ export default function ArticleComments({ slug }: { slug: string }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState<false | "approved" | "pending">(false);
   const [error, setError] = useState("");
+  const sectionRef = useRef<HTMLElement>(null);
+  const [nearView, setNearView] = useState(false);
+
+  // Only load comments (and the Firebase code they need) when the reader scrolls near them.
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") { setNearView(true); return; }
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) { setNearView(true); observer.disconnect(); }
+    }, { rootMargin: "600px 0px" });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   // Firebase loads lazily, as on the article list, so the article still renders if it can't start.
   useEffect(() => {
+    if (!nearView) return;
     let unsubscribe = () => {};
     let cancelled = false;
     Promise.all([import("../firebase"), import("firebase/firestore")])
@@ -39,7 +53,7 @@ export default function ArticleComments({ slug }: { slug: string }) {
       })
       .catch((err) => console.error("Could not load comments:", err instanceof Error ? err.message : err));
     return () => { cancelled = true; unsubscribe(); };
-  }, [slug]);
+  }, [slug, nearView]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -88,7 +102,7 @@ export default function ArticleComments({ slug }: { slug: string }) {
   const field = "w-full bg-white border border-black/10 rounded-xl px-4 py-3 text-ink placeholder:text-black/35 focus:border-gold-deep focus:outline-none transition-colors";
 
   return (
-    <section className="mt-24" aria-labelledby="comments-heading">
+    <section ref={sectionRef} className="mt-24" aria-labelledby="comments-heading">
       <h4 id="comments-heading" className="text-3xl font-serif mb-8 flex items-center gap-3">
         <MessageCircle className="w-6 h-6 text-gold-deep" />
         {comments.length ? `Comments (${comments.length})` : "Comments"}

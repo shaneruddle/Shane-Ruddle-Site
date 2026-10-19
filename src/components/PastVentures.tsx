@@ -15,7 +15,7 @@ const ventures: Venture[] = [
   { years: "Apr 2009 – Jul 2012", name: "Fairways Golf Range", desc: "Operated a golf driving range and resort in Pattaya.", progress: "45%" },
   { years: "Jan 2010 – Present", name: "Pattaya Rent a Car", desc: "Owner of a long-standing car and motorbike rental company in Pattaya.", progress: "90%", url: "https://www.pattayarentacar.com/" },
   { years: "Jan 2010 – Jan 2020", name: "Pattaya Amateur Golf Series", desc: "Organised an annual amateur golf tournament series in Pattaya.", progress: "75%" },
-  { years: "Jun 2015 – Present", name: "Birdie Thailand", desc: "Co-Founder of a golf app/platform for score tracking and community.", progress: "85%" },
+  { years: "From Jun 2015", name: "Birdie Thailand", desc: "Co-founded a golf handicap system that grew to members across Thailand; handed over to a golf charity after six or seven years.", progress: "85%" },
   { years: "Feb 2018 – Present", name: "Hemingways Jomtien", desc: "Owner of the Hemingways restaurant and bar in Jomtien.", progress: "95%", url: "https://www.hemingwaysjomtien.com/" },
   { years: "Mar 2022 – Present", name: "Hemingways Pattaya", desc: "Owner of the central Pattaya venue.", progress: "65%", url: "https://www.hemingwayspattaya.com/" },
   { years: "Sep 2022 – Present", name: "Alan Bolton Property Consultants", desc: "Owner of established real estate consultancy in Pattaya.", progress: "50%", url: "https://www.pattaya-property.net/" },

@@ -2,6 +2,9 @@ import { ReactNode, useState } from "react";
 import { motion } from "motion/react";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import { BusinessInfo, Company } from "../types";
+import { FILE_ARTICLES } from "../lib/fileArticles";
+import { handleLinkClick } from "../lib/navigation";
+import NewsletterSignup from "./NewsletterSignup";
 
 // Public homepage. Content comes from fallbackData in src/types.ts (bundled, no Firestore).
 
@@ -257,6 +260,48 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Latest articles + newsletter */}
+      <section id="articles" className="bg-paper border-t border-black/10 py-20 md:py-32 px-6 md:px-12 scroll-mt-20">
+        <div className="max-w-7xl mx-auto">
+          <Reveal className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12 md:mb-16">
+            <div>
+              <Eyebrow>Latest articles</Eyebrow>
+              <h2 className="font-serif text-4xl md:text-6xl leading-[1.08]">
+                What I've <span className="italic text-gold-deep">learned here.</span>
+              </h2>
+            </div>
+            <a href="/articles" onClick={handleLinkClick} className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-gold-deep hover:text-ink transition-colors">
+              All articles <ArrowRight className="w-4 h-4" />
+            </a>
+          </Reveal>
+          <div className="grid gap-5 md:grid-cols-3">
+            {[...FILE_ARTICLES].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3).map((a) => (
+              <a
+                key={a.slug}
+                href={`/articles/${a.slug}`}
+                onClick={handleLinkClick}
+                className="group flex flex-col bg-white border border-black/[0.08] rounded-[16px] p-6 md:p-8 transition-all duration-300 hover:border-gold/60 hover:shadow-xl hover:shadow-black/[0.06]"
+              >
+                <span className="text-[11px] uppercase tracking-[0.2em] text-black/45 mb-3">{a.category}</span>
+                <h3 className="font-serif text-2xl leading-snug text-ink mb-3 group-hover:text-gold-deep transition-colors">{a.title}</h3>
+                <p className="text-sm text-black/60 leading-relaxed flex-1">{a.description}</p>
+                <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium tracking-wide text-gold-deep">
+                  Read <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </a>
+            ))}
+          </div>
+
+          <div className="mt-16 md:mt-20 p-8 md:p-12 bg-ink rounded-[2rem] grid lg:grid-cols-2 gap-8 items-center">
+            <div>
+              <h3 className="text-3xl md:text-4xl font-serif text-white mb-2">Get the next article by email</h3>
+              <p className="text-white/60 font-light">One short email a week on property, business and life in Pattaya. Free, no spam.</p>
+            </div>
+            <NewsletterSignup dark source="homepage" />
           </div>
         </div>
       </section>
