@@ -20,6 +20,7 @@ import ReactMarkdown from 'react-markdown';
 import { cn } from '../lib/utils';
 import { navigate, handleLinkClick } from '../lib/navigation';
 import NewsletterSignup from './NewsletterSignup';
+import ArticleComments from './ArticleComments';
 import { applyPageMeta, PAGE_META } from '../seo';
 import { FILE_ARTICLES } from '../lib/fileArticles';
 
@@ -249,6 +250,8 @@ export default function BlogPage({ onBack }: BlogPageProps) {
             <p className="text-white/60 font-light mb-6">One email a week on property, business and life in Pattaya.</p>
             <NewsletterSignup dark source="article" />
           </div>
+
+          <ArticleComments slug={selectedPost.slug || selectedPost.id} />
         </div>
       </motion.div>
     );
