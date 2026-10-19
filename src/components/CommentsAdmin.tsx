@@ -11,6 +11,7 @@ interface ArticleComment {
   body: string;
   status: 'pending' | 'approved';
   createdAt?: Timestamp;
+  moderation?: { decision: string; reason: string; by: string };
 }
 
 const formatDateTime = (t?: Timestamp) =>
@@ -112,6 +113,11 @@ export default function CommentsAdmin() {
                 /articles/{c.articleSlug} <ExternalLink className="w-3 h-3" />
               </a>
               <p className="text-black/70 font-light leading-relaxed whitespace-pre-line break-words mb-4">{c.body}</p>
+              {c.moderation?.reason && (
+                <p className="text-xs text-black/40 mb-4">
+                  {c.moderation.decision === 'approved' ? 'Auto-approved' : 'Held by AI check'}: {c.moderation.reason}
+                </p>
+              )}
               <div className="flex gap-2">
                 {c.status === 'pending' && (
                   <button

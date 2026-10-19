@@ -4,11 +4,13 @@ import path from "path";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import cors from "cors";
+import { initializeApp as initializeAdminApp, getApps } from "firebase-admin/app";
+import { getFirestore as getAdminFirestore, FieldValue, Firestore } from "firebase-admin/firestore";
 
 dotenv.config();
 
 // The backend sends notification emails (discount redemptions, contact form), handles newsletter
-// sign-ups, and serves the built site. Shane OS (PRAC assistant, tasks, costs, data audit) was removed.
+// sign-ups and article comments (with AI moderation), and serves the built site. Shane OS (PRAC assistant, tasks, costs, data audit) was removed.
 
 async function startServer() {
   const app = express();
@@ -149,6 +151,100 @@ async function startServer() {
     } catch (error) {
       console.error("Brevo sign-up error:", error instanceof Error ? error.message : error);
       res.status(502).json({ error: "Could not subscribe right now. Please try again." });
+    }
+  });
+
+  // ---- Article comments ----
+  // Comments are saved server-side so approval can't be faked from the browser. Each one is checked by
+  // Claude: clearly fine comments go live straight away, anything doubtful (or any error, or no
+  // ANTHROPIC_API_KEY) is saved as "pending" for approval in the portal's Comments tab.
+  let commentsDb: Firestore | null = null;
+  const getCommentsDb = () => {
+    if (!commentsDb) {
+      const adminApp = getApps().length ? getApps()[0] : initializeAdminApp({ projectId: "shane-ruddle-site" });
+      commentsDb = getAdminFirestore(adminApp);
+    }
+    return commentsDb;
+  };
+
+  const MODERATION_PROMPT = `You moderate comments on shaneruddle.com, the personal website of Shane Ruddle, a business owner in Pattaya, Thailand. His articles exist to build trust, so nothing negative or controversial should appear under his name without him seeing it first.
+
+Approve a comment ONLY if it is clearly fine: a genuine, friendly or constructive reaction, question, personal experience or polite disagreement related to the article or to Pattaya.
+
+Do NOT approve (send for manual review) if it contains or might contain any of: links, emails, phone numbers or promotion of a business or service; spam or gibberish; insults, rudeness, sarcasm aimed at Shane or anyone else; criticism of named people, staff or businesses; politics, religion, the Thai monarchy or government, immigration debates; generalisations about nationalities or groups; sexual content or references to the nightlife trade; personal or private information; anything you are unsure about.
+
+Reply with JSON only, no other text: {"approve": true or false, "reason": "a few words"}`;
+
+  const moderateComment = async (articleSlug: string, name: string, body: string) => {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) return { approve: false, reason: "No AI check configured" };
+    if (/https?:\/\/|www\.|\.(com|net|org|io|co|th)\b|@[a-z0-9-]+\./i.test(body + " " + name)) {
+      return { approve: false, reason: "Contains a link or contact details" };
+    }
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        body: JSON.stringify({
+          model: process.env.COMMENT_MODEL || "claude-haiku-5-5",
+          max_tokens: 100,
+          system: MODERATION_PROMPT,
+          messages: [{
+            role: "user",
+            content: `Article: /articles/${articleSlug}\nCommenter name: ${name}\nComment:\n<<<\n${body}\n>>>`,
+          }],
+        }),
+      });
+      if (!response.ok) throw new Error(`Anthropic API ${response.status}`);
+      const data = await response.json() as { content?: { type: string; text?: string }[] };
+      const text = data.content?.find(c => c.type === "text")?.text || "";
+      const json = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
+      return { approve: json.approve === true, reason: oneLine(json.reason, 120) || "No reason given" };
+    } catch (error) {
+      console.error("Comment moderation failed:", error instanceof Error ? error.message : error);
+      return { approve: false, reason: "AI check failed" };
+    }
+  };
+
+  // Light per-IP rate limit (in memory, per instance): at most 5 comments in 10 minutes.
+  const commentHits = new Map<string, number[]>();
+  const tooManyComments = (ip: string) => {
+    const now = Date.now();
+    const recent = (commentHits.get(ip) || []).filter(t => now - t < 10 * 60 * 1000);
+    recent.push(now);
+    commentHits.set(ip, recent);
+    return recent.length > 5;
+  };
+
+  app.post("/api/comments", async (req, res) => {
+    const articleSlug = oneLine(req.body?.articleSlug, 200);
+    const name = oneLine(req.body?.name, 60);
+    const body = String(req.body?.body ?? "").trim().slice(0, 2000);
+    if (req.body?.website) return res.json({ status: "pending" }); // honeypot filled: quietly drop
+    if (!articleSlug || !name || !body) {
+      return res.status(400).json({ error: "Please add your name and a comment." });
+    }
+    const ip = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+    if (tooManyComments(ip)) {
+      return res.status(429).json({ error: "Too many comments in a short time. Please try again later." });
+    }
+    try {
+      const verdict = await moderateComment(articleSlug, name, body);
+      const status = verdict.approve ? "approved" : "pending";
+      await getCommentsDb().collection("comments").add({
+        articleSlug,
+        name,
+        body,
+        status,
+        createdAt: FieldValue.serverTimestamp(),
+        moderation: { decision: status, reason: verdict.reason, by: "ai" },
+        ...(verdict.approve ? { approvedAt: FieldValue.serverTimestamp() } : {}),
+      });
+      console.log(`Comment on ${articleSlug} saved as ${status} (${verdict.reason})`);
+      res.json({ status });
+    } catch (error) {
+      console.error("ERROR: Failed to save comment:", error instanceof Error ? error.message : error);
+      res.status(500).json({ error: "Failed to save comment" });
     }
   });
 

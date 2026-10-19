@@ -12,14 +12,15 @@ interface PublicComment {
 const formatCommentDate = (d: Date) =>
   d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Bangkok" });
 
-// Public comments under an article. New comments are saved as "pending" and only appear once approved in the portal.
+// Public comments under an article. New comments go to /api/comments, where an AI check publishes clearly
+// fine ones straight away and holds the rest as "pending" for approval in the portal.
 export default function ArticleComments({ slug }: { slug: string }) {
   const [comments, setComments] = useState<PublicComment[]>([]);
   const [name, setName] = useState("");
   const [body, setBody] = useState("");
   const [website, setWebsite] = useState(""); // honeypot: hidden from people, often filled in by bots
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [submitted, setSubmitted] = useState<false | "approved" | "pending">(false);
   const [error, setError] = useState("");
 
   // Firebase loads lazily, as on the article list, so the article still renders if it can't start.
@@ -42,28 +43,43 @@ export default function ArticleComments({ slug }: { slug: string }) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (website) { setSubmitted(true); return; }
+    if (website) { setSubmitted("pending"); return; }
     const trimmedName = name.trim();
     const trimmedBody = body.trim();
     if (!trimmedName || !trimmedBody) return;
     setIsSubmitting(true);
     setError("");
+    const comment = { articleSlug: slug, name: trimmedName.slice(0, 60), body: trimmedBody.slice(0, 2000) };
     try {
-      const [{ db }, { collection, addDoc, serverTimestamp }] = await Promise.all([import("../firebase"), import("firebase/firestore")]);
-      await addDoc(collection(db, "comments"), {
-        articleSlug: slug,
-        name: trimmedName.slice(0, 60),
-        body: trimmedBody.slice(0, 2000),
-        status: "pending",
-        createdAt: serverTimestamp(),
-      });
-      trackEvent("comment_submitted", { article: slug });
-      setSubmitted(true);
+      let status: "approved" | "pending" = "pending";
+      let response: Response | null = null;
+      try {
+        response = await fetch("/api/comments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...comment, website }),
+        });
+      } catch {
+        response = null;
+      }
+      if (response && response.ok) {
+        status = (await response.json()).status === "approved" ? "approved" : "pending";
+      } else if (response && response.status < 500) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Comment rejected");
+      } else {
+        // Server unavailable: fall back to saving it straight to the approval queue.
+        const [{ db }, { collection, addDoc, serverTimestamp }] = await Promise.all([import("../firebase"), import("firebase/firestore")]);
+        await addDoc(collection(db, "comments"), { ...comment, status: "pending", createdAt: serverTimestamp() });
+      }
+      trackEvent("comment_submitted", { article: slug, status });
+      setSubmitted(status);
       setName("");
       setBody("");
     } catch (err) {
       console.error("Error saving comment:", err instanceof Error ? err.message : "Unknown error");
-      setError("Sorry, your comment couldn't be sent. Please try again in a moment.");
+      const message = err instanceof Error && err.message.startsWith("Too many") ? err.message : "Sorry, your comment couldn't be sent. Please try again in a moment.";
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -97,7 +113,9 @@ export default function ArticleComments({ slug }: { slug: string }) {
       {submitted ? (
         <div className="p-8 border border-gold/30 rounded-2xl bg-cream text-center">
           <p className="text-black/70 font-light leading-relaxed mb-4">
-            Thanks for your comment. It will appear here once it has been approved.
+            {submitted === "approved"
+              ? "Thanks for your comment. It's now live above."
+              : "Thanks for your comment. It will appear here once it has been approved."}
           </p>
           <button
             onClick={() => setSubmitted(false)}
