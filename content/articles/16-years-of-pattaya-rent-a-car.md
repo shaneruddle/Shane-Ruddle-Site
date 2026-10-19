@@ -9,7 +9,7 @@ In 2010 I didn't set out to build a car rental company. I owned a golf driving r
 
 ## It started at a driving range
 
-I owned Fairways driving range, and we had a few rooms on site. Customers kept asking the same question: where can I rent a bike or a car? It seemed like a natural add-on.
+I owned Fairways driving range, [one of a string of ventures I've had in Pattaya](/articles/bar-manager-to-7-businesses), and we had a few rooms on site. Customers kept asking the same question: where can I rent a bike or a car? It seemed like a natural add-on.
 
 The real push, though, came from my business partner. He was looking for something to get his teeth into and liked the idea of a car rental business. So we started small, with just 12 cars.
 
