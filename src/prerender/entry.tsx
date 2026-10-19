@@ -14,6 +14,7 @@ import TermsOfService from "../components/TermsOfService";
 import PageHero from "../components/PageHero";
 import { fallbackData } from "../types";
 
+export { FILE_ARTICLES } from "../lib/fileArticles";
 export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema } from "../seo";
 
 export interface StaticArticle {

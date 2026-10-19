@@ -12,14 +12,34 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react';
-import { db, BlogPost } from '../firebase';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import type { BlogPost } from '../firebase';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '../lib/utils';
 import { navigate, handleLinkClick } from '../lib/navigation';
 import NewsletterSignup from './NewsletterSignup';
 import { applyPageMeta, PAGE_META } from '../seo';
+import { FILE_ARTICLES } from '../lib/fileArticles';
+
+// Articles committed as files (content/articles) in the same shape as Firestore posts.
+const filePosts: BlogPost[] = FILE_ARTICLES.map(a => ({
+  id: a.slug,
+  slug: a.slug,
+  title: a.title,
+  metaDescription: a.description,
+  body: a.body,
+  category: a.category as BlogPost['category'],
+  imageUrl: a.image,
+  authorName: 'Shane Ruddle',
+  published: true,
+  createdAt: { toDate: () => new Date(`${a.date}T00:00:00+07:00`) } as BlogPost['createdAt'],
+}));
+
+const mergePosts = (firestorePosts: BlogPost[]) => {
+  const fileSlugs = new Set(filePosts.map(p => p.slug));
+  return [...filePosts, ...firestorePosts.filter(p => !fileSlugs.has(p.slug || p.id))]
+    .sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
+};
 
 // Each article lives at /articles/<slug> (slug field, or the doc id when no slug is set).
 const articlePath = (post: BlogPost) => `/articles/${post.slug || post.id}`;
@@ -35,7 +55,7 @@ interface BlogPageProps {
 const CATEGORIES = ['All', 'My Advice', 'Property', 'Car Rental', 'Pattaya News'] as const;
 
 export default function BlogPage({ onBack }: BlogPageProps) {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [posts, setPosts] = useState<BlogPost[]>(filePosts);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<typeof CATEGORIES[number]>('All');
@@ -47,27 +67,28 @@ export default function BlogPage({ onBack }: BlogPageProps) {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
+  // Firestore posts load lazily so file-based articles still show if Firebase can't start.
   useEffect(() => {
-    const blogRef = collection(db, 'blog');
-    const q = query(
-      blogRef, 
-      where('published', '==', true),
-      orderBy('createdAt', 'desc')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedPosts = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as BlogPost));
-      setPosts(fetchedPosts);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching blog posts:", error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    let unsubscribe = () => {};
+    let cancelled = false;
+    Promise.all([import('../firebase'), import('firebase/firestore')])
+      .then(([{ db }, { collection, query, where, orderBy, onSnapshot }]) => {
+        if (cancelled) return;
+        const q = query(collection(db, 'blog'), where('published', '==', true), orderBy('createdAt', 'desc'));
+        unsubscribe = onSnapshot(q, (snapshot) => {
+          const fetchedPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BlogPost));
+          setPosts(mergePosts(fetchedPosts));
+          setLoading(false);
+        }, (error) => {
+          console.error("Error fetching blog posts:", error);
+          setLoading(false);
+        });
+      })
+      .catch((error) => {
+        console.error("Could not load Firestore posts:", error instanceof Error ? error.message : error);
+        setLoading(false);
+      });
+    return () => { cancelled = true; unsubscribe(); };
   }, []);
 
   const filteredPosts = posts.filter(post => {

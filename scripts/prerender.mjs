@@ -118,6 +118,21 @@ try {
 } catch (err) {
   console.warn("prerender: could not fetch articles —", err.message);
 }
+// Articles committed as files (content/articles/*.md) take precedence over Firestore posts with the same slug.
+const fileArticles = ssr.FILE_ARTICLES.map((a) => ({
+  slug: a.slug,
+  title: a.title,
+  description: a.description,
+  body: a.body,
+  category: a.category,
+  imageUrl: a.image ? (a.image.startsWith("/") ? SITE_URL + a.image : a.image) : "",
+  authorName: "Shane Ruddle",
+  createdAt: `${a.date}T00:00:00+07:00`,
+  updatedAt: `${a.date}T00:00:00+07:00`,
+}));
+const fileSlugs = new Set(fileArticles.map((a) => a.slug));
+articles = [...fileArticles, ...articles.filter((a) => !fileSlugs.has(a.slug))]
+  .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
 
 // ---- Pages ----
 const urls = [];
