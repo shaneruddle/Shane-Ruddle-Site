@@ -7,8 +7,8 @@ import cors from "cors";
 
 dotenv.config();
 
-// The backend now only sends notification emails (discount redemptions, contact form) and
-// serves the built site. Shane OS (PRAC assistant, tasks, costs, data audit) was removed.
+// The backend sends notification emails (discount redemptions, contact form), handles newsletter
+// sign-ups, and serves the built site. Shane OS (PRAC assistant, tasks, costs, data audit) was removed.
 
 async function startServer() {
   const app = express();
@@ -17,117 +17,101 @@ async function startServer() {
   app.use(cors());
   app.use(express.json());
 
+  // ---- Outgoing email ----
+  // Notification emails go to Shane. Sent through Brevo's transactional API when BREVO_API_KEY is set
+  // (same key as the newsletter), otherwise through SMTP if real SMTP credentials are configured.
+  // If neither is available the request fails loudly instead of reporting success.
+  const NOTIFY_TO = "shaneruddle@gmail.com";
+  // Must be a verified Brevo sender. Override with MAIL_FROM_EMAIL / MAIL_FROM_NAME.
+  const FROM_EMAIL = process.env.MAIL_FROM_EMAIL || "info@pattayarentacar.com";
+  const FROM_NAME = process.env.MAIL_FROM_NAME || "shaneruddle.com";
+
+  const escapeHtml = (value: unknown) =>
+    String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  const oneLine = (value: unknown, max = 200) => String(value ?? "").replace(/[\r\n]+/g, " ").trim().slice(0, max);
+
+  const smtpConfigured = () =>
+    !!(process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_USER !== "test@example.com" && process.env.SMTP_PASS !== "REPLACE_ME");
+
+  async function sendNotification({ subject, html, text, replyTo }: { subject: string; html: string; text: string; replyTo?: string }) {
+    if (process.env.BREVO_API_KEY) {
+      const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          sender: { email: FROM_EMAIL, name: FROM_NAME },
+          to: [{ email: NOTIFY_TO, name: "Shane Ruddle" }],
+          ...(replyTo ? { replyTo: { email: replyTo } } : {}),
+          subject,
+          htmlContent: html,
+          textContent: text,
+        }),
+      });
+      if (!response.ok) throw new Error(`Brevo send failed: ${response.status} ${(await response.text()).slice(0, 300)}`);
+      return;
+    }
+    if (smtpConfigured()) {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT) || 587,
+        secure: false,
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      });
+      await transporter.sendMail({ from: `"${FROM_NAME}" <${process.env.SMTP_USER}>`, to: NOTIFY_TO, replyTo, subject, html, text });
+      return;
+    }
+    throw new Error("No email provider configured (set BREVO_API_KEY or SMTP_* variables).");
+  }
+
+  const card = (title: string, rows: [string, unknown][], body?: string) => `
+    <div style="font-family: Georgia, serif; padding: 20px; border: 1px solid #E5E5E5; border-radius: 12px; max-width: 600px;">
+      <h2 style="color: #B8860B; margin-top: 0;">${escapeHtml(title)}</h2>
+      ${rows.map(([label, value]) => `<p><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</p>`).join("")}
+      ${body ? `<div style="background: #F9F9F9; padding: 15px; border-radius: 8px; border-left: 4px solid #D4AF37; white-space: pre-wrap;">${escapeHtml(body)}</div>` : ""}
+    </div>`;
+
   app.post("/api/notify-redemption", async (req, res) => {
-    const { employeeName, company, discountName, restaurantId, timestamp } = req.body;
-
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.ethereal.email",
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER || "test@example.com",
-        pass: process.env.SMTP_PASS || "password",
-      },
-    });
-
-    const mailOptions = {
-      from: '"Shane Ruddle Group" <notifications@shaneruddle.com>',
-      to: "shaneruddle@gmail.com",
-      subject: `Discount Redeemed: ${discountName} at ${restaurantId}`,
-      text: `
-        A discount has been redeemed!
-
-        Employee: ${employeeName}
-        Company: ${company}
-        Discount: ${discountName}
-        Location: ${restaurantId}
-        Time: ${new Date(timestamp).toLocaleString()}
-      `,
-      html: `
-        <div style="font-family: serif; padding: 20px; border: 1px solid #E5E5E5; border-radius: 12px;">
-          <h2 style="color: #D4AF37;">Discount Redemption Notification</h2>
-          <p><strong>Employee:</strong> ${employeeName}</p>
-          <p><strong>Company:</strong> ${company}</p>
-          <p><strong>Discount:</strong> ${discountName}</p>
-          <p><strong>Location:</strong> ${restaurantId}</p>
-          <p><strong>Time:</strong> ${new Date(timestamp).toLocaleString()}</p>
-        </div>
-      `,
-    };
-
+    const { employeeName, company, discountName, restaurantId, timestamp } = req.body || {};
+    const time = new Date(timestamp || Date.now()).toLocaleString("en-GB", { timeZone: "Asia/Bangkok" });
+    const rows: [string, unknown][] = [
+      ["Employee", employeeName], ["Company", company], ["Discount", discountName], ["Location", restaurantId], ["Time", time],
+    ];
     try {
-      if (process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_USER !== "test@example.com") {
-        await transporter.sendMail(mailOptions);
-        console.log(`SUCCESS: Redemption email sent to shaneruddle@gmail.com for ${employeeName}`);
-      } else {
-        console.warn("WARNING: SMTP credentials not configured or using default test values. Email NOT sent to shaneruddle@gmail.com.");
-        console.log("Email Content (Redemption):", mailOptions.text);
-        if ((transporter.options as any).host === "smtp.ethereal.email") {
-          const info = await transporter.sendMail(mailOptions);
-          console.log("Ethereal Email Sent: %s", info.messageId);
-          console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-        }
-      }
+      await sendNotification({
+        subject: `Discount redeemed: ${oneLine(discountName, 80)} at ${oneLine(restaurantId, 80)}`,
+        html: card("Discount Redemption", rows),
+        text: rows.map(([l, v]) => `${l}: ${v ?? ""}`).join("\n"),
+      });
       res.json({ success: true });
     } catch (error) {
-      console.error("ERROR: Failed to send redemption email:", error);
+      console.error("ERROR: Failed to send redemption email:", error instanceof Error ? error.message : error);
       res.status(500).json({ error: "Failed to send notification" });
     }
   });
 
   app.post("/api/contact", async (req, res) => {
-    const { name, email, message } = req.body;
-
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.ethereal.email",
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER || "test@example.com",
-        pass: process.env.SMTP_PASS || "password",
-      },
-    });
-
-    const mailOptions = {
-      from: `"Shane Ruddle Group Contact" <contact@shaneruddle.com>`,
-      to: "shaneruddle@gmail.com",
-      subject: `New Contact Form Submission from ${name}`,
-      text: `
-        New contact form submission:
-
-        Name: ${name}
-        Email: ${email}
-        Message: ${message}
-      `,
-      html: `
-        <div style="font-family: serif; padding: 20px; border: 1px solid #E5E5E5; border-radius: 12px;">
-          <h2 style="color: #D4AF37;">New Contact Form Submission</h2>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Message:</strong></p>
-          <div style="background: #F9F9F9; padding: 15px; border-radius: 8px; border-left: 4px solid #D4AF37;">
-            ${message.replace(/\n/g, '<br>')}
-          </div>
-        </div>
-      `,
-    };
-
+    const name = oneLine(req.body?.name, 120);
+    const email = oneLine(req.body?.email, 254);
+    const message = String(req.body?.message ?? "").trim().slice(0, 5000);
+    if (!name || !message || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "Please fill in your name, a valid email and a message." });
+    }
     try {
-      if (process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_USER !== "test@example.com") {
-        await transporter.sendMail(mailOptions);
-        console.log(`SUCCESS: Contact email sent to shaneruddle@gmail.com from ${name}`);
-      } else {
-        console.warn("WARNING: SMTP credentials not configured or using default test values. Contact email NOT sent to shaneruddle@gmail.com.");
-        console.log("Email Content (Contact):", mailOptions.text);
-        if ((transporter.options as any).host === "smtp.ethereal.email") {
-          const info = await transporter.sendMail(mailOptions);
-          console.log("Ethereal Contact Email Sent: %s", info.messageId);
-          console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-        }
-      }
+      await sendNotification({
+        subject: `New message from ${name} via shaneruddle.com`,
+        html: card("New Contact Form Message", [["Name", name], ["Email", email]], message),
+        text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
+        replyTo: email,
+      });
+      console.log(`Contact email sent for ${email}`);
       res.json({ success: true });
     } catch (error) {
-      console.error("ERROR: Failed to send contact email:", error);
+      console.error("ERROR: Failed to send contact email:", error instanceof Error ? error.message : error);
       res.status(500).json({ error: "Failed to send message" });
     }
   });
