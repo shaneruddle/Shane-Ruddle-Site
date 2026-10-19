@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { trackEvent } from "../lib/analytics";
 
 const THANKS = "Thank you very much for getting in touch, I will get back to you as soon as possible. Thank you! Shane Ruddle";
 
@@ -24,6 +25,7 @@ export default function ContactForm({ dark = true }: { dark?: boolean }) {
       });
       if (!response.ok) throw new Error("Failed to send message");
       setSubmitted(true);
+      trackEvent("generate_lead", { form: "contact", form_location: dark ? "footer" : "contact_page" });
       toast.success(THANKS);
       setFormState({ name: "", email: "", message: "" });
       setTimeout(() => setSubmitted(false), 5000);

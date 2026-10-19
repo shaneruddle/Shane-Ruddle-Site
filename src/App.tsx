@@ -32,6 +32,7 @@ import NewsletterSignup from "./components/NewsletterSignup";
 import { SOCIAL_LINKS } from "./components/socialLinks";
 import { handleLinkClick } from "./lib/navigation";
 import { PAGE_META, applyPageMeta } from "./seo";
+import { trackPageView } from "./lib/analytics";
 import HomePage from "./components/HomePage";
 const PastVentures = lazy(() => import("./components/PastVentures"));
 const AboutPage = lazy(() => import("./components/AboutPage"));
@@ -249,11 +250,14 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [view, setViewState] = useState<View>(initialRoute.view);
+  // Current URL path; changes drive analytics page views.
+  const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
   const setView = (next: View) => {
     setViewState(next);
     if (window.location.pathname !== VIEW_PATHS[next]) {
       window.history.pushState(null, '', VIEW_PATHS[next]);
     }
+    setCurrentPath(VIEW_PATHS[next]);
   };
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -280,6 +284,11 @@ export default function App() {
   const lastLoginAtUpdated = useRef(false);
   const discountsChecked = useRef(false);
 
+  // One analytics page view per URL (skipped on the staff portal and outside production).
+  useEffect(() => {
+    trackPageView();
+  }, [currentPath]);
+
   // Keep the tab title and meta description in step with the current page (articles set their own).
   useEffect(() => {
     const meta = PAGE_META[VIEW_PATHS[view]];
@@ -290,6 +299,7 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       setViewState(routeFromPath(window.location.pathname).view);
+      setCurrentPath(window.location.pathname);
       setIsMenuOpen(false);
       window.scrollTo(0, 0);
     };

@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
+import { trackEvent } from "../lib/analytics";
 
 // Email sign-up for the newsletter. Posts to /api/newsletter, which adds the contact to Brevo.
 export default function NewsletterSignup({
@@ -27,6 +28,7 @@ export default function NewsletterSignup({
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || "Could not subscribe right now. Please try again.");
       setStatus("done");
+      trackEvent("sign_up", { method: "newsletter", form_location: source });
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : "Could not subscribe right now. Please try again.");
