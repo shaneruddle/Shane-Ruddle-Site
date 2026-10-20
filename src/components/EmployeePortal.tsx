@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog } from '../firebase';
 import { collection, onSnapshot, query, where, doc, setDoc, addDoc, serverTimestamp, getDoc, Timestamp, getDocs } from 'firebase/firestore';
-import { Tag, History, QrCode, ArrowLeft, Loader2, CheckCircle, Sparkles, Ticket, LogOut, Settings, User, Upload, Users, MessageCircle } from 'lucide-react';
+import { Tag, History, QrCode, ArrowLeft, Loader2, CheckCircle, Sparkles, Ticket, LogOut, Settings, User, Upload, Users, MessageCircle, Images } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { updateDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 import PortalHeader, { PortalView } from './PortalHeader';
 import CommentsAdmin from './CommentsAdmin';
+import PhotosAdmin from './PhotosAdmin';
 
 interface EmployeePortalProps {
   userProfile: UserProfile;
@@ -20,13 +21,16 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate }: Empl
   const [redeeming, setRedeeming] = useState<string | null>(null);
   const [selectedDiscount, setSelectedDiscount] = useState<Discount | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments'>('offers');
+  const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments' | 'photos'>('offers');
   // Matches isAdmin() in firestore.rules, which guards comment moderation.
   const canModerateComments = userProfile.roles?.includes('admin') || userProfile.role === 'admin' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
+  // Matches isOwner() in storage.rules, which guards photo uploads.
+  const canManagePhotos = userProfile.uid === 'u7ElWXIkdjVTNTp76LcyXnnq3AM2' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
   const portalTabs: [typeof activeTab, string, typeof Ticket][] = [
     ['offers', 'Offers', Ticket],
     ['profile', 'Profile', User],
     ...(canModerateComments ? [['comments', 'Comments', MessageCircle] as [typeof activeTab, string, typeof Ticket]] : []),
+    ...(canManagePhotos ? [['photos', 'Photos', Images] as [typeof activeTab, string, typeof Ticket]] : []),
   ];
   const [personalProfile, setPersonalProfile] = useState<Partial<UserProfile>>(userProfile);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -349,6 +353,8 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate }: Empl
           </div>
         ) : activeTab === 'comments' && canModerateComments ? (
           <CommentsAdmin />
+        ) : activeTab === 'photos' && canManagePhotos ? (
+          <PhotosAdmin />
         ) : (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
