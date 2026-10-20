@@ -151,6 +151,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Photo library metadata (portal Photos tab). Admin-only.
+    match /site_photos/{photoId} {
+      allow read, write: if isAdmin();
+    }
+
     match /extractions/{extractionId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && isValidExtraction(request.resource.data);
