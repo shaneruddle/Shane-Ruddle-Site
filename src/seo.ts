@@ -13,9 +13,9 @@ export interface PageMeta {
 
 export const PAGE_META: Record<string, PageMeta> = {
   "/": {
-    title: "Shane Ruddle — Entrepreneur, Pattaya",
+    title: "Shane Ruddle — Pattaya Business Owner and Writer",
     description:
-      "Shane Ruddle owns seven businesses in Pattaya, Thailand: Alan Bolton Property Consultants, East Coast Real Estate, Pattaya Rent a Car, three Hemingways venues and Cajun Life Cafe.",
+      "I own seven businesses in Pattaya across property, hospitality and car rental, and write about what 20 years of doing business in Thailand has taught me.",
   },
   "/about": {
     title: "About Shane Ruddle — Pattaya Entrepreneur Since 2007",

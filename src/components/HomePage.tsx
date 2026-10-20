@@ -165,7 +165,7 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
           <Reveal className="lg:col-span-5">
             <Eyebrow>About</Eyebrow>
             <h2 className="font-serif text-4xl md:text-6xl leading-[1.08]">
-              Leading with <span className="italic text-gold-deep">integrity.</span>
+              From bar manager to <span className="italic text-gold-deep">seven businesses.</span>
             </h2>
           </Reveal>
           <Reveal className="lg:col-span-7" delay={0.1}>
@@ -218,13 +218,14 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
         <div className="max-w-7xl mx-auto">
           <Reveal className="mb-12 md:mb-16">
             <Eyebrow>Values</Eyebrow>
-            <h2 className="font-serif text-4xl md:text-5xl leading-tight">What every business is built on.</h2>
+            <h2 className="font-serif text-4xl md:text-5xl leading-tight">How I run things.</h2>
           </Reveal>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-cream-line border border-cream-line rounded-[16px] overflow-hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-px bg-cream-line border border-cream-line rounded-[16px] overflow-hidden">
             {data.values.map((v, i) => (
-              <div key={v} className="bg-cream p-6 md:p-10">
+              <div key={v.title} className="bg-cream p-6 md:p-10">
                 <span className="block font-serif text-lg text-gold-deep mb-3">{String(i + 1).padStart(2, "0")}</span>
-                <span className="block font-serif text-2xl md:text-3xl leading-tight">{v}</span>
+                <span className="block font-serif text-2xl md:text-3xl leading-tight mb-3">{v.title}</span>
+                <p className="text-black/60 font-light leading-relaxed">{v.text}</p>
               </div>
             ))}
           </div>
@@ -242,7 +243,7 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
               </h2>
             </div>
             <p className="lg:col-span-5 text-black/60 text-lg font-light leading-relaxed">
-              Real estate, hospitality and mobility in and around Pattaya — each run with the same focus on people and lasting value.
+              Two estate agencies, four restaurants and bars, and a car rental company. I'm hands-on with all of them.
             </p>
           </Reveal>
 
