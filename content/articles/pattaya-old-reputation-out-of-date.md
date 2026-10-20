@@ -29,7 +29,7 @@ That didn't happen by accident. People come because of what the city now offers,
 
 ## Schools changed everything for families
 
-When I first came, there was really one international school, Regent's, and much of it was made up of families working in the oil and gas industry outside Pattaya.
+When I first came, there was really one international school, Regents, and much of it was made up of families working in the oil and gas industry outside Pattaya.
 
 Today there are [at least six international schools](/articles/is-pattaya-good-for-families). That matters enormously. Families can move here and still give their children a high standard of education, one that translates back home if they ever decide to leave.
 
