@@ -19,7 +19,7 @@ Not really, because families don't live near it. The nightlife is in the city ce
 
 ## What's the best area in Pattaya for families?
 
-East Pattaya, for three reasons.
+East Pattaya, for three reasons. (I've compared [every area of Pattaya](/articles/best-area-to-live-in-pattaya) separately.)
 
 - **Schools.** Most of the international schools are there.
 - **Space.** It's mainly houses and villas. With a family of three or four, you need room, and family-sized condos are hard to find.

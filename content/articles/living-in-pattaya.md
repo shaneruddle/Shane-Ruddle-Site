@@ -63,7 +63,7 @@ Assuming it's cheaper than it is. Pattaya is good value if you manage your money
 
 ## What I'd tell a friend before moving here
 
-- **Rent before you buy.** I wouldn't buy property anywhere in the world without trying the place first, ideally for a few years.
+- **Rent before you buy.** I wouldn't buy property anywhere in the world without trying the place first, ideally for a few years. Here's my guide to [which area suits you](/articles/best-area-to-live-in-pattaya).
 - **Expect a 12-month lease.** Most landlords want a 12-month contract and two months up front, which you lose if you leave early. Shorter rentals exist, but they're harder to find.
 - **Budget realistically,** especially for the first few months.
 - **Get health insurance** before you need it.
