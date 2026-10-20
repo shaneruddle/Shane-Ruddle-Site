@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { db, storage } from '../firebase';
+import { db, storage, auth } from '../firebase';
 import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { ImagePlus, Trash2, Loader2, Images, Copy } from 'lucide-react';
+import { ImagePlus, Trash2, Loader2, Images, Copy, Rocket, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import PhotoPlacements from './PhotoPlacements';
 import { PhotoSlotsData } from '../lib/photoSlots';
@@ -17,6 +17,12 @@ export interface SitePhoto {
   height: number;
   bytes: number;
   createdAt?: Timestamp;
+}
+
+interface PublishStatus {
+  configured: boolean;
+  latest?: { status: string; conclusion: string | null; startedAt: string; finishedAt: string } | null;
+  lastSuccessStartedAt?: string | null;
 }
 
 // Longest edge after resizing. Big enough for full-width headers on retina screens.
@@ -60,13 +66,59 @@ export default function PhotosAdmin() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [view, setView] = useState<'library' | 'placements'>('library');
   const [slotsData, setSlotsData] = useState<PhotoSlotsData>({ slots: {}, inline: {} });
+  const [slotsUpdatedAt, setSlotsUpdatedAt] = useState<number>(0);
+  const [publish, setPublish] = useState<PublishStatus | null>(null);
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     return onSnapshot(doc(db, 'settings', 'photo_slots'), (snap) => {
       const d = snap.data() || {};
       setSlotsData({ slots: d.slots || {}, inline: d.inline || {} });
+      setSlotsUpdatedAt(d.updatedAt?.toMillis?.() || 0);
     }, (err) => console.error('Error loading photo spots:', err.message));
   }, []);
+
+  const api = async (path: string, method = 'GET') => {
+    const token = await auth.currentUser?.getIdToken();
+    const res = await fetch(path, { method, headers: { Authorization: `Bearer ${token}` } });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || `Error ${res.status}`);
+    return json;
+  };
+
+  const refreshPublish = async () => {
+    try {
+      setPublish(await api('/api/photos/publish-status'));
+    } catch (err) {
+      console.error('Publish status failed:', err instanceof Error ? err.message : err);
+    }
+  };
+
+  const running = publish?.latest && publish.latest.status !== 'completed';
+  useEffect(() => {
+    refreshPublish();
+  }, []);
+  useEffect(() => {
+    if (!running) return;
+    const t = setInterval(refreshPublish, 10000);
+    return () => clearInterval(t);
+  }, [running]);
+
+  const startPublish = async () => {
+    setPublishing(true);
+    try {
+      const r = await api('/api/photos/publish', 'POST');
+      toast.success(r.status === 'already-running' ? 'Already publishing. Your latest changes are included if you saved them before it started.' : 'Publishing started. Live in about 2–3 minutes.');
+      setTimeout(refreshPublish, 4000);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not start publishing');
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const lastLive = publish?.lastSuccessStartedAt ? Date.parse(publish.lastSuccessStartedAt) : 0;
+  const unpublished = slotsUpdatedAt > lastLive;
 
   // Spots keep a copy of each photo's details, so description edits and deletes are copied across.
   const usageCount = (photoId: string) =>
@@ -178,6 +230,32 @@ export default function PhotosAdmin() {
     }
   };
 
+  const failed = publish?.latest?.status === 'completed' && publish.latest.conclusion !== 'success';
+  const publishBar = (
+    <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-black/10">
+      <div className="text-sm">
+        {publish && !publish.configured ? (
+          <p className="text-black/60">Publishing isn't set up yet. Photo choices are saved and will go live with the next site deploy.</p>
+        ) : running ? (
+          <p className="flex items-center gap-2 text-black/70"><Loader2 className="w-4 h-4 animate-spin text-gold-deep" /> Publishing… live in a couple of minutes.</p>
+        ) : failed ? (
+          <p className="text-red-600">The last publish failed. Try again, or ask Claude to check it.</p>
+        ) : unpublished ? (
+          <p className="text-black/70"><span className="font-semibold text-ink">You have changes that aren't live yet.</span></p>
+        ) : (
+          <p className="flex items-center gap-2 text-black/60"><CheckCircle className="w-4 h-4 text-green-600" /> Everything is live{publish?.lastSuccessStartedAt ? ` (last published ${new Date(publish.lastSuccessStartedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' })})` : ''}.</p>
+        )}
+      </div>
+      <button
+        onClick={startPublish}
+        disabled={publishing || !!running || (publish !== null && !publish.configured)}
+        className="flex items-center justify-center gap-2 px-6 py-3 bg-gold text-ink rounded-full text-xs font-semibold uppercase tracking-[0.15em] hover:bg-ink hover:text-white transition-colors disabled:opacity-40 flex-shrink-0"
+      >
+        {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />} Publish to site
+      </button>
+    </div>
+  );
+
   const tabs = (
     <div className="flex items-center gap-2 mb-8">
       {([['library', `Library (${photos.length})`], ['placements', 'Where photos go']] as const).map(([key, label]) => (
@@ -195,6 +273,7 @@ export default function PhotosAdmin() {
   if (view === 'placements') {
     return (
       <div>
+        {publishBar}
         {tabs}
         <PhotoPlacements photos={photos} data={slotsData} />
       </div>
@@ -203,6 +282,7 @@ export default function PhotosAdmin() {
 
   return (
     <div>
+      {publishBar}
       {tabs}
       <div
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}

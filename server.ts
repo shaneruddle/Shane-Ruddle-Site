@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { initializeApp as initializeAdminApp, getApps } from "firebase-admin/app";
 import { getFirestore as getAdminFirestore, FieldValue, Firestore } from "firebase-admin/firestore";
+import { getAuth as getAdminAuth } from "firebase-admin/auth";
 
 dotenv.config();
 
@@ -245,6 +246,90 @@ Reply with JSON only, no other text: {"approve": true or false, "reason": "a few
     } catch (error) {
       console.error("ERROR: Failed to save comment:", error instanceof Error ? error.message : error);
       res.status(500).json({ error: "Failed to save comment" });
+    }
+  });
+
+  // ---- Photo publishing ----
+  // The portal Photos tab saves photo choices to Firestore; publishing rebuilds the site so they go live.
+  // Owner only (matches isOwner() in storage.rules). Starts .github/workflows/publish-photos.yml using
+  // GH_DISPATCH_TOKEN, a fine-grained GitHub token limited to this repo with Actions read/write.
+  const GH_REPO = "shaneruddle/Shane-Ruddle-Site";
+  const PUBLISH_WORKFLOW = "publish-photos.yml";
+  const OWNER_UID = "u7ElWXIkdjVTNTp76LcyXnnq3AM2";
+  const OWNER_EMAIL = "shaneruddle@gmail.com";
+
+  const requireOwner = async (req: express.Request, res: express.Response) => {
+    const token = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+    if (!token) { res.status(401).json({ error: "Please sign in again." }); return false; }
+    try {
+      getCommentsDb(); // initialises the admin app
+      const user = await getAdminAuth().verifyIdToken(token);
+      if (user.uid === OWNER_UID || user.email?.toLowerCase() === OWNER_EMAIL) return true;
+    } catch (err) {
+      console.error("Photo publish: bad token:", err instanceof Error ? err.message : err);
+      res.status(401).json({ error: "Please sign in again." });
+      return false;
+    }
+    res.status(403).json({ error: "Not allowed." });
+    return false;
+  };
+
+  const github = (pathname: string, init: RequestInit = {}) =>
+    fetch(`https://api.github.com/repos/${GH_REPO}${pathname}`, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${process.env.GH_DISPATCH_TOKEN}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "shaneruddle.com",
+        ...(init.headers || {}),
+      },
+    });
+
+  const latestPublishRuns = async () => {
+    const r = await github(`/actions/workflows/${PUBLISH_WORKFLOW}/runs?per_page=10`);
+    if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.text()).slice(0, 200)}`);
+    const runs = ((await r.json()).workflow_runs || []) as { status: string; conclusion: string | null; created_at: string; updated_at: string }[];
+    return runs;
+  };
+
+  app.get("/api/photos/publish-status", async (req, res) => {
+    if (!(await requireOwner(req, res))) return;
+    if (!process.env.GH_DISPATCH_TOKEN) return res.json({ configured: false });
+    try {
+      const runs = await latestPublishRuns();
+      const latest = runs[0];
+      const lastSuccess = runs.find(r => r.conclusion === "success");
+      res.json({
+        configured: true,
+        latest: latest ? { status: latest.status, conclusion: latest.conclusion, startedAt: latest.created_at, finishedAt: latest.updated_at } : null,
+        lastSuccessStartedAt: lastSuccess?.created_at || null,
+      });
+    } catch (error) {
+      console.error("Photo publish status failed:", error instanceof Error ? error.message : error);
+      res.status(502).json({ error: "Could not check publish status." });
+    }
+  });
+
+  app.post("/api/photos/publish", async (req, res) => {
+    if (!(await requireOwner(req, res))) return;
+    if (!process.env.GH_DISPATCH_TOKEN) return res.status(503).json({ error: "Publishing isn't set up yet (GitHub token missing)." });
+    try {
+      const runs = await latestPublishRuns();
+      if (runs.some(r => r.status === "queued" || r.status === "in_progress")) {
+        return res.json({ status: "already-running" });
+      }
+      const r = await github(`/actions/workflows/${PUBLISH_WORKFLOW}/dispatches`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ref: "main" }),
+      });
+      if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.text()).slice(0, 200)}`);
+      console.log("Photo publish started");
+      res.json({ status: "started" });
+    } catch (error) {
+      console.error("Photo publish failed:", error instanceof Error ? error.message : error);
+      res.status(502).json({ error: "Could not start publishing." });
     }
   });
 
