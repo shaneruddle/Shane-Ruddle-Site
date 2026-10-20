@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { db, storage } from '../firebase';
-import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { ImagePlus, Trash2, Loader2, Images, Copy } from 'lucide-react';
 import { toast } from 'sonner';
+import PhotoPlacements from './PhotoPlacements';
+import { PhotoSlotsData } from '../lib/photoSlots';
 
 export interface SitePhoto {
   id: string;
@@ -48,7 +50,7 @@ async function resizeImage(file: File): Promise<{ blob: Blob; width: number; hei
   return { blob, width, height, ext };
 }
 
-// Admin photo library: upload, describe and delete photos. Assigning them to spots on the site comes next.
+// Admin photo library: upload, describe and delete photos, then choose where each one appears on the site.
 export default function PhotosAdmin() {
   const [photos, setPhotos] = useState<SitePhoto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,6 +58,35 @@ export default function PhotosAdmin() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [view, setView] = useState<'library' | 'placements'>('library');
+  const [slotsData, setSlotsData] = useState<PhotoSlotsData>({ slots: {}, inline: {} });
+
+  useEffect(() => {
+    return onSnapshot(doc(db, 'settings', 'photo_slots'), (snap) => {
+      const d = snap.data() || {};
+      setSlotsData({ slots: d.slots || {}, inline: d.inline || {} });
+    }, (err) => console.error('Error loading photo spots:', err.message));
+  }, []);
+
+  // Spots keep a copy of each photo's details, so description edits and deletes are copied across.
+  const usageCount = (photoId: string) =>
+    Object.values(slotsData.slots).filter(s => s.photoId === photoId).length +
+    Object.values(slotsData.inline).reduce((n, l) => n + l.filter(x => x.photoId === photoId).length, 0);
+
+  const syncSlots = async (photoId: string, change: { alt: string } | 'remove') => {
+    if (!usageCount(photoId)) return;
+    const slots = Object.fromEntries(
+      Object.entries(slotsData.slots)
+        .filter(([, s]) => !(change === 'remove' && s.photoId === photoId))
+        .map(([k, s]) => [k, s.photoId === photoId && change !== 'remove' ? { ...s, alt: change.alt } : s])
+    );
+    const inline = Object.fromEntries(
+      Object.entries(slotsData.inline).map(([slug, l]) => [slug, l
+        .filter(x => !(change === 'remove' && x.photoId === photoId))
+        .map(x => (x.photoId === photoId && change !== 'remove' ? { ...x, alt: change.alt } : x))])
+    );
+    await setDoc(doc(db, 'settings', 'photo_slots'), { slots, inline, updatedAt: serverTimestamp() });
+  };
 
   useEffect(() => {
     return onSnapshot(collection(db, 'site_photos'), (snap) => {
@@ -110,6 +141,7 @@ export default function PhotosAdmin() {
     if ((p[field] || '') === value) return;
     try {
       await updateDoc(doc(db, 'site_photos', p.id), { [field]: value });
+      if (field === 'alt') await syncSlots(p.id, { alt: value });
       toast.success(field === 'alt' ? 'Description saved' : 'Name saved');
     } catch (err) {
       console.error('Error saving photo:', err instanceof Error ? err.message : err);
@@ -118,12 +150,15 @@ export default function PhotosAdmin() {
   };
 
   const remove = async (p: SitePhoto) => {
-    if (!window.confirm(`Delete "${p.name}"? This can't be undone.`)) return;
+    const used = usageCount(p.id);
+    const where = used ? ` It's used in ${used} spot${used === 1 ? '' : 's'} on the site, which will go back to their default photo.` : '';
+    if (!window.confirm(`Delete "${p.name}"?${where} This can't be undone.`)) return;
     setBusyId(p.id);
     try {
       await deleteObject(ref(storage, p.path)).catch(err => {
         if (err?.code !== 'storage/object-not-found') throw err;
       });
+      await syncSlots(p.id, 'remove');
       await deleteDoc(doc(db, 'site_photos', p.id));
       toast.success('Photo deleted');
     } catch (err) {
@@ -143,8 +178,32 @@ export default function PhotosAdmin() {
     }
   };
 
+  const tabs = (
+    <div className="flex items-center gap-2 mb-8">
+      {([['library', `Library (${photos.length})`], ['placements', 'Where photos go']] as const).map(([key, label]) => (
+        <button
+          key={key}
+          onClick={() => setView(key)}
+          className={`px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-widest transition-colors ${view === key ? 'bg-ink text-white' : 'bg-black/5 text-black/50 hover:text-ink'}`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (view === 'placements') {
+    return (
+      <div>
+        {tabs}
+        <PhotoPlacements photos={photos} data={slotsData} />
+      </div>
+    );
+  }
+
   return (
     <div>
+      {tabs}
       <div
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}

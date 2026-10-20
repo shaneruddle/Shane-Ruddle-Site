@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import { BusinessInfo, Company } from "../types";
 import { FILE_ARTICLES } from "../lib/fileArticles";
+import { slotImage } from "../lib/photoSlots";
 import { handleLinkClick } from "../lib/navigation";
 import NewsletterSignup from "./NewsletterSignup";
 
@@ -26,11 +27,11 @@ export const SECTORS: { title: string; blurb: string; names: string[] }[] = [
   },
 ];
 
-const LIFESTYLE: { title: string; photoIndex: number }[] = [
-  { title: "Family", photoIndex: 4 },
-  { title: "Running", photoIndex: 2 },
-  { title: "Team", photoIndex: 3 },
-  { title: "Friends", photoIndex: 1 },
+const LIFESTYLE: { title: string; photoIndex: number; slot: string }[] = [
+  { title: "Family", photoIndex: 4, slot: "home-life-family" },
+  { title: "Running", photoIndex: 2, slot: "home-life-running" },
+  { title: "Team", photoIndex: 3, slot: "home-life-team" },
+  { title: "Friends", photoIndex: 1, slot: "home-life-friends" },
 ];
 
 const Reveal = ({ children, className = "", delay = 0 }: { children: ReactNode; className?: string; delay?: number }) => (
@@ -91,6 +92,9 @@ export const CompanyCard = ({ company, wide = false }: { company: Company; wide?
 
 export default function HomePage({ data }: { data: BusinessInfo }) {
   const photos = data.ownerPhotos || [];
+  // Photos chosen in the portal Photos tab replace the defaults.
+  const portrait = slotImage("home-portrait");
+  const award = slotImage("home-award");
   const companies = Array.isArray(data.companies) ? data.companies : [];
   const byName = new Map(companies.map((c) => [c.name, c]));
   const grouped = SECTORS.map((s) => ({ ...s, items: s.names.map((n) => byName.get(n)).filter(Boolean) as Company[] }));
@@ -140,13 +144,13 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
               ))}
             </dl>
           </div>
-          {photos[0] && (
+          {(portrait.src || photos[0]) && (
             <div className="lg:col-span-5">
               <div className="relative max-w-sm mx-auto lg:max-w-none">
                 <div className="hidden md:block absolute -inset-4 border border-gold/40 rounded-[1.75rem] translate-x-4 translate-y-4" aria-hidden />
                 <img
-                  src={photos[0]}
-                  alt="Shane Ruddle"
+                  src={portrait.src || photos[0]}
+                  alt={portrait.alt}
                   width={768}
                   height={1052}
                   fetchPriority="high"
@@ -180,8 +184,8 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
           <Reveal className="lg:col-span-5">
             <figure className="max-w-sm mx-auto lg:max-w-md">
               <img
-                src="/images/award-best-agent-pattaya-2026.webp"
-                alt="Shane Ruddle on the red carpet holding The Best Agent in Pattaya trophy and plaque at the Thailand Real Estate Agent Awards 2026"
+                src={award.src}
+                alt={award.alt}
                 width={900}
                 height={1350}
                 loading="lazy"
@@ -325,12 +329,12 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
             </Reveal>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-            {LIFESTYLE.filter((l) => photos[l.photoIndex]).map((l) => (
+            {LIFESTYLE.map((l) => ({ ...l, img: slotImage(l.slot) })).filter((l) => l.img.src || photos[l.photoIndex]).map((l) => (
               <figure key={l.title}>
                   <div className="aspect-[4/3] rounded-[12px] overflow-hidden bg-cream-line">
                     <img
-                      src={photos[l.photoIndex]}
-                      alt={l.title}
+                      src={l.img.src || photos[l.photoIndex]}
+                      alt={l.img.alt}
                       width={600}
                       height={311}
                       loading="lazy"

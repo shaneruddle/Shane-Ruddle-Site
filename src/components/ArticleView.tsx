@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
+import { photoByUrl } from "../lib/photoSlots";
 
 export interface ArticleViewProps {
   title: string;
@@ -34,10 +35,24 @@ export default function ArticleView({ title, body, category, createdAt, imageUrl
           <span className="text-sm text-black/60">By <a href="/about" className="text-ink hover:text-gold-deep">Shane Ruddle</a></span>
         </div>
         {imageUrl && (
-          <img src={imageUrl} alt={title} className="w-full aspect-[16/9] object-cover rounded-3xl mb-12" referrerPolicy="no-referrer" />
+          <img src={imageUrl} alt={photoByUrl(imageUrl)?.alt || title} width={1600} height={900} decoding="async" className="w-full aspect-[16/9] object-cover rounded-3xl mb-12" referrerPolicy="no-referrer" />
         )}
         <div className="markdown-body text-black/70 font-light leading-relaxed text-lg">
-          <ReactMarkdown>{body}</ReactMarkdown>
+          <ReactMarkdown
+            components={{
+              img: ({ src, alt, title: caption }) => {
+                const p = photoByUrl(typeof src === "string" ? src : undefined);
+                return (
+                  <span className="block my-10">
+                    <img src={src as string} alt={alt || ""} width={p?.width} height={p?.height} loading="lazy" decoding="async" className="w-full h-auto rounded-2xl" />
+                    {caption && <span className="block mt-3 text-sm text-black/45">{caption}</span>}
+                  </span>
+                );
+              },
+            }}
+          >
+            {body}
+          </ReactMarkdown>
         </div>
 
         <aside className="mt-20 p-8 md:p-10 bg-[#F8F8F8] rounded-[2rem] flex flex-col sm:flex-row items-start gap-6">

@@ -11,6 +11,10 @@
 //   ---
 //
 // The filename (without .md) is the URL: /articles/<slug>.
+//
+// Photos chosen in the portal Photos tab override `image` and are inserted into the body (see photoSlots.ts).
+
+import { PHOTO_SLOTS, articleHeaderSlot, withInlinePhotos } from "./photoSlots";
 
 export interface FileArticle {
   slug: string;
@@ -40,8 +44,8 @@ function parse(path: string, raw: string): (FileArticle & { draft: boolean }) | 
     description: meta.description || "",
     category: meta.category || "My Advice",
     date: meta.date || "1970-01-01",
-    image: meta.image || undefined,
-    body: match[2].trim(),
+    image: PHOTO_SLOTS.slots[articleHeaderSlot(slug)]?.url || meta.image || undefined,
+    body: withInlinePhotos(slug, match[2].trim()),
     draft: meta.draft === "true",
   };
 }

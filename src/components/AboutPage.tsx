@@ -1,6 +1,7 @@
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import PageHero from "./PageHero";
 import { handleLinkClick } from "../lib/navigation";
+import { slotImage } from "../lib/photoSlots";
 
 // /about — Shane's story in his own voice. Facts come from the homepage copy and Past Ventures.
 
@@ -29,8 +30,8 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-10 lg:gap-16">
           <div className="lg:col-span-5">
             <img
-              src="/images/shane-portrait.webp"
-              alt="Shane Ruddle"
+              src={slotImage("about-portrait").src}
+              alt={slotImage("about-portrait").alt}
               width={768}
               height={1052}
               decoding="async"
