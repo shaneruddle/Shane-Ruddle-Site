@@ -25,7 +25,7 @@ Oddly, the same weather that draws them here. There are no real seasons, so it's
 
 ## How much does it cost to live in Pattaya?
 
-As of 2026, I'd say a single person can live comfortably on about ฿50,000 to ฿60,000 a month, and a couple on ฿70,000 to ฿80,000. That assumes you live much as you would at home, going out once a week rather than every night.
+As of 2026, I'd say a single person can live comfortably on about ฿50,000 to ฿60,000 a month, and a couple on ฿70,000 to ฿80,000. That assumes you live much as you would at home, going out once a week rather than every night. For a fuller breakdown, see [is Pattaya expensive?](/articles/is-pattaya-expensive)
 
 Children change the sums. Most foreign families choose international schools, mainly for the English-language teaching and a curriculum that carries over if they move home. They're private, so they're not cheap. They still cost less than in the West, but fees will take a big bite out of a budget. I've written separately about [what Pattaya is like for families](/articles/is-pattaya-good-for-families), including school fees.
 
