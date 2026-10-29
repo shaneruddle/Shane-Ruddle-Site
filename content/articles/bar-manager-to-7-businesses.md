@@ -59,6 +59,6 @@ None of that makes it easy. I have a bit more cash behind me now, but I face man
 
 Would I do it all again? Absolutely. I'd do plenty of it differently, starting with the numbers at Fairways. But given the choice, I'd do it all over again.
 
-If you're thinking of starting or buying a business in Pattaya and want to swap notes, [get in touch](/contact).
+If you're thinking of starting or buying a business in Pattaya, read [what I tell everyone who asks](/articles/starting-or-buying-a-business-in-pattaya), and if you want to swap notes, [get in touch](/contact).
 
 Want more stories like this? [Join my newsletter](/newsletter).
