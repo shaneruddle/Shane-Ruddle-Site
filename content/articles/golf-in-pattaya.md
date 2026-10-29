@@ -43,6 +43,6 @@ If getting the club and the yardage right matters to you, work it out yourself. 
 
 ## Is Pattaya good for a golf holiday?
 
-Absolutely. It's different from most places. The caddie culture isn't unique to Thailand, but Pattaya is a great place to experience it. Choose the right days and courses and golf here is very reasonable, and at certain times of year you'll have the course almost to yourself.
+Absolutely, and for golf I'd pick it over [Phuket](/articles/pattaya-vs-phuket). It's different from most places. The caddie culture isn't unique to Thailand, but Pattaya is a great place to experience it. Choose the right days and courses and golf here is very reasonable, and at certain times of year you'll have the course almost to yourself.
 
 If you're coming out for golf and need a car to get to the courses, [Pattaya Rent a Car](https://pattayarentacar.com) can help.
