@@ -19,7 +19,7 @@ The Job Centre also showed me that I wanted more than a manager's job. I told th
 
 ## The golf years: passion and its limits
 
-My next venture came from a different place: my own hobby. I was a keen golfer, and the driving range I used looked run down. The mats and balls weren't being replaced, and you could tell the business was struggling. So I asked whether it was available.
+My next venture came from a different place: my own hobby. I was a keen golfer ([here's my guide to golf in Pattaya](/articles/golf-in-pattaya)), and the driving range I used looked run down. The mats and balls weren't being replaced, and you could tell the business was struggling. So I asked whether it was available.
 
 A golfing friend knew the landlady, and it turned out the operators were already leaving, so there was nothing to buy. With a business partner and some money borrowed from my parents, we cleaned it up properly and opened Fairways.
 
