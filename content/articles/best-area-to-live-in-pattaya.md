@@ -66,7 +66,7 @@ Not exploring enough. My advice: put your backpack on, grab the sun cream and su
 
 Most people here don't settle on one area for good. They move as their circumstances change: a partner, children, a pet, or a child starting international school. I started in Central Pattaya and then moved to Pratumnak, and if I moved again, it would probably be out to East Pattaya.
 
-So my real advice is to treat it as a journey. Rent, live in an area for a while, and move on when it no longer fits your stage of life. It's also why I'd always [rent before you buy](/articles/living-in-pattaya).
+So my real advice is to treat it as a journey. Rent, live in an area for a while, and move on when it no longer fits your stage of life. It's also why I'd always [rent before you buy](/articles/living-in-pattaya). When you are ready, here's [what I tell every foreign condo buyer](/articles/buying-a-condo-in-pattaya).
 
 If you'd like help finding the right place to rent, [East Coast Real Estate](https://thaiproperty.com) and [Alan Bolton Property Consultants](https://pattaya-property.net) cover the whole city.
 
