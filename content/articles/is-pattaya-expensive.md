@@ -27,7 +27,7 @@ For families, the big cost is schooling. Thai schools are relatively cheap, but 
 
 **Visas and admin.** Visas, paperwork and the other admin you have to do here can add up.
 
-**Health insurance.** I always recommend getting it, and it can be expensive. Here's more on [healthcare and insurance in Pattaya](/articles/living-in-pattaya).
+**Health insurance.** I always recommend getting it, and it can be expensive. Here's more on [healthcare and insurance in Pattaya](/articles/healthcare-in-pattaya).
 
 ## What's cheap in Pattaya?
 

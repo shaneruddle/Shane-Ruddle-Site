@@ -38,7 +38,7 @@ The choice is now excellent, and some of the international schools are exception
 - **Regents International School Pattaya,** one of the longest-established
 - **Tara Pattana International School,** where my kids go, a little closer to the city centre but still in East Pattaya
 
-Fees depend on the school and your child's year group. As of 2026, expect roughly ฿300,000 a year at the lower end to over ฿1 million at the top. Check each school's current fee schedule directly.
+Fees depend on the school and your child's year group. As of 2026, expect roughly ฿300,000 a year at the lower end to over ฿1 million at the top. Check each school's current fee schedule directly. I've written a fuller [parent's guide to international schools in Pattaya](/articles/international-schools-in-pattaya).
 
 ## What are schools here really like?
 

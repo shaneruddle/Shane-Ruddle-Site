@@ -19,7 +19,7 @@ Pattaya, by a long way. Phuket is a big island, but it's still an island. Take g
 
 Arguably, yes. If island life, sun and sand are what you're after, Phuket wins.
 
-Pattaya Beach and Jomtien Beach aren't fantastic, because they're right in the city. Go a little further out, to Sattahip, Bang Saen or Bang Saray, and the beaches are much better. Still, I'd say they're not as good as Phuket's.
+Pattaya Beach and Jomtien Beach aren't fantastic, because they're right in the city. Go a little further out, to Sattahip, Bang Saen or Bang Saray, and the beaches are much better. Here are [my favourite beaches around Pattaya](/articles/best-beaches-in-pattaya). Still, I'd say they're not as good as Phuket's.
 
 ## Is Pattaya or Phuket better for families?
 
@@ -33,7 +33,7 @@ The exception is the very wealthy who want a million-dollar villa overlooking th
 
 ## Which is easier to get to from Bangkok?
 
-This is another massive advantage for Pattaya. We're about an hour and a half from Suvarnabhumi, Bangkok's main airport, and we also have U-Tapao airport nearby. It's also much easier to get out to another country from here.
+This is another massive advantage for Pattaya. We're about an hour and a half from Suvarnabhumi, Bangkok's main airport ([here's how to get here](/articles/bangkok-airport-to-pattaya)), and we also have U-Tapao airport nearby. It's also much easier to get out to another country from here.
 
 To reach Phuket from Bangkok, it's roughly a 10-hour drive, or a flight of about an hour and 20 minutes, which costs extra. And once you're in Phuket, you'll need a car to get around anyway. Purely on logistics, Pattaya makes much more sense.
 
