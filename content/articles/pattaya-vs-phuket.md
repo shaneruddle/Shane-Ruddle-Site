@@ -39,6 +39,6 @@ To reach Phuket from Bangkok, it's roughly a 10-hour drive, or a flight of about
 
 ## So which should you choose?
 
-It depends on what you want. If you're coming purely for the beaches, Phuket is the pick, although honestly, I'd probably still steer you away from it because it's so far away. For pretty much everything else, it's Pattaya.
+It depends on what you want. If you're coming purely for the beaches, Phuket is the pick, although honestly, I'd probably still steer you away from it because it's so far away. For pretty much everything else, it's Pattaya. Weighing up somewhere quieter? Read [Pattaya vs Hua Hin](/articles/pattaya-vs-hua-hin).
 
 If you're flying into Suvarnabhumi or U-Tapao and want your own wheels for the drive down, [Pattaya Rent a Car](https://pattayarentacar.com) can help.

@@ -29,7 +29,7 @@ At the top courses in high season, the same round can cost ฿7,000 to ฿8,000.
 
 Most people will tell you high season, because it's cooler. I disagree.
 
-High season is busy and expensive. You can overpay for a course and still spend five hours or more on the round. In low season, it's much quieter and a lot cheaper. The trade-off is the weather: it's a bit hotter, and it occasionally rains. But rain here rarely lasts all day. It usually passes in half an hour or so, and you can sit it out and carry on. For me, low-season golf is better.
+High season is busy and expensive. You can overpay for a course and still spend five hours or more on the round. In low season, it's much quieter and a lot cheaper. The trade-off is the weather: it's a bit hotter, and it occasionally rains. But rain here rarely lasts all day. It usually passes in half an hour or so, and you can sit it out and carry on. For me, low-season golf is better. (More on that in [the best time to visit Pattaya](/articles/best-time-to-visit-pattaya).)
 
 ## What should golfers bring to Pattaya?
 

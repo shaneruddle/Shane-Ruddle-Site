@@ -33,7 +33,7 @@ The authorities look closely at arrangements where the foreign partner has funde
 
 ## Do you need a work permit to work in your own business?
 
-If you're actively working in the business, yes, absolutely. If you're a silent investor and not working in it, you don't necessarily need one.
+If you're actively working in the business, yes, absolutely. If you're a silent investor and not working in it, you don't necessarily need one. I've written more about [visas in Pattaya](/articles/thai-visas-in-pattaya).
 
 The process isn't straightforward, so my advice is to use a Thai agent. The work permit fee itself isn't much, but it's worth spending an extra ฿20,000 or so to have someone handle it. You're dealing with government departments, and some procedures aren't written down anywhere. You only learn them through experience.
 
