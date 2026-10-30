@@ -31,7 +31,7 @@ For families, the big cost is schooling. Thai schools are relatively cheap, but 
 
 ## What's cheap in Pattaya?
 
-Getting around is cheap, and eating out is cheap. And if you enjoy simple things like going to the beach or walking, it costs next to nothing. That's true anywhere, but here it's more enjoyable.
+Getting around is cheap, and eating out is cheap ([here's where I eat](/articles/where-a-restaurant-owner-eats-in-pattaya)). And if you enjoy simple things like going to the beach or walking, it costs next to nothing. That's true anywhere, but here it's more enjoyable.
 
 ## How do you live well in Pattaya without overspending?
 

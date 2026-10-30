@@ -29,7 +29,7 @@ If you're married to a Thai and you buy in their name, think hard about what hap
 
 ## Why I recommend renting a house in Pattaya
 
-I've always rented. If you want a house rather than a condo, renting avoids all of the ownership problems above. The only real downside is that you can't change the place much to suit yourself.
+I've always rented. (If it's a condo you're after, here's [what I tell every condo renter](/articles/renting-a-condo-in-pattaya).) If you want a house rather than a condo, renting avoids all of the ownership problems above. The only real downside is that you can't change the place much to suit yourself.
 
 ## How much does it cost to rent a family house in Pattaya?
 

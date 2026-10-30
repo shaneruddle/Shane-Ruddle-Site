@@ -53,7 +53,7 @@ It's not a lonely place, either. Even if you're slow to make friends with other 
 
 ## How do you get around?
 
-You can manage perfectly well with motorbikes and taxis. Bikes are cheap to rent, buy, insure and fuel, and plenty of people get around on them. My advice: ride confidently and stay alert, because the roads can be dangerous.
+You can manage perfectly well with motorbikes and taxis. Bikes are cheap to rent, buy, insure and fuel, and plenty of people get around on them. My advice: ride confidently and stay alert, because the roads can be dangerous. If you're driving, read [what I tell every Pattaya Rent a Car customer](/articles/driving-in-pattaya).
 
 A car is more comfortable and a lot safer, for a bit more money. That's part of why I've [run a car rental company here since 2010](/articles/16-years-of-pattaya-rent-a-car). Traffic isn't bad; it only really builds up on the long holiday weekends in high season.
 
