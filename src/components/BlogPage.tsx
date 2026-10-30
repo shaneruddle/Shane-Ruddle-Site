@@ -9,8 +9,7 @@ import {
   ChevronRight, 
   Clock,
   Tag,
-  ArrowRight,
-  Sparkles
+  ArrowRight
 } from 'lucide-react';
 import type { BlogPost } from '../firebase';
 // Dates are shown in Pattaya time so every visitor sees the publish date as written.
@@ -63,6 +62,8 @@ export default function BlogPage({ onBack }: BlogPageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<typeof CATEGORIES[number]>('All');
   const [slug, setSlug] = useState<string | null>(() => slugFromPath(window.location.pathname));
+  // Cards whose header image failed to load fall back to the text-only layout.
+  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const onPop = () => setSlug(slugFromPath(window.location.pathname));
@@ -243,27 +244,29 @@ export default function BlogPage({ onBack }: BlogPageProps) {
                 transition={{ delay: idx * 0.1 }}
                 className="group cursor-pointer block"
               >
-                <div className="relative aspect-[16/10] rounded-[2rem] overflow-hidden mb-6 shadow-xl shadow-black/5">
-                  {post.imageUrl ? (
+                {post.imageUrl && !brokenImages.has(post.id) && (
+                  <div className="relative aspect-[16/10] rounded-[2rem] overflow-hidden mb-6 shadow-xl shadow-black/5">
                     <img 
                       src={post.imageUrl} 
                       alt={post.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       referrerPolicy="no-referrer"
+                      onError={() => setBrokenImages(prev => new Set(prev).add(post.id))}
                     />
-                  ) : (
-                    <div className="w-full h-full bg-black flex items-center justify-center">
-                      <Sparkles className="w-12 h-12 text-gold/20" />
+                    <div className="absolute top-6 left-6">
+                      <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-black text-[9px] font-bold uppercase tracking-widest rounded-full">
+                        {post.category}
+                      </span>
                     </div>
-                  )}
-                  <div className="absolute top-6 left-6">
-                    <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-black text-[9px] font-bold uppercase tracking-widest rounded-full">
-                      {post.category}
-                    </span>
                   </div>
-                </div>
+                )}
                 
                 <div className="px-2">
+                  {(!post.imageUrl || brokenImages.has(post.id)) && (
+                    <span className="inline-block px-3 py-1 bg-black/5 text-black text-[9px] font-bold uppercase tracking-widest rounded-full mb-4">
+                      {post.category}
+                    </span>
+                  )}
                   <div className="flex items-center gap-4 text-[10px] uppercase tracking-widest text-black/40 mb-4 font-bold">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3 text-gold" />
