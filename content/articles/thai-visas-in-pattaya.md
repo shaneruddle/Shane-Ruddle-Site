@@ -17,7 +17,7 @@ It's always been easy for me, because I've used the same agent for the last 20 y
 
 Retirees use a retirement visa, either the Non-Immigrant O (applied for and then extended yearly here) or the O-A (applied for from your home country). You need to be 50 or over, and you have to prove you have enough money: currently ฿800,000 in a Thai bank account, or an income of ฿65,000 a month, or a combination of the two. As Thai visas go, it's relatively simple. Once you can prove the money, it's pretty straightforward.
 
-Even so, I'd always use an agent. There are plenty around the city, and they make the whole experience a lot less painful.
+(I've written more about [retiring in Pattaya](/articles/retiring-in-pattaya).) Even so, I'd always use an agent. There are plenty around the city, and they make the whole experience a lot less painful.
 
 ## Which visa is best for digital nomads and remote workers?
 
