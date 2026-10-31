@@ -25,7 +25,7 @@ The catch is the police. If you're stopped, you'll often be fined for not having
 
 Erratic driving. There are speed limits in Thailand, but nobody seems to stick to them, and it's not uncommon to see someone go straight through a red light.
 
-Watch out especially for work vehicles. Whether it's a minibus, a delivery driver or a haulage lorry, people driving for work often drive even more erratically.
+Thinking of a scooter instead? Read [scooter or car in Pattaya](/articles/scooter-or-car-in-pattaya) first. Watch out especially for work vehicles. Whether it's a minibus, a delivery driver or a haulage lorry, people driving for work often drive even more erratically.
 
 ## What should you do if you have an accident in a rental car?
 

@@ -59,4 +59,6 @@ And if you're on the other side of that equation, I'm always looking for good pe
 
 So if you've been here long enough to understand the culture, you're settled in Pattaya or elsewhere in Thailand, and you think you've got what it takes, [get in touch through my contact form](/contact). If I don't have the right role, I may well know someone who does.
 
+For the other half of the team, read [managing Thai staff](/articles/managing-thai-staff).
+
 Want more stories like this? [Join my newsletter](/newsletter).

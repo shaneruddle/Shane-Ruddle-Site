@@ -43,7 +43,7 @@ Once you've paid an agent, they'll tell you exactly what you need, usually your 
 
 The ones that work are anything in entertainment, restaurants, and guest houses. My own preference is service businesses. They need less capital up front, and there's a real need here for higher-quality service.
 
-The ones I see fail most are bars, often because the owner is their own best customer. People buy a bar because they like the idea of it. They don't take it seriously, they don't understand how things work here or how Thais operate, and they aren't willing to learn. Bars are everywhere and relatively cheap to buy and run, which is exactly why they have the highest turnover.
+The ones I see fail most are bars, often because the owner is their own best customer. People buy a bar because they like the idea of it. They don't take it seriously, they don't understand how things work here or how Thais operate, and they aren't willing to learn. Bars are everywhere and relatively cheap to buy and run, which is exactly why they have the highest turnover. (Here's [what I've learned running restaurant and bars](/articles/running-a-restaurant-and-bar-in-pattaya).)
 
 ## My advice
 
