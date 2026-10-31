@@ -53,7 +53,7 @@ Short term, I don't think so. Preparing the condo, doing the inventory, handling
 
 Long term is different. If you've bought as an investment, one good tenant with an agency managing it for you is a relatively passive income. Expect a yearly return of around 5 to 8%, which is roughly in line with property worldwide.
 
-But here's the thing. The people I've met over the years who made money from property here didn't do it through rent. They made it on the purchase. Buy smart, in the right building, and the value goes up.
+But here's the thing. The people I've met over the years who made money from property here didn't do it through rent. They made it on the purchase. Buy smart, in the right building, and the value goes up. (Here's [how I see the market right now](/articles/pattaya-property-market), and what to do when you [come to sell](/articles/selling-a-condo-in-pattaya).)
 
 ## How do you buy a condo smart in Pattaya?
 

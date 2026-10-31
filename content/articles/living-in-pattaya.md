@@ -71,6 +71,9 @@ Assuming it's cheaper than it is. Pattaya is good value if you manage your money
 
 ## Why I'm still here
 
+I've also written about [what I wish I'd known before moving to Thailand](/articles/what-i-wish-id-known-before-moving-to-thailand).
+
+
 Honestly, after more than 20 years, part of it is that I've been here too long to start again at home. I love England, but going back would be hard now.
 
 If I left tomorrow, I'd miss the pace of life, the people, my friends, Thai and foreign, and the weather. Most of all I'd miss the lifestyle and what I've been able to build here. And if your picture of Pattaya is still the one from 20 years ago, [it's changed more than you'd think](/articles/pattaya-old-reputation-out-of-date).
