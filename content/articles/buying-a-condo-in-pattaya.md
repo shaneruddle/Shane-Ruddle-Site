@@ -51,7 +51,7 @@ Go to a reputable agency that's been around for years. That's easy for me to say
 
 Short term, I don't think so. Preparing the condo, doing the inventory, handling check-ins and check-outs: it's a lot of hassle. More and more buildings are restricting short-term rentals anyway. And every new guest is another chance of a bad tenant.
 
-Long term is different. If you've bought as an investment, one good tenant with an agency managing it for you is a relatively passive income. Expect a yearly return of around 5 to 8%, which is roughly in line with property worldwide.
+Long term is different. If you've bought as an investment, one good tenant with an agency managing it for you is a relatively passive income. Expect a yearly return of around 5 to 8%, which is roughly in line with property worldwide. I've written a separate guide to [renting out your condo](/articles/renting-out-your-condo-in-pattaya).
 
 But here's the thing. The people I've met over the years who made money from property here didn't do it through rent. They made it on the purchase. Buy smart, in the right building, and the value goes up. (Here's [how I see the market right now](/articles/pattaya-property-market), and what to do when you [come to sell](/articles/selling-a-condo-in-pattaya).)
 

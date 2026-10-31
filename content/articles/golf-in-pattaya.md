@@ -5,7 +5,7 @@ category: My Advice
 date: 2026-10-29
 ---
 
-Golf is what brought me to Pattaya. I was a teaching PGA professional in the UK, and in winter there wasn't much going on, so I came out here for the weather. I'd never played in Thailand before, and I was genuinely surprised by how good the courses were. I played regularly in those early days, and golf later led to one of my first businesses here, [a driving range](/articles/bar-manager-to-7-businesses).
+Golf is what brought me to Pattaya. I was a teaching PGA professional in the UK, and in winter there wasn't much going on, so I came out here for the weather. I'd never played in Thailand before, and I was genuinely surprised by how good the courses were. I played regularly in those early days, and golf later led to one of my first businesses here (these days I mostly [play padel and run](/articles/staying-fit-in-pattaya)), [a driving range](/articles/bar-manager-to-7-businesses).
 
 ## Which golf course in Pattaya is a must-play?
 

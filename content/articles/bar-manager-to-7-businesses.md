@@ -39,7 +39,7 @@ Each one taught me something, usually about cash flow. Together they taught me w
 
 ## The businesses I run today
 
-My current businesses came along in this order: Hemingways Jomtien, Hemingways Pattaya, Alan Bolton Property Consultants, Hemingways Lakeside, Cajun Life Cafe and, most recently, East Coast Real Estate. Almost every one came through a relationship rather than an advert.
+My current businesses came along in this order: Hemingways Jomtien, Hemingways Pattaya, Alan Bolton Property Consultants, Hemingways Lakeside, Cajun Life Cafe and, most recently, East Coast Real Estate. Almost every one came through a relationship rather than an advert. (Here's [how I run them all today](/articles/how-i-run-seven-businesses).)
 
 Hemingways Jomtien was pure timing. I'd told a mutual friend I had money to invest. That same week, Gavin Perfect, whom I already knew, offered that friend an empty restaurant unit in Jomtien. He turned it down and pointed Gavin to me. I knew the previous operator at that location had done well, so I jumped at it, and Hemingways Pattaya followed.
 
