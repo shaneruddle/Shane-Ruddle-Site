@@ -25,7 +25,7 @@ Usually not. Some people arrive thinking they haven't quite got enough. But once
 
 Culture shock. And not just retirees: tourists and anyone who comes here assume things work the same way as back home.
 
-Take the law. We get people from abroad who feel they've been treated unfairly over something small and want to get lawyers involved. In practice, small grievances rarely get anywhere here, and nobody is going to take up a minor complaint for you. That takes some getting used to.
+Take the law. We get people from abroad who feel they've been treated unfairly over something small and want to get lawyers involved. In practice, small grievances rarely get anywhere here, and nobody is going to take up a minor complaint for you. That takes some getting used to. (More in [the cultural mistakes foreigners make](/articles/cultural-mistakes-in-thailand).)
 
 The pace is another one. Here it's very much "tomorrow, tomorrow". In the West, things get done on time because that means customers and business. It's very different here, and it takes a while to get your head around.
 

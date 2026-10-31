@@ -53,6 +53,6 @@ It even handles some decisions. I used to decide when to raise or lower prices a
 
 Leverage AI. That's the only way I'd do it these days. Get deep into it and learn all the small time-saving things it can do.
 
-If you've never used it, just start. Talk to ChatGPT or Claude, ask it questions, try making some graphics, and play around with it every day until something clicks.
+I've written a deeper piece on [how I use AI in my businesses](/articles/how-i-use-ai-in-my-businesses). If you've never used it, just start. Talk to ChatGPT or Claude, ask it questions, try making some graphics, and play around with it every day until something clicks.
 
 For how it all started, read [from bar manager to seven businesses](/articles/bar-manager-to-7-businesses), and for the people side, [managing Thai staff](/articles/managing-thai-staff) and [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya).

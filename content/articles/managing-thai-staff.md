@@ -20,7 +20,7 @@ If you do it privately, in an office, you might get away with it and they may st
 ## How do I keep good staff for years?
 
 - **Pay above the average.**
-- **Incentivise.** Our staff get bonuses for things like good attendance, Google reviews and good customer service.
+- **Incentivise.** Our staff get bonuses for things like good attendance, Google reviews and good customer service. (Here's [how we handle reviews](/articles/customer-service-and-online-reviews).)
 - **Create a friendly atmosphere.** I'd go as far as to say almost a family atmosphere.
 - **Be someone people want to work for.** This is the one a lot of people get wrong. Thais like to work for people they like: people who are kind, thoughtful and generous, and who don't lose control of their emotions on a whim.
 

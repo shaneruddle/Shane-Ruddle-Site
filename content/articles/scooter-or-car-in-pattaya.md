@@ -31,4 +31,4 @@ Ride with confidence, be very careful, and don't speed. Ride at a normal pace.
 
 And stay off Sukhumvit Road if you're a beginner. It's the main road that runs all the way to Bangkok: four lanes, fast, and it can be pretty treacherous. If you have little experience, stay on the beach side of Sukhumvit, where the roads are quieter and slower, and build some confidence there before you start riding on Sukhumvit.
 
-If you'd rather have a car, [Pattaya Rent a Car](https://pattayarentacar.com) can help. And if you're just landing, read [how to get from Bangkok airport to Pattaya](/articles/bangkok-airport-to-pattaya).
+If you'd rather have a car, [Pattaya Rent a Car](https://pattayarentacar.com) can help, and if you're staying a while, read [buying or renting a car in Thailand](/articles/buying-vs-renting-a-car-in-thailand). And if you're just landing, read [how to get from Bangkok airport to Pattaya](/articles/bangkok-airport-to-pattaya).
