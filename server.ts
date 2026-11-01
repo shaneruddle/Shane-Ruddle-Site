@@ -102,14 +102,24 @@ async function startServer() {
     const name = oneLine(req.body?.name, 120);
     const email = oneLine(req.body?.email, 254);
     const message = String(req.body?.message ?? "").trim().slice(0, 5000);
+    // Optional fields sent by the Ask Shane form.
+    const topic = oneLine(req.body?.topic, 60);
+    const page = oneLine(req.body?.page, 200);
+    const publishOk = req.body?.publishOk === true;
+    // Honeypot: bots fill the hidden "website" field. Pretend success so they don't retry.
+    if (oneLine(req.body?.website, 200)) return res.json({ success: true });
     if (!name || !message || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({ error: "Please fill in your name, a valid email and a message." });
     }
+    const rows: [string, unknown][] = [["Name", name], ["Email", email]];
+    if (topic) rows.push(["Planning", topic]);
+    if (page) rows.push(["Asked from", `https://shaneruddle.com${page.startsWith("/") ? page : `/${page}`}`]);
+    if (topic) rows.push(["OK to answer in an article", publishOk ? "Yes (anonymously)" : "No"]);
     try {
       await sendNotification({
-        subject: `New message from ${name} via shaneruddle.com`,
-        html: card("New Contact Form Message", [["Name", name], ["Email", email]], message),
-        text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
+        subject: topic ? `Ask Shane [${topic}]: question from ${name}` : `New message from ${name} via shaneruddle.com`,
+        html: card(topic ? "New Ask Shane Question" : "New Contact Form Message", rows, message),
+        text: `${rows.map(([l, v]) => `${l}: ${v}`).join("\n")}\n\n${message}`,
         replyTo: email,
       });
       console.log(`Contact email sent for ${email}`);

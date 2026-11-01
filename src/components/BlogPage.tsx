@@ -20,6 +20,7 @@ import { navigate, handleLinkClick } from '../lib/navigation';
 import NewsletterSignup from './NewsletterSignup';
 import ArticleComments from './ArticleComments';
 import ArticleView from './ArticleView';
+import AskShane, { topicForArticle } from './AskShane';
 import { applyPageMeta, PAGE_META } from '../seo';
 import { FILE_ARTICLES } from '../lib/fileArticles';
 
@@ -153,6 +154,10 @@ export default function BlogPage({ onBack }: BlogPageProps) {
             ))}
           </div>
         )}
+
+        <section id="ask" className="mt-12 p-8 md:p-12 bg-cream border border-cream-line rounded-[2rem] scroll-mt-24">
+          <AskShane source="article" initialTopic={topicForArticle(selectedPost.slug, selectedPost.category)} />
+        </section>
 
         <div className="mt-12 p-8 md:p-12 bg-ink rounded-[2rem]">
           <h4 className="text-3xl font-serif text-white mb-2">Get the next article by email</h4>
