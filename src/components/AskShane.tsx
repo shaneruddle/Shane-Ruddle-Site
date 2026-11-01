@@ -226,7 +226,7 @@ export default function AskShane({
               id={`ask-q-${source}`}
               rows={4}
               required
-              maxLength={5000}
+              maxLength={context ? Math.max(500, 4990 - context.length) : 5000}
               value={question}
               onFocus={markStarted}
               onChange={(e) => setQuestion(e.target.value)}
