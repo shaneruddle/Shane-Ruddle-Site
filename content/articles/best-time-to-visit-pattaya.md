@@ -23,6 +23,9 @@ These days, I prefer the low season myself. There are fewer people around, inclu
 
 ## How bad is the rainy season in Pattaya?
 
+(I've written a fuller piece on [the rainy season in Pattaya](/articles/rainy-season-in-pattaya).)
+
+
 Not bad at all. On a typical day it rains for less than 45 minutes, and within a few hours it's dry again. It can be a little overcast, but that's no bad thing when you think about sun exposure.
 
 You can get unlucky. Some visitors hit a two-week spell with heavy rain and occasional flooding. But that's the exception, not the rule.

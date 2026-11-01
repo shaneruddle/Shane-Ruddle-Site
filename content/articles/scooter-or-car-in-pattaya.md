@@ -7,6 +7,8 @@ date: 2026-10-31
 
 I've run Pattaya Rent a Car since 2010, and visitors ask me this all the time: should I rent a scooter or a car?
 
+Renting a car? Here's [what to check before you sign](/articles/renting-a-car-in-pattaya).
+
 ## Scooter or car: which would I choose?
 
 A car, if your budget allows it. Absolutely. As I've written about [driving in Pattaya](/articles/driving-in-pattaya), the roads here are very different from what you'd find in the West. They're a little more chaotic, with motorbikes buzzing around everywhere, and a car gives you that extra safety.

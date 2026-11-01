@@ -47,6 +47,8 @@ I don't think it's any different here than anywhere else, but for me it comes do
 
 We've always used LINE, WhatsApp, Messenger and email. Even when staff had to read the message, check which cars were available and then reply, it was sometimes done within a few minutes, so fast that people thought it was automated. It wasn't. Now AI helps with some replies, and some bookings are even confirmed automatically, with no human involved at all.
 
+Reviews are only part of it. Here's [how I market the businesses](/articles/marketing-a-small-business-in-pattaya).
+
 ## My advice if you want better reviews
 
 Response times. And, to borrow Jeff Bezos's philosophy, be almost obsessed with customer service.

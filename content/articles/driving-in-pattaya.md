@@ -19,7 +19,7 @@ The first thing to understand is that the roads here are set up differently from
 
 You can rent from us on a UK licence, and our insurance covers you. Thailand recognises foreign licences from countries that are part of the international road traffic conventions, which includes the UK.
 
-The catch is the police. If you're stopped, you'll often be fined for not having an international or Thai licence. The fine is ฿500. Whether some officers don't know the rules, or it's just an easy fine, I can't say. So my advice is simple: get an International Driving Permit before you come. It's cheap, and it saves the argument.
+The catch is the police. If you're stopped, you'll often be fined for not having an international or Thai licence. The fine is ฿500. Whether some officers don't know the rules, or it's just an easy fine, I can't say. So my advice is simple: get an International Driving Permit before you come. It's cheap, and it saves the argument. If you're living here, [get a Thai licence](/articles/thai-driving-licence).
 
 ## What are the biggest risks on the road?
 
