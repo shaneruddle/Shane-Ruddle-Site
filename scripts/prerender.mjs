@@ -34,9 +34,19 @@ function stripAnimationStyles(html) {
   });
 }
 
-function page({ urlPath, title, description, body, ogType = "website", image = DEFAULT_OG_IMAGE, schemas = [] }) {
+// English pages with a German twin, and every German page, list both versions (hreflang).
+function alternatesFor(urlPath) {
+  const en = ssr.DE_TO_EN[urlPath] ?? (ssr.EN_TO_DE[urlPath] ? urlPath : null);
+  const de = ssr.EN_TO_DE[urlPath] ?? (ssr.DE_TO_EN[urlPath] ? urlPath : null);
+  if (!en || !de) return [];
+  return [["en", en], ["de", de], ["x-default", en]];
+}
+
+function page({ urlPath, title, description, body, ogType = "website", image = DEFAULT_OG_IMAGE, schemas = [], lang = "en" }) {
   const canonical = SITE_URL + (urlPath === "/" ? "/" : urlPath);
+  const alternates = alternatesFor(urlPath);
   const head = [
+    ...alternates.map(([hl, p]) => `<link rel="alternate" hreflang="${hl}" href="${esc(SITE_URL + (p === "/" ? "/" : p))}" />`),
     `<link rel="canonical" href="${esc(canonical)}" />`,
     `<meta property="og:site_name" content="Shane Ruddle" />`,
     `<meta property="og:type" content="${ogType}" />`,
@@ -44,7 +54,7 @@ function page({ urlPath, title, description, body, ogType = "website", image = D
     `<meta property="og:description" content="${esc(description)}" />`,
     `<meta property="og:url" content="${esc(canonical)}" />`,
     `<meta property="og:image" content="${esc(image)}" />`,
-    `<meta property="og:locale" content="en_GB" />`,
+    `<meta property="og:locale" content="${lang === "de" ? "de_DE" : "en_GB"}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${esc(title)}" />`,
     `<meta name="twitter:description" content="${esc(description)}" />`,
@@ -54,6 +64,7 @@ function page({ urlPath, title, description, body, ogType = "website", image = D
   ].join("\n    ");
 
   let html = template
+    .replace('<html lang="en">', `<html lang="${lang}">`)
     .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`)
     .replace(/<meta name="description"[^>]*>/, `<meta name="description" content="${esc(description)}" />`)
     .replace("</head>", `    ${head}\n  </head>`)
@@ -407,6 +418,64 @@ for (const s of ssr.SCHOOLS) {
   urls.push({ loc: urlPath });
 }
 
+// ---- German edition (/de) ----
+const author = { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL };
+const deCrumbs = (items) => crumbs([["Startseite", ssr.DE_HOME], ...items]);
+const deFaq = (faqs) => ({ ...faqSchema(faqs), inLanguage: "de" });
+const writeDe = (urlPath, meta, schemas = [], extra = {}) => {
+  write(urlPath, page({ urlPath, ...meta, body: ssr.renderDe(urlPath), schemas, lang: "de", ...extra }));
+  urls.push({ loc: urlPath, ...(extra.lastmod ? { lastmod: extra.lastmod } : {}) });
+};
+writeDe(ssr.DE_HOME, ssr.DE_PAGE_META[ssr.DE_HOME], [{ ...websiteSchema(), inLanguage: "de" }]);
+writeDe(ssr.DE_ARTICLES, ssr.DE_PAGE_META[ssr.DE_ARTICLES], [deCrumbs([["Artikel", ssr.DE_ARTICLES]])]);
+writeDe(ssr.DE_CALCULATOR, ssr.DE_PAGE_META[ssr.DE_CALCULATOR], [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Lebenshaltungskosten-Rechner Pattaya",
+    url: SITE_URL + ssr.DE_CALCULATOR,
+    inLanguage: "de",
+    description: ssr.DE_PAGE_META[ssr.DE_CALCULATOR].description,
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Any",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+    author,
+  },
+  deFaq(ssr.CALCULATOR_FAQS_DE),
+  deCrumbs([["Lebenshaltungskosten-Rechner", ssr.DE_CALCULATOR]]),
+]);
+writeDe(ssr.DE_MOVING, ssr.DE_PAGE_META[ssr.DE_MOVING], [
+  { "@context": "https://schema.org", "@type": "Article", headline: "Auswandern nach Pattaya: mein Ratgeber nach 20 Jahren", inLanguage: "de", description: ssr.DE_PAGE_META[ssr.DE_MOVING].description, url: SITE_URL + ssr.DE_MOVING, mainEntityOfPage: SITE_URL + ssr.DE_MOVING, image: DEFAULT_OG_IMAGE, author, publisher: author },
+  deFaq(ssr.DE_MOVING_FAQS),
+  deCrumbs([["Auswandern nach Pattaya", ssr.DE_MOVING]]),
+]);
+writeDe(ssr.DE_AREAS, ssr.DE_PAGE_META[ssr.DE_AREAS], [
+  { "@context": "https://schema.org", "@type": "ItemList", name: "Wohngegenden in Pattaya", inLanguage: "de", itemListElement: ssr.DE_AREA_LIST.map((a, i) => ({ "@type": "ListItem", position: i + 1, name: a.name, url: `${SITE_URL}${ssr.DE_AREAS}#${a.id}` })) },
+  deCrumbs([["Wohngegenden", ssr.DE_AREAS]]),
+]);
+writeDe(ssr.VISAS_PATH_DE, ssr.VISAS_META_DE, [
+  { "@context": "https://schema.org", "@type": "WebApplication", name: "Thailand Visum-Finder", url: SITE_URL + ssr.VISAS_PATH_DE, inLanguage: "de", description: ssr.VISAS_META_DE.description, applicationCategory: "TravelApplication", operatingSystem: "Any", offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" }, author },
+  deFaq(ssr.VISAS_FAQS_DE),
+  deCrumbs([["Thailand-Visum", ssr.VISAS_PATH_DE]]),
+]);
+for (const v of ssr.VISAS_DE) {
+  const urlPath = `${ssr.VISAS_PATH_DE}/${v.slug}`;
+  writeDe(urlPath, { title: v.metaTitle, description: v.description }, [
+    { "@context": "https://schema.org", "@type": "Article", headline: `${v.name}: ${v.official}`, inLanguage: "de", description: v.description, url: SITE_URL + urlPath, mainEntityOfPage: SITE_URL + urlPath, image: DEFAULT_OG_IMAGE, author, publisher: author },
+    deFaq(v.faqs),
+    deCrumbs([["Thailand-Visum", ssr.VISAS_PATH_DE], [v.name, urlPath]]),
+  ]);
+}
+for (const a of ssr.DE_ARTICLE_LIST) {
+  const urlPath = `${ssr.DE_ARTICLES}/${a.slug}`;
+  const image = a.image ? (a.image.startsWith("/") ? SITE_URL + a.image : a.image) : DEFAULT_OG_IMAGE;
+  const date = `${a.date}T00:00:00+07:00`;
+  writeDe(urlPath, { title: `${a.title} | Shane Ruddle`, description: a.description }, [
+    { "@context": "https://schema.org", "@type": "BlogPosting", headline: a.title, inLanguage: "de", description: a.description, url: SITE_URL + urlPath, mainEntityOfPage: SITE_URL + urlPath, image, datePublished: date, dateModified: date, author, publisher: author, ...(a.en ? { translationOfWork: { "@id": `${SITE_URL}/articles/${a.en}` } } : {}) },
+    deCrumbs([["Artikel", ssr.DE_ARTICLES], [a.title, urlPath]]),
+  ], { ogType: "article", image, lastmod: date });
+}
+
 // ---- rss.xml (latest articles, for feed readers and newsletter tools) ----
 const rssDate = (iso) => (iso ? new Date(iso).toUTCString() : "");
 const rss = `<?xml version="1.0" encoding="UTF-8"?>
@@ -432,8 +501,8 @@ fs.writeFileSync(path.join(DIST, "rss.xml"), rss);
 
 // ---- sitemap.xml + robots.txt ----
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map((u) => `  <url><loc>${esc(SITE_URL + u.loc)}</loc>${u.lastmod ? `<lastmod>${u.lastmod.slice(0, 10)}</lastmod>` : ""}</url>`).join("\n")}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${urls.map((u) => `  <url><loc>${esc(SITE_URL + u.loc)}</loc>${u.lastmod ? `<lastmod>${u.lastmod.slice(0, 10)}</lastmod>` : ""}${alternatesFor(u.loc).map(([hl, p]) => `<xhtml:link rel="alternate" hreflang="${hl}" href="${esc(SITE_URL + (p === "/" ? "/" : p))}"/>`).join("")}</url>`).join("\n")}
 </urlset>
 `;
 fs.writeFileSync(path.join(DIST, "sitemap.xml"), sitemap);
@@ -442,4 +511,5 @@ fs.writeFileSync(
   `User-agent: *\nAllow: /\nDisallow: /portal\nDisallow: /api/\n\nSitemap: ${SITE_URL}/sitemap.xml\n`
 );
 
+console.log(`prerender: German edition ${5 + ssr.VISAS_DE.length + 1 + ssr.DE_ARTICLE_LIST.length} pages.`);
 console.log(`prerender: wrote ${ssr.PAGE_PATHS.length + 3 + ssr.GUIDES.length + ssr.AREAS.length + 1 + ssr.VISAS.length + 1 + ssr.SCHOOLS.length + articles.length} pages, sitemap with ${urls.length} URLs.`);

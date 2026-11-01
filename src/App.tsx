@@ -46,6 +46,8 @@ const CostCalculator = lazy(() => import("./components/CostCalculator"));
 const AreasPage = lazy(() => import("./components/AreasPage"));
 const VisasPage = lazy(() => import("./components/VisasPage"));
 const SchoolsPage = lazy(() => import("./components/SchoolsPage"));
+const DeSite = lazy(() => import("./components/de/DeSite"));
+const GermanBanner = lazy(() => import("./components/de/GermanBanner"));
 const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
 const BlogPage = lazy(() => import("./components/BlogPage"));
 // Use the copy main.tsx preloaded on article pages, so there is no blank loading frame.
@@ -223,7 +225,7 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
 
 // URL routing. Each view has a real path so pages can be linked, shared and indexed.
 // Firebase Hosting rewrites every path to index.html, so the app resolves the view here.
-type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'schools' | 'privacy-policy' | 'terms-of-service';
+type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'schools' | 'de' | 'privacy-policy' | 'terms-of-service';
 
 const VIEW_PATHS: Record<View, string> = {
   'home': '/',
@@ -239,6 +241,7 @@ const VIEW_PATHS: Record<View, string> = {
   'areas': '/areas',
   'visas': '/thai-visas',
   'schools': '/international-schools-pattaya',
+  'de': '/de',
   'privacy-policy': '/privacy',
   'terms-of-service': '/terms',
 };
@@ -258,6 +261,7 @@ const NAV_LINKS: { label: string; view: View }[] = [
 function routeFromPath(pathname: string): { view: View } {
   const path = pathname.replace(/\/+$/, '') || '/';
   if (path.startsWith('/articles')) return { view: 'blog' };
+  if (path === '/de' || path.startsWith('/de/')) return { view: 'de' };
   if (path === '/guides' || path.startsWith('/guides/')) return { view: 'guides' };
   if (path === '/areas' || path.startsWith('/areas/')) return { view: 'areas' };
   if (path === '/thai-visas' || path.startsWith('/thai-visas/')) return { view: 'visas' };
@@ -288,7 +292,10 @@ export default function App() {
   const [impersonatedProfile, setImpersonatedProfile] = useState<UserProfile | null>(null);
   const displayProfile = impersonatedProfile || userProfile;
   // Public nav/footer show everywhere except inside the signed-in portal (they also carry the login button).
-  const showPublicChrome = view !== 'portal' || !displayProfile;
+  // The German edition (/de) brings its own German header and footer.
+  const showPublicChrome = view !== 'de' && (view !== 'portal' || !displayProfile);
+  // Offer the German version to visitors whose browser prefers German (only on pages that have one).
+  const [prefersGerman] = useState(() => typeof navigator !== 'undefined' && /^de\b/i.test(navigator.language || ''));
   const isAdmin = displayProfile?.roles?.includes('admin') || 
                   displayProfile?.roles?.includes('accounts') || 
                   displayProfile?.roles?.includes('manager') || 
@@ -1022,6 +1029,13 @@ export default function App() {
                       transition={{ duration: 0.25 }}>
                       <SchoolsPage path={currentPath} />
                     </motion.div>
+                  ) : view === 'de' ? (
+                    <motion.div key={currentPath} initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <DeSite path={currentPath} />
+                    </motion.div>
                   ) : view === 'privacy-policy' ? (
                     <motion.div
                       key="privacy-policy"
@@ -1073,6 +1087,9 @@ export default function App() {
               </AnimatePresence>
 
               {/* Shared footer - all public pages */}
+              {showPublicChrome && prefersGerman && (
+                <SilentErrorBoundary><Suspense fallback={null}><GermanBanner path={currentPath} /></Suspense></SilentErrorBoundary>
+              )}
               {showPublicChrome && (
                 <footer id="contact" className="pt-20 md:pt-28 pb-10 px-6 md:px-12 bg-ink text-white scroll-mt-16">
                   <div className="max-w-7xl mx-auto">
@@ -1112,10 +1129,11 @@ export default function App() {
                       <div className="md:col-span-2">
                         <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-6">Navigation</h5>
                         <ul className="space-y-4">
-                          {[...NAV_LINKS, { label: 'Schools', view: 'schools' as View }, { label: 'Newsletter', view: 'newsletter' as View }].map((link) => (
+                          {[...NAV_LINKS, { label: 'Schools', view: 'schools' as View }, { label: 'Newsletter', view: 'newsletter' as View }, { label: 'Deutsch', view: 'de' as View }].map((link) => (
                             <li key={link.view}>
                               <a
                                 href={VIEW_PATHS[link.view]}
+                                hrefLang={link.view === 'de' ? 'de' : undefined}
                                 onClick={handleLinkClick}
                                 className="text-sm text-white/60 hover:text-white transition-colors font-light"
                               >

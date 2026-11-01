@@ -18,6 +18,7 @@ import AreasPage from "../components/AreasPage";
 import VisasPage from "../components/VisasPage";
 import SchoolsPage from "../components/SchoolsPage";
 import { fallbackData } from "../types";
+import DeSite from "../components/de/DeSite";
 
 export { FILE_ARTICLES } from "../lib/fileArticles";
 export { GUIDES, GUIDES_META } from "../lib/guides";
@@ -26,6 +27,10 @@ export { AREAS, AREAS_META, AREAS_FAQS } from "../lib/areas";
 export { VISAS, VISAS_META, VISAS_FAQS, VISAS_PATH } from "../lib/visas";
 export { SCHOOLS, SCHOOLS_META, SCHOOLS_FAQS, SCHOOLS_PATH, faqsForSchool } from "../lib/schools";
 export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema } from "../seo";
+export { EN_TO_DE, DE_TO_EN, DE_ARTICLE_LIST, DE_HOME, DE_ARTICLES, DE_CALCULATOR, DE_MOVING, DE_AREAS } from "../lib/de/site";
+export { VISAS_DE, VISAS_META_DE, VISAS_FAQS_DE, VISAS_PATH_DE } from "../lib/de/visas";
+export { DE_PAGE_META, DE_MOVING_FAQS, DE_AREA_LIST } from "../lib/de/pages";
+export { CALCULATOR_FAQS_DE } from "../components/de/DeCalculator";
 
 export interface StaticArticle {
   slug: string;
@@ -153,4 +158,9 @@ export function renderVisas(path: string): string {
 /** /international-schools-pattaya or /international-schools-pattaya/<slug>. */
 export function renderSchools(path: string): string {
   return renderToString(<Shell><SchoolsPage path={path} /></Shell>);
+}
+
+/** Any /de page: the German site renders its own header and footer. */
+export function renderDe(path: string): string {
+  return renderToString(<DeSite path={path} />);
 }

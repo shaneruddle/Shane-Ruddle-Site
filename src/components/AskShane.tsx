@@ -60,6 +60,95 @@ const TOPICS: { id: AskTopic; label: string; heading: string; placeholder: strin
   },
 ];
 
+// German edition (/de): same topics, German copy. Shane gets the question with an English translation.
+const TOPICS_DE: Record<AskTopic, { label: string; heading: string; placeholder: string }> = {
+  family: {
+    label: "Umzug mit Familie",
+    heading: "Sie überlegen, mit Ihrer Familie nach Pattaya zu ziehen?",
+    placeholder: "z. B. Wir haben zwei Kinder, 7 und 10 Jahre alt. Welche Gegend und welche Schule würden Sie sich zuerst ansehen?",
+  },
+  buying: {
+    label: "Immobilie kaufen",
+    heading: "Sie überlegen, in Pattaya zu kaufen?",
+    placeholder: "z. B. Ich habe etwa 5 Millionen Baht. Wohnung oder Haus, und welche Gegend würden Sie wählen?",
+  },
+  renting: {
+    label: "Wohnung mieten",
+    heading: "Sie suchen eine Mietwohnung?",
+    placeholder: "z. B. Was zahlt man für ein Condo mit zwei Schlafzimmern in Jomtien bei 12 Monaten Laufzeit?",
+  },
+  retiring: {
+    label: "Ruhestand hier",
+    heading: "Sie überlegen, Ihren Ruhestand in Pattaya zu verbringen?",
+    placeholder: "z. B. Reichen 60.000 Baht im Monat für ein angenehmes Leben, Krankenversicherung inklusive?",
+  },
+  business: {
+    label: "Geschäft oder Investition",
+    heading: "Sie überlegen, in Pattaya ein Geschäft zu machen?",
+    placeholder: "z. B. Ich überlege, eine Bar zu kaufen. Was sollte ich prüfen, bevor ich etwas unterschreibe?",
+  },
+  visa: {
+    label: "Visum",
+    heading: "Sie sind unsicher, welches Visum das richtige ist?",
+    placeholder: "z. B. Ich bin 52, arbeite online und eröffne vielleicht irgendwann eine Bar. Welches Visum würden Sie wählen?",
+  },
+  visiting: {
+    label: "Urlaub oder Herumkommen",
+    heading: "Sie planen eine Reise nach Pattaya?",
+    placeholder: "z. B. Lohnt sich ein Mietwagen für zwei Wochen Familienurlaub, oder lieber Grab?",
+  },
+  other: {
+    label: "Etwas anderes",
+    heading: "Haben Sie eine Frage an mich?",
+    placeholder: "Partnerschaften, Presse, Vorträge oder alles andere, was Sie beschäftigt.",
+  },
+};
+
+const UI = {
+  en: {
+    eyebrow: "Ask Shane",
+    defaultHeading: "Ask me anything about Pattaya.",
+    step: (n: number) => `Step ${n} of 3`,
+    planning: "What are you planning? I read every question myself and reply personally.",
+    questionLabel: "What would you like to ask? The more detail you give, the more useful my answer will be.",
+    topic: (label: string) => `Topic: ${label}`,
+    back: "Back",
+    next: "Next",
+    where: "Where should I send my answer?",
+    name: "Your name",
+    email: "Email address",
+    publish: "You may answer my question in a future article. My name and email will never be shown.",
+    edit: "Edit question",
+    sending: "Sending…",
+    send: "Send my question",
+    error: "Sorry, your question couldn't be sent. Please try again in a moment.",
+    thanks: (first: string) => `Thanks${first ? `, ${first}` : ""}. I've got your question.`,
+    reply: (email: string) => `I'll reply to ${email || "your email"} personally, usually within a couple of days.`,
+    another: "Ask another question",
+  },
+  de: {
+    eyebrow: "Fragen Sie Shane",
+    defaultHeading: "Fragen Sie mich alles über Pattaya.",
+    step: (n: number) => `Schritt ${n} von 3`,
+    planning: "Was haben Sie vor? Ich lese jede Frage selbst und antworte persönlich. Sie können auf Deutsch schreiben.",
+    questionLabel: "Was möchten Sie wissen? Je mehr Details Sie nennen, desto hilfreicher wird meine Antwort.",
+    topic: (label: string) => `Thema: ${label}`,
+    back: "Zurück",
+    next: "Weiter",
+    where: "Wohin soll ich meine Antwort schicken?",
+    name: "Ihr Name",
+    email: "E-Mail-Adresse",
+    publish: "Sie dürfen meine Frage in einem künftigen Artikel beantworten. Mein Name und meine E-Mail werden nie gezeigt.",
+    edit: "Frage bearbeiten",
+    sending: "Wird gesendet…",
+    send: "Frage absenden",
+    error: "Ihre Frage konnte leider nicht gesendet werden. Bitte versuchen Sie es gleich noch einmal.",
+    thanks: (first: string) => `Danke${first ? `, ${first}` : ""}. Ihre Frage ist angekommen.`,
+    reply: (email: string) => `Ich antworte persönlich an ${email || "Ihre E-Mail-Adresse"}, meist innerhalb weniger Tage. Meine Antwort kommt auf Englisch.`,
+    another: "Noch eine Frage stellen",
+  },
+};
+
 // Picks the most likely topic for an article so readers start on step 2.
 export function topicForArticle(slug = "", category = ""): AskTopic {
   const s = slug.toLowerCase();
@@ -83,7 +172,8 @@ export default function AskShane({
   initialTopic,
   showHeading = true,
   context,
-  contextNote = "I'll see your calculator result with your question.",
+  contextNote,
+  lang = "en",
 }: {
   dark?: boolean;
   /** Where the form sits, for analytics and the email (e.g. "article", "homepage", "contact_page"). */
@@ -95,7 +185,13 @@ export default function AskShane({
   context?: string;
   /** Note shown under the question box when `context` is sent. */
   contextNote?: string;
+  /** "de" on the German edition: German copy, and the server adds an English translation for Shane. */
+  lang?: "en" | "de";
 }) {
+  const t = UI[lang];
+  const localise = (x: (typeof TOPICS)[number]) => (lang === "de" ? { ...x, ...TOPICS_DE[x.id] } : x);
+  const topics = TOPICS.map(localise);
+  const note = contextNote ?? (lang === "de" ? "Ich sehe Ihr Ergebnis zusammen mit Ihrer Frage." : "I'll see your calculator result with your question.");
   const [topic, setTopic] = useState<AskTopic | null>(initialTopic ?? null);
   const [step, setStep] = useState<Step>(initialTopic ? 2 : 1);
   const [question, setQuestion] = useState("");
@@ -107,7 +203,7 @@ export default function AskShane({
   const [error, setError] = useState("");
   const started = useRef(false);
 
-  const current = TOPICS.find((t) => t.id === topic);
+  const current = topics.find((x) => x.id === topic);
 
   const markStarted = () => {
     if (started.current) return;
@@ -141,19 +237,20 @@ export default function AskShane({
           name,
           email,
           message: context ? `${question}\n\n---\n${context}` : question,
-          topic: current?.label,
+          topic: TOPICS.find((x) => x.id === topic)?.label,
           page: window.location.pathname,
           source,
           publishOk,
           website,
+          lang,
         }),
       });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || "Sorry, your question couldn't be sent. Please try again in a moment.");
-      trackEvent("generate_lead", { form: "ask_shane", form_location: source, topic });
+      if (!res.ok) throw new Error((lang === "en" && body.error) || t.error);
+      trackEvent("generate_lead", { form: "ask_shane", form_location: source, topic, language: lang });
       setStep("done");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sorry, your question couldn't be sent. Please try again in a moment.");
+      setError(err instanceof Error ? err.message : t.error);
     } finally {
       setSending(false);
     }
@@ -186,9 +283,9 @@ export default function AskShane({
             className="w-11 h-11 sm:w-14 sm:h-14 rounded-full object-cover shrink-0 ring-2 ring-gold/60"
           />
           <div>
-            <p className={`text-[11px] uppercase tracking-[0.25em] font-semibold mb-1 ${dark ? "text-gold" : "text-gold-deep"}`}>Ask Shane</p>
+            <p className={`text-[11px] uppercase tracking-[0.25em] font-semibold mb-1 ${dark ? "text-gold" : "text-gold-deep"}`}>{t.eyebrow}</p>
             <h2 className="font-serif text-[1.65rem] sm:text-3xl md:text-4xl leading-tight">
-              {step !== "done" && current ? current.heading : "Ask me anything about Pattaya."}
+              {step !== "done" && current ? current.heading : t.defaultHeading}
             </h2>
           </div>
         </div>
@@ -202,25 +299,25 @@ export default function AskShane({
               className={`h-1 rounded-full transition-all duration-300 ${n <= (step as number) ? "w-10 bg-gold" : `w-6 ${dark ? "bg-white/15" : "bg-black/10"}`}`}
             />
           ))}
-          <span className={`ml-2 text-[11px] uppercase tracking-[0.18em] ${dark ? "text-white/40" : "text-black/40"}`}>Step {step} of 3</span>
+          <span className={`ml-2 text-[11px] uppercase tracking-[0.18em] ${dark ? "text-white/40" : "text-black/40"}`}>{t.step(step as number)}</span>
         </div>
       )}
 
       <AnimatePresence mode="wait" initial={false}>
         {step === 1 && (
           <motion.div key="s1" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-            <p className={`mb-5 ${muted}`}>What are you planning? I read every question myself and reply personally.</p>
+            <p className={`mb-5 ${muted}`}>{t.planning}</p>
             <div className="flex flex-wrap gap-2.5">
-              {TOPICS.map((t) => (
+              {topics.map((x) => (
                 <button
-                  key={t.id}
+                  key={x.id}
                   type="button"
-                  onClick={() => pickTopic(t.id)}
+                  onClick={() => pickTopic(x.id)}
                   className={`px-5 py-3 rounded-full border text-sm transition-all hover:-translate-y-0.5 ${
                     dark ? "border-white/20 hover:border-gold hover:text-gold" : "border-black/15 bg-white hover:border-gold-deep hover:text-gold-deep"
                   }`}
                 >
-                  {t.label}
+                  {x.label}
                 </button>
               ))}
             </div>
@@ -230,7 +327,7 @@ export default function AskShane({
         {step === 2 && (
           <motion.form key="s2" onSubmit={toDetails} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
             <label htmlFor={`ask-q-${source}`} className={`block mb-3 ${muted}`}>
-              What would you like to ask? The more detail you give, the more useful my answer will be.
+              {t.questionLabel}
             </label>
             <textarea
               id={`ask-q-${source}`}
@@ -243,13 +340,13 @@ export default function AskShane({
               placeholder={current?.placeholder}
               className={`border rounded-2xl px-5 py-4 text-base focus:outline-none transition-colors w-full resize-none ${field}`}
             />
-            {context && <p className={`mt-3 text-xs ${dark ? "text-white/45" : "text-black/45"}`}>{contextNote}</p>}
+            {context && <p className={`mt-3 text-xs ${dark ? "text-white/45" : "text-black/45"}`}>{note}</p>}
             <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
               <button type="button" onClick={() => setStep(1)} className={back}>
-                <ArrowLeft className="w-3.5 h-3.5" /> {current ? `Topic: ${current.label}` : "Back"}
+                <ArrowLeft className="w-3.5 h-3.5" /> {current ? t.topic(current.label) : t.back}
               </button>
               <button type="submit" disabled={question.trim().length < 5} className={primary}>
-                Next <ArrowRight className="w-4 h-4" />
+                {t.next} <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </motion.form>
@@ -257,13 +354,13 @@ export default function AskShane({
 
         {step === 3 && (
           <motion.form key="s3" onSubmit={send} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-            <p className={`mb-4 ${muted}`}>Where should I send my answer?</p>
+            <p className={`mb-4 ${muted}`}>{t.where}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
                 type="text"
                 required
                 autoComplete="name"
-                placeholder="Your name"
+                placeholder={t.name}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className={`border rounded-xl px-4 py-3.5 text-sm focus:outline-none transition-colors w-full ${field}`}
@@ -272,7 +369,7 @@ export default function AskShane({
                 type="email"
                 required
                 autoComplete="email"
-                placeholder="Email address"
+                placeholder={t.email}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={`border rounded-xl px-4 py-3.5 text-sm focus:outline-none transition-colors w-full ${field}`}
@@ -295,14 +392,14 @@ export default function AskShane({
                 onChange={(e) => setPublishOk(e.target.checked)}
                 className="mt-0.5 w-4 h-4 accent-[#D4AF37] shrink-0"
               />
-              <span>You may answer my question in a future article. My name and email will never be shown.</span>
+              <span>{t.publish}</span>
             </label>
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
               <button type="button" onClick={() => setStep(2)} className={back}>
-                <ArrowLeft className="w-3.5 h-3.5" /> Edit question
+                <ArrowLeft className="w-3.5 h-3.5" /> {t.edit}
               </button>
               <button type="submit" disabled={sending} className={primary}>
-                {sending ? "Sending…" : <>Send my question <ArrowRight className="w-4 h-4" /></>}
+                {sending ? t.sending : <>{t.send} <ArrowRight className="w-4 h-4" /></>}
               </button>
             </div>
             {error && <p role="alert" className="mt-4 text-sm text-danger">{error}</p>}
@@ -320,12 +417,12 @@ export default function AskShane({
               <Check className="w-5 h-5 text-gold" />
             </span>
             <div>
-              <p className="font-serif text-2xl mb-1">Thanks{name ? `, ${name.split(" ")[0]}` : ""}. I've got your question.</p>
+              <p className="font-serif text-2xl mb-1">{t.thanks(name ? name.split(" ")[0] : "")}</p>
               <p className={`text-sm leading-relaxed ${muted}`}>
-                I'll reply to {email || "your email"} personally, usually within a couple of days.
+                {t.reply(email)}
               </p>
               <button type="button" onClick={reset} className={`mt-4 ${back}`}>
-                Ask another question
+                {t.another}
               </button>
             </div>
           </motion.div>
