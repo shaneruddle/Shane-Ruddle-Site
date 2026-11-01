@@ -4,6 +4,7 @@ import path from "path";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import cors from "cors";
+import crypto from "crypto";
 import { initializeApp as initializeAdminApp, getApps } from "firebase-admin/app";
 import { getFirestore as getAdminFirestore, FieldValue, Firestore } from "firebase-admin/firestore";
 import { getAuth as getAdminAuth } from "firebase-admin/auth";
@@ -331,6 +332,79 @@ Reply with JSON only, no other text: {"approve": true or false, "reason": "a few
       console.error("Photo publish failed:", error instanceof Error ? error.message : error);
       res.status(502).json({ error: "Could not start publishing." });
     }
+  });
+
+  // ---- Read-only Search Console + GA4 data for Claude ----
+  // Calls are made as the dedicated site-insights service account, which is added as a Viewer/restricted user in Search Console and GA4. Callers must send
+  // the shared secret in the x-insights-token header (INSIGHTS_TOKEN, injected from Secret Manager).
+  const GSC_SITE = process.env.GSC_SITE_URL || "sc-domain:shaneruddle.com";
+  const GA4_PROPERTY = process.env.GA4_PROPERTY_ID || "";
+  const INSIGHTS_SA = process.env.INSIGHTS_SA || "site-insights@shane-ruddle-site.iam.gserviceaccount.com";
+  const INSIGHTS_SCOPES = ["https://www.googleapis.com/auth/webmasters.readonly", "https://www.googleapis.com/auth/analytics.readonly"];
+  let insightsToken: { value: string; expires: number } | null = null;
+
+  const requireInsightsToken = (req: express.Request, res: express.Response) => {
+    const expected = process.env.INSIGHTS_TOKEN || "";
+    const given = String(req.header("x-insights-token") || "");
+    const ok = expected.length > 0 && given.length === expected.length && crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected));
+    if (!ok) res.status(401).json({ error: "Unauthorized" });
+    return ok;
+  };
+
+  // The runtime account mints a short-lived token for the dedicated read-only account (no key file).
+  const googleAccessToken = async () => {
+    if (insightsToken && insightsToken.expires > Date.now() + 60_000) return insightsToken.value;
+    const meta = await fetch("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token", {
+      headers: { "Metadata-Flavor": "Google" },
+    });
+    if (!meta.ok) throw new Error(`Metadata token ${meta.status}`);
+    const { access_token } = (await meta.json()) as { access_token: string };
+    const r = await fetch(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${INSIGHTS_SA}:generateAccessToken`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${access_token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ scope: INSIGHTS_SCOPES, lifetime: "3600s" }),
+    });
+    if (!r.ok) throw new Error(`generateAccessToken ${r.status}: ${(await r.text()).slice(0, 200)}`);
+    const data = (await r.json()) as { accessToken: string; expireTime: string };
+    insightsToken = { value: data.accessToken, expires: Date.parse(data.expireTime) };
+    return insightsToken.value;
+  };
+
+  const googleApi = async (res: express.Response, url: string, body?: unknown) => {
+    try {
+      const r = await fetch(url, {
+        method: body ? "POST" : "GET",
+        headers: { Authorization: `Bearer ${await googleAccessToken()}`, "Content-Type": "application/json" },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      res.status(r.status).type("application/json").send(await r.text());
+    } catch (error) {
+      console.error("Insights request failed:", error instanceof Error ? error.message : error);
+      res.status(502).json({ error: "Google API request failed." });
+    }
+  };
+
+  // List the Search Console properties the service account can see.
+  app.get("/api/insights/gsc/sites", (req, res) => {
+    if (!requireInsightsToken(req, res)) return;
+    googleApi(res, "https://www.googleapis.com/webmasters/v3/sites");
+  });
+
+  // Body: a searchAnalytics.query request (startDate, endDate, dimensions, rowLimit, filters...).
+  // Optional body.siteUrl overrides the default property.
+  app.post("/api/insights/gsc", (req, res) => {
+    if (!requireInsightsToken(req, res)) return;
+    const { siteUrl = GSC_SITE, ...query } = req.body || {};
+    googleApi(res, `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, query);
+  });
+
+  // Body: a GA4 Data API runReport request (dateRanges, dimensions, metrics, limit...).
+  // Optional body.property overrides the default numeric property ID.
+  app.post("/api/insights/ga4", (req, res) => {
+    if (!requireInsightsToken(req, res)) return;
+    const { property = GA4_PROPERTY, ...report } = req.body || {};
+    if (!/^\d+$/.test(String(property))) return res.status(400).json({ error: "GA4 property ID not configured." });
+    googleApi(res, `https://analyticsdata.googleapis.com/v1beta/properties/${property}:runReport`, report);
   });
 
   // Unknown API routes return a real 404 instead of falling through to the SPA's index.html.
