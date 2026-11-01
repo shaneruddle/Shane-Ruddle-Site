@@ -12,9 +12,11 @@ import PrivacyPolicy from "../components/PrivacyPolicy";
 import TermsOfService from "../components/TermsOfService";
 import PageHero from "../components/PageHero";
 import ArticleView from "../components/ArticleView";
+import GuidePage from "../components/GuidePage";
 import { fallbackData } from "../types";
 
 export { FILE_ARTICLES } from "../lib/fileArticles";
+export { GUIDES, GUIDES_META } from "../lib/guides";
 export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema } from "../seo";
 
 export interface StaticArticle {
@@ -32,6 +34,7 @@ export interface StaticArticle {
 const noop = () => {};
 
 const NAV = [
+  ["Start here", "/guides"],
   ["About", "/about"],
   ["Businesses", "/businesses"],
   ["Articles", "/articles"],
@@ -115,7 +118,13 @@ export function renderArticle(a: StaticArticle): string {
         category={a.category}
         createdAt={a.createdAt ? new Date(a.createdAt) : undefined}
         imageUrl={a.imageUrl}
+        slug={a.slug}
       />
     </Shell>
   );
+}
+
+/** /guides or /guides/<slug>. */
+export function renderGuide(path: string): string {
+  return renderToString(<Shell><GuidePage path={path} /></Shell>);
 }

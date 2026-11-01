@@ -32,6 +32,11 @@ export const PAGE_META: Record<string, PageMeta> = {
     description:
       "Practical articles from Shane Ruddle on buying property in Pattaya, running a business in Thailand, car rental and living on the Eastern Seaboard.",
   },
+  "/guides": {
+    title: "Start Here: Guides to Moving, Family Life, Property and Business in Pattaya | Shane Ruddle",
+    description:
+      "Four guides from 20 years in Pattaya: moving here, raising a family, buying property as a foreigner, and starting or buying a business.",
+  },
   "/newsletter": {
     title: "Newsletter — What Actually Works in Pattaya | Shane Ruddle",
     description:

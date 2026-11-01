@@ -187,6 +187,49 @@ for (const a of articles) {
   urls.push({ loc: urlPath, lastmod: a.updatedAt });
 }
 
+// ---- "Start here" guides ----
+const crumbs = (items) => ({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: items.map(([name, item], i) => ({ "@type": "ListItem", position: i + 1, name, item: SITE_URL + item })),
+});
+write("/guides", page({
+  urlPath: "/guides",
+  ...ssr.GUIDES_META,
+  body: ssr.renderGuide("/guides"),
+  schemas: [crumbs([["Home", "/"], ["Start here", "/guides"]])],
+}));
+urls.push({ loc: "/guides" });
+for (const g of ssr.GUIDES) {
+  const urlPath = `/guides/${g.slug}`;
+  write(urlPath, page({
+    urlPath,
+    title: g.metaTitle,
+    description: g.description,
+    body: ssr.renderGuide(urlPath),
+    schemas: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: g.title,
+        description: g.description,
+        url: SITE_URL + urlPath,
+        mainEntityOfPage: SITE_URL + urlPath,
+        image: DEFAULT_OG_IMAGE,
+        author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+        publisher: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle" },
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: g.faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+      },
+      crumbs([["Home", "/"], ["Start here", "/guides"], [g.name, urlPath]]),
+    ],
+  }));
+  urls.push({ loc: urlPath });
+}
+
 // ---- rss.xml (latest articles, for feed readers and newsletter tools) ----
 const rssDate = (iso) => (iso ? new Date(iso).toUTCString() : "");
 const rss = `<?xml version="1.0" encoding="UTF-8"?>
@@ -222,4 +265,4 @@ fs.writeFileSync(
   `User-agent: *\nAllow: /\nDisallow: /portal\nDisallow: /api/\n\nSitemap: ${SITE_URL}/sitemap.xml\n`
 );
 
-console.log(`prerender: wrote ${ssr.PAGE_PATHS.length + 1 + articles.length} pages, sitemap with ${urls.length} URLs.`);
+console.log(`prerender: wrote ${ssr.PAGE_PATHS.length + 2 + ssr.GUIDES.length + articles.length} pages, sitemap with ${urls.length} URLs.`);
