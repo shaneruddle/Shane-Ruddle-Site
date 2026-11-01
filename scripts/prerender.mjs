@@ -298,6 +298,60 @@ for (const a of ssr.AREAS) {
   urls.push({ loc: urlPath });
 }
 
+// ---- Thai visas ----
+write(ssr.VISAS_PATH, page({
+  urlPath: ssr.VISAS_PATH,
+  ...ssr.VISAS_META,
+  body: ssr.renderVisas(ssr.VISAS_PATH),
+  schemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "Thai Visa Finder",
+      url: SITE_URL + ssr.VISAS_PATH,
+      description: ssr.VISAS_META.description,
+      applicationCategory: "TravelApplication",
+      operatingSystem: "Any",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "THB" },
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Thai visas for living in Pattaya",
+      itemListElement: ssr.VISAS.map((v, i) => ({ "@type": "ListItem", position: i + 1, name: v.name, url: `${SITE_URL}${ssr.VISAS_PATH}/${v.slug}` })),
+    },
+    faqSchema(ssr.VISAS_FAQS),
+    crumbs([["Home", "/"], ["Thai visas", ssr.VISAS_PATH]]),
+  ],
+}));
+urls.push({ loc: ssr.VISAS_PATH });
+for (const v of ssr.VISAS) {
+  const urlPath = `${ssr.VISAS_PATH}/${v.slug}`;
+  write(urlPath, page({
+    urlPath,
+    title: v.metaTitle,
+    description: v.description,
+    body: ssr.renderVisas(urlPath),
+    schemas: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: `${v.name}: ${v.official}`,
+        description: v.description,
+        url: SITE_URL + urlPath,
+        mainEntityOfPage: SITE_URL + urlPath,
+        image: DEFAULT_OG_IMAGE,
+        author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+        publisher: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle" },
+      },
+      faqSchema(v.faqs),
+      crumbs([["Home", "/"], ["Thai visas", ssr.VISAS_PATH], [v.name, urlPath]]),
+    ],
+  }));
+  urls.push({ loc: urlPath });
+}
+
 // ---- rss.xml (latest articles, for feed readers and newsletter tools) ----
 const rssDate = (iso) => (iso ? new Date(iso).toUTCString() : "");
 const rss = `<?xml version="1.0" encoding="UTF-8"?>
@@ -333,4 +387,4 @@ fs.writeFileSync(
   `User-agent: *\nAllow: /\nDisallow: /portal\nDisallow: /api/\n\nSitemap: ${SITE_URL}/sitemap.xml\n`
 );
 
-console.log(`prerender: wrote ${ssr.PAGE_PATHS.length + 3 + ssr.GUIDES.length + ssr.AREAS.length + articles.length} pages, sitemap with ${urls.length} URLs.`);
+console.log(`prerender: wrote ${ssr.PAGE_PATHS.length + 3 + ssr.GUIDES.length + ssr.AREAS.length + 1 + ssr.VISAS.length + articles.length} pages, sitemap with ${urls.length} URLs.`);

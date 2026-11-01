@@ -7,7 +7,7 @@ import { trackEvent } from "../lib/analytics";
 // Replaces the plain contact form and sits inside every article. Posts to /api/contact, which
 // emails Shane with the visitor's plan and the page they asked from.
 
-export type AskTopic = "family" | "buying" | "renting" | "retiring" | "business" | "visiting" | "other";
+export type AskTopic = "family" | "buying" | "renting" | "retiring" | "business" | "visa" | "visiting" | "other";
 
 const TOPICS: { id: AskTopic; label: string; heading: string; placeholder: string }[] = [
   {
@@ -41,6 +41,12 @@ const TOPICS: { id: AskTopic; label: string; heading: string; placeholder: strin
     placeholder: "e.g. I'm looking at buying a bar. What should I check before I sign anything?",
   },
   {
+    id: "visa",
+    label: "Visas",
+    heading: "Not sure which visa is right for you?",
+    placeholder: "e.g. I'm 52, I work online and I might open a bar one day. Which visa would you go for?",
+  },
+  {
     id: "visiting",
     label: "Visiting or getting around",
     heading: "Planning a trip to Pattaya?",
@@ -57,6 +63,7 @@ const TOPICS: { id: AskTopic; label: string; heading: string; placeholder: strin
 // Picks the most likely topic for an article so readers start on step 2.
 export function topicForArticle(slug = "", category = ""): AskTopic {
   const s = slug.toLowerCase();
+  if (/visa/.test(s)) return "visa";
   if (/famil|school|kids/.test(s)) return "family";
   if (/retir|healthcare/.test(s)) return "retiring";
   if (/buying-a-(condo|house)|selling|property|renting-out|agent/.test(s)) return "buying";

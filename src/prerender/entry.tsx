@@ -15,12 +15,14 @@ import ArticleView from "../components/ArticleView";
 import GuidePage from "../components/GuidePage";
 import CostCalculator from "../components/CostCalculator";
 import AreasPage from "../components/AreasPage";
+import VisasPage from "../components/VisasPage";
 import { fallbackData } from "../types";
 
 export { FILE_ARTICLES } from "../lib/fileArticles";
 export { GUIDES, GUIDES_META } from "../lib/guides";
 export { CALCULATOR_FAQS, CALCULATOR_PATH } from "../lib/costOfLiving";
 export { AREAS, AREAS_META, AREAS_FAQS } from "../lib/areas";
+export { VISAS, VISAS_META, VISAS_FAQS, VISAS_PATH } from "../lib/visas";
 export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema } from "../seo";
 
 export interface StaticArticle {
@@ -40,6 +42,7 @@ const noop = () => {};
 const NAV = [
   ["Start here", "/guides"],
   ["Areas", "/areas"],
+  ["Visas", "/thai-visas"],
   ["About", "/about"],
   ["Businesses", "/businesses"],
   ["Articles", "/articles"],
@@ -138,4 +141,9 @@ export function renderGuide(path: string): string {
 /** /areas or /areas/<slug>. */
 export function renderAreas(path: string): string {
   return renderToString(<Shell><AreasPage path={path} /></Shell>);
+}
+
+/** /thai-visas or /thai-visas/<slug>. */
+export function renderVisas(path: string): string {
+  return renderToString(<Shell><VisasPage path={path} /></Shell>);
 }

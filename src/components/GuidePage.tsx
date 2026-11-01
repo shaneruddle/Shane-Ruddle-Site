@@ -8,6 +8,7 @@ import { applyPageMeta } from "../seo";
 import AskShane from "./AskShane";
 import CalculatorPromo from "./CalculatorPromo";
 import AreasPromo from "./AreasPromo";
+import VisaPromo from "./VisaPromo";
 import NewsletterSignup from "./NewsletterSignup";
 import PageHero from "./PageHero";
 
@@ -154,6 +155,9 @@ function GuideView({ guide }: { guide: Guide }) {
                   <CalculatorPromo source={`guide_${guide.slug}`} />
                   <div className="mt-5">
                     <AreasPromo source={`guide_${guide.slug}`} />
+                  </div>
+                  <div className="mt-5">
+                    <VisaPromo source={`guide_${guide.slug}`} />
                   </div>
                 </div>
               )}

@@ -44,6 +44,7 @@ const NewsletterPage = lazy(() => import("./components/NewsletterPage"));
 const ContactPage = lazy(() => import("./components/ContactPage"));
 const CostCalculator = lazy(() => import("./components/CostCalculator"));
 const AreasPage = lazy(() => import("./components/AreasPage"));
+const VisasPage = lazy(() => import("./components/VisasPage"));
 const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
 const BlogPage = lazy(() => import("./components/BlogPage"));
 // Use the copy main.tsx preloaded on article pages, so there is no blank loading frame.
@@ -221,7 +222,7 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
 
 // URL routing. Each view has a real path so pages can be linked, shared and indexed.
 // Firebase Hosting rewrites every path to index.html, so the app resolves the view here.
-type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'privacy-policy' | 'terms-of-service';
+type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'privacy-policy' | 'terms-of-service';
 
 const VIEW_PATHS: Record<View, string> = {
   'home': '/',
@@ -235,6 +236,7 @@ const VIEW_PATHS: Record<View, string> = {
   'blog': '/articles',
   'guides': '/guides',
   'areas': '/areas',
+  'visas': '/thai-visas',
   'privacy-policy': '/privacy',
   'terms-of-service': '/terms',
 };
@@ -243,6 +245,7 @@ const VIEW_PATHS: Record<View, string> = {
 const NAV_LINKS: { label: string; view: View }[] = [
   { label: 'Start here', view: 'guides' },
   { label: 'Areas', view: 'areas' },
+  { label: 'Visas', view: 'visas' },
   { label: 'About', view: 'about' },
   { label: 'Businesses', view: 'businesses' },
   { label: 'Articles', view: 'blog' },
@@ -255,6 +258,7 @@ function routeFromPath(pathname: string): { view: View } {
   if (path.startsWith('/articles')) return { view: 'blog' };
   if (path === '/guides' || path.startsWith('/guides/')) return { view: 'guides' };
   if (path === '/areas' || path.startsWith('/areas/')) return { view: 'areas' };
+  if (path === '/thai-visas' || path.startsWith('/thai-visas/')) return { view: 'visas' };
   const view = (Object.keys(VIEW_PATHS) as View[]).find(v => VIEW_PATHS[v] === path);
   return { view: view || 'home' };
 }
@@ -804,8 +808,9 @@ export default function App() {
                       </span>
                     </a>
 
-                    <div className="hidden lg:flex items-center gap-7 min-w-0">
-                      {NAV_LINKS.map((link) => (
+                    <div className="hidden xl:flex items-center gap-6 min-w-0">
+                      {/* Past Ventures stays in the mobile menu and footer; the desktop bar has no room for it. */}
+                      {NAV_LINKS.filter((link) => link.view !== 'past-ventures').map((link) => (
                         <a
                           key={link.view}
                           href={VIEW_PATHS[link.view]}
@@ -842,7 +847,7 @@ export default function App() {
 
                     <button
                       aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-                      className="lg:hidden text-ink p-2 -mr-2 hover:bg-black/5 rounded-full transition-colors"
+                      className="xl:hidden text-ink p-2 -mr-2 hover:bg-black/5 rounded-full transition-colors"
                       onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
                       {isMenuOpen ? <X /> : <Menu />}
@@ -999,6 +1004,13 @@ export default function App() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.25 }}>
                       <AreasPage path={currentPath} />
+                    </motion.div>
+                  ) : view === 'visas' ? (
+                    <motion.div key={currentPath} initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <VisasPage path={currentPath} />
                     </motion.div>
                   ) : view === 'privacy-policy' ? (
                     <motion.div
