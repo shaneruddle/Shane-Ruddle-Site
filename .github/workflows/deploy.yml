@@ -51,7 +51,8 @@ jobs:
             --region asia-east1 \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=production,SMTP_HOST=${{ secrets.SMTP_HOST }},SMTP_PORT=${{ secrets.SMTP_PORT }},SMTP_USER=${{ secrets.SMTP_USER }},SMTP_PASS=${SMTP_PASS},BREVO_API_KEY=${BREVO_API_KEY},BREVO_LIST_ID=${BREVO_LIST_ID},ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY},GH_DISPATCH_TOKEN=${GH_DISPATCH_TOKEN}" \
+            --set-env-vars "NODE_ENV=production,SMTP_HOST=${{ secrets.SMTP_HOST }},SMTP_PORT=${{ secrets.SMTP_PORT }},SMTP_USER=${{ secrets.SMTP_USER }},SMTP_PASS=${SMTP_PASS},BREVO_API_KEY=${BREVO_API_KEY},BREVO_LIST_ID=${BREVO_LIST_ID},ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY},GH_DISPATCH_TOKEN=${GH_DISPATCH_TOKEN},GA4_PROPERTY_ID=515917636" \
+            --set-secrets "INSIGHTS_TOKEN=insights-token:latest" \
             --quiet
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
