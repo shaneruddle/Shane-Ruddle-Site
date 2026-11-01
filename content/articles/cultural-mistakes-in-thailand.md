@@ -37,6 +37,6 @@ Keeping my emotions under control, and not taking life so seriously. I was broug
 
 ## My best advice for fitting in
 
-Learn the language. It shows Thais you're not a tourist, it helps you understand the context of what's going on, and it earns you a little extra respect. I'd give the same advice to anyone moving to a country where their language isn't the official one, whether that's Thailand, Germany or France.
+Learn the language ([here's my own honest experience](/articles/learning-thai)). It shows Thais you're not a tourist, it helps you understand the context of what's going on, and it earns you a little extra respect. I'd give the same advice to anyone moving to a country where their language isn't the official one, whether that's Thailand, Germany or France.
 
 For more, read [what I wish I'd known before moving to Thailand](/articles/what-i-wish-id-known-before-moving-to-thailand) and [retiring in Pattaya](/articles/retiring-in-pattaya).

@@ -23,7 +23,7 @@ Retirees use a retirement visa, either the Non-Immigrant O (applied for and then
 
 For people working online, there's the DTV, the Destination Thailand Visa. It lasts five years, with stays of up to 180 days per entry, and you need to show around ฿500,000 in savings.
 
-Understand what it is, though: it's essentially a long-term tourist visa. Even though it can last up to five years, you're still classed as a tourist, not an immigrant, so things like opening a bank account can be a problem, depending on the bank.
+Understand what it is, though: it's essentially a long-term tourist visa. Even though it can last up to five years, you're still classed as a tourist, not an immigrant, so things like opening a bank account can be a problem, depending on the bank. (More in [banking in Thailand for foreigners](/articles/banking-in-thailand-for-foreigners), and [Pattaya for digital nomads](/articles/pattaya-for-digital-nomads).)
 
 ## What's the biggest visa mistake people make?
 

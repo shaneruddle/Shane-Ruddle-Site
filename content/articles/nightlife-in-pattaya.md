@@ -15,6 +15,8 @@ A good restaurant, usually for a steak. My favourites:
 - **The Market**, just in front of Central Festival.
 - **Gooseberries** in Pratumnak, which I've written about in [where a restaurant owner eats in Pattaya](/articles/where-a-restaurant-owner-eats-in-pattaya).
 
+If it's the football you're after, here's [where to watch it](/articles/watching-football-in-pattaya).
+
 ## Are the shows like Tiffany's worth it?
 
 Yes, once. I went to Tiffany's when my parents were visiting. It's a very good show and truly unique, and I think it's worth the experience. It's not something I'd do again, though. Once is enough.

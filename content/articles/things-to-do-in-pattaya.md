@@ -23,6 +23,8 @@ These are my first three for families:
 2. **Aquaverse.** Another very good water park.
 3. **Khao Kheow Open Zoo.** A first-class zoo and a great family day out.
 
+Want to get out of town? Here are [my favourite day trips from Pattaya](/articles/best-day-trips-from-pattaya).
+
 ## What would I skip?
 
 The temples in Pattaya. They're okay, but not that impressive compared with the Grand Palace in Bangkok. If you want temples, save yourself for Bangkok.
