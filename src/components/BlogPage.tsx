@@ -144,6 +144,7 @@ export default function BlogPage({ onBack }: BlogPageProps) {
         category={selectedPost.category}
         createdAt={selectedPost.createdAt?.toDate()}
         imageUrl={selectedPost.imageUrl}
+        slug={selectedPost.slug || selectedPost.id}
       >
         {selectedPost.keywords && (
           <div className="mt-12 flex flex-wrap gap-2">

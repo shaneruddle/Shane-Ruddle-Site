@@ -35,6 +35,8 @@ import { handleLinkClick } from "./lib/navigation";
 import { PAGE_META, applyPageMeta } from "./seo";
 import { trackPageView } from "./lib/analytics";
 import HomePage from "./components/HomePage";
+// Eager: shares its code with HomePage, and avoids a blank frame over the prerendered guide.
+import GuidePage from "./components/GuidePage";
 const PastVentures = lazy(() => import("./components/PastVentures"));
 const AboutPage = lazy(() => import("./components/AboutPage"));
 const BusinessesPage = lazy(() => import("./components/BusinessesPage"));
@@ -217,7 +219,7 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
 
 // URL routing. Each view has a real path so pages can be linked, shared and indexed.
 // Firebase Hosting rewrites every path to index.html, so the app resolves the view here.
-type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'past-ventures' | 'portal' | 'blog' | 'privacy-policy' | 'terms-of-service';
+type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'privacy-policy' | 'terms-of-service';
 
 const VIEW_PATHS: Record<View, string> = {
   'home': '/',
@@ -228,12 +230,14 @@ const VIEW_PATHS: Record<View, string> = {
   'past-ventures': '/past-ventures',
   'portal': '/portal',
   'blog': '/articles',
+  'guides': '/guides',
   'privacy-policy': '/privacy',
   'terms-of-service': '/terms',
 };
 
 // Public navigation (header, mobile menu, footer).
 const NAV_LINKS: { label: string; view: View }[] = [
+  { label: 'Start here', view: 'guides' },
   { label: 'About', view: 'about' },
   { label: 'Businesses', view: 'businesses' },
   { label: 'Articles', view: 'blog' },
@@ -244,6 +248,7 @@ const NAV_LINKS: { label: string; view: View }[] = [
 function routeFromPath(pathname: string): { view: View } {
   const path = pathname.replace(/\/+$/, '') || '/';
   if (path.startsWith('/articles')) return { view: 'blog' };
+  if (path === '/guides' || path.startsWith('/guides/')) return { view: 'guides' };
   const view = (Object.keys(VIEW_PATHS) as View[]).find(v => VIEW_PATHS[v] === path);
   return { view: view || 'home' };
 }
@@ -298,7 +303,7 @@ export default function App() {
   // Keep the tab title and meta description in step with the current page (articles set their own).
   useEffect(() => {
     const meta = PAGE_META[VIEW_PATHS[view]];
-    if (meta && !(view === 'blog' && window.location.pathname !== '/articles')) applyPageMeta(meta);
+    if (meta && view !== 'guides' && !(view === 'blog' && window.location.pathname !== '/articles')) applyPageMeta(meta);
   }, [view]);
 
   // Browser back/forward, and in-app links (they push a path and dispatch popstate).
@@ -967,6 +972,13 @@ export default function App() {
                         setView('home');
                         window.scrollTo(0, 0);
                       }} />
+                    </motion.div>
+                  ) : view === 'guides' ? (
+                    <motion.div key={currentPath} initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <GuidePage path={currentPath} />
                     </motion.div>
                   ) : view === 'privacy-policy' ? (
                     <motion.div

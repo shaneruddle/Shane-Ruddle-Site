@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import { photoByUrl } from "../lib/photoSlots";
+import { guideForArticle } from "../lib/guides";
+import { handleLinkClick } from "../lib/navigation";
 
 export interface ArticleViewProps {
   title: string;
@@ -8,6 +10,8 @@ export interface ArticleViewProps {
   category?: string;
   createdAt?: Date;
   imageUrl?: string;
+  /** Used to link the article to its "Start here" guide. */
+  slug?: string;
   /** Interactive extras rendered after the article (newsletter, comments); browser only. */
   children?: ReactNode;
 }
@@ -18,8 +22,9 @@ const formatArticleDate = (d: Date) =>
 
 // One article layout shared by the build-time prerender and the live app, so the page
 // doesn't jump when the app takes over from the static HTML.
-export default function ArticleView({ title, body, category, createdAt, imageUrl, children }: ArticleViewProps) {
+export default function ArticleView({ title, body, category, createdAt, imageUrl, slug, children }: ArticleViewProps) {
   const readMinutes = Math.max(1, Math.ceil(body.split(/\s+/).length / 200));
+  const guide = guideForArticle(slug);
   const meta = [category, createdAt ? formatArticleDate(createdAt) : null, `${readMinutes} min read`].filter(Boolean).join(" · ");
 
   return (
@@ -28,6 +33,11 @@ export default function ArticleView({ title, body, category, createdAt, imageUrl
         <a href="/articles" className="text-xs uppercase tracking-widest font-bold text-gold-deep hover:text-ink transition-colors">
           ← All articles
         </a>
+        {guide && (
+          <a href={`/guides/${guide.slug}`} onClick={handleLinkClick} className="ml-5 text-xs uppercase tracking-widest text-black/45 hover:text-gold-deep transition-colors">
+            Part of my guide: <span className="font-bold text-ink">{guide.name}</span>
+          </a>
+        )}
         <p className="mt-8 text-xs uppercase tracking-widest text-black/45">{meta}</p>
         <h1 className="font-serif text-4xl md:text-6xl leading-tight mt-3 mb-6">{title}</h1>
         <div className="flex items-center gap-3 mb-12">
@@ -54,6 +64,21 @@ export default function ArticleView({ title, body, category, createdAt, imageUrl
             {body}
           </ReactMarkdown>
         </div>
+
+        {guide && (
+          <a
+            href={`/guides/${guide.slug}`}
+            onClick={handleLinkClick}
+            className="group mt-16 flex items-center justify-between gap-6 p-7 md:p-8 bg-ink rounded-[1.5rem] text-white"
+          >
+            <span>
+              <span className="block text-[11px] uppercase tracking-[0.25em] text-gold mb-2">Part of my guide</span>
+              <span className="font-serif text-2xl md:text-3xl group-hover:text-gold transition-colors">{guide.title}</span>
+              <span className="block mt-2 text-sm text-white/55 font-light">Short answers and every article on it, in order.</span>
+            </span>
+            <span aria-hidden className="text-gold text-3xl transition-transform group-hover:translate-x-1">→</span>
+          </a>
+        )}
 
         <aside className="mt-20 p-8 md:p-10 bg-[#F8F8F8] rounded-[2rem] flex flex-col sm:flex-row items-start gap-6">
           <img src="/images/shane-portrait.webp" alt="Shane Ruddle" width={88} height={88} className="rounded-full object-cover flex-shrink-0" style={{ width: 88, height: 88 }} />
