@@ -15,7 +15,7 @@ Take a single man living in a one-bed condo. Here's roughly what it looks like:
 - **Food:** a meal costs a couple of hundred baht, or about ฿300 with a drink. Eat out every meal and that's around ฿1,000 a day, so about ฿30,000 a month. Cook some of your own meals and it drops a lot.
 - **Getting around:** a few thousand baht a month to rent a motorbike. Buy one and getting around becomes very cheap.
 
-That comes to roughly ฿50,000 to ฿55,000 a month, eating out every day.
+That comes to roughly ฿50,000 to ฿55,000 a month, eating out every day. To work out your own figure, by area, home and how you like to live, try my [Pattaya cost of living calculator](/cost-of-living-calculator).
 
 ## How much does it cost for a family?
 

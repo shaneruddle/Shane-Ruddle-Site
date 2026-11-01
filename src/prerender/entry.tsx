@@ -13,10 +13,12 @@ import TermsOfService from "../components/TermsOfService";
 import PageHero from "../components/PageHero";
 import ArticleView from "../components/ArticleView";
 import GuidePage from "../components/GuidePage";
+import CostCalculator from "../components/CostCalculator";
 import { fallbackData } from "../types";
 
 export { FILE_ARTICLES } from "../lib/fileArticles";
 export { GUIDES, GUIDES_META } from "../lib/guides";
+export { CALCULATOR_FAQS, CALCULATOR_PATH } from "../lib/costOfLiving";
 export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema } from "../seo";
 
 export interface StaticArticle {
@@ -74,6 +76,7 @@ const PAGES: Record<string, () => ReactNode> = {
   "/businesses": () => <BusinessesPage data={fallbackData} />,
   "/newsletter": () => <NewsletterPage />,
   "/contact": () => <ContactPage />,
+  "/cost-of-living-calculator": () => <CostCalculator />,
   "/past-ventures": () => <PastVentures onBack={noop} />,
   "/privacy": () => <PrivacyPolicy onBack={noop} />,
   "/terms": () => <TermsOfService onBack={noop} />,

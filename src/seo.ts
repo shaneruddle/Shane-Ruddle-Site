@@ -37,6 +37,11 @@ export const PAGE_META: Record<string, PageMeta> = {
     description:
       "Four guides from 20 years in Pattaya: moving here, raising a family, buying property as a foreigner, and starting or buying a business.",
   },
+  "/cost-of-living-calculator": {
+    title: "Pattaya Cost of Living Calculator 2026: Your Monthly Budget | Shane Ruddle",
+    description:
+      "How much does it cost to live in Pattaya? Pick your area, home, food and schools and get a monthly budget in baht, £, $, €, A$ or ₽, from a 20-year Pattaya resident.",
+  },
   "/newsletter": {
     title: "Newsletter — What Actually Works in Pattaya | Shane Ruddle",
     description:

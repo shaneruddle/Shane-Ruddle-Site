@@ -6,6 +6,7 @@ import { handleLinkClick } from "../lib/navigation";
 import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
 import AskShane from "./AskShane";
+import CalculatorPromo from "./CalculatorPromo";
 import NewsletterSignup from "./NewsletterSignup";
 import PageHero from "./PageHero";
 
@@ -147,6 +148,11 @@ function GuideView({ guide }: { guide: Guide }) {
                   </div>
                 ))}
               </div>
+              {(guide.slug === "moving-to-pattaya" || guide.slug === "pattaya-for-families") && (
+                <div className="mt-8">
+                  <CalculatorPromo source={`guide_${guide.slug}`} />
+                </div>
+              )}
             </section>
 
             {chapters.map((c, i) => (
