@@ -22,6 +22,8 @@ import ArticleComments from './ArticleComments';
 import ArticleView from './ArticleView';
 import AskShane, { topicForArticle } from './AskShane';
 import VisaPromo from './VisaPromo';
+import SchoolsPromo from './SchoolsPromo';
+import { SCHOOL_PROMO_ARTICLES } from '../lib/schools';
 import { VISA_PROMO_ARTICLES } from '../lib/visas';
 import { applyPageMeta, PAGE_META } from '../seo';
 import { FILE_ARTICLES } from '../lib/fileArticles';
@@ -155,6 +157,12 @@ export default function BlogPage({ onBack }: BlogPageProps) {
                 <Tag className="w-3 h-3" /> {tag.trim()}
               </span>
             ))}
+          </div>
+        )}
+
+        {SCHOOL_PROMO_ARTICLES.has(selectedPost.slug || selectedPost.id) && (
+          <div className="mt-12">
+            <SchoolsPromo source={`article_${selectedPost.slug || selectedPost.id}`} />
           </div>
         )}
 

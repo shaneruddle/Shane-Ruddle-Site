@@ -10,6 +10,7 @@ import { GuideTiles } from "./GuidePage";
 import CalculatorPromo from "./CalculatorPromo";
 import AreasPromo from "./AreasPromo";
 import VisaPromo from "./VisaPromo";
+import SchoolsPromo from "./SchoolsPromo";
 
 // Public homepage. Content comes from fallbackData in src/types.ts (bundled, no Firestore).
 
@@ -196,6 +197,9 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
           </Reveal>
           <Reveal delay={0.1} className="mt-5">
             <VisaPromo source="homepage" />
+          </Reveal>
+          <Reveal delay={0.1} className="mt-5">
+            <SchoolsPromo source="homepage" />
           </Reveal>
         </div>
       </section>

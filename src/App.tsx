@@ -45,6 +45,7 @@ const ContactPage = lazy(() => import("./components/ContactPage"));
 const CostCalculator = lazy(() => import("./components/CostCalculator"));
 const AreasPage = lazy(() => import("./components/AreasPage"));
 const VisasPage = lazy(() => import("./components/VisasPage"));
+const SchoolsPage = lazy(() => import("./components/SchoolsPage"));
 const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
 const BlogPage = lazy(() => import("./components/BlogPage"));
 // Use the copy main.tsx preloaded on article pages, so there is no blank loading frame.
@@ -222,7 +223,7 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
 
 // URL routing. Each view has a real path so pages can be linked, shared and indexed.
 // Firebase Hosting rewrites every path to index.html, so the app resolves the view here.
-type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'privacy-policy' | 'terms-of-service';
+type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'schools' | 'privacy-policy' | 'terms-of-service';
 
 const VIEW_PATHS: Record<View, string> = {
   'home': '/',
@@ -237,6 +238,7 @@ const VIEW_PATHS: Record<View, string> = {
   'guides': '/guides',
   'areas': '/areas',
   'visas': '/thai-visas',
+  'schools': '/international-schools-pattaya',
   'privacy-policy': '/privacy',
   'terms-of-service': '/terms',
 };
@@ -259,6 +261,7 @@ function routeFromPath(pathname: string): { view: View } {
   if (path === '/guides' || path.startsWith('/guides/')) return { view: 'guides' };
   if (path === '/areas' || path.startsWith('/areas/')) return { view: 'areas' };
   if (path === '/thai-visas' || path.startsWith('/thai-visas/')) return { view: 'visas' };
+  if (path === '/international-schools-pattaya' || path.startsWith('/international-schools-pattaya/')) return { view: 'schools' };
   const view = (Object.keys(VIEW_PATHS) as View[]).find(v => VIEW_PATHS[v] === path);
   return { view: view || 'home' };
 }
@@ -1012,6 +1015,13 @@ export default function App() {
                       transition={{ duration: 0.25 }}>
                       <VisasPage path={currentPath} />
                     </motion.div>
+                  ) : view === 'schools' ? (
+                    <motion.div key={currentPath} initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <SchoolsPage path={currentPath} />
+                    </motion.div>
                   ) : view === 'privacy-policy' ? (
                     <motion.div
                       key="privacy-policy"
@@ -1102,7 +1112,7 @@ export default function App() {
                       <div className="md:col-span-2">
                         <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-6">Navigation</h5>
                         <ul className="space-y-4">
-                          {[...NAV_LINKS, { label: 'Newsletter', view: 'newsletter' as View }].map((link) => (
+                          {[...NAV_LINKS, { label: 'Schools', view: 'schools' as View }, { label: 'Newsletter', view: 'newsletter' as View }].map((link) => (
                             <li key={link.view}>
                               <a
                                 href={VIEW_PATHS[link.view]}

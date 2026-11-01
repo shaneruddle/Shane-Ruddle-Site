@@ -16,6 +16,7 @@ import GuidePage from "../components/GuidePage";
 import CostCalculator from "../components/CostCalculator";
 import AreasPage from "../components/AreasPage";
 import VisasPage from "../components/VisasPage";
+import SchoolsPage from "../components/SchoolsPage";
 import { fallbackData } from "../types";
 
 export { FILE_ARTICLES } from "../lib/fileArticles";
@@ -23,6 +24,7 @@ export { GUIDES, GUIDES_META } from "../lib/guides";
 export { CALCULATOR_FAQS, CALCULATOR_PATH } from "../lib/costOfLiving";
 export { AREAS, AREAS_META, AREAS_FAQS } from "../lib/areas";
 export { VISAS, VISAS_META, VISAS_FAQS, VISAS_PATH } from "../lib/visas";
+export { SCHOOLS, SCHOOLS_META, SCHOOLS_FAQS, SCHOOLS_PATH, faqsForSchool } from "../lib/schools";
 export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema } from "../seo";
 
 export interface StaticArticle {
@@ -146,4 +148,9 @@ export function renderAreas(path: string): string {
 /** /thai-visas or /thai-visas/<slug>. */
 export function renderVisas(path: string): string {
   return renderToString(<Shell><VisasPage path={path} /></Shell>);
+}
+
+/** /international-schools-pattaya or /international-schools-pattaya/<slug>. */
+export function renderSchools(path: string): string {
+  return renderToString(<Shell><SchoolsPage path={path} /></Shell>);
 }

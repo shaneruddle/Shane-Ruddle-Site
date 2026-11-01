@@ -352,6 +352,61 @@ for (const v of ssr.VISAS) {
   urls.push({ loc: urlPath });
 }
 
+// ---- International schools ----
+write(ssr.SCHOOLS_PATH, page({
+  urlPath: ssr.SCHOOLS_PATH,
+  ...ssr.SCHOOLS_META,
+  body: ssr.renderSchools(ssr.SCHOOLS_PATH),
+  schemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "Pattaya International School Chooser",
+      url: SITE_URL + ssr.SCHOOLS_PATH,
+      description: ssr.SCHOOLS_META.description,
+      applicationCategory: "EducationalApplication",
+      operatingSystem: "Any",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "THB" },
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "International schools around Pattaya",
+      itemListElement: ssr.SCHOOLS.map((s, i) => ({ "@type": "ListItem", position: i + 1, name: s.name, url: `${SITE_URL}${ssr.SCHOOLS_PATH}/${s.slug}` })),
+    },
+    faqSchema(ssr.SCHOOLS_FAQS),
+    crumbs([["Home", "/"], ["International schools", ssr.SCHOOLS_PATH]]),
+  ],
+}));
+urls.push({ loc: ssr.SCHOOLS_PATH });
+for (const s of ssr.SCHOOLS) {
+  const urlPath = `${ssr.SCHOOLS_PATH}/${s.slug}`;
+  write(urlPath, page({
+    urlPath,
+    title: s.metaTitle,
+    description: s.description,
+    body: ssr.renderSchools(urlPath),
+    schemas: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: `${s.name}: fees, curriculum and school run`,
+        description: s.description,
+        url: SITE_URL + urlPath,
+        mainEntityOfPage: SITE_URL + urlPath,
+        image: DEFAULT_OG_IMAGE,
+        about: { "@type": "School", name: s.name, ...(s.website ? { url: s.website.replace(/^(https:\/\/[^/]+).*/, "$1") } : {}) },
+        author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+        publisher: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle" },
+      },
+      faqSchema(ssr.faqsForSchool(s)),
+      crumbs([["Home", "/"], ["International schools", ssr.SCHOOLS_PATH], [s.name, urlPath]]),
+    ],
+  }));
+  urls.push({ loc: urlPath });
+}
+
 // ---- rss.xml (latest articles, for feed readers and newsletter tools) ----
 const rssDate = (iso) => (iso ? new Date(iso).toUTCString() : "");
 const rss = `<?xml version="1.0" encoding="UTF-8"?>
@@ -387,4 +442,4 @@ fs.writeFileSync(
   `User-agent: *\nAllow: /\nDisallow: /portal\nDisallow: /api/\n\nSitemap: ${SITE_URL}/sitemap.xml\n`
 );
 
-console.log(`prerender: wrote ${ssr.PAGE_PATHS.length + 3 + ssr.GUIDES.length + ssr.AREAS.length + 1 + ssr.VISAS.length + articles.length} pages, sitemap with ${urls.length} URLs.`);
+console.log(`prerender: wrote ${ssr.PAGE_PATHS.length + 3 + ssr.GUIDES.length + ssr.AREAS.length + 1 + ssr.VISAS.length + 1 + ssr.SCHOOLS.length + articles.length} pages, sitemap with ${urls.length} URLs.`);
