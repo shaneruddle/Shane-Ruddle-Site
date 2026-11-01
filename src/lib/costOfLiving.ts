@@ -88,7 +88,7 @@ export const HEALTHS: Option<Health>[] = [
 // ---- Monthly figures (baht) ----
 
 // Rent by area and home type. Areas where a home type is rare get a realistic, not cheap, figure.
-const RENT: Record<Area, Record<Home, number>> = {
+export const RENT: Record<Area, Record<Home, number>> = {
   central: { condo1: 20000, condo2: 35000, house: 35000, housePool: 50000 },
   jomtien: { condo1: 18000, condo2: 30000, house: 35000, housePool: 45000 },
   pratumnak: { condo1: 22000, condo2: 35000, house: 40000, housePool: 55000 },

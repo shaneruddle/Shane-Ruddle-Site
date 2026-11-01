@@ -76,6 +76,7 @@ export default function AskShane({
   initialTopic,
   showHeading = true,
   context,
+  contextNote = "I'll see your calculator result with your question.",
 }: {
   dark?: boolean;
   /** Where the form sits, for analytics and the email (e.g. "article", "homepage", "contact_page"). */
@@ -85,6 +86,8 @@ export default function AskShane({
   showHeading?: boolean;
   /** Extra detail sent with the question (e.g. a calculator result), shown to the visitor as a note. */
   context?: string;
+  /** Note shown under the question box when `context` is sent. */
+  contextNote?: string;
 }) {
   const [topic, setTopic] = useState<AskTopic | null>(initialTopic ?? null);
   const [step, setStep] = useState<Step>(initialTopic ? 2 : 1);
@@ -233,7 +236,7 @@ export default function AskShane({
               placeholder={current?.placeholder}
               className={`border rounded-2xl px-5 py-4 text-base focus:outline-none transition-colors w-full resize-none ${field}`}
             />
-            {context && <p className={`mt-3 text-xs ${dark ? "text-white/45" : "text-black/45"}`}>I'll see your calculator result with your question.</p>}
+            {context && <p className={`mt-3 text-xs ${dark ? "text-white/45" : "text-black/45"}`}>{contextNote}</p>}
             <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
               <button type="button" onClick={() => setStep(1)} className={back}>
                 <ArrowLeft className="w-3.5 h-3.5" /> {current ? `Topic: ${current.label}` : "Back"}

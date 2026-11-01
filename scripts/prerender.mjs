@@ -249,6 +249,55 @@ for (const g of ssr.GUIDES) {
   urls.push({ loc: urlPath });
 }
 
+// ---- Pattaya areas ----
+const faqSchema = (faqs) => ({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+});
+write("/areas", page({
+  urlPath: "/areas",
+  ...ssr.AREAS_META,
+  body: ssr.renderAreas("/areas"),
+  schemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Areas to live in Pattaya",
+      itemListElement: ssr.AREAS.map((a, i) => ({ "@type": "ListItem", position: i + 1, name: a.name, url: `${SITE_URL}/areas/${a.slug}` })),
+    },
+    faqSchema(ssr.AREAS_FAQS),
+    crumbs([["Home", "/"], ["Areas", "/areas"]]),
+  ],
+}));
+urls.push({ loc: "/areas" });
+for (const a of ssr.AREAS) {
+  const urlPath = `/areas/${a.slug}`;
+  write(urlPath, page({
+    urlPath,
+    title: a.metaTitle,
+    description: a.description,
+    body: ssr.renderAreas(urlPath),
+    schemas: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: `Living in ${a.name}, Pattaya`,
+        description: a.description,
+        url: SITE_URL + urlPath,
+        mainEntityOfPage: SITE_URL + urlPath,
+        image: DEFAULT_OG_IMAGE,
+        about: { "@type": "Place", name: `${a.name}, Pattaya`, containedInPlace: { "@type": "City", name: "Pattaya" } },
+        author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+        publisher: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle" },
+      },
+      faqSchema(a.faqs),
+      crumbs([["Home", "/"], ["Areas", "/areas"], [a.name, urlPath]]),
+    ],
+  }));
+  urls.push({ loc: urlPath });
+}
+
 // ---- rss.xml (latest articles, for feed readers and newsletter tools) ----
 const rssDate = (iso) => (iso ? new Date(iso).toUTCString() : "");
 const rss = `<?xml version="1.0" encoding="UTF-8"?>
@@ -284,4 +333,4 @@ fs.writeFileSync(
   `User-agent: *\nAllow: /\nDisallow: /portal\nDisallow: /api/\n\nSitemap: ${SITE_URL}/sitemap.xml\n`
 );
 
-console.log(`prerender: wrote ${ssr.PAGE_PATHS.length + 2 + ssr.GUIDES.length + articles.length} pages, sitemap with ${urls.length} URLs.`);
+console.log(`prerender: wrote ${ssr.PAGE_PATHS.length + 3 + ssr.GUIDES.length + ssr.AREAS.length + articles.length} pages, sitemap with ${urls.length} URLs.`);

@@ -7,6 +7,7 @@ import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
 import AskShane from "./AskShane";
 import CalculatorPromo from "./CalculatorPromo";
+import AreasPromo from "./AreasPromo";
 import NewsletterSignup from "./NewsletterSignup";
 import PageHero from "./PageHero";
 
@@ -151,6 +152,9 @@ function GuideView({ guide }: { guide: Guide }) {
               {(guide.slug === "moving-to-pattaya" || guide.slug === "pattaya-for-families") && (
                 <div className="mt-8">
                   <CalculatorPromo source={`guide_${guide.slug}`} />
+                  <div className="mt-5">
+                    <AreasPromo source={`guide_${guide.slug}`} />
+                  </div>
                 </div>
               )}
             </section>

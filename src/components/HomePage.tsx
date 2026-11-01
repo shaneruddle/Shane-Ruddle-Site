@@ -8,6 +8,7 @@ import NewsletterSignup from "./NewsletterSignup";
 import AskShane from "./AskShane";
 import { GuideTiles } from "./GuidePage";
 import CalculatorPromo from "./CalculatorPromo";
+import AreasPromo from "./AreasPromo";
 
 // Public homepage. Content comes from fallbackData in src/types.ts (bundled, no Firestore).
 
@@ -188,6 +189,9 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
           </Reveal>
           <Reveal delay={0.1} className="mt-5">
             <CalculatorPromo source="homepage" />
+          </Reveal>
+          <Reveal delay={0.1} className="mt-5">
+            <AreasPromo source="homepage" />
           </Reveal>
         </div>
       </section>

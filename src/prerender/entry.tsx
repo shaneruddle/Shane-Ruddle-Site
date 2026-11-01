@@ -14,11 +14,13 @@ import PageHero from "../components/PageHero";
 import ArticleView from "../components/ArticleView";
 import GuidePage from "../components/GuidePage";
 import CostCalculator from "../components/CostCalculator";
+import AreasPage from "../components/AreasPage";
 import { fallbackData } from "../types";
 
 export { FILE_ARTICLES } from "../lib/fileArticles";
 export { GUIDES, GUIDES_META } from "../lib/guides";
 export { CALCULATOR_FAQS, CALCULATOR_PATH } from "../lib/costOfLiving";
+export { AREAS, AREAS_META, AREAS_FAQS } from "../lib/areas";
 export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema } from "../seo";
 
 export interface StaticArticle {
@@ -37,6 +39,7 @@ const noop = () => {};
 
 const NAV = [
   ["Start here", "/guides"],
+  ["Areas", "/areas"],
   ["About", "/about"],
   ["Businesses", "/businesses"],
   ["Articles", "/articles"],
@@ -130,4 +133,9 @@ export function renderArticle(a: StaticArticle): string {
 /** /guides or /guides/<slug>. */
 export function renderGuide(path: string): string {
   return renderToString(<Shell><GuidePage path={path} /></Shell>);
+}
+
+/** /areas or /areas/<slug>. */
+export function renderAreas(path: string): string {
+  return renderToString(<Shell><AreasPage path={path} /></Shell>);
 }

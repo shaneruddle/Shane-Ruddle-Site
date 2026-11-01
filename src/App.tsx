@@ -43,6 +43,7 @@ const BusinessesPage = lazy(() => import("./components/BusinessesPage"));
 const NewsletterPage = lazy(() => import("./components/NewsletterPage"));
 const ContactPage = lazy(() => import("./components/ContactPage"));
 const CostCalculator = lazy(() => import("./components/CostCalculator"));
+const AreasPage = lazy(() => import("./components/AreasPage"));
 const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
 const BlogPage = lazy(() => import("./components/BlogPage"));
 // Use the copy main.tsx preloaded on article pages, so there is no blank loading frame.
@@ -220,7 +221,7 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
 
 // URL routing. Each view has a real path so pages can be linked, shared and indexed.
 // Firebase Hosting rewrites every path to index.html, so the app resolves the view here.
-type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'privacy-policy' | 'terms-of-service';
+type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'privacy-policy' | 'terms-of-service';
 
 const VIEW_PATHS: Record<View, string> = {
   'home': '/',
@@ -233,6 +234,7 @@ const VIEW_PATHS: Record<View, string> = {
   'portal': '/portal',
   'blog': '/articles',
   'guides': '/guides',
+  'areas': '/areas',
   'privacy-policy': '/privacy',
   'terms-of-service': '/terms',
 };
@@ -240,6 +242,7 @@ const VIEW_PATHS: Record<View, string> = {
 // Public navigation (header, mobile menu, footer).
 const NAV_LINKS: { label: string; view: View }[] = [
   { label: 'Start here', view: 'guides' },
+  { label: 'Areas', view: 'areas' },
   { label: 'About', view: 'about' },
   { label: 'Businesses', view: 'businesses' },
   { label: 'Articles', view: 'blog' },
@@ -251,6 +254,7 @@ function routeFromPath(pathname: string): { view: View } {
   const path = pathname.replace(/\/+$/, '') || '/';
   if (path.startsWith('/articles')) return { view: 'blog' };
   if (path === '/guides' || path.startsWith('/guides/')) return { view: 'guides' };
+  if (path === '/areas' || path.startsWith('/areas/')) return { view: 'areas' };
   const view = (Object.keys(VIEW_PATHS) as View[]).find(v => VIEW_PATHS[v] === path);
   return { view: view || 'home' };
 }
@@ -988,6 +992,13 @@ export default function App() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.25 }}>
                       <GuidePage path={currentPath} />
+                    </motion.div>
+                  ) : view === 'areas' ? (
+                    <motion.div key={currentPath} initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <AreasPage path={currentPath} />
                     </motion.div>
                   ) : view === 'privacy-policy' ? (
                     <motion.div
