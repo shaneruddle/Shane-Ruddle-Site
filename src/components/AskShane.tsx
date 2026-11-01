@@ -75,6 +75,7 @@ export default function AskShane({
   source,
   initialTopic,
   showHeading = true,
+  context,
 }: {
   dark?: boolean;
   /** Where the form sits, for analytics and the email (e.g. "article", "homepage", "contact_page"). */
@@ -82,6 +83,8 @@ export default function AskShane({
   /** Pre-selects a topic and opens on the question step. */
   initialTopic?: AskTopic;
   showHeading?: boolean;
+  /** Extra detail sent with the question (e.g. a calculator result), shown to the visitor as a note. */
+  context?: string;
 }) {
   const [topic, setTopic] = useState<AskTopic | null>(initialTopic ?? null);
   const [step, setStep] = useState<Step>(initialTopic ? 2 : 1);
@@ -127,7 +130,7 @@ export default function AskShane({
         body: JSON.stringify({
           name,
           email,
-          message: question,
+          message: context ? `${question}\n\n---\n${context}` : question,
           topic: current?.label,
           page: window.location.pathname,
           source,
@@ -230,6 +233,7 @@ export default function AskShane({
               placeholder={current?.placeholder}
               className={`border rounded-2xl px-5 py-4 text-base focus:outline-none transition-colors w-full resize-none ${field}`}
             />
+            {context && <p className={`mt-3 text-xs ${dark ? "text-white/45" : "text-black/45"}`}>I'll see your calculator result with your question.</p>}
             <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
               <button type="button" onClick={() => setStep(1)} className={back}>
                 <ArrowLeft className="w-3.5 h-3.5" /> {current ? `Topic: ${current.label}` : "Back"}

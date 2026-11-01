@@ -42,6 +42,7 @@ const AboutPage = lazy(() => import("./components/AboutPage"));
 const BusinessesPage = lazy(() => import("./components/BusinessesPage"));
 const NewsletterPage = lazy(() => import("./components/NewsletterPage"));
 const ContactPage = lazy(() => import("./components/ContactPage"));
+const CostCalculator = lazy(() => import("./components/CostCalculator"));
 const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
 const BlogPage = lazy(() => import("./components/BlogPage"));
 // Use the copy main.tsx preloaded on article pages, so there is no blank loading frame.
@@ -219,7 +220,7 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
 
 // URL routing. Each view has a real path so pages can be linked, shared and indexed.
 // Firebase Hosting rewrites every path to index.html, so the app resolves the view here.
-type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'privacy-policy' | 'terms-of-service';
+type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'privacy-policy' | 'terms-of-service';
 
 const VIEW_PATHS: Record<View, string> = {
   'home': '/',
@@ -227,6 +228,7 @@ const VIEW_PATHS: Record<View, string> = {
   'businesses': '/businesses',
   'newsletter': '/newsletter',
   'contact': '/contact',
+  'cost-calculator': '/cost-of-living-calculator',
   'past-ventures': '/past-ventures',
   'portal': '/portal',
   'blog': '/articles',
@@ -932,6 +934,13 @@ export default function App() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.25 }}>
                       <ContactPage />
+                    </motion.div>
+                  ) : view === 'cost-calculator' ? (
+                    <motion.div key="cost-calculator" initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <CostCalculator />
                     </motion.div>
                   ) : view === 'past-ventures' ? (
                     <motion.div

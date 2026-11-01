@@ -144,7 +144,26 @@ for (const urlPath of ssr.PAGE_PATHS) {
       ? [personSchema(), websiteSchema()]
       : urlPath === "/about"
         ? [{ "@context": "https://schema.org", "@type": "ProfilePage", url: `${SITE_URL}/about`, mainEntity: personSchema() }]
-        : [];
+        : urlPath === ssr.CALCULATOR_PATH
+          ? [
+              {
+                "@context": "https://schema.org",
+                "@type": "WebApplication",
+                name: "Pattaya Cost of Living Calculator",
+                url: SITE_URL + urlPath,
+                description: meta.description,
+                applicationCategory: "FinanceApplication",
+                operatingSystem: "Any",
+                offers: { "@type": "Offer", price: "0", priceCurrency: "THB" },
+                author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: ssr.CALCULATOR_FAQS.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+              },
+            ]
+          : [];
   write(urlPath, page({ urlPath, ...meta, body: ssr.renderPage(urlPath), ogType: urlPath === "/about" ? "profile" : "website", schemas }));
   if (!["/privacy", "/terms"].includes(urlPath)) urls.push({ loc: urlPath });
 }
