@@ -6,6 +6,7 @@ import { FILE_ARTICLES } from "../lib/fileArticles";
 import { slotImage } from "../lib/photoSlots";
 import { handleLinkClick } from "../lib/navigation";
 import NewsletterSignup from "./NewsletterSignup";
+import AskShane from "./AskShane";
 
 // Public homepage. Content comes from fallbackData in src/types.ts (bundled, no Firestore).
 
@@ -119,16 +120,16 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
             </p>
             <div className="flex flex-wrap items-center gap-4 mb-14">
               <button
-                onClick={() => scrollTo("companies")}
+                onClick={() => scrollTo("ask")}
                 className="inline-flex items-center gap-2 px-7 py-3.5 bg-gold text-ink text-xs font-semibold uppercase tracking-[0.18em] rounded-full hover:bg-white transition-colors"
               >
-                The companies <ArrowRight className="w-4 h-4" />
+                Ask me a question <ArrowRight className="w-4 h-4" />
               </button>
               <button
-                onClick={() => scrollTo("about")}
+                onClick={() => scrollTo("companies")}
                 className="inline-flex items-center px-7 py-3.5 border border-white/25 text-white text-xs font-semibold uppercase tracking-[0.18em] rounded-full hover:border-gold hover:text-gold transition-colors"
               >
-                My story
+                The companies
               </button>
             </div>
             <dl className="grid grid-cols-3 gap-6 max-w-lg border-t border-white/15 pt-8">
@@ -308,6 +309,25 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
             </div>
             <NewsletterSignup dark source="homepage" />
           </div>
+        </div>
+      </section>
+
+      {/* Ask Shane */}
+      <section id="ask" className="bg-ink text-white py-20 md:py-32 px-6 md:px-12 scroll-mt-20">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-10 lg:gap-16">
+          <Reveal className="lg:col-span-5">
+            <Eyebrow dark>Ask me</Eyebrow>
+            <h2 className="font-serif text-4xl md:text-6xl leading-[1.08] mb-6">
+              Planning a move to <span className="italic text-gold">Pattaya?</span>
+            </h2>
+            <p className="text-lg text-white/65 font-light leading-relaxed">
+              Moving your family, buying a condo, retiring, or buying a business: I've done most of it myself over 20 years here.
+              Ask me anything and I'll reply personally.
+            </p>
+          </Reveal>
+          <Reveal className="lg:col-span-7" delay={0.1}>
+            <AskShane dark source="homepage" showHeading={false} />
+          </Reveal>
         </div>
       </section>
 
