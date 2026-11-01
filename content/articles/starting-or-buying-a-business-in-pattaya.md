@@ -31,6 +31,8 @@ Your partner doesn't have to be wealthy. If you have someone you trust who is ca
 
 The authorities look closely at arrangements where the foreign partner has funded the Thai shareholder, and nominee shareholding is illegal. So have a Thai lawyer set up the company, the shareholding and any loan properly from the start.
 
+If you're going in with someone, read [what I've learned about business partners](/articles/business-partners-in-pattaya).
+
 ## Do you need a work permit to work in your own business?
 
 If you're actively working in the business, yes, absolutely. If you're a silent investor and not working in it, you don't necessarily need one. I've written more about [visas in Pattaya](/articles/thai-visas-in-pattaya).

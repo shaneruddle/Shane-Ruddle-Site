@@ -35,6 +35,6 @@ Right now there's a lot of that going on. Some owners are nervous about laws now
 
 I think the next couple of years will be uncertain, and a lot of people are holding off on buying if they can. There seems to be a shift towards renting rather than buying, which suggests the same thing. I think that will last at least a few more years, because I don't think the global economic picture has fully unfolded yet, and it will add to the uncertainty already in the Thai economy and property market.
 
-Long term, though, I think Pattaya has an awful lot of growth in it. There's still a lot of development going on, plenty of empty plots still to be developed, and derelict or underused buildings now being knocked down and redeveloped.
+Long term, though, I think Pattaya has an awful lot of growth in it. (More in [where Pattaya is heading](/articles/where-pattaya-is-heading).) There's still a lot of development going on, plenty of empty plots still to be developed, and derelict or underused buildings now being knocked down and redeveloped.
 
 If you're buying, read my guide to [buying a condo in Pattaya](/articles/buying-a-condo-in-pattaya). If you're selling, read [selling a condo in Pattaya](/articles/selling-a-condo-in-pattaya). To register what you're looking for, contact [Alan Bolton Property Consultants](https://pattaya-property.net) or [East Coast Real Estate](https://thaiproperty.com).
