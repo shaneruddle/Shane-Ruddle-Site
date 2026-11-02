@@ -363,6 +363,29 @@ for (const v of ssr.VISAS) {
   urls.push({ loc: urlPath });
 }
 
+// ---- Move planner ----
+write(ssr.MOVE_PATH, page({
+  urlPath: ssr.MOVE_PATH,
+  ...ssr.MOVE_META,
+  body: ssr.renderMove(),
+  schemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "Moving to Thailand Planner",
+      url: SITE_URL + ssr.MOVE_PATH,
+      description: ssr.MOVE_META.description,
+      applicationCategory: "TravelApplication",
+      operatingSystem: "Any",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "THB" },
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+    },
+    faqSchema(ssr.MOVE_FAQS),
+    crumbs([["Home", "/"], ["Moving to Thailand", ssr.MOVE_PATH]]),
+  ],
+}));
+urls.push({ loc: ssr.MOVE_PATH });
+
 // ---- International schools ----
 write(ssr.SCHOOLS_PATH, page({
   urlPath: ssr.SCHOOLS_PATH,

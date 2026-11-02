@@ -11,6 +11,9 @@ import CalculatorPromo from "./CalculatorPromo";
 import AreasPromo from "./AreasPromo";
 import VisaPromo from "./VisaPromo";
 import SchoolsPromo from "./SchoolsPromo";
+import MovePlannerPromo from "./MovePlannerPromo";
+import { MOVE_PATH } from "../lib/movePlan";
+import { trackEvent } from "../lib/analytics";
 
 // Public homepage. Content comes from fallbackData in src/types.ts (bundled, no Firestore).
 
@@ -123,17 +126,21 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
               {data.tagline}
             </p>
             <div className="flex flex-wrap items-center gap-4 mb-14">
-              <button
-                onClick={() => scrollTo("ask")}
+              <a
+                href={MOVE_PATH}
+                onClick={(e) => {
+                  trackEvent("select_content", { content_type: "move_planner", source: "homepage_hero" });
+                  handleLinkClick(e);
+                }}
                 className="inline-flex items-center gap-2 px-7 py-3.5 bg-gold text-ink text-xs font-semibold uppercase tracking-[0.18em] rounded-full hover:bg-white transition-colors"
               >
-                Ask me a question <ArrowRight className="w-4 h-4" />
-              </button>
+                Plan my move <ArrowRight className="w-4 h-4" />
+              </a>
               <button
-                onClick={() => scrollTo("companies")}
+                onClick={() => scrollTo("ask")}
                 className="inline-flex items-center px-7 py-3.5 border border-white/25 text-white text-xs font-semibold uppercase tracking-[0.18em] rounded-full hover:border-gold hover:text-gold transition-colors"
               >
-                The companies
+                Ask me a question
               </button>
             </div>
             <dl className="grid grid-cols-3 gap-6 max-w-lg border-t border-white/15 pt-8">
@@ -188,6 +195,9 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
           </Reveal>
           <Reveal delay={0.05}>
             <GuideTiles source="homepage" />
+          </Reveal>
+          <Reveal delay={0.1} className="mt-5">
+            <MovePlannerPromo source="homepage" />
           </Reveal>
           <Reveal delay={0.1} className="mt-5">
             <CalculatorPromo source="homepage" />

@@ -17,6 +17,7 @@ import CostCalculator from "../components/CostCalculator";
 import AreasPage from "../components/AreasPage";
 import VisasPage from "../components/VisasPage";
 import SchoolsPage from "../components/SchoolsPage";
+import MovePlanner from "../components/MovePlanner";
 import { fallbackData } from "../types";
 import DeSite from "../components/de/DeSite";
 
@@ -25,6 +26,7 @@ export { GUIDES, GUIDES_META } from "../lib/guides";
 export { CALCULATOR_FAQS, CALCULATOR_PATH } from "../lib/costOfLiving";
 export { AREAS, AREAS_META, AREAS_FAQS } from "../lib/areas";
 export { VISAS, VISAS_META, VISAS_FAQS, VISAS_PATH } from "../lib/visas";
+export { MOVE_PATH, MOVE_META, MOVE_FAQS } from "../lib/movePlan";
 export { SCHOOLS, SCHOOLS_META, SCHOOLS_FAQS, SCHOOLS_PATH, faqsForSchool } from "../lib/schools";
 export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema } from "../seo";
 export { EN_TO_DE, DE_TO_EN, DE_ARTICLE_LIST, DE_HOME, DE_ARTICLES, DE_CALCULATOR, DE_MOVING, DE_AREAS } from "../lib/de/site";
@@ -74,7 +76,7 @@ function Shell({ children }: { children: ReactNode }) {
       <main>{children}</main>
       <footer className="bg-ink text-white/60 px-6 md:px-12 py-12">
         <ul className="max-w-7xl mx-auto flex flex-wrap gap-6 text-sm">
-          {[...NAV, ["Newsletter", "/newsletter"], ["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]].map(([label, href]) => (
+          {[...NAV, ["Plan my move", "/move-to-thailand"], ["Newsletter", "/newsletter"], ["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]].map(([label, href]) => (
             <li key={href}><a href={href}>{label}</a></li>
           ))}
         </ul>
@@ -158,6 +160,11 @@ export function renderVisas(path: string): string {
 /** /international-schools-pattaya or /international-schools-pattaya/<slug>. */
 export function renderSchools(path: string): string {
   return renderToString(<Shell><SchoolsPage path={path} /></Shell>);
+}
+
+/** /move-to-thailand (the planner's question view and the FAQ). */
+export function renderMove(): string {
+  return renderToString(<Shell><MovePlanner /></Shell>);
 }
 
 /** Any /de page: the German site renders its own header and footer. */
