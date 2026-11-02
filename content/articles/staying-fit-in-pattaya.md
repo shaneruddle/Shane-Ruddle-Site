@@ -39,4 +39,4 @@ When you drink, you spend time with other people who drink, so it changed who I 
 
 Get involved. Join the LINE groups and clubs for whatever you're into. If you play golf, join a golf society. For padel, join the LINE community group so you can see when there's a game. For tennis, join a club. There are plenty of clubs and communities here, and it's relatively inexpensive. You don't have to do it on your own.
 
-For more on life here, read [living in Pattaya](/articles/living-in-pattaya) and [what I wish I'd known before moving to Thailand](/articles/what-i-wish-id-known-before-moving-to-thailand).
+For tips on food, read [eating healthily in Pattaya](/articles/eating-healthily-in-pattaya). For more on life here, read [living in Pattaya](/articles/living-in-pattaya) and [what I wish I'd known before moving to Thailand](/articles/what-i-wish-id-known-before-moving-to-thailand).

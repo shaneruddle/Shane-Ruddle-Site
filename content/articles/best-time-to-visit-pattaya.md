@@ -11,7 +11,7 @@ Roughly speaking, the high season runs from November to March, when it's cooler 
 
 ## When should you avoid visiting Pattaya?
 
-The end of December and early January. It's very, very busy, and everything gets more expensive: hotels, car hire, the lot.
+The end of December and early January. It's very, very busy, and everything gets more expensive: hotels, car hire, the lot. Mid-April is worth knowing about too: [Songkran in Pattaya](/articles/songkran-in-pattaya) lasts about a week.
 
 ## Why February or March for a first visit?
 
