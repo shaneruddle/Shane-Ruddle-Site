@@ -70,4 +70,6 @@ So my real advice is to treat it as a journey. Rent, live in an area for a while
 
 If you'd like help finding the right place to rent, [East Coast Real Estate](https://thaiproperty.com) and [Alan Bolton Property Consultants](https://pattaya-property.net) cover the whole city.
 
+Just visiting? Read [where to stay in Pattaya](/articles/where-to-stay-in-pattaya).
+
 Want more stories like this? [Join my newsletter](/newsletter).

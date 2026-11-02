@@ -80,4 +80,6 @@ If I left tomorrow, I'd miss the pace of life, the people, my friends, Thai and 
 
 If you're thinking of renting here first, [East Coast Real Estate](https://thaiproperty.com) can help you find the right place.
 
+Just arrived? Read [your first month in Pattaya](/articles/first-month-in-pattaya) and [making friends in Pattaya](/articles/making-friends-in-pattaya).
+
 Want more stories like this? [Join my newsletter](/newsletter).

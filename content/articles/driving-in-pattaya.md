@@ -35,4 +35,6 @@ The reason is experience. We know the process, and if you skip a step you can ma
 
 Here's an example. Say a customer has a minor scrape and decides to handle it all themselves, so they call the insurance company. Often the police come too. Now there's an insurance claim, so the customer loses their ฿5,000 deposit, for a scrape that would probably have cost less than a few thousand baht to fix. They'd have been better off calling us and paying a couple of thousand baht for the repair.
 
+For when the roads are worst, read [Pattaya traffic](/articles/pattaya-traffic).
+
 If you're visiting and want a car, [Pattaya Rent a Car](https://pattayarentacar.com) can help. And if you're heading out for golf, here's my [guide to golf in Pattaya](/articles/golf-in-pattaya).

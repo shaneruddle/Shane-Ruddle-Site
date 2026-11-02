@@ -61,4 +61,6 @@ So if you've been here long enough to understand the culture, you're settled in 
 
 For the other half of the team, read [managing Thai staff](/articles/managing-thai-staff).
 
+Hiring help at home? Read [hiring a maid in Pattaya](/articles/hiring-a-maid-in-pattaya).
+
 Want more stories like this? [Join my newsletter](/newsletter).

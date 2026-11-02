@@ -25,4 +25,4 @@ Yes, once. I went to Tiffany's when my parents were visiting. It's a very good s
 
 If I had to go out drinking now, I'd skip Walking Street and go to Soi Buakhao.
 
-For daytime ideas, see [things to do in Pattaya](/articles/things-to-do-in-pattaya), and for how the city has changed, [why Pattaya's old reputation is out of date](/articles/pattaya-old-reputation-out-of-date).
+For the famous strip itself, read [how Walking Street has changed](/articles/walking-street-pattaya). For daytime ideas, see [things to do in Pattaya](/articles/things-to-do-in-pattaya), and for how the city has changed, [why Pattaya's old reputation is out of date](/articles/pattaya-old-reputation-out-of-date).
