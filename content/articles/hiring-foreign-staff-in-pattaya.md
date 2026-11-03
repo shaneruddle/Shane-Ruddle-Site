@@ -57,7 +57,7 @@ If you run a business here, my advice is simple: make sure the person has settle
 
 And if you're on the other side of that equation, I'm always looking for good people. After more than 20 years here, I also know a lot of other business owners who are often hiring. Most hiring in Pattaya happens through recommendations, because taking on someone nobody knows is a minefield. It's the same reason [trust matters so much at Pattaya Rent a Car](/articles/16-years-of-pattaya-rent-a-car). If you come recommended, your chances go up a lot.
 
-So if you've been here long enough to understand the culture, you're settled in Pattaya or elsewhere in Thailand, and you think you've got what it takes, [get in touch through my contact form](/contact). If I don't have the right role, I may well know someone who does.
+So if you've been here long enough to understand the culture, you're settled in Pattaya or elsewhere in Thailand, and you think you've got what it takes, [send me your CV](/work-in-pattaya). If I don't have the right role, I may well know someone who does.
 
 For the other half of the team, read [managing Thai staff](/articles/managing-thai-staff).
 

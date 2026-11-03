@@ -454,6 +454,26 @@ write(ssr.BUSINESS_PATH, page({
 }));
 urls.push({ loc: ssr.BUSINESS_PATH });
 
+// ---- Working in Pattaya ----
+write(ssr.WORK_PATH, page({
+  urlPath: ssr.WORK_PATH,
+  ...ssr.WORK_META,
+  body: ssr.renderWork(),
+  schemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: "Working in Pattaya as a Foreigner",
+      url: SITE_URL + ssr.WORK_PATH,
+      description: ssr.WORK_META.description,
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+    },
+    faqSchema(ssr.WORK_FAQS),
+    crumbs([["Home", "/"], ["Working in Pattaya", ssr.WORK_PATH]]),
+  ],
+}));
+urls.push({ loc: ssr.WORK_PATH });
+
 // ---- International schools ----
 write(ssr.SCHOOLS_PATH, page({
   urlPath: ssr.SCHOOLS_PATH,

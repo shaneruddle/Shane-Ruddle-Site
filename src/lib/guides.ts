@@ -329,6 +329,11 @@ export const GUIDES: Guide[] = [
         slugs: ["managing-thai-staff", "hiring-foreign-staff-in-pattaya", "customer-service-and-online-reviews"],
       },
       {
+        title: "Working for someone else",
+        blurb: "Finding a job, teaching, and working in hospitality as a foreigner.",
+        slugs: ["finding-a-job-in-pattaya", "teaching-english-in-pattaya", "working-in-hospitality-in-pattaya"],
+      },
+      {
         title: "Restaurants and bars",
         blurb: "The sector most newcomers want to get into.",
         slugs: ["running-a-restaurant-and-bar-in-pattaya"],

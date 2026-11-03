@@ -12,6 +12,7 @@ import VisaPromo from "./VisaPromo";
 import SchoolsPromo from "./SchoolsPromo";
 import MovePlannerPromo from "./MovePlannerPromo";
 import BusinessCheckPromo from "./BusinessCheckPromo";
+import WorkPromo from "./WorkPromo";
 import NewsletterSignup from "./NewsletterSignup";
 import PageHero from "./PageHero";
 
@@ -156,6 +157,9 @@ function GuideView({ guide }: { guide: Guide }) {
               {guide.slug === "doing-business-in-pattaya" && (
                 <div className="mt-8">
                   <BusinessCheckPromo source={`guide_${guide.slug}`} />
+                  <div className="mt-4">
+                    <WorkPromo source={`guide_${guide.slug}`} />
+                  </div>
                 </div>
               )}
               {(guide.slug === "moving-to-pattaya" || guide.slug === "pattaya-for-families") && (

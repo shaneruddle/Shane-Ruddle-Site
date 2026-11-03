@@ -19,7 +19,9 @@ async function startServer() {
   const PORT = Number(process.env.PORT) || 3000;
 
   app.use(cors());
-  app.use(express.json());
+  // /api/cv carries a base64 CV file, so it gets its own larger body limit; everything else keeps the default.
+  const jsonDefault = express.json();
+  app.use((req, res, next) => (req.path === "/api/cv" ? next() : jsonDefault(req, res, next)));
 
   // ---- Outgoing email ----
   // Notification emails go to Shane. Sent through Brevo's transactional API when BREVO_API_KEY is set
@@ -42,7 +44,19 @@ async function startServer() {
   const smtpConfigured = () =>
     !!(process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_USER !== "test@example.com" && process.env.SMTP_PASS !== "REPLACE_ME");
 
-  async function sendNotification({ subject, html, text, replyTo }: { subject: string; html: string; text: string; replyTo?: string }) {
+  async function sendNotification({
+    subject,
+    html,
+    text,
+    replyTo,
+    attachments,
+  }: {
+    subject: string;
+    html: string;
+    text: string;
+    replyTo?: string;
+    attachments?: { name: string; content: string }[]; // content is base64
+  }) {
     if (process.env.BREVO_API_KEY) {
       const response = await fetch("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
@@ -54,6 +68,7 @@ async function startServer() {
           subject,
           htmlContent: html,
           textContent: text,
+          ...(attachments?.length ? { attachment: attachments } : {}),
         }),
       });
       if (!response.ok) throw new Error(`Brevo send failed: ${response.status} ${(await response.text()).slice(0, 300)}`);
@@ -66,7 +81,15 @@ async function startServer() {
         secure: false,
         auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
       });
-      await transporter.sendMail({ from: `"${FROM_NAME}" <${process.env.SMTP_USER}>`, to: NOTIFY_TO, replyTo, subject, html, text });
+      await transporter.sendMail({
+        from: `"${FROM_NAME}" <${process.env.SMTP_USER}>`,
+        to: NOTIFY_TO,
+        replyTo,
+        subject,
+        html,
+        text,
+        attachments: attachments?.map((a) => ({ filename: a.name, content: Buffer.from(a.content, "base64") })),
+      });
       return;
     }
     throw new Error("No email provider configured (set BREVO_API_KEY or SMTP_* variables).");
@@ -161,6 +184,66 @@ async function startServer() {
     } catch (error) {
       console.error("ERROR: Failed to send contact email:", error instanceof Error ? error.message : error);
       res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+
+  // CV upload from /work-in-pattaya: emails Shane the CV as an attachment and keeps a record
+  // (without the file) in Firestore. PDF or Word only, up to 5 MB.
+  const CV_EXTENSIONS = [".pdf", ".doc", ".docx"];
+  const CV_MAX_BYTES = 5 * 1024 * 1024;
+  app.post("/api/cv", express.json({ limit: "8mb" }), async (req, res) => {
+    const name = oneLine(req.body?.name, 120);
+    const email = oneLine(req.body?.email, 254);
+    const phone = oneLine(req.body?.phone, 60);
+    const role = oneLine(req.body?.role, 80);
+    const location = oneLine(req.body?.location, 80);
+    const years = oneLine(req.body?.years, 80);
+    const note = String(req.body?.note ?? "").trim().slice(0, 2000);
+    const context = String(req.body?.context ?? "").trim().slice(0, 2000);
+    const page = oneLine(req.body?.page, 200);
+    const shareOk = req.body?.shareOk === true;
+    if (oneLine(req.body?.website, 200)) return res.json({ success: true });
+    if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "Please fill in your name and a valid email." });
+    }
+    const fileName = oneLine(req.body?.file?.name, 150).replace(/[^\w .()-]/g, "_");
+    const ext = fileName.slice(fileName.lastIndexOf(".")).toLowerCase();
+    const data = String(req.body?.file?.data ?? "");
+    const bytes = Buffer.byteLength(data, "base64");
+    if (!fileName || !CV_EXTENSIONS.includes(ext) || !data || !/^[A-Za-z0-9+/=]+$/.test(data)) {
+      return res.status(400).json({ error: "Please attach your CV as a PDF or Word document." });
+    }
+    if (bytes > CV_MAX_BYTES) return res.status(400).json({ error: "That file is over 5 MB. Please send a smaller version." });
+
+    const rows: [string, unknown][] = [
+      ["Name", name],
+      ["Email", email],
+      ["Phone / WhatsApp", phone || "-"],
+      ["Work wanted", role || "-"],
+      ["Where now", location || "-"],
+      ["Time in Thailand", years || "-"],
+      ["OK to pass CV to other owners", shareOk ? "Yes" : "No"],
+      ["CV file", `${fileName} (${Math.round(bytes / 1024)} KB, attached)`],
+    ];
+    if (page) rows.push(["Sent from", `https://shaneruddle.com${page.startsWith("/") ? page : `/${page}`}`]);
+    const body = [note, context].filter(Boolean).join("\n\n---\n");
+    getCommentsDb()
+      .collection("cv_submissions")
+      .add({ name, email, phone: phone || null, role: role || null, location: location || null, years: years || null, note: note || null, context: context || null, shareOk, fileName, fileBytes: bytes, createdAt: FieldValue.serverTimestamp() })
+      .catch((err) => console.error("Could not save CV record:", err instanceof Error ? err.message : err));
+    try {
+      await sendNotification({
+        subject: `CV: ${name}${role ? ` (${role})` : ""} via shaneruddle.com`,
+        html: card("New CV from Working in Pattaya", rows, body || undefined),
+        text: `${rows.map(([l, v]) => `${l}: ${v}`).join("\n")}${body ? `\n\n${body}` : ""}`,
+        replyTo: email,
+        attachments: [{ name: fileName, content: data }],
+      });
+      console.log(`CV email sent for ${email}`);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("ERROR: Failed to send CV email:", error instanceof Error ? error.message : error);
+      res.status(500).json({ error: "Sorry, your CV didn't send. Please try again, or email it to me through the contact page." });
     }
   });
 
