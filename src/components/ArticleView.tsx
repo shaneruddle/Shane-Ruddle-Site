@@ -2,6 +2,8 @@ import { ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import { photoByUrl } from "../lib/photoSlots";
 import { guideForArticle } from "../lib/guides";
+import QuestionCard from "./QuestionCard";
+import { QUESTIONS_PATH, questionsForArticle } from "../lib/questions";
 import { handleLinkClick } from "../lib/navigation";
 
 export interface ArticleViewProps {
@@ -25,6 +27,7 @@ const formatArticleDate = (d: Date) =>
 export default function ArticleView({ title, body, category, createdAt, imageUrl, slug, children }: ArticleViewProps) {
   const readMinutes = Math.max(1, Math.ceil(body.split(/\s+/).length / 200));
   const guide = guideForArticle(slug);
+  const asked = slug ? questionsForArticle(slug).slice(0, 4) : [];
   const meta = [category, createdAt ? formatArticleDate(createdAt) : null, `${readMinutes} min read`].filter(Boolean).join(" · ");
 
   return (
@@ -64,6 +67,22 @@ export default function ArticleView({ title, body, category, createdAt, imageUrl
             {body}
           </ReactMarkdown>
         </div>
+
+        {asked.length > 0 && (
+          <section className="mt-16">
+            <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
+              <h2 className="font-serif text-2xl md:text-3xl">Questions readers asked me about this</h2>
+              <a href={QUESTIONS_PATH} onClick={handleLinkClick} className="text-xs uppercase tracking-widest font-bold text-gold-deep hover:text-ink">
+                All questions →
+              </a>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {asked.map((q) => (
+                <QuestionCard key={q.slug} q={q} source={`article_${slug}`} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {guide && (
           <a

@@ -363,6 +363,51 @@ for (const v of ssr.VISAS) {
   urls.push({ loc: urlPath });
 }
 
+// ---- Real questions, answered ----
+write(ssr.QUESTIONS_PATH, page({
+  urlPath: ssr.QUESTIONS_PATH,
+  ...ssr.QUESTIONS_META,
+  body: ssr.renderQuestions(ssr.QUESTIONS_PATH),
+  schemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "Pattaya questions, answered by Shane Ruddle",
+      url: SITE_URL + ssr.QUESTIONS_PATH,
+      description: ssr.QUESTIONS_META.description,
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+      mainEntity: {
+        "@type": "ItemList",
+        itemListElement: ssr.QUESTIONS.map((q, i) => ({ "@type": "ListItem", position: i + 1, name: q.q, url: `${SITE_URL}${ssr.QUESTIONS_PATH}/${q.slug}` })),
+      },
+    },
+    crumbs([["Home", "/"], ["Questions", ssr.QUESTIONS_PATH]]),
+  ],
+}));
+urls.push({ loc: ssr.QUESTIONS_PATH });
+for (const q of ssr.QUESTIONS) {
+  const urlPath = `${ssr.QUESTIONS_PATH}/${q.slug}`;
+  const shane = { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL };
+  write(urlPath, page({
+    urlPath,
+    ...ssr.questionMeta(q),
+    body: ssr.renderQuestions(urlPath),
+    schemas: [
+      // Written by the site owner with no user-submitted answers, so FAQPage (not QAPage) per Google's guidance.
+      faqSchema([{ q: q.q, a: [q.short, ...q.answer].join(" ") }]),
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        url: SITE_URL + urlPath,
+        name: q.q,
+        author: shane,
+      },
+      crumbs([["Home", "/"], ["Questions", ssr.QUESTIONS_PATH], [q.q, urlPath]]),
+    ],
+  }));
+  urls.push({ loc: urlPath });
+}
+
 // ---- Move planner ----
 write(ssr.MOVE_PATH, page({
   urlPath: ssr.MOVE_PATH,

@@ -117,7 +117,7 @@ const UI = {
     where: "Where should I send my answer?",
     name: "Your name",
     email: "Email address",
-    publish: "You may answer my question in a future article. My name and email will never be shown.",
+    publish: "You may answer my question on your Questions page or in a future article. My name and email will never be shown.",
     edit: "Edit question",
     sending: "Sending…",
     send: "Send my question",
@@ -174,6 +174,7 @@ export default function AskShane({
   context,
   contextNote,
   lang = "en",
+  initialQuestion,
 }: {
   dark?: boolean;
   /** Where the form sits, for analytics and the email (e.g. "article", "homepage", "contact_page"). */
@@ -187,6 +188,8 @@ export default function AskShane({
   contextNote?: string;
   /** "de" on the German edition: German copy, and the server adds an English translation for Shane. */
   lang?: "en" | "de";
+  /** Pre-fills the question box (e.g. a search on /questions that found nothing). */
+  initialQuestion?: string;
 }) {
   const t = UI[lang];
   const localise = (x: (typeof TOPICS)[number]) => (lang === "de" ? { ...x, ...TOPICS_DE[x.id] } : x);
@@ -194,7 +197,7 @@ export default function AskShane({
   const note = contextNote ?? (lang === "de" ? "Ich sehe Ihr Ergebnis zusammen mit Ihrer Frage." : "I'll see your calculator result with your question.");
   const [topic, setTopic] = useState<AskTopic | null>(initialTopic ?? null);
   const [step, setStep] = useState<Step>(initialTopic ? 2 : 1);
-  const [question, setQuestion] = useState("");
+  const [question, setQuestion] = useState(initialQuestion ?? "");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [publishOk, setPublishOk] = useState(true);

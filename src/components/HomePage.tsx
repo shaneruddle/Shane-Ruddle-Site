@@ -12,6 +12,8 @@ import AreasPromo from "./AreasPromo";
 import VisaPromo from "./VisaPromo";
 import SchoolsPromo from "./SchoolsPromo";
 import MovePlannerPromo from "./MovePlannerPromo";
+import QuestionCard from "./QuestionCard";
+import { FEATURED_QUESTIONS, QUESTIONS, QUESTIONS_PATH } from "../lib/questions";
 import { MOVE_PATH } from "../lib/movePlan";
 import { trackEvent } from "../lib/analytics";
 
@@ -329,6 +331,35 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
             </div>
             <NewsletterSignup dark source="homepage" />
           </div>
+        </div>
+      </section>
+
+      {/* Real questions, answered */}
+      <section id="questions" className="bg-cream border-t border-cream-line py-20 md:py-28 px-6 md:px-12 scroll-mt-20">
+        <div className="max-w-7xl mx-auto">
+          <Reveal className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 md:mb-12">
+            <div className="max-w-3xl">
+              <Eyebrow>Real questions, answered</Eyebrow>
+              <h2 className="font-serif text-4xl md:text-5xl leading-[1.08]">
+                The questions people <span className="italic text-gold-deep">actually</span> ask me.
+              </h2>
+            </div>
+            <a
+              href={QUESTIONS_PATH}
+              onClick={(e) => {
+                trackEvent("select_content", { content_type: "questions_hub", source: "homepage" });
+                handleLinkClick(e);
+              }}
+              className="inline-flex items-center gap-2 self-start md:self-auto px-6 py-3.5 bg-ink text-white text-xs font-semibold uppercase tracking-[0.18em] rounded-full hover:bg-gold hover:text-ink transition-colors whitespace-nowrap"
+            >
+              All {QUESTIONS.length} answers <ArrowRight className="w-4 h-4" />
+            </a>
+          </Reveal>
+          <Reveal delay={0.05} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+            {FEATURED_QUESTIONS.map((q) => (
+              <QuestionCard key={q.slug} q={q} source="homepage" />
+            ))}
+          </Reveal>
         </div>
       </section>
 
