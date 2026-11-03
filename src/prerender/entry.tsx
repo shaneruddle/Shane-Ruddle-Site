@@ -19,6 +19,7 @@ import VisasPage from "../components/VisasPage";
 import SchoolsPage from "../components/SchoolsPage";
 import MovePlanner from "../components/MovePlanner";
 import QuestionsPage from "../components/QuestionsPage";
+import BusinessCheck from "../components/BusinessCheck";
 import { fallbackData } from "../types";
 import DeSite from "../components/de/DeSite";
 
@@ -29,6 +30,7 @@ export { AREAS, AREAS_META, AREAS_FAQS } from "../lib/areas";
 export { VISAS, VISAS_META, VISAS_FAQS, VISAS_PATH } from "../lib/visas";
 export { MOVE_PATH, MOVE_META, MOVE_FAQS } from "../lib/movePlan";
 export { QUESTIONS, QUESTIONS_META, QUESTIONS_PATH, ANSWERS_AS_OF, questionMeta } from "../lib/questions";
+export { BUSINESS_PATH, BUSINESS_META, BUSINESS_FAQS } from "../lib/businessCheck";
 export { SCHOOLS, SCHOOLS_META, SCHOOLS_FAQS, SCHOOLS_PATH, faqsForSchool } from "../lib/schools";
 export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema } from "../seo";
 export { EN_TO_DE, DE_TO_EN, DE_ARTICLE_LIST, DE_HOME, DE_ARTICLES, DE_CALCULATOR, DE_MOVING, DE_AREAS } from "../lib/de/site";
@@ -78,7 +80,7 @@ function Shell({ children }: { children: ReactNode }) {
       <main>{children}</main>
       <footer className="bg-ink text-white/60 px-6 md:px-12 py-12">
         <ul className="max-w-7xl mx-auto flex flex-wrap gap-6 text-sm">
-          {[...NAV, ["Plan my move", "/move-to-thailand"], ["Questions", "/questions"], ["Newsletter", "/newsletter"], ["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]].map(([label, href]) => (
+          {[...NAV, ["Plan my move", "/move-to-thailand"], ["Questions", "/questions"], ["Business check", "/business-in-pattaya"], ["Newsletter", "/newsletter"], ["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]].map(([label, href]) => (
             <li key={href}><a href={href}>{label}</a></li>
           ))}
         </ul>
@@ -172,6 +174,11 @@ export function renderMove(): string {
 /** /questions or /questions/<slug>. */
 export function renderQuestions(path: string): string {
   return renderToString(<Shell><QuestionsPage path={path} /></Shell>);
+}
+
+/** /business-in-pattaya (the reality check's question view and the FAQ). */
+export function renderBusiness(): string {
+  return renderToString(<Shell><BusinessCheck /></Shell>);
 }
 
 /** Any /de page: the German site renders its own header and footer. */

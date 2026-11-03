@@ -431,6 +431,29 @@ write(ssr.MOVE_PATH, page({
 }));
 urls.push({ loc: ssr.MOVE_PATH });
 
+// ---- Business reality check ----
+write(ssr.BUSINESS_PATH, page({
+  urlPath: ssr.BUSINESS_PATH,
+  ...ssr.BUSINESS_META,
+  body: ssr.renderBusiness(),
+  schemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "Pattaya Business Reality Check",
+      url: SITE_URL + ssr.BUSINESS_PATH,
+      description: ssr.BUSINESS_META.description,
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Any",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "THB" },
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+    },
+    faqSchema(ssr.BUSINESS_FAQS),
+    crumbs([["Home", "/"], ["Business in Pattaya", ssr.BUSINESS_PATH]]),
+  ],
+}));
+urls.push({ loc: ssr.BUSINESS_PATH });
+
 // ---- International schools ----
 write(ssr.SCHOOLS_PATH, page({
   urlPath: ssr.SCHOOLS_PATH,

@@ -24,6 +24,7 @@ import AskShane, { topicForArticle } from './AskShane';
 import VisaPromo from './VisaPromo';
 import SchoolsPromo from './SchoolsPromo';
 import MovePlannerPromo, { MOVE_PROMO_ARTICLES } from './MovePlannerPromo';
+import BusinessCheckPromo, { BUSINESS_PROMO_ARTICLES } from './BusinessCheckPromo';
 import { SCHOOL_PROMO_ARTICLES } from '../lib/schools';
 import { VISA_PROMO_ARTICLES } from '../lib/visas';
 import { applyPageMeta, PAGE_META } from '../seo';
@@ -170,6 +171,12 @@ export default function BlogPage({ onBack }: BlogPageProps) {
         {MOVE_PROMO_ARTICLES.has(selectedPost.slug || selectedPost.id) && (
           <div className="mt-12">
             <MovePlannerPromo source={`article_${selectedPost.slug || selectedPost.id}`} />
+          </div>
+        )}
+
+        {BUSINESS_PROMO_ARTICLES.has(selectedPost.slug || selectedPost.id) && (
+          <div className="mt-12">
+            <BusinessCheckPromo source={`article_${selectedPost.slug || selectedPost.id}`} />
           </div>
         )}
 
