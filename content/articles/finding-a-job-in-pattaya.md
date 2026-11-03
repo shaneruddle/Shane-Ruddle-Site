@@ -49,4 +49,4 @@ In a restaurant or bar, the main way to grow your pay is a profit share. I offer
 
 If you're settled here and looking, [send me your CV](/work-in-pattaya). I know a lot of owners who are often hiring.
 
-This is the first in a series on working in Pattaya. Next, read [teaching English in Pattaya](/articles/teaching-english-in-pattaya) and [working in hospitality in Pattaya](/articles/working-in-hospitality-in-pattaya). For more, read [hiring foreign staff in Pattaya](/articles/hiring-foreign-staff-in-pattaya) and [visas in Pattaya](/articles/thai-visas-in-pattaya).
+This is the first in a series on working in Pattaya. Next, read [teaching English in Pattaya](/articles/teaching-english-in-pattaya) [working in hospitality in Pattaya](/articles/working-in-hospitality-in-pattaya) and [working remotely in Pattaya](/articles/working-remotely-in-pattaya). For more, read [hiring foreign staff in Pattaya](/articles/hiring-foreign-staff-in-pattaya) and [visas in Pattaya](/articles/thai-visas-in-pattaya).

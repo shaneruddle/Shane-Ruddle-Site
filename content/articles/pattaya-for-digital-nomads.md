@@ -37,4 +37,4 @@ So a typical day is working alone in your room, but still getting out. Pattaya i
 
 Do it, depending on what you earn online. I can't think of a better country than Thailand for remote workers. There's now a visa option for remote workers, the Destination Thailand Visa, the cost of living is much lower than most places, and you have the weather. I think it's a great place to be a young digital nomad.
 
-For the visa details, read [visas in Pattaya](/articles/thai-visas-in-pattaya), and for costs, [Is Pattaya Expensive?](/articles/is-pattaya-expensive)
+For the work side, read [working remotely in Pattaya](/articles/working-remotely-in-pattaya). For the visa details, read [visas in Pattaya](/articles/thai-visas-in-pattaya), and for costs, [Is Pattaya Expensive?](/articles/is-pattaya-expensive)

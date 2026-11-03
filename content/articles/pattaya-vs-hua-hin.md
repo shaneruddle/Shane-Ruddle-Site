@@ -27,4 +27,4 @@ Someone who prefers a slower pace of life and doesn't want to be around crowds a
 
 Hua Hin is also popular with Scandinavians. Pattaya still carries a stigma among some Europeans, the old "Sin City" image, and if you don't want to be associated with that, Hua Hin might be for you. (I'd argue that image is [20 years out of date](/articles/pattaya-old-reputation-out-of-date).)
 
-For almost everyone else, I'd choose Pattaya: more to do, more choice and easier to get to. If you're also weighing up the islands, read [Pattaya vs Phuket](/articles/pattaya-vs-phuket), and for what life here costs, [Is Pattaya Expensive?](/articles/is-pattaya-expensive)
+For almost everyone else, I'd choose Pattaya: more to do, more choice and easier to get to. If you're also weighing up the islands, read [Pattaya vs Phuket](/articles/pattaya-vs-phuket), and for the capital, [Pattaya vs Bangkok](/articles/pattaya-vs-bangkok), and for what life here costs, [Is Pattaya Expensive?](/articles/is-pattaya-expensive)
