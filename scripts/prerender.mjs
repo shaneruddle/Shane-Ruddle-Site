@@ -474,6 +474,29 @@ write(ssr.WORK_PATH, page({
 }));
 urls.push({ loc: ssr.WORK_PATH });
 
+// ---- Fair price checker ----
+write(ssr.PRICES_PATH, page({
+  urlPath: ssr.PRICES_PATH,
+  ...ssr.PRICES_META,
+  body: ssr.renderPrices(),
+  schemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "Pattaya Fair Price Checker",
+      url: SITE_URL + ssr.PRICES_PATH,
+      description: ssr.PRICES_META.description,
+      applicationCategory: "TravelApplication",
+      operatingSystem: "Any",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "THB" },
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+    },
+    faqSchema(ssr.PRICES_FAQS),
+    crumbs([["Home", "/"], ["Pattaya prices", ssr.PRICES_PATH]]),
+  ],
+}));
+urls.push({ loc: ssr.PRICES_PATH });
+
 // ---- International schools ----
 write(ssr.SCHOOLS_PATH, page({
   urlPath: ssr.SCHOOLS_PATH,

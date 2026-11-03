@@ -50,6 +50,7 @@ const MovePlanner = lazy(() => import("./components/MovePlanner"));
 const QuestionsPage = lazy(() => import("./components/QuestionsPage"));
 const BusinessCheck = lazy(() => import("./components/BusinessCheck"));
 const WorkPage = lazy(() => import("./components/WorkPage"));
+const PricesPage = lazy(() => import("./components/PricesPage"));
 const DeSite = lazy(() => import("./components/de/DeSite"));
 const GermanBanner = lazy(() => import("./components/de/GermanBanner"));
 const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
@@ -229,7 +230,7 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
 
 // URL routing. Each view has a real path so pages can be linked, shared and indexed.
 // Firebase Hosting rewrites every path to index.html, so the app resolves the view here.
-type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'schools' | 'move' | 'questions' | 'business' | 'work' | 'de' | 'privacy-policy' | 'terms-of-service';
+type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'schools' | 'move' | 'questions' | 'business' | 'work' | 'prices' | 'de' | 'privacy-policy' | 'terms-of-service';
 
 const VIEW_PATHS: Record<View, string> = {
   'home': '/',
@@ -249,6 +250,7 @@ const VIEW_PATHS: Record<View, string> = {
   'questions': '/questions',
   'business': '/business-in-pattaya',
   'work': '/work-in-pattaya',
+  'prices': '/pattaya-prices',
   'de': '/de',
   'privacy-policy': '/privacy',
   'terms-of-service': '/terms',
@@ -1066,6 +1068,13 @@ export default function App() {
                       transition={{ duration: 0.25 }}>
                       <WorkPage />
                     </motion.div>
+                  ) : view === 'prices' ? (
+                    <motion.div key="prices" initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <PricesPage />
+                    </motion.div>
                   ) : view === 'de' ? (
                     <motion.div key={currentPath} initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -1166,7 +1175,7 @@ export default function App() {
                       <div className="md:col-span-2">
                         <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-6">Navigation</h5>
                         <ul className="space-y-4">
-                          {[...NAV_LINKS, { label: 'Plan my move', view: 'move' as View }, { label: 'Questions', view: 'questions' as View }, { label: 'Business check', view: 'business' as View }, { label: 'Work in Pattaya', view: 'work' as View }, { label: 'Schools', view: 'schools' as View }, { label: 'Newsletter', view: 'newsletter' as View }, { label: 'Deutsch', view: 'de' as View }].map((link) => (
+                          {[...NAV_LINKS, { label: 'Plan my move', view: 'move' as View }, { label: 'Questions', view: 'questions' as View }, { label: 'Business check', view: 'business' as View }, { label: 'Work in Pattaya', view: 'work' as View }, { label: 'Fair prices', view: 'prices' as View }, { label: 'Schools', view: 'schools' as View }, { label: 'Newsletter', view: 'newsletter' as View }, { label: 'Deutsch', view: 'de' as View }].map((link) => (
                             <li key={link.view}>
                               <a
                                 href={VIEW_PATHS[link.view]}
