@@ -52,3 +52,5 @@ The one complication can be the number plate. Plates are tied to a province, so 
 If renting doesn't make financial sense for you and you decide to buy, buy new. I'd stay away from the second-hand market completely. Used cars here are expensive, and finance on a new car is cheap. It just makes much more sense to buy new.
 
 For more, read [scooter or car in Pattaya](/articles/scooter-or-car-in-pattaya) and [driving in Pattaya](/articles/driving-in-pattaya). For a long-term rental in the low season, contact [Pattaya Rent a Car](https://pattayarentacar.com).
+
+For what a car costs to keep on the road, read [what it really costs to run a car in Thailand](/articles/running-costs-of-a-car-in-thailand).
