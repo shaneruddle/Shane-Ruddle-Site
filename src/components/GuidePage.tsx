@@ -157,6 +157,9 @@ function GuideView({ guide }: { guide: Guide }) {
               {guide.slug === "doing-business-in-pattaya" && (
                 <div className="mt-8">
                   <BusinessCheckPromo source={`guide_${guide.slug}`} />
+                  <div className="mt-5">
+                    <BusinessCheckPromo source={`guide_${guide.slug}_buying`} buying />
+                  </div>
                   <div className="mt-4">
                     <WorkPromo source={`guide_${guide.slug}`} />
                   </div>

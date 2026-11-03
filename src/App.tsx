@@ -49,6 +49,7 @@ const SchoolsPage = lazy(() => import("./components/SchoolsPage"));
 const MovePlanner = lazy(() => import("./components/MovePlanner"));
 const QuestionsPage = lazy(() => import("./components/QuestionsPage"));
 const BusinessCheck = lazy(() => import("./components/BusinessCheck"));
+const BuyingBusinessPage = lazy(() => import("./components/BuyingBusinessPage"));
 const WorkPage = lazy(() => import("./components/WorkPage"));
 const PricesPage = lazy(() => import("./components/PricesPage"));
 const DeSite = lazy(() => import("./components/de/DeSite"));
@@ -277,6 +278,7 @@ function routeFromPath(pathname: string): { view: View } {
   if (path === '/thai-visas' || path.startsWith('/thai-visas/')) return { view: 'visas' };
   if (path === '/international-schools-pattaya' || path.startsWith('/international-schools-pattaya/')) return { view: 'schools' };
   if (path === '/questions' || path.startsWith('/questions/')) return { view: 'questions' };
+  if (path === '/business-in-pattaya/buying-a-business') return { view: 'business' };
   const view = (Object.keys(VIEW_PATHS) as View[]).find(v => VIEW_PATHS[v] === path);
   return { view: view || 'home' };
 }
@@ -1055,11 +1057,11 @@ export default function App() {
                       <MovePlanner />
                     </motion.div>
                   ) : view === 'business' ? (
-                    <motion.div key="business" initial={{ opacity: 0 }}
+                    <motion.div key={currentPath} initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.25 }}>
-                      <BusinessCheck />
+                      {currentPath.startsWith('/business-in-pattaya/buying-a-business') ? <BuyingBusinessPage /> : <BusinessCheck />}
                     </motion.div>
                   ) : view === 'work' ? (
                     <motion.div key="work" initial={{ opacity: 0 }}

@@ -22,6 +22,8 @@ import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
 import AskShane from "./AskShane";
 import NewsletterSignup from "./NewsletterSignup";
+import BusinessTabs from "./BusinessTabs";
+import { BUYING_PATH } from "../lib/dealCheck";
 
 // /business-in-pattaya: six questions → an honest verdict on opening or buying a business in
 // Pattaya, the money and legal basics, a due-diligence scorecard, and "Swap notes with Shane".
@@ -143,6 +145,16 @@ function DueDiligence() {
         <div>
           <span className="block text-[11px] uppercase tracking-[0.25em] text-gold mb-3">Buying? Check these first</span>
           <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Your due-diligence scorecard</h3>
+          <a
+            href={BUYING_PATH}
+            onClick={(e) => {
+              trackEvent("select_content", { content_type: "deal_check", source: "business_check_scorecard" });
+              handleLinkClick(e);
+            }}
+            className="mt-3 inline-flex items-center gap-1.5 text-sm text-gold hover:text-white"
+          >
+            Found one? Check the actual deal <ArrowRight className="w-3.5 h-3.5" />
+          </a>
         </div>
         <div className="text-right">
           <span className="block font-serif text-4xl text-gold">{count}/{DUE_DILIGENCE.length}</span>
@@ -372,8 +384,9 @@ export default function BusinessCheck() {
       <section id="check" className="bg-ink text-white pt-28 md:pt-36 pb-16 md:pb-24 px-6 md:px-12 scroll-mt-16">
         <div className="max-w-7xl mx-auto">
           <a href="/guides/doing-business-in-pattaya" onClick={handleLinkClick} className="block text-[11px] font-medium uppercase tracking-[0.3em] mb-5 text-gold hover:text-white transition-colors">
-            Doing business in Pattaya · Reality check
+            Doing business in Pattaya
           </a>
+          <BusinessTabs active="check" />
           {!result && (
             <>
               <h1 className="font-serif font-normal text-[2.6rem] sm:text-6xl lg:text-7xl leading-[1.04] tracking-tight mb-6 max-w-5xl">

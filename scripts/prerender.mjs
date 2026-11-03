@@ -497,6 +497,29 @@ write(ssr.PRICES_PATH, page({
 }));
 urls.push({ loc: ssr.PRICES_PATH });
 
+// ---- Buying a business (chapter of the business check) ----
+write(ssr.BUYING_PATH, page({
+  urlPath: ssr.BUYING_PATH,
+  ...ssr.BUYING_META,
+  body: ssr.renderBuying(),
+  schemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "Pattaya Business Deal Checker",
+      url: SITE_URL + ssr.BUYING_PATH,
+      description: ssr.BUYING_META.description,
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Any",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "THB" },
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+    },
+    faqSchema(ssr.BUYING_FAQS),
+    crumbs([["Home", "/"], ["Business in Pattaya", ssr.BUSINESS_PATH], ["Buying a business", ssr.BUYING_PATH]]),
+  ],
+}));
+urls.push({ loc: ssr.BUYING_PATH });
+
 // ---- International schools ----
 write(ssr.SCHOOLS_PATH, page({
   urlPath: ssr.SCHOOLS_PATH,

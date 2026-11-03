@@ -20,6 +20,7 @@ import SchoolsPage from "../components/SchoolsPage";
 import MovePlanner from "../components/MovePlanner";
 import QuestionsPage from "../components/QuestionsPage";
 import BusinessCheck from "../components/BusinessCheck";
+import BuyingBusinessPage from "../components/BuyingBusinessPage";
 import WorkPage from "../components/WorkPage";
 import PricesPage from "../components/PricesPage";
 import { fallbackData } from "../types";
@@ -33,6 +34,7 @@ export { VISAS, VISAS_META, VISAS_FAQS, VISAS_PATH } from "../lib/visas";
 export { MOVE_PATH, MOVE_META, MOVE_FAQS } from "../lib/movePlan";
 export { QUESTIONS, QUESTIONS_META, QUESTIONS_PATH, ANSWERS_AS_OF, questionMeta } from "../lib/questions";
 export { BUSINESS_PATH, BUSINESS_META, BUSINESS_FAQS } from "../lib/businessCheck";
+export { BUYING_PATH, BUYING_META, BUYING_FAQS } from "../lib/dealCheck";
 export { WORK_PATH, WORK_META, WORK_FAQS } from "../lib/work";
 export { PRICES_PATH, PRICES_META, PRICES_FAQS } from "../lib/prices";
 export { SCHOOLS, SCHOOLS_META, SCHOOLS_FAQS, SCHOOLS_PATH, faqsForSchool } from "../lib/schools";
@@ -193,6 +195,11 @@ export function renderWork(): string {
 /** /pattaya-prices (the checker, the "when it goes wrong" playbooks, the price sheet and the FAQ). */
 export function renderPrices(): string {
   return renderToString(<Shell><PricesPage /></Shell>);
+}
+
+/** /business-in-pattaya/buying-a-business (the deal checker, the buying chapter and the FAQ). */
+export function renderBuying(): string {
+  return renderToString(<Shell><BuyingBusinessPage /></Shell>);
 }
 
 /** Any /de page: the German site renders its own header and footer. */
