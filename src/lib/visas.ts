@@ -127,7 +127,7 @@ export const VISAS: ThaiVisa[] = [
     name: "DTV (Destination Thailand Visa)",
     official: "Destination Thailand Visa (DTV)",
     tagline: "Five years for remote workers, with 180-day stays",
-    metaTitle: "DTV Visa Thailand 2026: ฿500,000 Rule, 180-Day Stays and the Catch | Shane Ruddle",
+    metaTitle: "DTV Visa Thailand 2026, the Digital Nomad Visa: ฿500,000 Rule, 180-Day Stays and the Catch | Shane Ruddle",
     description:
       "The Destination Thailand Visa (DTV) explained by a 20-year Pattaya resident: 5 years, 180 days per entry, ฿500,000 savings, the August 2026 changes, and the catch.",
     fromShane: true,
@@ -251,7 +251,7 @@ export const VISAS: ThaiVisa[] = [
     name: "Business visa and work permit",
     official: "Non-Immigrant B with a work permit",
     tagline: "The one you need to work or run a business here",
-    metaTitle: "Thailand Business Visa (Non-B) and Work Permit in Pattaya, 2026 | Shane Ruddle",
+    metaTitle: "Thailand Work Visa and Work Permit 2026: The Non-B Business Visa Explained | Shane Ruddle",
     description:
       "The Non-Immigrant B visa and work permit, from a Pattaya business owner who's been on one for 20 years: who needs it, what the company needs, and how renewals work.",
     fromShane: true,

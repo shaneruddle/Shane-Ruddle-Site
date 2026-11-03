@@ -1,6 +1,6 @@
 ---
-title: "Auswandern nach Thailand: Was ich gern vorher gewusst hätte"
-description: "Zwanzig Jahre nach seiner Ankunft erzählt ein Unternehmer aus Pattaya, was ihn an Thailand überrascht hat, was er anders machen würde und was er allen rät, die über den Umzug nachdenken."
+title: "Auswandern nach Thailand: Die Nachteile und was ich gern vorher gewusst hätte"
+description: "Die Nachteile beim Auswandern nach Thailand, ehrlich von einem Unternehmer nach 20 Jahren in Pattaya: Visum, Bankkonto, Grundbesitz, Versicherung, und was ich anders machen würde."
 category: Ratgeber
 date: 2026-11-02
 en: what-i-wish-id-known-before-moving-to-thailand
@@ -25,6 +25,19 @@ Nicht viel, denn ich hatte damals nicht viel. Ich war immer recht gut mit Geld u
 ## Was hat mich an den Thais überrascht?
 
 Wie herzlich und entgegenkommend sie sind, und vor allem wie tolerant. Manche Besucher können aggressiv oder anmaßend sein, das genaue Gegenteil der thailändischen Kultur, und Thais gehen damit bemerkenswert gut um.
+
+## Was sind die Nachteile beim Auswandern nach Thailand?
+
+Ich würde es jederzeit wieder tun, aber es gibt echte Nachteile, und die sollten Sie vorher kennen:
+
+- **Sie bleiben auf Zeit hier.** Fast jeder lebt mit einem Visum, das regelmäßig verlängert werden muss, und die Regeln ändern sich oft. Das DTV gilt zum Beispiel bis zu fünf Jahre, aber Sie bleiben damit Tourist und kein Einwanderer. Mehr dazu im [Visum-Finder](/de/thailand-visum).
+- **Ein Bankkonto ist schwieriger geworden.** Früher ging das als Tourist. Seit dem Vorgehen gegen Betrugszentren sind die Banken viel strenger. Wie es heute geht, steht in [Bankkonto in Thailand als Ausländer](/de/artikel/bankkonto-thailand-auslaender).
+- **Grund und Boden können Sie nicht besitzen.** Ausländern ist Landbesitz verboten. Ein Condo können Sie kaufen, bei einem Haus bleibt Ihnen meist nur ein Pachtvertrag über bis zu 30 Jahre.
+- **Ohne Krankenversicherung geht es nicht.** Die Privatkliniken sind sehr gut, aber Sie zahlen am Schalter, und jede Police hat ein Limit. Prüfen Sie Ihres. Mehr in [Krankenhaus und Krankenversicherung in Pattaya](/de/artikel/krankenhaus-krankenversicherung-pattaya).
+- **Arbeiten ist eingeschränkt.** Viele Berufe sind Thais vorbehalten, und für jede Arbeit brauchen Sie eine Arbeitserlaubnis.
+- **Die Regenzeit.** Der Regen beginnt meist im Mai, kurz nach Songkran, und August und September können auch heftig sein. In Pattaya sind die Überschwemmungen aber kurz.
+
+Keiner dieser Punkte hat mich davon abgehalten. Aber wer sie vorher kennt, plant besser.
 
 ## Mein Rat, wenn Sie über den Umzug nachdenken
 

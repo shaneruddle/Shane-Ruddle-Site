@@ -1,6 +1,6 @@
 ---
 title: "What I Wish I'd Known Before Moving to Thailand"
-description: "Twenty years after arriving, a Pattaya business owner on what surprised him about Thailand, what he'd do differently, and his advice for anyone thinking of making the move."
+description: "Twenty years after arriving, a Pattaya business owner on what surprised him about Thailand, the real downsides of moving here, what he'd do differently, and his advice."
 category: My Advice
 date: 2026-10-31
 ---
@@ -24,6 +24,19 @@ Not a lot, because I didn't have much back then. I've always been fairly good wi
 ## What surprised me about Thai people?
 
 How welcoming and accommodating they are, and above all how tolerant. Some visitors can be aggressive or overbearing, which is the very opposite of Thai culture, and Thais are remarkably good at dealing with it.
+
+## What are the downsides of moving to Thailand?
+
+I'd do it all again, but there are real downsides, and you should know them before you come:
+
+- **You're only ever here on a visa.** Almost everyone lives on a visa that has to be renewed, and the rules change often. The DTV, for example, can last up to five years, but you're still classed as a tourist, not an immigrant. My [visa finder](/thai-visas) explains the options.
+- **Opening a bank account is harder now.** You used to be able to do it as a tourist. Since the crackdown on scam centres, banks have become far stricter. Here's how it works now: [banking in Thailand for foreigners](/articles/banking-in-thailand-for-foreigners).
+- **You can't own land.** Foreign ownership of land is prohibited. You can buy a condo, but with a house you're usually looking at a lease of up to 30 years. More in [buying a house in Pattaya](/articles/buying-a-house-in-pattaya).
+- **You must have health insurance.** The private hospitals are very good, but you pay at the counter, and every policy has a limit. Check yours. More in [healthcare in Pattaya](/articles/healthcare-in-pattaya).
+- **Work is restricted.** Many occupations are reserved for Thai nationals, and you need a work permit for any job. See [working in Pattaya](/work-in-pattaya).
+- **The rainy season.** The rain usually starts in May, just after Songkran, and August and September can be quite bad too. Pattaya's flooding soon subsides, though.
+
+None of these stopped me. But knowing them up front means you plan better.
 
 ## My advice if you're thinking of moving here
 

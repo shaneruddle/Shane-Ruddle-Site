@@ -7,9 +7,9 @@
 export const WORK_PATH = "/work-in-pattaya";
 
 export const WORK_META = {
-  title: "Working in Pattaya as a Foreigner: Jobs, Pay, Work Permits and Who's Hiring | Shane Ruddle",
+  title: "Jobs in Thailand for Foreigners: Working in Pattaya, Pay and Work Permits | Shane Ruddle",
   description:
-    "Jobs foreigners actually do in Pattaya, what they pay and how to get in, from an owner who hires. Check whether you're ready, test a job offer for red flags, and send me your CV.",
+    "Jobs foreigners can actually do in Thailand, and what they pay in Pattaya, from an owner who hires. Work permits, the work visa, red flags in an offer, and send me your CV.",
 };
 
 const A = {
@@ -495,6 +495,16 @@ export const WORK_FAQS: { q: string; a: string; href?: string }[] = [
     q: "How much can a foreigner earn in Pattaya?",
     a: "If you're employed, expect ฿50,000 to ฿150,000 a month. I don't know many people in Pattaya earning more. Commission-based sales can pay ฿200,000 to ฿400,000 in a really good month.",
     href: A.job,
+  },
+  {
+    q: "What jobs can foreigners do in Thailand?",
+    a: "Many occupations are reserved for Thai nationals, so it's narrower than at home. Teaching, diving, hospitality management, chefs, sales and roles in property companies are the usual ones, always with a work permit.",
+    href: A.job,
+  },
+  {
+    q: "How do I get a work visa for Thailand?",
+    a: "The usual route is a Non-Immigrant B visa, the business visa, which runs alongside your work permit. Your employer's company has to qualify, and a proper employer will help with the paperwork.",
+    href: "/thai-visas/business-visa-work-permit",
   },
   {
     q: "Do I need a work permit?",

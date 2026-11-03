@@ -1,6 +1,6 @@
 ---
 title: "Pattaya's Old Reputation Is 20 Years Out of Date"
-description: "I arrived in Pattaya at 23, surrounded by retirees. Twenty years on, it's a city of families, schools and beaches. Here's how it changed."
+description: "Is Pattaya worth visiting now? I arrived at 23, surrounded by retirees. Twenty years on, it's a city of families, schools and beaches. Here's how it changed."
 category: Pattaya News
 date: 2026-10-19
 ---
@@ -59,7 +59,7 @@ For most of us who live here, Pattaya is about something else entirely. My own w
 
 That's Pattaya for a lot of people now: family, the outdoors and a good quality of life.
 
-## Come back and see it for yourself
+## Is Pattaya worth visiting now?
 
 So if you haven't been to Pattaya in ten years or more, come back and take a look.
 

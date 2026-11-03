@@ -23,7 +23,7 @@ export const DE_PAGE_META: Record<string, { title: string; description: string }
       "Was kostet das Leben in Thailand? Wählen Sie Gegend, Wohnung, Essen und Schule und erhalten Sie Ihr Monatsbudget für Pattaya in Euro, Franken oder Baht. Echte Zahlen aus 20 Jahren vor Ort.",
   },
   [DE_MOVING]: {
-    title: "Auswandern nach Thailand: Ratgeber für Pattaya von einem Einwohner seit 20 Jahren | Shane Ruddle",
+    title: "Auswandern nach Thailand 2026: Voraussetzungen, Kosten, Visum. Ratgeber für Pattaya | Shane Ruddle",
     description:
       "Auswandern nach Pattaya: Kosten, die besten Wohngegenden, Visum, Gesundheit, Bankkonto und Wohnen. Alles, was ich einem Freund vor dem Umzug nach Thailand sagen würde.",
   },
@@ -35,6 +35,16 @@ export const DE_PAGE_META: Record<string, { title: string; description: string }
 };
 
 export const DE_MOVING_FAQS: { q: string; a: string; href: string }[] = [
+  {
+    q: "Was sind die Voraussetzungen, um nach Thailand auszuwandern?",
+    a: "Vor allem ein passendes Visum, und das hängt von Alter, Geld und Arbeit ab: Rentnervisum ab 50 mit ฿800.000 oder ฿65.000 Monatseinkommen, DTV für Remote-Arbeit, Non-B mit Arbeitserlaubnis für einen Job hier. Dazu eine Krankenversicherung und genug Geld für die ersten Monate.",
+    href: VISAS_PATH_DE,
+  },
+  {
+    q: "Was sind die Nachteile beim Auswandern nach Thailand?",
+    a: "Sie bleiben immer auf einem Visum, das verlängert werden muss, ein Bankkonto ist schwieriger geworden, Grund und Boden dürfen Sie nicht besitzen, ohne Krankenversicherung geht es nicht, und viele Berufe sind Thais vorbehalten.",
+    href: `${DE_ARTICLES}/auswandern-thailand-was-ich-gern-gewusst-haette`,
+  },
   {
     q: "Wie ist das Leben in Pattaya wirklich?",
     a: "Langsamer, sonniger und freundlicher als im Westen. Stand 2026 lebt eine alleinstehende Person mit etwa ฿50.000 bis ฿60.000 im Monat gut, ein Paar mit ฿70.000 bis ฿80.000.",

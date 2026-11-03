@@ -1,6 +1,6 @@
 ---
-title: "Als Rentner nach Pattaya: Rat aus 20 Jahren vor Ort"
-description: "Warum Rentner Pattaya wählen, was sie wirklich überrascht, und der eine Rat, den ein Unternehmer nach 20 Jahren in Pattaya jedem Rentner gibt."
+title: "Als Rentner nach Thailand auswandern: Rat aus 20 Jahren in Pattaya"
+description: "Als Rentner nach Thailand auswandern: warum so viele Pattaya wählen, was sie überrascht, und der eine Rat, den ich nach 20 Jahren vor Ort jedem Rentner gebe."
 category: Ratgeber
 date: 2026-11-02
 en: retiring-in-pattaya
