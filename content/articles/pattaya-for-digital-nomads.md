@@ -15,7 +15,7 @@ So I wouldn't choose between them for your work. You can work from anywhere. Cho
 
 ## Why Pattaya over Bangkok or Chiang Mai?
 
-For me, Pattaya has the best of both. Chiang Mai is a very good city, but there are no beaches. Bangkok is a very good city too, but it's busy. Pattaya is a blend of city life and beach life, and for me and a lot of other people, it's the perfect mix.
+For me, Pattaya has the best of both. Chiang Mai is a very good city, but there are no beaches. Bangkok is a very good city too, but it's busy. Pattaya is a blend of city life and beach life, and for me and a lot of other people, it's the perfect mix. (I compare the two cities in more depth in [Pattaya vs Bangkok](/articles/pattaya-vs-bangkok).)
 
 In my experience it's also cheaper than both, though that will depend on how you live.
 

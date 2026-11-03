@@ -92,6 +92,7 @@ export const GUIDES: Guide[] = [
           "what-i-wish-id-known-before-moving-to-thailand",
           "pattaya-vs-phuket",
           "pattaya-vs-hua-hin",
+          "pattaya-vs-bangkok",
           "where-pattaya-is-heading",
         ],
       },
