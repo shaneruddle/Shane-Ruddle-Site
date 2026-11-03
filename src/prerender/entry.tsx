@@ -21,6 +21,7 @@ import MovePlanner from "../components/MovePlanner";
 import QuestionsPage from "../components/QuestionsPage";
 import BusinessCheck from "../components/BusinessCheck";
 import BuyingBusinessPage from "../components/BuyingBusinessPage";
+import SellBusinessPage from "../components/SellBusinessPage";
 import WorkPage from "../components/WorkPage";
 import PricesPage from "../components/PricesPage";
 import { fallbackData } from "../types";
@@ -35,6 +36,7 @@ export { MOVE_PATH, MOVE_META, MOVE_FAQS } from "../lib/movePlan";
 export { QUESTIONS, QUESTIONS_META, QUESTIONS_PATH, ANSWERS_AS_OF, questionMeta } from "../lib/questions";
 export { BUSINESS_PATH, BUSINESS_META, BUSINESS_FAQS } from "../lib/businessCheck";
 export { BUYING_PATH, BUYING_META, BUYING_FAQS } from "../lib/dealCheck";
+export { SELL_PATH, SELL_META, SELL_FAQS } from "../lib/sellBusiness";
 export { WORK_PATH, WORK_META, WORK_FAQS } from "../lib/work";
 export { PRICES_PATH, PRICES_META, PRICES_FAQS } from "../lib/prices";
 export { SCHOOLS, SCHOOLS_META, SCHOOLS_FAQS, SCHOOLS_PATH, faqsForSchool } from "../lib/schools";
@@ -86,7 +88,7 @@ function Shell({ children }: { children: ReactNode }) {
       <main>{children}</main>
       <footer className="bg-ink text-white/60 px-6 md:px-12 py-12">
         <ul className="max-w-7xl mx-auto flex flex-wrap gap-6 text-sm">
-          {[...NAV, ["Plan my move", "/move-to-thailand"], ["Questions", "/questions"], ["Business check", "/business-in-pattaya"], ["Work in Pattaya", "/work-in-pattaya"], ["Fair prices", "/pattaya-prices"], ["Newsletter", "/newsletter"], ["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]].map(([label, href]) => (
+          {[...NAV, ["Plan my move", "/move-to-thailand"], ["Questions", "/questions"], ["Business check", "/business-in-pattaya"], ["Sell your business", "/business-in-pattaya/sell-your-business"], ["Work in Pattaya", "/work-in-pattaya"], ["Fair prices", "/pattaya-prices"], ["Newsletter", "/newsletter"], ["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]].map(([label, href]) => (
             <li key={href}><a href={href}>{label}</a></li>
           ))}
         </ul>
@@ -200,6 +202,11 @@ export function renderPrices(): string {
 /** /business-in-pattaya/buying-a-business (the deal checker, the buying chapter and the FAQ). */
 export function renderBuying(): string {
   return renderToString(<Shell><BuyingBusinessPage /></Shell>);
+}
+
+/** /business-in-pattaya/sell-your-business (landing page for owners selling, plus buyers). */
+export function renderSell(): string {
+  return renderToString(<Shell><SellBusinessPage /></Shell>);
 }
 
 /** Any /de page: the German site renders its own header and footer. */

@@ -50,6 +50,7 @@ const MovePlanner = lazy(() => import("./components/MovePlanner"));
 const QuestionsPage = lazy(() => import("./components/QuestionsPage"));
 const BusinessCheck = lazy(() => import("./components/BusinessCheck"));
 const BuyingBusinessPage = lazy(() => import("./components/BuyingBusinessPage"));
+const SellBusinessPage = lazy(() => import("./components/SellBusinessPage"));
 const WorkPage = lazy(() => import("./components/WorkPage"));
 const PricesPage = lazy(() => import("./components/PricesPage"));
 const DeSite = lazy(() => import("./components/de/DeSite"));
@@ -278,7 +279,7 @@ function routeFromPath(pathname: string): { view: View } {
   if (path === '/thai-visas' || path.startsWith('/thai-visas/')) return { view: 'visas' };
   if (path === '/international-schools-pattaya' || path.startsWith('/international-schools-pattaya/')) return { view: 'schools' };
   if (path === '/questions' || path.startsWith('/questions/')) return { view: 'questions' };
-  if (path === '/business-in-pattaya/buying-a-business') return { view: 'business' };
+  if (path === '/business-in-pattaya/buying-a-business' || path === '/business-in-pattaya/sell-your-business') return { view: 'business' };
   const view = (Object.keys(VIEW_PATHS) as View[]).find(v => VIEW_PATHS[v] === path);
   return { view: view || 'home' };
 }
@@ -1061,7 +1062,7 @@ export default function App() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.25 }}>
-                      {currentPath.startsWith('/business-in-pattaya/buying-a-business') ? <BuyingBusinessPage /> : <BusinessCheck />}
+                      {currentPath.startsWith('/business-in-pattaya/buying-a-business') ? <BuyingBusinessPage /> : currentPath.startsWith('/business-in-pattaya/sell-your-business') ? <SellBusinessPage /> : <BusinessCheck />}
                     </motion.div>
                   ) : view === 'work' ? (
                     <motion.div key="work" initial={{ opacity: 0 }}
@@ -1177,10 +1178,10 @@ export default function App() {
                       <div className="md:col-span-2">
                         <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-6">Navigation</h5>
                         <ul className="space-y-4">
-                          {[...NAV_LINKS, { label: 'Plan my move', view: 'move' as View }, { label: 'Questions', view: 'questions' as View }, { label: 'Business check', view: 'business' as View }, { label: 'Work in Pattaya', view: 'work' as View }, { label: 'Fair prices', view: 'prices' as View }, { label: 'Schools', view: 'schools' as View }, { label: 'Newsletter', view: 'newsletter' as View }, { label: 'Deutsch', view: 'de' as View }].map((link) => (
-                            <li key={link.view}>
+                          {[...NAV_LINKS, { label: 'Plan my move', view: 'move' as View }, { label: 'Questions', view: 'questions' as View }, { label: 'Business check', view: 'business' as View }, { label: 'Sell your business', view: 'business' as View, href: '/business-in-pattaya/sell-your-business' }, { label: 'Work in Pattaya', view: 'work' as View }, { label: 'Fair prices', view: 'prices' as View }, { label: 'Schools', view: 'schools' as View }, { label: 'Newsletter', view: 'newsletter' as View }, { label: 'Deutsch', view: 'de' as View }].map((link) => (
+                            <li key={'href' in link ? link.href : link.view}>
                               <a
-                                href={VIEW_PATHS[link.view]}
+                                href={'href' in link ? link.href : VIEW_PATHS[link.view]}
                                 hrefLang={link.view === 'de' ? 'de' : undefined}
                                 onClick={handleLinkClick}
                                 className="text-sm text-white/60 hover:text-white transition-colors font-light"

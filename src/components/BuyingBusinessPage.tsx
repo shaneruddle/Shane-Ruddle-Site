@@ -19,6 +19,7 @@ import {
   fairRange,
 } from "../lib/dealCheck";
 import { BUSINESS_PATH } from "../lib/businessCheck";
+import { SELL_PATH } from "../lib/sellBusiness";
 import { handleLinkClick } from "../lib/navigation";
 import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
@@ -373,6 +374,16 @@ export default function BuyingBusinessPage() {
                   The businesses on Facebook or with agents usually aren't the best ones. The best sell quietly, by word of mouth between
                   owners. Of the last five or six I bought, other business people hadn't even known they were for sale.
                 </p>
+                <a
+                  href={SELL_PATH}
+                  onClick={(e) => {
+                    trackEvent("select_content", { content_type: "sell_business", source: "buying_page" });
+                    handleLinkClick(e);
+                  }}
+                  className="mt-4 inline-flex items-center gap-1.5 text-sm text-gold hover:text-white"
+                >
+                  Selling one? Tell me in confidence <ArrowRight className="w-3.5 h-3.5" />
+                </a>
               </div>
               <div className="p-7 md:p-8 rounded-[1.25rem] bg-ink text-white">
                 <span className="block text-[11px] uppercase tracking-[0.22em] text-gold mb-3">What I'd never buy</span>

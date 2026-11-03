@@ -520,6 +520,18 @@ write(ssr.BUYING_PATH, page({
 }));
 urls.push({ loc: ssr.BUYING_PATH });
 
+// ---- Selling a business (landing page in the business chapter) ----
+write(ssr.SELL_PATH, page({
+  urlPath: ssr.SELL_PATH,
+  ...ssr.SELL_META,
+  body: ssr.renderSell(),
+  schemas: [
+    faqSchema(ssr.SELL_FAQS),
+    crumbs([["Home", "/"], ["Business in Pattaya", ssr.BUSINESS_PATH], ["Sell your business", ssr.SELL_PATH]]),
+  ],
+}));
+urls.push({ loc: ssr.SELL_PATH });
+
 // ---- International schools ----
 write(ssr.SCHOOLS_PATH, page({
   urlPath: ssr.SCHOOLS_PATH,

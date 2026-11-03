@@ -175,6 +175,9 @@ export default function AskShane({
   contextNote,
   lang = "en",
   initialQuestion,
+  placeholder,
+  questionLabel,
+  allowPublish = true,
 }: {
   dark?: boolean;
   /** Where the form sits, for analytics and the email (e.g. "article", "homepage", "contact_page"). */
@@ -190,6 +193,12 @@ export default function AskShane({
   lang?: "en" | "de";
   /** Pre-fills the question box (e.g. a search on /questions that found nothing). */
   initialQuestion?: string;
+  /** Overrides the topic's example question. */
+  placeholder?: string;
+  /** Overrides the prompt above the question box. */
+  questionLabel?: string;
+  /** false hides the "answer my question in an article" tick box and sends it as no (e.g. confidential sale enquiries). */
+  allowPublish?: boolean;
 }) {
   const t = UI[lang];
   const localise = (x: (typeof TOPICS)[number]) => (lang === "de" ? { ...x, ...TOPICS_DE[x.id] } : x);
@@ -200,7 +209,7 @@ export default function AskShane({
   const [question, setQuestion] = useState(initialQuestion ?? "");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [publishOk, setPublishOk] = useState(true);
+  const [publishOk, setPublishOk] = useState(allowPublish);
   const [website, setWebsite] = useState(""); // honeypot, hidden from people
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
@@ -330,7 +339,7 @@ export default function AskShane({
         {step === 2 && (
           <motion.form key="s2" onSubmit={toDetails} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
             <label htmlFor={`ask-q-${source}`} className={`block mb-3 ${muted}`}>
-              {t.questionLabel}
+              {questionLabel ?? t.questionLabel}
             </label>
             <textarea
               id={`ask-q-${source}`}
@@ -340,7 +349,7 @@ export default function AskShane({
               value={question}
               onFocus={markStarted}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder={current?.placeholder}
+              placeholder={placeholder ?? current?.placeholder}
               className={`border rounded-2xl px-5 py-4 text-base focus:outline-none transition-colors w-full resize-none ${field}`}
             />
             {context && <p className={`mt-3 text-xs ${dark ? "text-white/45" : "text-black/45"}`}>{note}</p>}
@@ -388,6 +397,7 @@ export default function AskShane({
               className="absolute -left-[9999px] h-0 w-0 opacity-0"
               name="website"
             />
+            {allowPublish && (
             <label className={`mt-4 flex items-start gap-3 text-sm cursor-pointer ${muted}`}>
               <input
                 type="checkbox"
@@ -397,6 +407,7 @@ export default function AskShane({
               />
               <span>{t.publish}</span>
             </label>
+            )}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
               <button type="button" onClick={() => setStep(2)} className={back}>
                 <ArrowLeft className="w-3.5 h-3.5" /> {t.edit}

@@ -24,6 +24,7 @@ import AskShane from "./AskShane";
 import NewsletterSignup from "./NewsletterSignup";
 import BusinessTabs from "./BusinessTabs";
 import { BUYING_PATH } from "../lib/dealCheck";
+import { SELL_PATH } from "../lib/sellBusiness";
 
 // /business-in-pattaya: six questions → an honest verdict on opening or buying a business in
 // Pattaya, the money and legal basics, a due-diligence scorecard, and "Swap notes with Shane".
@@ -154,6 +155,16 @@ function DueDiligence() {
             className="mt-3 inline-flex items-center gap-1.5 text-sm text-gold hover:text-white"
           >
             Found one? Check the actual deal <ArrowRight className="w-3.5 h-3.5" />
+          </a>
+          <a
+            href={SELL_PATH}
+            onClick={(e) => {
+              trackEvent("select_content", { content_type: "sell_business", source: "business_check_scorecard" });
+              handleLinkClick(e);
+            }}
+            className="mt-3 ml-6 inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-gold"
+          >
+            Selling one? Tell me in confidence <ArrowRight className="w-3.5 h-3.5" />
           </a>
         </div>
         <div className="text-right">
