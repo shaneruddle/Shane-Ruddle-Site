@@ -56,4 +56,6 @@ If a friend came to me tomorrow wanting to start or buy a business in Pattaya, I
 - **Decide with your head, not your heart.**
 - **Talk to other business owners.** People who have been here and done it will tell you things you won't find in a book or on YouTube.
 
+For more on buying, read my series: [why buy rather than start](/articles/why-buy-a-business-in-pattaya), [how to value a business](/articles/valuing-a-business-in-pattaya), [leases, landlords and paperwork](/articles/business-leases-and-landlords-in-pattaya) and [taking over: the first few months](/articles/taking-over-a-business-in-pattaya).
+
 If you're thinking of starting or buying a business here and want to swap notes, [get in touch](/contact).
