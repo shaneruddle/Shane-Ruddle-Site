@@ -38,3 +38,5 @@ Hemingways Lakeside came about the same way. It's a long way from the other two,
 Don't go it alone. Team up with somebody who's already doing it, or has done it before. It may look easy from the outside, but it really, really isn't.
 
 For the wider picture, read my advice on [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya), how I went [from bar manager to seven businesses](/articles/bar-manager-to-7-businesses), and [where a restaurant owner eats in Pattaya](/articles/where-a-restaurant-owner-eats-in-pattaya).
+
+Want to work in the trade rather than own a business? Read [working in hospitality in Pattaya](/articles/working-in-hospitality-in-pattaya).

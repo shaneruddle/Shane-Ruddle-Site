@@ -63,4 +63,6 @@ For the other half of the team, read [managing Thai staff](/articles/managing-th
 
 Hiring help at home? Read [hiring a maid in Pattaya](/articles/hiring-a-maid-in-pattaya).
 
+Looking for work yourself? Read [finding a job in Pattaya as a foreigner](/articles/finding-a-job-in-pattaya).
+
 Want more stories like this? [Join my newsletter](/newsletter).

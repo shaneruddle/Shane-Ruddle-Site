@@ -32,3 +32,5 @@ Budget anything from around ฿30,000 to ฿100,000 a month per child, spread ov
 That's how I'd budget it, but it's not how you pay. Most parents pay term by term, so the bills come in big chunks. If you've got an older child at a top school costing over a million baht a year, you're getting a bill of close to ฿400,000 every term. Check each school's current fee schedule, and really do plan for it.
 
 For more on family life here, read [is Pattaya good for families?](/articles/is-pattaya-good-for-families), and for the rest of your budget, [Is Pattaya Expensive?](/articles/is-pattaya-expensive)
+
+Want to work in a school? Read [teaching English in Pattaya](/articles/teaching-english-in-pattaya).

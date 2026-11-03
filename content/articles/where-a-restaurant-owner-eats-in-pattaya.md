@@ -34,3 +34,5 @@ As a restaurant owner, these are the three things I notice.
 **3. The food meets expectations.** When the meal arrives, is it well presented and what you'd expect? It doesn't have to be first-class food. If you go into a pub, you expect pub food. What matters is that your expectations are met.
 
 For what eating out costs as part of everyday life here, see [Is Pattaya Expensive?](/articles/is-pattaya-expensive), and for the business side of restaurants, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya).
+
+New to Thai food? Read [what to try first](/articles/thai-food-for-newcomers).
