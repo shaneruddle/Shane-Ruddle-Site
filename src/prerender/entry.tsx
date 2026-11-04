@@ -24,6 +24,7 @@ import BuyingBusinessPage from "../components/BuyingBusinessPage";
 import SellBusinessPage from "../components/SellBusinessPage";
 import WorkPage from "../components/WorkPage";
 import PricesPage from "../components/PricesPage";
+import FuturePage from "../components/FuturePage";
 import { fallbackData } from "../types";
 import DeSite from "../components/de/DeSite";
 
@@ -39,6 +40,7 @@ export { BUYING_PATH, BUYING_META, BUYING_FAQS } from "../lib/dealCheck";
 export { SELL_PATH, SELL_META, SELL_FAQS } from "../lib/sellBusiness";
 export { WORK_PATH, WORK_META, WORK_FAQS } from "../lib/work";
 export { PRICES_PATH, PRICES_META, PRICES_FAQS } from "../lib/prices";
+export { FUTURE_PATH, FUTURE_META, FUTURE_FAQS } from "../lib/future";
 export { SCHOOLS, SCHOOLS_META, SCHOOLS_FAQS, SCHOOLS_PATH, faqsForSchool } from "../lib/schools";
 export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema } from "../seo";
 export { EN_TO_DE, DE_TO_EN, DE_ARTICLE_LIST, DE_HOME, DE_ARTICLES, DE_CALCULATOR, DE_MOVING, DE_AREAS } from "../lib/de/site";
@@ -88,7 +90,7 @@ function Shell({ children }: { children: ReactNode }) {
       <main>{children}</main>
       <footer className="bg-ink text-white/60 px-6 md:px-12 py-12">
         <ul className="max-w-7xl mx-auto flex flex-wrap gap-6 text-sm">
-          {[...NAV, ["Plan my move", "/move-to-thailand"], ["Questions", "/questions"], ["Business check", "/business-in-pattaya"], ["Sell your business", "/business-in-pattaya/sell-your-business"], ["Work in Pattaya", "/work-in-pattaya"], ["Fair prices", "/pattaya-prices"], ["Newsletter", "/newsletter"], ["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]].map(([label, href]) => (
+          {[...NAV, ["Plan my move", "/move-to-thailand"], ["Questions", "/questions"], ["Business check", "/business-in-pattaya"], ["Sell your business", "/business-in-pattaya/sell-your-business"], ["Work in Pattaya", "/work-in-pattaya"], ["Fair prices", "/pattaya-prices"], ["Pattaya's future", "/pattaya-future"], ["Newsletter", "/newsletter"], ["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]].map(([label, href]) => (
             <li key={href}><a href={href}>{label}</a></li>
           ))}
         </ul>
@@ -197,6 +199,11 @@ export function renderWork(): string {
 /** /pattaya-prices (the checker, the "when it goes wrong" playbooks, the price sheet and the FAQ). */
 export function renderPrices(): string {
   return renderToString(<Shell><PricesPage /></Shell>);
+}
+
+/** /pattaya-future (the development timeline and new-build projects). */
+export function renderFuture(): string {
+  return renderToString(<Shell><FuturePage /></Shell>);
 }
 
 /** /business-in-pattaya/buying-a-business (the deal checker, the buying chapter and the FAQ). */

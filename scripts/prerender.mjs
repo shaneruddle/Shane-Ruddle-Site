@@ -497,6 +497,27 @@ write(ssr.PRICES_PATH, page({
 }));
 urls.push({ loc: ssr.PRICES_PATH });
 
+// ---- Pattaya's future (development timeline) ----
+write(ssr.FUTURE_PATH, page({
+  urlPath: ssr.FUTURE_PATH,
+  ...ssr.FUTURE_META,
+  body: ssr.renderFuture(),
+  schemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: "What's really being built in Pattaya, and what it means for you",
+      url: SITE_URL + ssr.FUTURE_PATH,
+      description: ssr.FUTURE_META.description,
+      dateModified: "2026-11-04",
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+    },
+    faqSchema(ssr.FUTURE_FAQS),
+    crumbs([["Home", "/"], ["Pattaya's future", ssr.FUTURE_PATH]]),
+  ],
+}));
+urls.push({ loc: ssr.FUTURE_PATH });
+
 // ---- Buying a business (chapter of the business check) ----
 write(ssr.BUYING_PATH, page({
   urlPath: ssr.BUYING_PATH,

@@ -21,6 +21,7 @@ import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
 import AskShane from "./AskShane";
 import SchoolsPromo from "./SchoolsPromo";
+import FuturePromo from "./FuturePromo";
 import NewsletterSignup from "./NewsletterSignup";
 import PattayaMap from "./PattayaMap";
 
@@ -512,6 +513,8 @@ function AreaView({ area }: { area: PattayaArea }) {
           )}
 
           {area.id === "east" && <SchoolsPromo source="area_east" />}
+
+          <FuturePromo source={`area_${area.id}`} />
 
           <section id="ask" className="scroll-mt-28 p-8 md:p-12 bg-cream border border-cream-line rounded-[2rem]">
             <AskShane source={`area_${area.id}`} initialTopic={area.askTopic} context={`Area page: ${area.name}`} contextNote={`I'll know you're asking about ${area.name}.`} />

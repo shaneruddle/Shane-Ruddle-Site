@@ -26,6 +26,7 @@ import SchoolsPromo from './SchoolsPromo';
 import MovePlannerPromo, { MOVE_PROMO_ARTICLES } from './MovePlannerPromo';
 import BusinessCheckPromo, { BUSINESS_PROMO_ARTICLES } from './BusinessCheckPromo';
 import WorkPromo, { WORK_PROMO_ARTICLES } from './WorkPromo';
+import FuturePromo, { FUTURE_PROMO_ARTICLES } from './FuturePromo';
 import PricesPromo, { PRICES_PROMO_ARTICLES } from './PricesPromo';
 import { SCHOOL_PROMO_ARTICLES } from '../lib/schools';
 import { VISA_PROMO_ARTICLES } from '../lib/visas';
@@ -179,6 +180,12 @@ export default function BlogPage({ onBack }: BlogPageProps) {
         {PRICES_PROMO_ARTICLES.has(selectedPost.slug || selectedPost.id) && (
           <div className="mt-12">
             <PricesPromo source={`article_${selectedPost.slug || selectedPost.id}`} />
+          </div>
+        )}
+
+        {FUTURE_PROMO_ARTICLES.has(selectedPost.slug || selectedPost.id) && (
+          <div className="mt-12">
+            <FuturePromo source={`article_${selectedPost.slug || selectedPost.id}`} />
           </div>
         )}
 
