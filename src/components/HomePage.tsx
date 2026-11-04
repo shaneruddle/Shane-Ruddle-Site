@@ -5,6 +5,7 @@ import { BusinessInfo, Company } from "../types";
 import { slotImage } from "../lib/photoSlots";
 import { handleLinkClick } from "../lib/navigation";
 import NewsletterSignup from "./NewsletterSignup";
+import GoogleRatings from "./GoogleRatings";
 import AskShane from "./AskShane";
 import { GuideTiles } from "./GuidePage";
 import CalculatorPromo from "./CalculatorPromo";
@@ -301,6 +302,10 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
             <p className="lg:col-span-5 text-black/60 text-lg font-light leading-relaxed">
               Two estate agencies, four restaurants and bars, and a car rental company. I'm hands-on with all of them.
             </p>
+          </Reveal>
+
+          <Reveal className="mb-16 md:mb-20">
+            <GoogleRatings />
           </Reveal>
 
           <div className="space-y-16 md:space-y-20">
