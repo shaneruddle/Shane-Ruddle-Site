@@ -46,3 +46,5 @@ Sun cream and sunglasses are musts, and a hat is worth thinking about. Water too
 For a full day in one place, like Nong Nooch, a taxi there and back works fine. But if you plan to stop at the Buddha mountain, then lunch, then a 7-Eleven, then a temple on the way back, rent a car. It gives you the flexibility. Just work out how many stops you're likely to make.
 
 If you'd like a car for the day, [Pattaya Rent a Car](https://pattayarentacar.com) can help. Before you go, read [driving in Pattaya](/articles/driving-in-pattaya), and for things to do in town, [things to do in Pattaya](/articles/things-to-do-in-pattaya).
+
+For trips further afield, read my series on [trips from Pattaya](/articles/koh-chang-from-pattaya), starting with Koh Chang, Kanchanaburi, Khao Yai and Rayong.
