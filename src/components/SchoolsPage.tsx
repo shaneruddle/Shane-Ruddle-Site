@@ -24,6 +24,7 @@ import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
 import AskShane from "./AskShane";
 import NewsletterSignup from "./NewsletterSignup";
+import EmailMyResult from "./EmailMyResult";
 
 // International schools: /international-schools-pattaya (school chooser + comparison table) and
 // /international-schools-pattaya/<slug>. Shared by the build-time prerender and the live app.
@@ -204,6 +205,15 @@ function SchoolChooser({ source }: { source: string }) {
             Ask me about these <ArrowRight className="w-4 h-4" />
           </button>
         </div>
+
+        <EmailMyResult
+          dark
+          tool="school_finder"
+          segment="moving"
+          title="school shortlist"
+          summary={`Your school shortlist${top[0] ? `: ${top[0].school.name} first` : ""}\n${schoolAnswersSummary(answers, matches).split("\n").filter((l) => l && !l.endsWith(":")).join("\n")}`}
+          link={`https://shaneruddle.com${SCHOOLS_PATH}${answersQuery(answers)}`}
+        />
 
         {asking && (
           <div id="chooser-ask" className="p-7 md:p-10 bg-cream text-ink border border-cream-line rounded-[1.75rem] scroll-mt-28">

@@ -19,6 +19,7 @@ import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
 import AskShane from "./AskShane";
 import NewsletterSignup from "./NewsletterSignup";
+import EmailMyResult from "./EmailMyResult";
 
 // Thai visas: /thai-visas ("which visa is right for me?" finder + comparison) and /thai-visas/<slug>.
 // Shared by the build-time prerender and the live app. Finder answers live in the URL so a result can be shared.
@@ -198,6 +199,17 @@ function VisaFinder({ source }: { source: string }) {
               A starting point, not legal advice. Rules as of {RULES_AS_OF}, and they change often.
             </p>
           </div>
+        </div>
+
+        <div className="lg:col-span-12">
+          <EmailMyResult
+            dark
+            tool="visa_finder"
+            segment={best.id === "retirement" ? "retiring" : best.id === "business" || best.id === "ltr" ? "business" : "moving"}
+            title="visa shortlist"
+            summary={`Your best visa: ${best.name} (runner-up: ${runnerUp.name})\n${visaAnswersSummary(answers, result).split("\n").slice(1, -1).join("\n")}`}
+            link={`https://shaneruddle.com${VISAS_PATH}${answersQuery(answers)}`}
+          />
         </div>
 
         {asking && (

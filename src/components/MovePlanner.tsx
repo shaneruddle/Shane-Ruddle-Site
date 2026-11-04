@@ -22,6 +22,7 @@ import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
 import AskShane, { AskTopic } from "./AskShane";
 import NewsletterSignup from "./NewsletterSignup";
+import EmailMyResult, { type LeadSegment } from "./EmailMyResult";
 
 // /move-to-thailand: six questions → a personal, month-by-month moving plan, ending in
 // "Get your plan checked by Shane". Answers live in the URL so a plan can be shared.
@@ -31,6 +32,13 @@ const Eyebrow = ({ children, dark = false }: { children: ReactNode; dark?: boole
 );
 
 const readAnswers = (): MoveAnswers => (typeof window === "undefined" ? {} : answersFromSearch(window.location.search));
+
+function segmentFor(a: MoveAnswers): LeadSegment {
+  if (a.why === "retire50" || a.why === "retireEarly") return "retiring";
+  if (a.why === "work") return "business";
+  if (a.home === "buy") return "property";
+  return "moving";
+}
 
 function askTopicFor(a: MoveAnswers): AskTopic {
   if (a.who === "family") return "family";
@@ -348,6 +356,18 @@ export default function MovePlanner() {
       <div className="bg-paper px-6 md:px-12 py-16 md:py-24">
         <div className="max-w-7xl mx-auto space-y-16 md:space-y-24">
           {plan && (
+            <div className="max-w-4xl mx-auto">
+              <EmailMyResult
+                tool="move_planner"
+                segment={segmentFor(answers)}
+                title="Thailand move plan"
+                summary={`Your Thailand move plan\n${planSummary(answers, plan)}`}
+                link={`https://shaneruddle.com${MOVE_PATH}${answersQuery(answers)}`}
+              />
+            </div>
+          )}
+
+          {plan && (
             <section id="check" className="max-w-4xl mx-auto scroll-mt-28 p-8 md:p-12 bg-cream border border-cream-line rounded-[2rem]">
               <Eyebrow>Free plan check</Eyebrow>
               <h2 className="font-serif text-3xl md:text-5xl leading-tight mb-4">Want me to check your plan?</h2>
@@ -431,13 +451,15 @@ export default function MovePlanner() {
             </div>
           </section>
 
-          <div className="p-8 md:p-12 bg-ink rounded-[2rem] grid lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-serif text-white mb-2">Get the next article by email</h2>
-              <p className="text-white/60 font-light">One short email a week on property, business and life in Pattaya. Free, no spam.</p>
+          {!plan && (
+            <div className="p-8 md:p-12 bg-ink rounded-[2rem] grid lg:grid-cols-2 gap-8 items-center">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-serif text-white mb-2">Get the next article by email</h2>
+                <p className="text-white/60 font-light">One short email a week on property, business and life in Pattaya. Free, no spam.</p>
+              </div>
+              <NewsletterSignup dark source="move_planner" />
             </div>
-            <NewsletterSignup dark source="move_planner" />
-          </div>
+          )}
         </div>
       </div>
     </>

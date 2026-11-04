@@ -7,6 +7,14 @@
         { "fieldPath": "section", "order": "ASCENDING" },
         { "fieldPath": "date", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "leads",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "seqActive", "order": "ASCENDING" },
+        { "fieldPath": "nextSendAt", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

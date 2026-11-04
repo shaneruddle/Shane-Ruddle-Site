@@ -23,6 +23,7 @@ import AskShane from "./AskShane";
 import SchoolsPromo from "./SchoolsPromo";
 import FuturePromo from "./FuturePromo";
 import NewsletterSignup from "./NewsletterSignup";
+import EmailMyResult from "./EmailMyResult";
 import PattayaMap from "./PattayaMap";
 
 // Pattaya areas: /areas (interactive map + "which area suits you?" matcher) and /areas/<slug>.
@@ -148,6 +149,16 @@ function AreaFinder({ source }: { source: string }) {
         <div className="lg:col-span-5 bg-ink rounded-[1.5rem] p-5 md:p-6">
           <PattayaMap active={area.id} matched={[runnerUp.id]} title={`Map of Pattaya showing ${area.name}`} />
         </div>
+        <div className="lg:col-span-12">
+          <EmailMyResult
+            tool="area_finder"
+            segment={area.askTopic === "buying" ? "property" : area.askTopic === "retiring" ? "retiring" : "moving"}
+            title="Pattaya area match"
+            summary={`Your best area: ${area.name} (runner-up: ${runnerUp.name})\n${answersSummary(answers, result).split("\n").slice(1, -1).join("\n")}`}
+            link={`https://shaneruddle.com/areas/${area.slug}`}
+          />
+        </div>
+
         {asking && (
           <div className="lg:col-span-12 p-7 md:p-10 bg-white border border-black/[0.08] rounded-[1.5rem]">
             <AskShane

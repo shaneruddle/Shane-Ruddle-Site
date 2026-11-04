@@ -8,6 +8,7 @@ import crypto from "crypto";
 import { initializeApp as initializeAdminApp, getApps } from "firebase-admin/app";
 import { getFirestore as getAdminFirestore, FieldValue, Firestore } from "firebase-admin/firestore";
 import { getAuth as getAdminAuth } from "firebase-admin/auth";
+import { registerLeadRoutes } from "./server/leads";
 
 dotenv.config();
 
@@ -376,6 +377,9 @@ Reply with JSON only, no other text: {"approve": true or false, "reason": "a few
       res.status(500).json({ error: "Failed to save comment" });
     }
   });
+
+  // ---- "Email me my result" + welcome email sequences (server/leads.ts) ----
+  registerLeadRoutes(app, { getDb: getCommentsDb, escapeHtml, oneLine, fromEmail: FROM_EMAIL });
 
   // ---- Photo publishing ----
   // The portal Photos tab saves photo choices to Firestore; publishing rebuilds the site so they go live.

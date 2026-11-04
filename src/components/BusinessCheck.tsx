@@ -22,6 +22,7 @@ import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
 import AskShane from "./AskShane";
 import NewsletterSignup from "./NewsletterSignup";
+import EmailMyResult from "./EmailMyResult";
 import BusinessTabs from "./BusinessTabs";
 import { BUYING_PATH } from "../lib/dealCheck";
 import { SELL_PATH } from "../lib/sellBusiness";
@@ -427,6 +428,18 @@ export default function BusinessCheck() {
       <div className="bg-paper px-6 md:px-12 py-16 md:py-24">
         <div className="max-w-7xl mx-auto space-y-16 md:space-y-24">
           {result && (
+            <div className="max-w-4xl mx-auto">
+              <EmailMyResult
+                tool="business_check"
+                segment="business"
+                title="business reality check"
+                summary={`Your business reality check: ${result.headline} (${result.score}/100)\n${checkSummary(answers, result).split("\n").slice(1, -2).join("\n")}`}
+                link={`https://shaneruddle.com${BUSINESS_PATH}${answersQuery(answers)}`}
+              />
+            </div>
+          )}
+
+          {result && (
             <section id="notes" className="max-w-4xl mx-auto scroll-mt-28 p-8 md:p-12 bg-cream border border-cream-line rounded-[2rem]">
               <Eyebrow>Swap notes with me</Eyebrow>
               <h2 className="font-serif text-3xl md:text-5xl leading-tight mb-4">Tell me about the business you have in mind</h2>
@@ -488,13 +501,15 @@ export default function BusinessCheck() {
             </div>
           </section>
 
-          <div className="p-8 md:p-12 bg-ink rounded-[2rem] grid lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-serif text-white mb-2">Get the next article by email</h2>
-              <p className="text-white/60 font-light">One short email a week on property, business and life in Pattaya. Free, no spam.</p>
+          {!result && (
+            <div className="p-8 md:p-12 bg-ink rounded-[2rem] grid lg:grid-cols-2 gap-8 items-center">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-serif text-white mb-2">Get the next article by email</h2>
+                <p className="text-white/60 font-light">One short email a week on property, business and life in Pattaya. Free, no spam.</p>
+              </div>
+              <NewsletterSignup dark source="business_check" />
             </div>
-            <NewsletterSignup dark source="business_check" />
-          </div>
+          )}
         </div>
       </div>
     </>

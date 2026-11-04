@@ -1,0 +1,28 @@
+name: Send welcome emails
+# Once a day (09:00 Pattaya time) ask the server to send the welcome-sequence emails that are due.
+# See server/leads.ts. Run it by hand from the Actions tab; add dry=1 to see what would send.
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: 'Dry run (count only, send nothing)'
+        type: boolean
+        default: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      - name: Send due emails
+        run: |
+          TOKEN=$(gcloud auth print-identity-token --audiences=shane-ruddle-sequences)
+          QUERY=""
+          if [ "${{ inputs.dry }}" = "true" ]; then QUERY="?dry=1"; fi
+          curl -fsS -X POST -H "Authorization: Bearer $TOKEN" "https://shane-ruddle-server-qzxgxus4ia-de.a.run.app/api/sequences/run$QUERY"

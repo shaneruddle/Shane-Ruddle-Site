@@ -27,6 +27,7 @@ import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
 import AskShane from "./AskShane";
 import NewsletterSignup from "./NewsletterSignup";
+import EmailMyResult from "./EmailMyResult";
 
 // /pattaya-prices: "Am I paying too much?" Pick what you were quoted for, type the price, and get
 // a straight verdict with what locals pay and Shane's tip. Then "when it goes wrong" playbooks,
@@ -175,6 +176,18 @@ function Result({ item, quote, currency, onReset }: { item: PriceItem; quote: nu
         <button type="button" onClick={onReset} className="inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-gold">
           <RotateCcw className="w-4 h-4" /> Check another price
         </button>
+      </div>
+
+      <div className="mt-8">
+        <EmailMyResult
+          dark
+          tool="price_checker"
+          segment="visiting"
+          title="price check"
+          heading="Email me this price check"
+          summary={`${item.label}: ${BAHT(quote)}. ${VERDICTS[v].label}\nWhat locals pay: ${range(item)} (${item.unit})\n${item.tip}${item.haggle ? `\n${item.haggle}` : ""}`}
+          link={`https://shaneruddle.com${PRICES_PATH}${checkQuery(item.id, quote)}`}
+        />
       </div>
     </div>
   );

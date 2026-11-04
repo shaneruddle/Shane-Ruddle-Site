@@ -24,7 +24,7 @@ import {
 import { handleLinkClick } from "../lib/navigation";
 import { trackEvent } from "../lib/analytics";
 import AskShane from "./AskShane";
-import NewsletterSignup from "./NewsletterSignup";
+import EmailMyResult from "./EmailMyResult";
 
 // /cost-of-living-calculator: interactive monthly budget for living in Pattaya. Shared by the
 // build-time prerender (default inputs) and the live app (inputs read from the URL, so results can be shared).
@@ -271,6 +271,19 @@ export default function CostCalculator() {
         <span className="flex items-center gap-2 font-serif text-2xl text-gold">{formatMoney(total, cur)} <ArrowRight className="w-4 h-4 text-white/60" /></span>
       </button>
 
+      {/* Email the result (lead capture right after the value) */}
+      <section className="px-6 md:px-12 pb-10 md:pb-12">
+        <div className="max-w-4xl mx-auto">
+          <EmailMyResult
+            tool="cost_calculator"
+            segment="moving"
+            title="Pattaya budget"
+            summary={summary.replace("Calculator result: ", "Your monthly budget: ")}
+            link={`https://shaneruddle.com${CALCULATOR_PATH}${inputsToQuery(inputs)}`}
+          />
+        </div>
+      </section>
+
       {/* Ask Shane with the result attached */}
       <section className="px-6 md:px-12 pb-16 md:pb-24">
         <div id="ask" className="max-w-4xl mx-auto p-8 md:p-12 bg-cream border border-cream-line rounded-[2rem] scroll-mt-24">
@@ -315,16 +328,6 @@ export default function CostCalculator() {
               ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="px-6 md:px-12 py-16 md:py-20">
-        <div className="max-w-7xl mx-auto p-8 md:p-12 bg-ink rounded-[2rem] grid lg:grid-cols-2 gap-8 items-center">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-serif text-white mb-2">Get the next article by email</h2>
-            <p className="text-white/60 font-light">One short email a week on property, business and life in Pattaya. Free, no spam.</p>
-          </div>
-          <NewsletterSignup dark source="cost_calculator" />
         </div>
       </section>
     </div>

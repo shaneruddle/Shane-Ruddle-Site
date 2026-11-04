@@ -42,6 +42,7 @@ import { handleLinkClick } from "../lib/navigation";
 import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
 import NewsletterSignup from "./NewsletterSignup";
+import EmailMyResult from "./EmailMyResult";
 
 // /work-in-pattaya: the job hunt seen from the employer's side. "Would I hire you?" (six questions,
 // answers in the URL so a result can be shared), what I look for, jobs and pay, a job offer checker,
@@ -245,6 +246,19 @@ function ResultView({ answers, result, onRestart }: { answers: WorkAnswers; resu
           </h3>
           {result.strengths.length ? <PointList items={result.strengths} icon="check" /> : <p className="text-white/60">Not a lot yet. The worries on the left tell you where to start.</p>}
         </div>
+      </div>
+
+      <div className="mt-10">
+        <EmailMyResult
+          dark
+          tool="work_check"
+          segment="work"
+          title="hiring check"
+          heading="Email me my result"
+          blurb="I'll send your score and what to work on to your inbox, with a link to open it again. You'll also get my weekly email on life and work in Pattaya."
+          summary={workSummary(answers, result)}
+          link={`https://shaneruddle.com${WORK_PATH}${workAnswersQuery(answers)}`}
+        />
       </div>
 
       <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6 text-sm text-white/50">
