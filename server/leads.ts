@@ -137,7 +137,7 @@ export function registerLeadRoutes(app: Express, { getDb, escapeHtml, oneLine, f
     const greeting = firstName ? `Hi ${escapeHtml(firstName)},` : "Hi,";
     const html = layout(
       `<p style="margin:0 0 16px;">${greeting}</p>
-       <p style="margin:0 0 20px;">Here's your ${escapeHtml(title.toLowerCase())} from my site, so you have it to hand.</p>
+       <p style="margin:0 0 20px;">Here's your ${escapeHtml(title)} from my site, so you have it to hand.</p>
        <div style="background:#141414;color:#fff;border-radius:12px;padding:22px 24px;margin:0 0 22px;">
          <p style="margin:0 0 12px;color:#D4AF37;font-size:19px;">${escapeHtml(headline)}</p>
          ${rest.map((l) => `<p style="margin:0 0 6px;font-family:Arial,sans-serif;font-size:14px;color:rgba(255,255,255,.8);">${escapeHtml(l)}</p>`).join("")}
@@ -147,10 +147,10 @@ export function registerLeadRoutes(app: Express, { getDb, escapeHtml, oneLine, f
        <p style="margin:0;">Shane</p>`,
       `You asked for this on shaneruddle.com. You'll also get my weekly email about life, property and business in Pattaya, and you can unsubscribe from any of them at any time.`,
     );
-    const text = `${firstName ? `Hi ${firstName},` : "Hi,"}\n\nHere's your ${title.toLowerCase()} from my site.\n\n${lines.join("\n")}\n\nOpen it again: ${link}\n\nShane`;
+    const text = `${firstName ? `Hi ${firstName},` : "Hi,"}\n\nHere's your ${title} from my site.\n\n${lines.join("\n")}\n\nOpen it again: ${link}\n\nShane`;
 
     try {
-      await sendTo({ email, name: firstName || undefined }, `Your ${title.toLowerCase()}`, html, text);
+      await sendTo({ email, name: firstName || undefined }, `Your ${title}`, html, text);
     } catch (error) {
       console.error("Email-result send failed:", error instanceof Error ? error.message : error);
       return res.status(502).json({ error: "Sorry, that didn't send. Please check your email address and try again." });
