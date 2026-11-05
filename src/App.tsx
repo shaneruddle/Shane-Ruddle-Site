@@ -272,6 +272,48 @@ const NAV_LINKS: { label: string; view: View }[] = [
   { label: 'Contact', view: 'contact' },
 ];
 
+// Footer link columns. The desktop top bar is full, so every public page is linked from here.
+const FOOTER_COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
+  { title: 'Moving here', links: [
+    { label: 'Start here', href: '/guides' },
+    { label: 'Plan my move', href: '/move-to-thailand' },
+    { label: 'Areas', href: '/areas' },
+    { label: 'Visas', href: '/thai-visas' },
+    { label: 'Schools', href: '/international-schools-pattaya' },
+    { label: 'Cost of living', href: '/cost-of-living-calculator' },
+  ] },
+  { title: 'Tools & answers', links: [
+    { label: 'Questions', href: '/questions' },
+    { label: 'Fair prices', href: '/pattaya-prices' },
+    { label: "Pattaya's future", href: '/pattaya-future' },
+    { label: 'Work in Pattaya', href: '/work-in-pattaya' },
+    { label: 'Articles', href: '/articles' },
+  ] },
+  { title: 'Business', links: [
+    { label: 'Business check', href: '/business-in-pattaya' },
+    { label: 'Buying a business', href: '/business-in-pattaya/buying-a-business' },
+    { label: 'Sell your business', href: '/business-in-pattaya/sell-your-business' },
+    { label: 'Businesses', href: '/businesses' },
+    { label: 'Past Ventures', href: '/past-ventures' },
+  ] },
+  { title: 'Shane', links: [
+    { label: 'About', href: '/about' },
+    { label: 'Contact', href: '/contact' },
+    { label: 'Newsletter', href: '/newsletter' },
+    { label: 'Deutsch', href: '/de' },
+  ] },
+];
+
+const FOOTER_BUSINESSES: { label: string; href: string }[] = [
+  { label: 'Hemingways Jomtien', href: 'https://www.hemingwaysjomtien.com' },
+  { label: 'Hemingways Pattaya', href: 'https://www.hemingwayspattaya.com' },
+  { label: 'Hemingways Lakeside', href: 'https://www.hemingwayslakeside.com' },
+  { label: 'Cajun Life Cafe', href: 'https://www.cajunlifecafe.com' },
+  { label: 'Pattaya Rent a Car', href: 'https://www.pattayarentacar.com' },
+  { label: 'Alan Bolton Property Consultants', href: 'https://www.pattaya-property.net' },
+  { label: 'East Coast Real Estate', href: 'https://www.thaiproperty.com' },
+];
+
 function routeFromPath(pathname: string): { view: View } {
   const path = pathname.replace(/\/+$/, '') || '/';
   if (path.startsWith('/articles')) return { view: 'blog' };
@@ -1151,8 +1193,25 @@ export default function App() {
               {showPublicChrome && (
                 <footer id="contact" className="pt-20 md:pt-28 pb-10 px-6 md:px-12 bg-ink text-white scroll-mt-16">
                   <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mb-12 md:mb-24">
-                      <div className="md:col-span-3">
+                    {/* Newsletter band */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center pb-12 md:pb-16 mb-12 md:mb-16 border-b border-white/10">
+                      <div className="lg:col-span-5">
+                        <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-3">Newsletter</h5>
+                        <p className="text-xl md:text-2xl font-serif text-white/90 leading-snug">
+                          One email a week on property, business and life in Pattaya.
+                        </p>
+                      </div>
+                      <div className="lg:col-span-7">
+                        {view === 'newsletter' ? (
+                          <a href="/newsletter" className="text-sm text-gold">Sign up above ↑</a>
+                        ) : (
+                          <NewsletterSignup dark source="footer" />
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-12 gap-x-6 gap-y-10 md:gap-12 mb-12 md:mb-16">
+                      <div className="col-span-2 md:col-span-12 lg:col-span-4">
                         <div className="flex items-center gap-4 mb-8">
                           <div className="relative w-12 h-12 shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" className="w-full h-full" role="img" aria-label="Shane Ruddle">
@@ -1172,80 +1231,78 @@ export default function App() {
                             Shane <span className="font-semibold text-gold">Ruddle</span>
                           </div>
                         </div>
-                        <p className="text-white/55 font-light max-w-sm mb-8 leading-relaxed">
+                        <p className="text-white/55 font-light max-w-sm mb-6 leading-relaxed">
                           Real estate, hospitality and mobility businesses in Pattaya, Thailand.
                         </p>
-                        <div className="flex gap-4">
+                        <p className="flex items-center gap-2 text-sm text-white/55 font-light mb-6">
+                          <MapPin className="w-4 h-4 text-gold shrink-0" />
+                          Pattaya City, Chon Buri, Thailand
+                        </p>
+                        <div className="flex flex-wrap items-center gap-4">
+                          <a href={VIEW_PATHS['contact']} onClick={handleLinkClick} className="inline-flex items-center gap-2 rounded-full bg-gold text-ink px-5 h-10 text-[11px] uppercase tracking-[0.2em] font-semibold hover:bg-white transition-colors">
+                            Ask Shane a question <ArrowUpRight className="w-4 h-4" />
+                          </a>
+                          <div className="flex gap-4">
                           {SOCIAL_LINKS.map(({ label, href, Icon }) => (
                             <a key={label} href={href} aria-label={label} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:border-gold hover:text-gold transition-all">
                               <Icon className="w-4 h-4" />
                             </a>
                           ))}
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="md:col-span-2">
-                        <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-6">Navigation</h5>
-                        <ul className="space-y-4">
-                          {[...NAV_LINKS, { label: 'Plan my move', view: 'move' as View }, { label: 'Questions', view: 'questions' as View }, { label: 'Business check', view: 'business' as View }, { label: 'Sell your business', view: 'business' as View, href: '/business-in-pattaya/sell-your-business' }, { label: 'Work in Pattaya', view: 'work' as View }, { label: 'Fair prices', view: 'prices' as View }, { label: "Pattaya's future", view: 'future' as View }, { label: 'Schools', view: 'schools' as View }, { label: 'Newsletter', view: 'newsletter' as View }, { label: 'Deutsch', view: 'de' as View }].map((link) => (
-                            <li key={'href' in link ? link.href : link.view}>
-                              <a
-                                href={'href' in link ? link.href : VIEW_PATHS[link.view]}
-                                hrefLang={link.view === 'de' ? 'de' : undefined}
-                                onClick={handleLinkClick}
-                                className="text-sm text-white/60 hover:text-white transition-colors font-light"
-                              >
-                                {link.label}
-                              </a>
-                            </li>
-                          ))}
-                          {(displayProfile?.roles?.includes('admin') || 
-                            displayProfile?.roles?.includes('accounts') || 
-                            displayProfile?.roles?.includes('manager') || 
-                            (user?.email && ['shaneruddle@gmail.com', 'alexstein530@gmail.com'].includes(user?.email)) || 
-                            !!(displayProfile?.company?.trim())) && (
-                            <li>
-                              <button 
-                                onClick={() => {
-                                  setView('portal');
-                                  window.scrollTo(0, 0);
-                                }}
-                                className="text-sm text-gold hover:text-white transition-colors font-semibold uppercase tracking-widest mt-4 flex items-center gap-2"
-                              >
-                                <Ticket className="w-3 h-3" />
-                                Discounts
-                              </button>
-                            </li>
-                          )}
-                        </ul>
-                      </div>
 
-                      <div className="md:col-span-2">
-                        <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-6">Contact</h5>
-                        <ul className="space-y-3 text-sm text-white/60 font-light">
-                          <li>Pattaya City, Chon Buri</li>
-                          <li>Thailand</li>
-                        </ul>
-                      </div>
+                      {FOOTER_COLUMNS.map(col => (
+                        <div key={col.title} className="md:col-span-3 lg:col-span-2">
+                          <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-5">{col.title}</h5>
+                          <ul className="space-y-3">
+                            {col.links.map(link => (
+                              <li key={link.href}>
+                                <a
+                                  href={link.href}
+                                  hrefLang={link.href === '/de' ? 'de' : undefined}
+                                  onClick={handleLinkClick}
+                                  className="text-sm text-white/60 hover:text-white transition-colors font-light"
+                                >
+                                  {link.label}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
 
-                      <div className="md:col-span-5">
-                        <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold mb-6">Newsletter</h5>
-                        <p className="text-sm text-white/55 font-light leading-relaxed mb-5">
-                          One email a week on property, business and life in Pattaya.
-                        </p>
-                        {view === 'newsletter' ? (
-                          <a href="/newsletter" className="text-sm text-gold">Sign up above ↑</a>
-                        ) : (
-                          <NewsletterSignup dark source="footer" />
-                        )}
-                      </div>
+                    {/* Shane's businesses */}
+                    <div className="flex flex-col md:flex-row md:items-baseline gap-3 md:gap-6 pb-10 md:pb-12">
+                      <h5 className="font-sans text-[11px] uppercase tracking-[0.25em] font-semibold text-gold shrink-0">My businesses</h5>
+                      <ul className="flex flex-wrap gap-x-5 gap-y-2">
+                        {FOOTER_BUSINESSES.map(b => (
+                          <li key={b.href}>
+                            <a href={b.href} target="_blank" rel="noopener" className="text-sm text-white/45 hover:text-gold transition-colors font-light">{b.label}</a>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
 
                     <div className="flex flex-col md:flex-row justify-between items-center pt-8 md:pt-12 border-t border-white/10 gap-6">
                       <div className="text-[10px] uppercase tracking-widest text-white/40">
                         © 2026 Shane Ruddle. All Rights Reserved.
                       </div>
-                      <div className="flex gap-8 text-[10px] uppercase tracking-widest text-white/40">
+                      <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 text-[10px] uppercase tracking-widest text-white/40">
+                        {(displayProfile?.roles?.includes('admin') ||
+                          displayProfile?.roles?.includes('accounts') ||
+                          displayProfile?.roles?.includes('manager') ||
+                          (user?.email && ['shaneruddle@gmail.com', 'alexstein530@gmail.com'].includes(user?.email)) ||
+                          !!(displayProfile?.company?.trim())) && (
+                          <button
+                            onClick={() => { setView('portal'); window.scrollTo(0, 0); }}
+                            className="flex items-center gap-1.5 text-gold/80 hover:text-gold transition-colors uppercase tracking-widest"
+                          >
+                            <Ticket className="w-3 h-3" />
+                            Staff discounts
+                          </button>
+                        )}
                         <a href={VIEW_PATHS['privacy-policy']} onClick={handleLinkClick} className="hover:text-gold transition-colors">
                           Privacy Policy
                         </a>
