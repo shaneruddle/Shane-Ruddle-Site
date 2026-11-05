@@ -13,6 +13,8 @@ The first thing to understand is that the roads here are set up differently from
 
 **U-turns instead of roundabouts.** In the UK we have lots of roundabouts. Here, they don't. You'll use U-turns instead.
 
+**Know where you're going.** Plan your route before you set off, so you can concentrate on the road. If you miss a turning, carry on and turn safely further up. I regularly see people, especially on motorbikes, realise they're lost and U-turn in the middle of the road, and it nearly causes an accident.
+
 **Undertaking is everywhere.** Overtaking on the inside isn't allowed here, just as in the West, but it's very common. It's so normal that I doubt the police would stop you for it. Expect it from other drivers.
 
 ## Can you drive in Thailand on a UK licence?

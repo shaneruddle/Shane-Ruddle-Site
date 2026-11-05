@@ -31,6 +31,8 @@ But if you do get stopped without a licence they're happy with, it's a ฿500 fi
 
 Ride with confidence, be very careful, and don't speed. Ride at a normal pace.
 
+Know where you're going before you set off. If you miss a turning, carry on and turn safely further up. Never U-turn in the middle of the road because you've realised you're lost. I see it almost every day, and it nearly causes accidents.
+
 And stay off Sukhumvit Road if you're a beginner. It's the main road that runs all the way to Bangkok: four lanes, fast, and it can be pretty treacherous. If you have little experience, stay on the beach side of Sukhumvit, where the roads are quieter and slower, and build some confidence there before you start riding on Sukhumvit.
 
 Happy without either? Here's [how to get around Pattaya without a car](/articles/getting-around-pattaya).
