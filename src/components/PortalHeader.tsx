@@ -1,9 +1,9 @@
-import { ArrowUpRight, LogOut, Ticket } from 'lucide-react';
+import { ArrowUpRight, LogOut, LayoutDashboard, Ticket } from 'lucide-react';
 import { auth } from '../firebase';
 
 export type PortalView = 'portal';
 
-// Top bar for the logged-in staff area (Discounts).
+// Top bar for the logged-in staff area (Dashboard).
 export default function PortalHeader({
   active,
   name,
@@ -49,7 +49,7 @@ export default function PortalHeader({
         </button>
 
         <nav className="flex items-center gap-1">
-          {tab('portal', 'Discounts', Ticket)}
+          {tab('portal', 'Dashboard', LayoutDashboard)}
         </nav>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2 min-w-0">

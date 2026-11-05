@@ -179,10 +179,26 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate }: Empl
   return (
     <div className="min-h-screen bg-cream">
       <PortalHeader active="portal" name={userProfile.name || userProfile.email} onNavigate={onNavigate} onBack={onBack} />
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-12">
-        <div className="grid md:grid-cols-[1fr_auto] gap-6 items-end mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 md:grid md:grid-cols-[200px_minmax(0,1fr)] md:gap-10 lg:gap-14">
+        <aside className="mb-8 md:mb-0">
+          <nav className="md:sticky md:top-24 flex md:flex-col gap-1 overflow-x-auto md:overflow-visible border-b border-black/10 md:border-0 -mx-4 px-4 md:mx-0 md:px-0">
+            {portalTabs.map(([key, label, Icon]) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                aria-current={activeTab === key ? 'page' : undefined}
+                className={`shrink-0 flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors -mb-px border-b-2 md:mb-0 md:border-b-0 md:rounded-full ${activeTab === key ? 'border-gold-deep text-ink md:bg-ink md:text-white' : 'border-transparent text-black/50 hover:text-ink md:hover:bg-black/5'}`}
+              >
+                <Icon className="w-4 h-4" /> {label}
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        <div className="min-w-0">
+        <div className="grid lg:grid-cols-[1fr_auto] gap-6 items-end mb-10">
           <div>
-            <span className="block text-[11px] font-medium uppercase tracking-[0.3em] text-gold-deep mb-3">Employee discounts</span>
+            <span className="block text-[11px] font-medium uppercase tracking-[0.3em] text-gold-deep mb-3">Staff dashboard</span>
             <h1 className="text-4xl md:text-5xl font-serif font-normal leading-tight">Welcome, {(userProfile.name || 'Employee').split(' ')[0]}</h1>
             <p className="text-black/55 mt-2">{userProfile.company || 'Shane Ruddle group of companies'}</p>
           </div>
@@ -195,18 +211,6 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate }: Empl
               <div className="text-2xl font-serif text-gold whitespace-nowrap">{userProfile.discountCode || 'SR-EMP-001'}</div>
             </div>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2 mb-10 border-b border-black/10 overflow-x-auto">
-          {portalTabs.map(([key, label, Icon]) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={`-mb-px flex shrink-0 items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === key ? 'border-gold-deep text-ink' : 'border-transparent text-black/50 hover:text-ink'}`}
-            >
-              <Icon className="w-4 h-4" /> {label}
-            </button>
-          ))}
         </div>
 
         {loading ? (
@@ -449,6 +453,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate }: Empl
             </div>
           </motion.div>
         )}
+        </div>
       </div>
 
       <AnimatePresence>
