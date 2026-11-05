@@ -1,11 +1,11 @@
 ---
-title: "Finding Good Foreign Staff in Pattaya Is Easy. Keeping Them Isn't."
+title: "Hiring Foreign Staff in Pattaya: Finding Them Is Hard, Keeping Them Is Harder"
 description: "After 20+ years running businesses in Pattaya, here's what I look for in foreign staff, why people leave, and how I keep the good ones for years."
 category: My Advice
 date: 2026-10-19
 ---
 
-People assume the hard part of hiring foreign staff in Pattaya is finding them. It isn't. The hard part is keeping them.
+People assume the hard part of hiring foreign staff in Pattaya is finding them. Finding good ones is hard, as I've written in [why good managers are hard to find in Pattaya](/articles/why-good-managers-are-hard-to-find-in-pattaya). But keeping them is harder still.
 
 Across my businesses I employ around eight foreigners, from restaurant managers to agents at the property companies. Over the years I've learned, sometimes the expensive way, what separates the ones who last from the ones who are gone within months. It starts with understanding why people leave.
 
