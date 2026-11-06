@@ -53,6 +53,13 @@ export default function ArticleView({ title, body, category, createdAt, imageUrl
         <div className="markdown-body text-black/70 font-light leading-relaxed text-lg">
           <ReactMarkdown
             components={{
+              // Internal links stay in the app (no full page reload); external ones open in a new tab.
+              a: ({ href, children }) =>
+                href?.startsWith("/") ? (
+                  <a href={href} onClick={handleLinkClick}>{children}</a>
+                ) : (
+                  <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+                ),
               img: ({ src, alt, title: caption }) => {
                 const p = photoByUrl(typeof src === "string" ? src : undefined);
                 return (

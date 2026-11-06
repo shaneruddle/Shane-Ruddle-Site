@@ -335,3 +335,18 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Links inside article text: gold and underlined so readers can see where to go next. */
+.markdown-body a {
+  color: var(--gold-deep);
+  font-weight: var(--weight-medium);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: color-mix(in srgb, var(--gold-deep) 45%, transparent);
+  transition: color 0.2s, text-decoration-color 0.2s;
+}
+.markdown-body a:hover {
+  color: var(--color-ink, #111);
+  text-decoration-color: currentColor;
+}

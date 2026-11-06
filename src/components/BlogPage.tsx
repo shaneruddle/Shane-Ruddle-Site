@@ -286,8 +286,9 @@ export default function BlogPage({ onBack }: BlogPageProps) {
           ))}
         </motion.div>
 
-        {/* Grid */}
-        {loading ? (
+        {/* Grid: file articles are bundled, so they show straight away (keeping the prerendered
+            cards in place) and Firestore posts merge in when they arrive. */}
+        {loading && posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-48 gap-4">
             <div className="w-12 h-12 border-2 border-gold border-t-transparent rounded-full animate-spin" />
             <span className="text-[10px] uppercase tracking-widest text-gold animate-pulse">Loading Articles...</span>
@@ -301,7 +302,7 @@ export default function BlogPage({ onBack }: BlogPageProps) {
                 onClick={handleLinkClick}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
+                transition={{ delay: Math.min(idx, 6) * 0.05 }}
                 className="group cursor-pointer block"
               >
                 {post.imageUrl && !brokenImages.has(post.id) && (
