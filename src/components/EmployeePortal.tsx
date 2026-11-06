@@ -10,14 +10,14 @@ import CommentsAdmin from './CommentsAdmin';
 import PhotosAdmin from './PhotosAdmin';
 import ActivityAdmin from './ActivityAdmin';
 import CircleAdmin from './CircleAdmin';
-import RemindersAdmin from './RemindersAdmin';
+import InboxApp from './InboxApp';
 
 interface EmployeePortalProps {
   userProfile: UserProfile;
   onBack: () => void;
 }
 
-export default function EmployeePortal({ userProfile, onBack, onNavigate, initialTab }: EmployeePortalProps & { onNavigate?: (view: PortalView) => void; initialTab?: 'circle' | 'reminders' }) {
+export default function EmployeePortal({ userProfile, onBack, onNavigate, initialTab }: EmployeePortalProps & { onNavigate?: (view: PortalView) => void; initialTab?: 'circle' | 'inbox' }) {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [myLogs, setMyLogs] = useState<UsageLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
   const canModerateComments = userProfile.roles?.includes('admin') || userProfile.role === 'admin' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
   // Matches isOwner() in storage.rules, which guards photo uploads.
   const canManagePhotos = userProfile.uid === 'u7ElWXIkdjVTNTp76LcyXnnq3AM2' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
-  const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'circle' | 'reminders'>(initialTab && canManagePhotos ? initialTab : 'offers');
+  const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'circle' | 'inbox'>(initialTab === 'circle' && canManagePhotos ? 'circle' : 'offers');
   const portalTabs: [typeof activeTab, string, typeof Ticket][] = [
     ['offers', 'Offers', Ticket],
     ['profile', 'Profile', User],
@@ -37,7 +37,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
     ...(canModerateComments ? [['activity', 'Activity', Activity] as [typeof activeTab, string, typeof Ticket]] : []),
     // Shane only (matches isShane() in firestore.rules), never other admins.
     ...(canManagePhotos ? [['circle', 'Circle', HeartHandshake] as [typeof activeTab, string, typeof Ticket]] : []),
-    ...(canManagePhotos ? [['reminders', 'Reminders', ListChecks] as [typeof activeTab, string, typeof Ticket]] : []),
+    ...(canManagePhotos ? [['inbox', 'Inbox', ListChecks] as [typeof activeTab, string, typeof Ticket]] : []),
   ];
   // Phones get the section list as a slide-out drawer instead of a sideways-scrolling tab row.
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -191,6 +191,9 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
       setSavingProfile(false);
     }
   };
+
+  // /inbox opens Shane's private Inbox as its own full-screen app (home-screen icon), outside the portal chrome.
+  if (initialTab === 'inbox' && canManagePhotos) return <InboxApp onExit={() => { window.location.href = '/portal'; }} />;
 
   return (
     <div className="min-h-screen bg-cream">
@@ -435,8 +438,12 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
           <ActivityAdmin />
         ) : activeTab === 'circle' && canManagePhotos ? (
           <CircleAdmin />
-        ) : activeTab === 'reminders' && canManagePhotos ? (
-          <RemindersAdmin />
+        ) : activeTab === 'inbox' && canManagePhotos ? (
+          <div className="max-w-xl mx-auto p-8 rounded-2xl bg-white border border-black/10 text-center">
+            <h2 className="text-2xl font-serif">Your <span className="italic">Inbox</span></h2>
+            <p className="text-sm text-black/50 mt-2">Notes, ideas and reminders in one place. It opens as its own app so you can add it to your home screen.</p>
+            <a href="/inbox" className="inline-block mt-5 px-6 py-3 rounded-full bg-ink text-white text-sm font-semibold">Open Inbox</a>
+          </div>
         ) : (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}

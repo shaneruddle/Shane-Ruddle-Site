@@ -359,6 +359,7 @@ function routeFromPath(pathname: string): { view: View } {
   if (path === '/thai-visas' || path.startsWith('/thai-visas/')) return { view: 'visas' };
   if (path === '/international-schools-pattaya' || path.startsWith('/international-schools-pattaya/')) return { view: 'schools' };
   if (path.startsWith('/move-to-thailand/')) return { view: 'country' };
+  if (path === '/inbox' || path === '/portal') return { view: 'portal' };
   if (path === '/questions' || path.startsWith('/questions/')) return { view: 'questions' };
   if (path === '/business-in-pattaya/buying-a-business' || path === '/business-in-pattaya/sell-your-business') return { view: 'business' };
   const view = (Object.keys(VIEW_PATHS) as View[]).find(v => VIEW_PATHS[v] === path);
@@ -367,14 +368,18 @@ function routeFromPath(pathname: string): { view: View } {
 
 const initialRoute = routeFromPath(window.location.pathname);
 const startsOnPortal = initialRoute.view === 'portal';
-// Home-screen shortcuts for Shane's private tabs (/portal?tab=circle, /portal?tab=reminders). Swap in that tab's
-// manifest and icon so "Add to Home Screen" saves an icon that opens straight to it. The tabs only show for Shane's account.
+// Home-screen shortcuts for Shane's private areas: /portal?tab=circle and the Inbox app at /inbox. Swap in that
+// manifest and icon so "Add to Home Screen" saves an icon that opens straight to it. Both only open for Shane's account.
+// /portal?tab=reminders was the Inbox's first address, so old home-screen icons are sent to /inbox.
+if (window.location.pathname === '/portal' && new URLSearchParams(window.location.search).get('tab') === 'reminders') {
+  window.history.replaceState(null, '', '/inbox');
+}
 const LAUNCH_TABS = {
   circle: { manifest: '/circle.webmanifest', title: 'Circle', icon: '/apple-touch-icon.png' },
-  reminders: { manifest: '/reminders.webmanifest', title: 'Reminders', icon: '/reminders-touch-icon.png' },
+  inbox: { manifest: '/inbox.webmanifest', title: 'Inbox', icon: '/inbox-touch-icon.png' },
 } as const;
-const launchTabParam = new URLSearchParams(window.location.search).get('tab');
-const launchTab = startsOnPortal && launchTabParam && launchTabParam in LAUNCH_TABS ? launchTabParam as keyof typeof LAUNCH_TABS : undefined;
+const launchTab: keyof typeof LAUNCH_TABS | undefined = window.location.pathname === '/inbox' ? 'inbox'
+  : startsOnPortal && new URLSearchParams(window.location.search).get('tab') === 'circle' ? 'circle' : undefined;
 if (launchTab) {
   const t = LAUNCH_TABS[launchTab];
   document.querySelector('link[rel="manifest"]')?.setAttribute('href', t.manifest);

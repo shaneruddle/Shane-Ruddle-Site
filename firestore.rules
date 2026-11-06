@@ -188,7 +188,24 @@ service cloud.firestore {
       allow read, write: if isShane();
     }
 
-    // Shane's private Reminders (portal tab): same Shane-only lock as Circle.
+    // Shane's private Inbox (notes, ideas, tasks) at /inbox: same Shane-only lock as Circle.
+    // reminders + reminder_lists are the first version's data, kept so the app can move them across.
+    match /inbox_items/{itemId} {
+      allow read, write: if isShane();
+    }
+
+    match /inbox_history/{entryId} {
+      allow read, create: if isShane();
+    }
+
+    match /inbox_areas/{areaId} {
+      allow read, write: if isShane();
+    }
+
+    match /inbox_settings/{docId} {
+      allow read, write: if isShane();
+    }
+
     match /reminders/{reminderId} {
       allow read, write: if isShane();
     }

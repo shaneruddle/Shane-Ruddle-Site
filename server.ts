@@ -10,7 +10,7 @@ import { getFirestore as getAdminFirestore, FieldValue, Firestore } from "fireba
 import { getAuth as getAdminAuth } from "firebase-admin/auth";
 import { registerLeadRoutes } from "./server/leads";
 import { registerCircleRoutes } from "./server/circle";
-import { registerReminderRoutes } from "./server/reminders";
+import { registerInboxRoutes } from "./server/inbox";
 
 dotenv.config();
 
@@ -386,8 +386,8 @@ Reply with JSON only, no other text: {"approve": true or false, "reason": "a few
   // ---- Shane's private Circle: Claude loads researched suggestions and events (server/circle.ts) ----
   registerCircleRoutes(app, { getDb: getCommentsDb, oneLine });
 
-  // ---- Shane's private Reminders: one-off Apple Reminders import (server/reminders.ts) ----
-  registerReminderRoutes(app, { getDb: getCommentsDb, oneLine });
+  // ---- Shane's private Inbox: AI sorting, questions, Apple import (server/inbox.ts) ----
+  registerInboxRoutes(app, { getDb: getCommentsDb });
 
   // ---- Photo publishing ----
   // The portal Photos tab saves photo choices to Firestore; publishing rebuilds the site so they go live.
