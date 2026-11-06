@@ -123,6 +123,19 @@ export const GUIDES: Guide[] = [
         ],
       },
       {
+        title: "Trips from Pattaya",
+        blurb: "The road trips I've done myself, from a night in Bang Saen to Christmas on Koh Chang.",
+        slugs: [
+          "koh-chang-from-pattaya",
+          "khao-yai-from-pattaya",
+          "kanchanaburi-from-pattaya",
+          "sukhothai-from-pattaya",
+          "rayong-from-pattaya",
+          "bang-saen-from-pattaya",
+          "bang-saray-from-pattaya",
+        ],
+      },
+      {
         title: "Life outside work",
         blurb: "Where I eat, play and spend my evenings.",
         slugs: [
@@ -193,7 +206,14 @@ export const GUIDES: Guide[] = [
       {
         title: "Weekends and holidays",
         blurb: "Where we take the kids.",
-        slugs: ["things-to-do-in-pattaya", "best-beaches-in-pattaya", "best-day-trips-from-pattaya"],
+        slugs: [
+          "things-to-do-in-pattaya",
+          "best-beaches-in-pattaya",
+          "best-day-trips-from-pattaya",
+          "bang-saen-from-pattaya",
+          "koh-chang-from-pattaya",
+          "khao-yai-from-pattaya",
+        ],
       },
       {
         title: "Also worth reading",

@@ -547,6 +547,27 @@ write(ssr.PRICES_PATH, page({
 }));
 urls.push({ loc: ssr.PRICES_PATH });
 
+// ---- Trips from Pattaya (finder, map and trip cards) ----
+write(ssr.TRIPS_PATH, page({
+  urlPath: ssr.TRIPS_PATH,
+  ...ssr.TRIPS_META,
+  body: ssr.renderTrips(),
+  schemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: "Road trips from Pattaya: drive times, costs and where to stay",
+      url: SITE_URL + ssr.TRIPS_PATH,
+      description: ssr.TRIPS_META.description,
+      dateModified: "2026-11-06",
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+    },
+    faqSchema(ssr.TRIPS_FAQS),
+    crumbs([["Home", "/"], ["Trips from Pattaya", ssr.TRIPS_PATH]]),
+  ],
+}));
+urls.push({ loc: ssr.TRIPS_PATH });
+
 // ---- Pattaya's future (development timeline) ----
 write(ssr.FUTURE_PATH, page({
   urlPath: ssr.FUTURE_PATH,

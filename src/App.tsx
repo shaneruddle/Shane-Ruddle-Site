@@ -68,6 +68,7 @@ const SellBusinessPage = lazy(() => import("./components/SellBusinessPage"));
 const WorkPage = lazy(() => import("./components/WorkPage"));
 const PricesPage = lazy(() => import("./components/PricesPage"));
 const FuturePage = lazy(() => import("./components/FuturePage"));
+const TripsPage = lazy(() => import("./components/TripsPage"));
 const DeSite = lazy(() => import("./components/de/DeSite"));
 const GermanBanner = lazy(() => import("./components/de/GermanBanner"));
 const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
@@ -247,7 +248,7 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
 
 // URL routing. Each view has a real path so pages can be linked, shared and indexed.
 // Firebase Hosting rewrites every path to index.html, so the app resolves the view here.
-type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'schools' | 'move' | 'country' | 'questions' | 'business' | 'work' | 'prices' | 'future' | 'de' | 'privacy-policy' | 'terms-of-service';
+type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'schools' | 'move' | 'country' | 'questions' | 'business' | 'work' | 'prices' | 'future' | 'trips' | 'de' | 'privacy-policy' | 'terms-of-service';
 
 const VIEW_PATHS: Record<View, string> = {
   'home': '/',
@@ -270,6 +271,7 @@ const VIEW_PATHS: Record<View, string> = {
   'work': '/work-in-pattaya',
   'prices': '/pattaya-prices',
   'future': '/pattaya-future',
+  'trips': '/trips-from-pattaya',
   'de': '/de',
   'privacy-policy': '/privacy',
   'terms-of-service': '/terms',
@@ -318,6 +320,7 @@ const FOOTER_COLUMNS: { title: string; links: { label: string; href: string }[] 
   { title: 'Tools & answers', links: [
     { label: 'Questions', href: '/questions' },
     { label: 'Fair prices', href: '/pattaya-prices' },
+    { label: 'Trips from Pattaya', href: '/trips-from-pattaya' },
     { label: "Pattaya's future", href: '/pattaya-future' },
     { label: 'Work in Pattaya', href: '/work-in-pattaya' },
     { label: 'Articles', href: '/articles' },
@@ -1224,6 +1227,13 @@ export default function App() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.25 }}>
                       <FuturePage />
+                    </motion.div>
+                  ) : view === 'trips' ? (
+                    <motion.div key="trips" initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <TripsPage />
                     </motion.div>
                   ) : view === 'de' ? (
                     <motion.div key={currentPath} initial={{ opacity: 0 }}

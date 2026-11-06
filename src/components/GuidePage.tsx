@@ -14,6 +14,7 @@ import MovePlannerPromo from "./MovePlannerPromo";
 import BusinessCheckPromo from "./BusinessCheckPromo";
 import WorkPromo from "./WorkPromo";
 import FuturePromo from "./FuturePromo";
+import TripsPromo from "./TripsPromo";
 import NewsletterSignup from "./NewsletterSignup";
 import PageHero from "./PageHero";
 
@@ -133,6 +134,11 @@ function GuideView({ guide }: { guide: Guide }) {
                   <div className="mt-4">
                     <WorkPromo source={`guide_${guide.slug}`} />
                   </div>
+                </div>
+              )}
+              {(guide.slug === "moving-to-pattaya" || guide.slug === "pattaya-for-families") && (
+                <div className="mt-8">
+                  <TripsPromo source={`guide_${guide.slug}`} />
                 </div>
               )}
               {guide.slug === "buying-property-in-pattaya" && (
