@@ -20,6 +20,7 @@ import { applyPageMeta } from "../seo";
 import AskShane from "./AskShane";
 import QuestionCard from "./QuestionCard";
 
+import Noindex from "./Noindex";
 // Real questions, answered: /questions (searchable library) and /questions/<slug> (one answer per page).
 // Shared by the build-time prerender and the live app.
 
@@ -233,7 +234,11 @@ function QuestionsHub() {
 function QuestionView({ q }: { q: ShaneQuestion }) {
   const topic = topicById(q.topic);
   const articles = q.articles.map((s) => ARTICLES.get(s)).filter((a): a is NonNullable<typeof a> => !!a);
-  const more = QUESTIONS.filter((x) => x.topic === q.topic && x.slug !== q.slug).slice(0, 6);
+  // The next six in the same topic, wrapping round, so every question gets linked from its neighbours
+  // (always taking the first six left the later questions in a topic with no links but the hub).
+  const sameTopic = QUESTIONS.filter((x) => x.topic === q.topic);
+  const at = sameTopic.findIndex((x) => x.slug === q.slug);
+  const more = [...sameTopic.slice(at + 1), ...sameTopic.slice(0, at)].slice(0, 6);
   const others = more.length < 3 ? [...more, ...QUESTIONS.filter((x) => x.topic !== q.topic).slice(0, 3 - more.length)] : more;
   const source = `question_${q.slug}`;
 
@@ -340,6 +345,7 @@ export default function QuestionsPage({ path }: { path: string }) {
   if (slug && !q) {
     return (
       <div className="min-h-screen bg-paper pt-40 pb-24 px-6 text-center">
+        <Noindex />
         <h1 className="text-4xl font-serif mb-4">Question not found</h1>
         <a href={QUESTIONS_PATH} onClick={handleLinkClick} className="text-gold-deep font-bold uppercase tracking-widest text-[11px]">
           All questions

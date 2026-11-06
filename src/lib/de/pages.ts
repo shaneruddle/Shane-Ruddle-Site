@@ -23,7 +23,7 @@ export const DE_PAGE_META: Record<string, { title: string; description: string }
       "Was kostet das Leben in Thailand? Wählen Sie Gegend, Wohnung, Essen und Schule und erhalten Sie Ihr Monatsbudget für Pattaya in Euro, Franken oder Baht. Echte Zahlen aus 20 Jahren vor Ort.",
   },
   [DE_MOVING]: {
-    title: "Auswandern nach Thailand 2026: Voraussetzungen, Kosten, Visum. Ratgeber für Pattaya | Shane Ruddle",
+    title: "Auswandern nach Thailand 2026: Voraussetzungen, Kosten, Visum",
     description:
       "Auswandern nach Pattaya: Kosten, die besten Wohngegenden, Visum, Gesundheit, Bankkonto und Wohnen. Alles, was ich einem Freund vor dem Umzug nach Thailand sagen würde.",
   },

@@ -42,7 +42,7 @@ export { WORK_PATH, WORK_META, WORK_FAQS } from "../lib/work";
 export { PRICES_PATH, PRICES_META, PRICES_FAQS } from "../lib/prices";
 export { FUTURE_PATH, FUTURE_META, FUTURE_FAQS } from "../lib/future";
 export { SCHOOLS, SCHOOLS_META, SCHOOLS_FAQS, SCHOOLS_PATH, faqsForSchool } from "../lib/schools";
-export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema } from "../seo";
+export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema, fitTitle, fitDescription } from "../seo";
 export { EN_TO_DE, DE_TO_EN, DE_ARTICLE_LIST, DE_HOME, DE_ARTICLES, DE_CALCULATOR, DE_MOVING, DE_AREAS } from "../lib/de/site";
 export { VISAS_DE, VISAS_META_DE, VISAS_FAQS_DE, VISAS_PATH_DE } from "../lib/de/visas";
 export { DE_PAGE_META, DE_MOVING_FAQS, DE_AREA_LIST } from "../lib/de/pages";

@@ -1,5 +1,6 @@
 ---
 title: "Pattaya's Old Reputation Is 20 Years Out of Date"
+seoTitle: "Pattaya's Reputation in 2026: Is It Still Deserved?"
 description: "Is Pattaya worth visiting now? I arrived at 23, surrounded by retirees. Twenty years on, it's a city of families, schools and beaches. Here's how it changed."
 category: Pattaya News
 date: 2026-10-19

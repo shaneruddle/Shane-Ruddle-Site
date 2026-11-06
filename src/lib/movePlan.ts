@@ -11,7 +11,7 @@ import { ThaiVisa, VisaAnswers, VISAS_PATH, recommendVisa } from "./visas";
 export const MOVE_PATH = "/move-to-thailand";
 
 export const MOVE_META = {
-  title: "How to Move to Thailand in 2026: Your Free Personal Move Plan, From a 20-Year Pattaya Resident | Shane Ruddle",
+  title: "How to Move to Thailand in 2026: Free Personal Move Plan",
   description:
     "Planning a move to Thailand from the UK, Germany, Australia or the US? Answer six questions and get a month-by-month plan: your visa, area, monthly budget, schools and first-week checklist.",
 };

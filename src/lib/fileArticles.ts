@@ -7,6 +7,7 @@
 //   category: Car Rental            # My Advice | Property | Car Rental | Pattaya News
 //   date: 2026-10-19                # publish date, YYYY-MM-DD
 //   image: /images/articles/x.webp  # optional
+//   seoTitle: Shorter title for Google  # optional: search title if it should differ from the headline
 //   draft: true                     # optional: hides the article
 //   ---
 //
@@ -19,6 +20,8 @@ import { PHOTO_SLOTS, articleHeaderSlot, withInlinePhotos } from "./photoSlots";
 export interface FileArticle {
   slug: string;
   title: string;
+  /** Search-result title when it should differ from the on-page headline. */
+  seoTitle?: string;
   description: string;
   category: string;
   date: string; // YYYY-MM-DD
@@ -41,6 +44,7 @@ function parse(path: string, raw: string): (FileArticle & { draft: boolean }) | 
   return {
     slug,
     title: meta.title,
+    seoTitle: meta.seoTitle || undefined,
     description: meta.description || "",
     category: meta.category || "My Advice",
     date: meta.date || "1970-01-01",

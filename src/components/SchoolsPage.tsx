@@ -26,6 +26,7 @@ import AskShane from "./AskShane";
 import NewsletterSignup from "./NewsletterSignup";
 import EmailMyResult from "./EmailMyResult";
 
+import Noindex from "./Noindex";
 // International schools: /international-schools-pattaya (school chooser + comparison table) and
 // /international-schools-pattaya/<slug>. Shared by the build-time prerender and the live app.
 // Chooser answers live in the URL so a shortlist can be shared.
@@ -652,6 +653,7 @@ export default function SchoolsPage({ path }: { path: string }) {
   if (slug && !school) {
     return (
       <div className="min-h-screen bg-paper pt-40 pb-24 px-6 text-center">
+        <Noindex />
         <h1 className="text-4xl font-serif mb-4">School not found</h1>
         <a href={SCHOOLS_PATH} onClick={handleLinkClick} className="text-gold-deep font-bold uppercase tracking-widest text-[11px]">All international schools</a>
       </div>

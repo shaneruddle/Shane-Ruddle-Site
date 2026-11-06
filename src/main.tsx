@@ -18,6 +18,11 @@ if (/^\/articles(\/|$)/.test(window.location.pathname)) {
     .then((m) => { preloaded.BlogPage = m.default; })
     .catch(() => {})
     .finally(mount);
+} else if (/^\/guides(\/|$)/.test(window.location.pathname)) {
+  import('./components/GuidePage')
+    .then((m) => { preloaded.GuidePage = m.default; })
+    .catch(() => {})
+    .finally(mount);
 } else {
   mount();
 }

@@ -7,7 +7,7 @@
 export const BUSINESS_PATH = "/business-in-pattaya";
 
 export const BUSINESS_META = {
-  title: "Should I Open a Business in Pattaya? Free Reality Check From a 7-Business Owner | Shane Ruddle",
+  title: "Should I Open a Business in Pattaya? Free Reality Check",
   description:
     "Thinking of opening a bar, restaurant or guesthouse in Pattaya? Answer six questions and get an honest verdict: what it costs to start, Thai partner and work permit rules, and a due-diligence checklist if you're buying.",
 };

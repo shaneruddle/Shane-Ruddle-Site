@@ -33,11 +33,13 @@ import { VISA_PROMO_ARTICLES } from '../lib/visas';
 import { applyPageMeta, PAGE_META } from '../seo';
 import { FILE_ARTICLES } from '../lib/fileArticles';
 
+import Noindex from './Noindex';
 // Articles committed as files (content/articles) in the same shape as Firestore posts.
 const filePosts: BlogPost[] = FILE_ARTICLES.map(a => ({
   id: a.slug,
   slug: a.slug,
   title: a.title,
+  seoTitle: a.seoTitle,
   metaDescription: a.description,
   body: a.body,
   category: a.category as BlogPost['category'],
@@ -121,7 +123,7 @@ export default function BlogPage({ onBack }: BlogPageProps) {
   useEffect(() => {
     if (selectedPost) {
       applyPageMeta({
-        title: `${selectedPost.title} | Shane Ruddle`,
+        title: `${selectedPost.seoTitle || selectedPost.title} | Shane Ruddle`,
         description: selectedPost.metaDescription || selectedPost.body.replace(/[#*_>`\[\]]/g, '').slice(0, 155),
       });
     } else if (!slug) {
@@ -136,6 +138,7 @@ export default function BlogPage({ onBack }: BlogPageProps) {
           <div className="w-12 h-12 border-2 border-gold border-t-transparent rounded-full animate-spin mx-auto" />
         ) : (
           <>
+            <Noindex />
             <h1 className="text-4xl font-serif mb-4">Article not found</h1>
             <p className="text-black/50 mb-8">It may have been moved or unpublished.</p>
             <a href="/articles" onClick={handleLinkClick} className="text-gold-deep font-bold uppercase tracking-widest text-[11px]">All articles</a>

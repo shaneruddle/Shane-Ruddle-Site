@@ -19,6 +19,26 @@ const template = fs.readFileSync(path.join(DIST, "index.html"), "utf8");
 // Untouched app shell for the SPA fallback (/portal, unknown paths, articles published after the last build).
 fs.writeFileSync(path.join(DIST, "app.html"), template);
 
+// Unknown paths get a real 404 (Firebase Hosting serves 404.html with a 404 status) instead of the
+// app shell, so Google doesn't index mistyped URLs as copies of the homepage. Static on purpose:
+// no app script, so the router can't swap it for the homepage.
+fs.writeFileSync(
+  path.join(DIST, "404.html"),
+  template
+    .replace(/<title>[\s\S]*?<\/title>/, "<title>Page not found | Shane Ruddle</title>")
+    .replace(/<meta name="description"[^>]*>/, "")
+    .replace("</head>", '  <meta name="robots" content="noindex" />\n  </head>')
+    .replace(/<script\b[^>]*type="module"[^>]*><\/script>\s*/g, "")
+    .replace(
+      '<div id="root"></div>',
+      `<div id="root"><main style="max-width:40rem;margin:6rem auto;padding:0 1.5rem;font-family:system-ui,sans-serif;line-height:1.6">
+<h1 style="font-size:2rem;margin-bottom:1rem">Page not found</h1>
+<p>That page doesn't exist, or it has moved.</p>
+<p><a href="/">Home</a> · <a href="/guides">Start here</a> · <a href="/articles">Articles</a> · <a href="/questions">Questions</a> · <a href="/contact">Contact</a></p>
+</main></div>`,
+    ),
+);
+
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const jsonLd = (obj) => `<script type="application/ld+json">${JSON.stringify(obj).replace(/</g, "\\u003c")}</script>`;
 
@@ -42,7 +62,9 @@ function alternatesFor(urlPath) {
   return [["en", en], ["de", de], ["x-default", en]];
 }
 
-function page({ urlPath, title, description, body, ogType = "website", image = DEFAULT_OG_IMAGE, schemas = [], lang = "en" }) {
+function page({ urlPath, title: fullTitle, description: fullDescription, body, ogType = "website", image = DEFAULT_OG_IMAGE, schemas = [], lang = "en" }) {
+  const title = ssr.fitTitle(fullTitle);
+  const description = ssr.fitDescription(fullDescription);
   const canonical = SITE_URL + (urlPath === "/" ? "/" : urlPath);
   const alternates = alternatesFor(urlPath);
   const head = [
@@ -134,6 +156,7 @@ try {
 const fileArticles = ssr.FILE_ARTICLES.map((a) => ({
   slug: a.slug,
   title: a.title,
+  seoTitle: a.seoTitle,
   description: a.description,
   body: a.body,
   category: a.category,
@@ -199,7 +222,7 @@ for (const a of articles) {
   };
   write(urlPath, page({
     urlPath,
-    title: `${a.title} | Shane Ruddle`,
+    title: `${a.seoTitle || a.title} | Shane Ruddle`,
     description: a.description,
     body: ssr.renderArticle(a),
     ogType: "article",

@@ -7,7 +7,7 @@ export const PRICES_PATH = "/pattaya-prices";
 export const PRICES_AS_OF = "November 2026";
 
 export const PRICES_META = {
-  title: "Am I Paying Too Much in Pattaya? Fair Price Checker From a Local Business Owner | Shane Ruddle",
+  title: "Am I Paying Too Much in Pattaya? Fair Price Checker",
   description:
     "Check any Pattaya price in seconds: baht buses, airport taxis, beer, massage, jet skis, scooter and car rental, condo rent. Enter your quote and get a straight answer from someone who's run businesses here for 20 years.",
 };

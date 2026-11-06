@@ -61,7 +61,7 @@ export const VISAS: ThaiVisa[] = [
     name: "Retirement visa",
     official: "Non-Immigrant O (retirement), O-A and O-X",
     tagline: "For anyone 50 or over who can show the money",
-    metaTitle: "Thailand Retirement Visa 2026: ฿800,000 Rule, O vs O-A, Renewing in Pattaya | Shane Ruddle",
+    metaTitle: "Thailand Retirement Visa 2026: ฿800,000 Rule, O vs O-A",
     description:
       "Thailand retirement visa requirements for 2026: age 50+, ฿800,000 in a Thai bank or ฿65,000 a month. Non-O vs O-A vs O-X, and renewing it in Pattaya.",
     fromShane: true,
@@ -127,7 +127,7 @@ export const VISAS: ThaiVisa[] = [
     name: "DTV (Destination Thailand Visa)",
     official: "Destination Thailand Visa (DTV)",
     tagline: "Five years for remote workers, with 180-day stays",
-    metaTitle: "DTV Visa Thailand 2026, the Digital Nomad Visa: ฿500,000 Rule, 180-Day Stays and the Catch | Shane Ruddle",
+    metaTitle: "DTV Visa Thailand 2026: Digital Nomad Visa Rules and the Catch",
     description:
       "The Destination Thailand Visa (DTV) explained by a 20-year Pattaya resident: 5 years, 180 days per entry, ฿500,000 savings, the August 2026 changes, and the catch.",
     fromShane: true,
@@ -189,7 +189,7 @@ export const VISAS: ThaiVisa[] = [
     name: "Thailand Privilege (Elite)",
     official: "Thailand Privilege Card (formerly Thailand Elite)",
     tagline: "Pay once, skip most of the paperwork, but you can't work",
-    metaTitle: "Thailand Privilege (Elite) Visa 2026: Prices, Who It Suits and the Costly Mistake | Shane Ruddle",
+    metaTitle: "Thailand Privilege (Elite) Visa 2026: Prices and Who It Suits",
     description:
       "Thailand Privilege (formerly Elite) visa prices for 2026, from ฿650,000 for 5 years, and the costly mistake a friend of mine made with it. From a Pattaya business owner.",
     fromShane: true,
@@ -434,7 +434,7 @@ export const VISAS: ThaiVisa[] = [
     name: "Education and guardian visas",
     official: "Non-Immigrant ED, and Non-O (guardian of a student)",
     tagline: "For students, and parents of children at school here",
-    metaTitle: "Thailand Education (ED) and Guardian Visa 2026: Students and School Parents | Shane Ruddle",
+    metaTitle: "Thailand Education (ED) and Guardian Visa 2026 Explained",
     description:
       "The Thai ED visa for students and the Non-O guardian visa for parents of children at international school in Pattaya: the ฿500,000 rule and how renewals work.",
     fromShane: false,

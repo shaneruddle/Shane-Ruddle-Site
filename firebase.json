@@ -23,7 +23,19 @@
         }
       },
       {
-        "source": "**",
+        "source": "/portal",
+        "destination": "/app.html"
+      },
+      {
+        "source": "/portal/**",
+        "destination": "/app.html"
+      },
+      {
+        "source": "/articles/**",
+        "destination": "/app.html"
+      },
+      {
+        "source": "/de/artikel/**",
         "destination": "/app.html"
       }
     ],

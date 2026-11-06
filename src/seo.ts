@@ -33,7 +33,7 @@ export const PAGE_META: Record<string, PageMeta> = {
       "Practical articles from Shane Ruddle on buying property in Pattaya, running a business in Thailand, car rental and living on the Eastern Seaboard.",
   },
   "/guides": {
-    title: "Start Here: Guides to Moving, Family Life, Property and Business in Pattaya | Shane Ruddle",
+    title: "Pattaya Guides: Moving, Families, Property and Business",
     description:
       "Four guides from 20 years in Pattaya: moving here, raising a family, buying property as a foreigner, and starting or buying a business.",
   },
@@ -111,9 +111,23 @@ export function websiteSchema() {
   };
 }
 
+// Google shows roughly 60 characters of a title and 160 of a description. Long titles drop the
+// " | Shane Ruddle" suffix so the keywords show in full; long descriptions end at the last whole
+// sentence that fits (left as is when no sentence break leaves a useful length).
+const TITLE_SUFFIX = ` | ${SITE_NAME}`;
+export function fitTitle(title: string): string {
+  return title.length > 60 && title.endsWith(TITLE_SUFFIX) ? title.slice(0, -TITLE_SUFFIX.length) : title;
+}
+export function fitDescription(description: string): string {
+  if (description.length <= 160) return description;
+  const head = description.slice(0, 161);
+  const cut = Math.max(head.lastIndexOf(". "), head.lastIndexOf("? "), head.lastIndexOf("! "));
+  return cut >= 90 ? description.slice(0, cut + 1) : description;
+}
+
 // Keeps the browser tab title and meta description in step with client-side navigation.
 export function applyPageMeta(meta: PageMeta) {
   if (typeof document === "undefined") return;
-  document.title = meta.title;
-  document.querySelector('meta[name="description"]')?.setAttribute("content", meta.description);
+  document.title = fitTitle(meta.title);
+  document.querySelector('meta[name="description"]')?.setAttribute("content", fitDescription(meta.description));
 }

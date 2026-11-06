@@ -147,7 +147,7 @@ export const VISAS_DE: ThaiVisaDe[] = [
     name: "Thailand Privilege (Elite)",
     official: "Thailand Privilege Card (früher Thailand Elite)",
     tagline: "Einmal zahlen, kaum Papierkram, aber Arbeiten ist nicht erlaubt",
-    metaTitle: "Thailand Privilege (Elite) Visum 2026: Preise, für wen es passt und der teure Fehler | Shane Ruddle",
+    metaTitle: "Thailand Privilege (Elite) Visum 2026: Preise und für wen es passt",
     description:
       "Preise für das Thailand-Privilege-Visum (früher Elite) 2026, ab ฿650.000 für 5 Jahre, und der teure Fehler, den ein Bekannter damit gemacht hat. Von einem Unternehmer in Pattaya.",
     fromShane: true,
@@ -452,7 +452,7 @@ export const VISAS_DE: ThaiVisaDe[] = [
     name: "Visumfreie Einreise (30 Tage)",
     official: "Visa Exemption bei der Ankunft",
     tagline: "Gut für Urlaub oder einen ersten Eindruck, nicht zum Leben hier",
-    metaTitle: "Thailand: Visumfreie Einreise auf 30 Tage verkürzt (2026), was das für Pattaya bedeutet | Shane Ruddle",
+    metaTitle: "Thailand: Visumfreie Einreise auf 30 Tage verkürzt (2026)",
     description:
       "Thailand hat den visumfreien Aufenthalt am 15. September 2026 von 60 auf 30 Tage verkürzt. Wie lange Sie ohne Visum in Pattaya bleiben können, die Verlängerung und die TDAC-Einreisekarte.",
     fromShane: false,

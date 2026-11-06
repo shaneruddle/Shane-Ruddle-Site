@@ -18,6 +18,7 @@ import { trackEvent } from "../../lib/analytics";
 import { applyPageMeta } from "../../seo";
 import AskShane from "../AskShane";
 
+import Noindex from "../Noindex";
 // German visa finder: /de/thailand-visum and /de/thailand-visum/<slug>. Mirrors VisasPage.tsx with German
 // copy; the recommendation logic is the English finder's, so both always agree. Analytics events carry language: "de".
 
@@ -559,6 +560,7 @@ export default function DeVisas({ path }: { path: string }) {
   if (slug && !visa) {
     return (
       <div className="min-h-screen bg-paper pt-40 pb-24 px-6 text-center">
+        <Noindex />
         <h1 className="text-4xl font-serif mb-4">Visum nicht gefunden</h1>
         <a href={VISAS_PATH_DE} onClick={handleLinkClick} className="text-gold-deep font-bold uppercase tracking-widest text-[11px]">Alle Thailand-Visa</a>
       </div>

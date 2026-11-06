@@ -1,5 +1,6 @@
 ---
 title: "Is Pattaya Good for Families, and Is It Safe?"
+seoTitle: "Is Pattaya Good for Families? A Parent's Honest Answer (2026)"
 description: "I've raised my kids in Pattaya. Here's my honest take on safety, the best area for families, international schools and fees, and the downsides in 2026."
 category: My Advice
 date: 2026-10-20

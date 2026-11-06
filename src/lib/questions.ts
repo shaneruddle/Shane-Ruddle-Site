@@ -89,6 +89,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["buying-a-condo-in-pattaya"],
     next: TOOLS.ecre("foreign_quota"),
+    metaTitle: "Thailand Condo Foreign Quota: How the 49% Rule Works",
   },
   {
     slug: "can-a-foreigner-own-a-house-or-land-in-thailand",
@@ -117,6 +118,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "The biggest risk with houses is bad advice: years later people find the seller never really owned it, or there was a debt against it. Get a second opinion, even on a lawyer's advice.",
     ],
     articles: ["buying-a-house-in-pattaya"],
+    metaTitle: "Is a 30-Year Lease Safe in Thailand? 30+30 Leases Explained",
   },
   {
     slug: "buying-property-in-thai-spouses-name",
@@ -130,6 +132,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "Get independent legal advice before you buy. Personally, I'd rent here too.",
     ],
     articles: ["buying-a-house-in-pattaya"],
+    metaTitle: "Buying Property in Your Thai Wife's Name: Is It Safe?",
   },
   {
     slug: "who-pays-the-fees-when-buying-a-condo",
@@ -144,6 +147,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["buying-a-condo-in-pattaya"],
     next: TOOLS.ecre("fees"),
+    metaTitle: "Condo Transfer Fees in Thailand: Who Pays What (2026)",
   },
   {
     slug: "off-plan-or-resale-condo-pattaya",
@@ -157,6 +161,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "Either way, the building matters more than the unit. The management company, the facilities and how the money is spent decide what your condo is worth in ten years.",
     ],
     articles: ["buying-a-condo-in-pattaya"],
+    metaTitle: "Off-Plan or Resale Condo in Pattaya: Which to Buy?",
   },
   {
     slug: "is-now-a-good-time-to-buy-in-pattaya",
@@ -171,6 +176,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["pattaya-property-market", "where-pattaya-is-heading"],
     next: TOOLS.ecre("market"),
+    metaTitle: "Is Now a Good Time to Buy Property in Pattaya? (2026)",
   },
   {
     slug: "what-rental-yield-can-i-get-in-pattaya",
@@ -198,6 +204,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "You're better off with one good long-term tenant. Keep it clean, furnished and basic, with fast internet, and use an agency.",
     ],
     articles: ["renting-out-your-condo-in-pattaya"],
+    metaTitle: "Can You Airbnb a Condo in Pattaya? The Rules (2026)",
   },
   {
     slug: "can-i-manage-a-pattaya-rental-from-abroad",
@@ -212,6 +219,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["renting-out-your-condo-in-pattaya"],
     next: TOOLS.ecre("landlord"),
+    metaTitle: "Renting Out a Pattaya Condo From Abroad: How It Works",
   },
   {
     slug: "how-do-i-price-my-condo-to-sell",
@@ -226,6 +234,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["selling-a-condo-in-pattaya"],
     next: TOOLS.ecre("valuation"),
+    metaTitle: "How to Value Your Pattaya Condo Before Selling",
   },
   {
     slug: "should-i-renovate-an-old-condo",
@@ -239,6 +248,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "Look at the building and its management first. A fantastic unit in a badly run building can lose value fast.",
     ],
     articles: ["buying-a-condo-in-pattaya"],
+    metaTitle: "Is It Worth Renovating an Old Condo in Pattaya?",
   },
   {
     slug: "biggest-mistake-buying-property-in-pattaya",
@@ -253,6 +263,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["buying-a-condo-in-pattaya"],
     next: TOOLS.ecre("mistakes"),
+    metaTitle: "Biggest Mistake Foreigners Make Buying Property in Pattaya",
   },
 
   // ---------------------------------------------------------------- Renting
@@ -284,6 +295,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["renting-a-condo-in-pattaya"],
     next: TOOLS.rentals("deposit"),
+    metaTitle: "Renting a Condo in Pattaya: Deposit and Agency Fees",
   },
   {
     slug: "how-much-does-it-cost-to-rent-a-condo-in-pattaya",
@@ -311,6 +323,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "Photos or a video on the day you move in are your best protection.",
     ],
     articles: ["renting-a-condo-in-pattaya", "renting-out-your-condo-in-pattaya"],
+    metaTitle: "How to Get Your Rental Deposit Back in Pattaya",
   },
   {
     slug: "how-much-to-rent-a-house-with-a-pool-in-pattaya",
@@ -325,6 +338,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["buying-a-house-in-pattaya", "is-pattaya-good-for-families"],
     next: TOOLS.rentals("family_house"),
+    metaTitle: "Pool Villa Rent in Pattaya: What a Family House Costs",
   },
 
   // ---------------------------------------------------------------- Pets
@@ -355,6 +369,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "If you are bitten, don't take chances: wash the wound thoroughly with soap and water and get to a hospital for rabies treatment straight away.",
     ],
     articles: ["dogs-in-pattaya", "staying-fit-in-pattaya"],
+    metaTitle: "Are Street Dogs Dangerous in Pattaya? Advice for Runners",
   },
 
   // ---------------------------------------------------------------- Retiring
@@ -400,6 +415,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "My best advice is to learn some Thai. You don't need to be fluent; it just tells people you've chosen to live here.",
     ],
     articles: ["retiring-in-pattaya", "cultural-mistakes-in-thailand"],
+    metaTitle: "Retiring in Pattaya: What Catches Retirees Out",
   },
   {
     slug: "best-area-in-pattaya-for-retirees",
@@ -414,6 +430,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["best-area-to-live-in-pattaya", "retiring-in-pattaya"],
     next: TOOLS.areas,
+    metaTitle: "Best Area in Pattaya for Retirees (2026)",
   },
   {
     slug: "do-i-need-health-insurance-in-thailand",
@@ -427,6 +444,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "We've always used Bangkok Hospital Pattaya and the care is first class. My family is insured with Pacific Cross through a local broker.",
     ],
     articles: ["healthcare-in-pattaya"],
+    metaTitle: "Do You Need Health Insurance in Thailand? (2026)",
   },
 
   // ---------------------------------------------------------------- Visas
@@ -443,6 +461,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["thai-visas-in-pattaya", "pattaya-for-digital-nomads"],
     next: { label: "Read the DTV guide", href: "/thai-visas/dtv-visa", kind: "visa_page" },
+    metaTitle: "Best Thai Visa for Remote Workers and Digital Nomads",
   },
   {
     slug: "is-thailand-privilege-visa-worth-it",
@@ -457,6 +476,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["thai-visas-in-pattaya"],
     next: TOOLS.visas,
+    metaTitle: "Is the Thailand Privilege (Elite) Visa Worth It?",
   },
   {
     slug: "visa-to-run-your-own-business-in-thailand",
@@ -471,6 +491,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["thai-visas-in-pattaya", "starting-or-buying-a-business-in-pattaya"],
     next: { label: "Read the business visa guide", href: "/thai-visas/business-visa-work-permit", kind: "visa_page" },
+    metaTitle: "Which Visa Do You Need to Run a Business in Thailand?",
   },
   {
     slug: "how-long-can-i-stay-in-thailand-without-a-visa",
@@ -485,6 +506,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["thai-visas-in-pattaya"],
     next: { label: "Read the visa exemption guide", href: "/thai-visas/visa-exemption", kind: "visa_page" },
+    metaTitle: "How Long Can You Stay in Thailand Without a Visa? (2026)",
   },
 
   // ---------------------------------------------------------------- Money & banking
@@ -514,6 +536,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "If you're buying property, the money must come in from abroad in a foreign currency so the bank can certify it.",
     ],
     articles: ["banking-in-thailand-for-foreigners", "buying-a-condo-in-pattaya"],
+    metaTitle: "Cheapest Way to Send Money to Thailand (2026)",
   },
 
   // ---------------------------------------------------------------- Families
@@ -529,6 +552,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["is-pattaya-good-for-families", "is-pattaya-safe"],
     next: TOOLS.schools,
+    metaTitle: "Is Pattaya Safe for Kids? A Parent's Answer (2026)",
   },
   {
     slug: "how-much-are-international-schools-in-pattaya",
@@ -543,6 +567,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["international-schools-in-pattaya", "is-pattaya-good-for-families"],
     next: TOOLS.schools,
+    metaTitle: "International School Fees in Pattaya (2026/27)",
   },
   {
     slug: "best-area-in-pattaya-for-families",
@@ -556,6 +581,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["is-pattaya-good-for-families", "best-area-to-live-in-pattaya"],
     next: TOOLS.areas,
+    metaTitle: "Best Area in Pattaya for Families With Kids",
   },
 
   // ---------------------------------------------------------------- Business
@@ -585,6 +611,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "If you still want to do it, take it seriously, do your due diligence, and decide with your head, not your heart.",
     ],
     articles: ["starting-or-buying-a-business-in-pattaya", "running-a-restaurant-and-bar-in-pattaya"],
+    metaTitle: "Should You Buy a Bar in Pattaya? A Bar Owner's Answer",
   },
   {
     slug: "what-to-check-before-buying-a-business-in-pattaya",
@@ -598,6 +625,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "Talk to other business owners. They'll tell you things you won't find on YouTube.",
     ],
     articles: ["starting-or-buying-a-business-in-pattaya"],
+    metaTitle: "What to Check Before Buying a Business in Pattaya",
   },
 
   // ---------------------------------------------------------------- Cars & getting around
@@ -614,6 +642,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["renting-a-car-in-pattaya"],
     next: TOOLS.prac,
+    metaTitle: "Car Rental Deposit in Pattaya: How Much to Expect",
   },
   {
     slug: "is-my-rental-car-insured-properly",
@@ -627,6 +656,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["renting-a-car-in-pattaya"],
     next: TOOLS.prac,
+    metaTitle: "Is Your Rental Car Insured? How to Check in Thailand",
   },
   {
     slug: "scooter-or-car-in-pattaya",
@@ -641,6 +671,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["scooter-or-car-in-pattaya", "driving-in-pattaya"],
     next: TOOLS.prac,
+    metaTitle: "Scooter or Car in Pattaya? Which to Rent",
   },
   {
     slug: "do-i-need-a-thai-driving-licence",
@@ -654,6 +685,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "It also works as ID at banks, government offices and hotels, so you don't have to carry your passport.",
     ],
     articles: ["thai-driving-licence"],
+    metaTitle: "Do You Need a Thai Driving Licence? How to Get One",
   },
   {
     slug: "bangkok-airport-to-pattaya-taxi",
@@ -666,6 +698,7 @@ export const QUESTIONS: ShaneQuestion[] = [
       "After a long flight, delays, lost bags or an immigration queue make meeting someone at a set time hard. Arrive, then organise it.",
     ],
     articles: ["bangkok-airport-to-pattaya"],
+    metaTitle: "Bangkok Airport to Pattaya: Taxi or Hire Car?",
   },
 ];
 
@@ -684,7 +717,7 @@ export const FEATURED_QUESTIONS = [
 ].map((s) => questionBySlug(s)!);
 
 export const QUESTIONS_META = {
-  title: `Pattaya Questions Answered: ${QUESTIONS.length} Real Questions About Moving, Buying and Living Here | Shane Ruddle`,
+  title: `Pattaya Questions Answered: Moving, Buying and Living Here`,
   description:
     "Real questions people have asked me about Pattaya, with straight answers: buying a condo as a foreigner, renting with a dog, retiring, visas, schools, business and cars.",
 };

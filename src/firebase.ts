@@ -166,6 +166,7 @@ export interface BlogPost {
   id: string;
   title: string;
   slug?: string; // URL segment for /articles/<slug>; falls back to the doc id
+  seoTitle?: string; // search-result title when it should differ from the headline
   metaDescription?: string;
   keywords?: string;
   body: string;

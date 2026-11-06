@@ -94,6 +94,7 @@ export const GUIDES: Guide[] = [
           "pattaya-vs-hua-hin",
           "pattaya-vs-bangkok",
           "where-pattaya-is-heading",
+          "if-i-were-mayor-of-pattaya",
         ],
       },
       {
@@ -348,6 +349,9 @@ export const GUIDES: Guide[] = [
           "16-years-of-pattaya-rent-a-car",
           "how-my-businesses-got-through-covid",
           "my-biggest-business-failure",
+          "things-id-never-do-again-in-business",
+          "my-worst-customers",
+          "what-id-do-with-1-million-baht-in-pattaya",
           "how-i-use-ai-in-my-businesses",
         ],
       },

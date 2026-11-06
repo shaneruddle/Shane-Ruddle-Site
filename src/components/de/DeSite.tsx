@@ -25,6 +25,7 @@ import AskShane from "../AskShane";
 import DeVisas from "./DeVisas";
 import DeCalculator from "./DeCalculator";
 
+import Noindex from "../Noindex";
 // German edition of the public site (/de/...). Own header and footer in German; shared by the
 // build-time prerender and the live app. Rendered instead of the English chrome when the path starts with /de.
 
@@ -565,6 +566,7 @@ function NotFound() {
   return (
     <div className="min-h-screen bg-paper pt-40 pb-24 px-6 text-center">
       <FileText className="w-10 h-10 mx-auto text-gold-deep mb-6" />
+      <Noindex />
       <h1 className="text-4xl font-serif mb-4">Seite nicht gefunden</h1>
       <a href={DE_HOME} onClick={handleLinkClick} className="text-gold-deep font-bold uppercase tracking-widest text-[11px]">Zur Startseite</a>
     </div>

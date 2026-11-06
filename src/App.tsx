@@ -35,8 +35,13 @@ import { handleLinkClick } from "./lib/navigation";
 import { PAGE_META, applyPageMeta } from "./seo";
 import { trackPageView } from "./lib/analytics";
 import HomePage from "./components/HomePage";
-// Eager: shares its code with HomePage, and avoids a blank frame over the prerendered guide.
-import GuidePage from "./components/GuidePage";
+// Lazy so every article's text stays out of the main bundle; main.tsx preloads it on /guides
+// pages to avoid a blank frame over the prerendered guide.
+const GuidePageLazy = lazy(() => import("./components/GuidePage"));
+const GuidePage = (props: { path: string }) => {
+  const Preloaded = preloaded.GuidePage;
+  return Preloaded ? <Preloaded {...props} /> : <GuidePageLazy {...props} />;
+};
 const PastVentures = lazy(() => import("./components/PastVentures"));
 const AboutPage = lazy(() => import("./components/AboutPage"));
 const BusinessesPage = lazy(() => import("./components/BusinessesPage"));

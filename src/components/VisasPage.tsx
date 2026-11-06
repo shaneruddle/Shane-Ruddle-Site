@@ -21,6 +21,7 @@ import AskShane from "./AskShane";
 import NewsletterSignup from "./NewsletterSignup";
 import EmailMyResult from "./EmailMyResult";
 
+import Noindex from "./Noindex";
 // Thai visas: /thai-visas ("which visa is right for me?" finder + comparison) and /thai-visas/<slug>.
 // Shared by the build-time prerender and the live app. Finder answers live in the URL so a result can be shared.
 
@@ -577,6 +578,7 @@ export default function VisasPage({ path }: { path: string }) {
   if (slug && !visa) {
     return (
       <div className="min-h-screen bg-paper pt-40 pb-24 px-6 text-center">
+        <Noindex />
         <h1 className="text-4xl font-serif mb-4">Visa not found</h1>
         <a href={VISAS_PATH} onClick={handleLinkClick} className="text-gold-deep font-bold uppercase tracking-widest text-[11px]">All Thai visas</a>
       </div>

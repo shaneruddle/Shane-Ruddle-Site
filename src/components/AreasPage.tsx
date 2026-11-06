@@ -26,6 +26,7 @@ import NewsletterSignup from "./NewsletterSignup";
 import EmailMyResult from "./EmailMyResult";
 import PattayaMap from "./PattayaMap";
 
+import Noindex from "./Noindex";
 // Pattaya areas: /areas (interactive map + "which area suits you?" matcher) and /areas/<slug>.
 // Shared by the build-time prerender and the live app.
 
@@ -581,6 +582,7 @@ export default function AreasPage({ path }: { path: string }) {
   if (slug && !area) {
     return (
       <div className="min-h-screen bg-paper pt-40 pb-24 px-6 text-center">
+        <Noindex />
         <h1 className="text-4xl font-serif mb-4">Area not found</h1>
         <a href="/areas" onClick={handleLinkClick} className="text-gold-deep font-bold uppercase tracking-widest text-[11px]">All areas</a>
       </div>

@@ -7,7 +7,7 @@ import { handleLinkClick } from "../lib/navigation";
 import NewsletterSignup from "./NewsletterSignup";
 import GoogleRatings from "./GoogleRatings";
 import AskShane from "./AskShane";
-import { GuideTiles } from "./GuidePage";
+import { GuideTiles } from "./GuideTiles";
 import CalculatorPromo from "./CalculatorPromo";
 import AreasPromo from "./AreasPromo";
 import VisaPromo from "./VisaPromo";
