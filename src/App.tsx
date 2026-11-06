@@ -24,7 +24,15 @@ import {
   Calendar,
   MapPin,
   FileText,
-  LogIn
+  LogIn,
+  LogOut,
+  LayoutDashboard,
+  Compass,
+  Calculator,
+  Stamp,
+  Scale,
+  Briefcase,
+  MessageCircleQuestion
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import { BusinessInfo, fallbackData } from "@/src/types";
@@ -268,6 +276,21 @@ const VIEW_PATHS: Record<View, string> = {
 };
 
 // Public navigation (header, mobile menu, footer).
+// Quick tools shown as tiles in the mobile menu (the desktop bar has no room for them).
+const MENU_TOOLS: { label: string; href: string; Icon: typeof Home }[] = [
+  { label: 'Plan my move', href: '/move-to-thailand', Icon: Compass },
+  { label: 'Cost of living', href: '/cost-of-living-calculator', Icon: Calculator },
+  { label: 'Visa finder', href: '/thai-visas', Icon: Stamp },
+  { label: 'Fair prices', href: '/pattaya-prices', Icon: Scale },
+  { label: 'Work here', href: '/work-in-pattaya', Icon: Briefcase },
+  { label: 'Questions', href: '/questions', Icon: MessageCircleQuestion },
+];
+const MENU_COUNTRIES: { label: string; href: string }[] = [
+  { label: 'UK', href: '/move-to-thailand/from-the-uk' },
+  { label: 'USA', href: '/move-to-thailand/from-the-usa' },
+  { label: 'Australia', href: '/move-to-thailand/from-australia' },
+];
+
 const NAV_LINKS: { label: string; view: View }[] = [
   { label: 'Start here', view: 'guides' },
   { label: 'Areas', view: 'areas' },
@@ -391,6 +414,14 @@ export default function App() {
   const lastLoginAtUpdated = useRef(false);
   const discountsChecked = useRef(false);
 
+  // Stop the page behind the mobile menu from scrolling while it's open.
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isMenuOpen]);
+
   // One analytics page view per URL (skipped on the staff portal and outside production).
   useEffect(() => {
     trackPageView();
@@ -453,7 +484,7 @@ export default function App() {
     };
     // Returning users: wait until the page is idle so the homepage paints first.
     const w = window as any;
-    const idleId = openLoginOnReady ? (start(), 0) : (w.requestIdleCallback ? w.requestIdleCallback(start, { timeout: 2000 }) : window.setTimeout(start, 800));
+    const idleId = (openLoginOnReady || startsOnPortal) ? (start(), 0) : (w.requestIdleCallback ? w.requestIdleCallback(start, { timeout: 2000 }) : window.setTimeout(start, 800));
     const authTimeout = window.setTimeout(() => isMounted && setAuthLoading(false), 5000);
     return () => {
       isMounted = false;
@@ -590,26 +621,19 @@ export default function App() {
             q = query(collection(db, "users"), where("mobile", "==", user.phoneNumber));
           }
 
+          // Runs in the background so the profile shows straight away; a merge triggers a fresh snapshot.
           if (q) {
-            try {
-              const querySnap = await getDocs(q);
+            getDocs(q).then((querySnap) => {
               const seededDoc = querySnap.docs.find(d => d.id !== user.uid);
-              
-              if (seededDoc) {
-                const seededData = seededDoc.data() as UserProfile;
-                if (seededData.discountIds && seededData.discountIds.length > 0) {
-                  console.log("Merging seeded discounts for:", user.email || user.phoneNumber);
-                  await updateDoc(userRef, {
-                    discountIds: seededData.discountIds,
-                    updatedAt: serverTimestamp()
-                  });
-                  // The next onSnapshot trigger will have the merged data
-                  return;
-                }
+              const seededData = seededDoc?.data() as UserProfile | undefined;
+              if (seededData?.discountIds && seededData.discountIds.length > 0) {
+                console.log("Merging seeded discounts for:", user.email || user.phoneNumber);
+                return updateDoc(userRef, {
+                  discountIds: seededData.discountIds,
+                  updatedAt: serverTimestamp()
+                });
               }
-            } catch (err) {
-              console.error("Error checking for seeded discounts:", err);
-            }
+            }).catch((err) => console.error("Error checking for seeded discounts:", err));
           }
         }
 
@@ -627,23 +651,22 @@ export default function App() {
         if (!loginLogged.current && !isThrottled) {
           loginLogged.current = true;
           localStorage.setItem(`last_login_${user.uid}`, now.toString());
-          try {
-            console.log("Logging login for:", user.email || user.phoneNumber);
-            const name = data.name || (data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : data.firstName || data.lastName) || user.email || user.phoneNumber || 'Unknown';
-            await addDoc(collection(db, 'usage_logs'), {
-              userId: user.uid,
-              userName: name,
-              userEmail: user.email || null,
-              userCompany: data.company || null,
-              type: 'login',
-              timestamp: serverTimestamp()
-            });
-          } catch (err) {
+          console.log("Logging login for:", user.email || user.phoneNumber);
+          const name = data.name || (data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : data.firstName || data.lastName) || user.email || user.phoneNumber || 'Unknown';
+          // Not awaited: the dashboard shouldn't wait on a log write.
+          addDoc(collection(db, 'usage_logs'), {
+            userId: user.uid,
+            userName: name,
+            userEmail: user.email || null,
+            userCompany: data.company || null,
+            type: 'login',
+            timestamp: serverTimestamp()
+          }).catch((err) => {
             console.error("Error logging login:", err);
             loginLogged.current = false; // Reset on failure to allow retry
             localStorage.removeItem(`last_login_${user.uid}`); // Allow retry on next update
-            handleFirestoreError(err, OperationType.WRITE, 'usage_logs');
-          }
+            try { handleFirestoreError(err, OperationType.WRITE, 'usage_logs'); } catch { /* logged */ }
+          });
         } else if (isThrottled) {
           // Still mark as logged for this session even if throttled by localStorage
           loginLogged.current = true;
@@ -915,7 +938,7 @@ export default function App() {
                             onClick={() => { setView('portal'); window.scrollTo(0, 0); }}
                             className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-deep hover:text-ink transition-colors whitespace-nowrap"
                           >
-                            <Ticket className="w-3.5 h-3.5" /> Discounts
+                            <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
                           </button>
                         </>
                       )}
@@ -941,51 +964,99 @@ export default function App() {
                     </div>
                   </nav>
 
-                  {/* Mobile Menu */}
+                  {/* Mobile Menu: a compact sheet under the top bar */}
                   <AnimatePresence>
                     {isMenuOpen && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: -20 }}
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center space-y-6 overflow-y-auto py-20"
-                      >
-                        {NAV_LINKS.map((link) => (
-                          <a
-                            key={link.view}
-                            href={VIEW_PATHS[link.view]}
-                            onClick={handleLinkClick}
-                            className={`text-xl font-serif tracking-widest uppercase transition-colors ${view === link.view ? 'text-gold' : 'text-black hover:text-gold'}`}
-                          >
-                            {link.label}
-                          </a>
-                        ))}
-
-                        {isWhitelisted && (
-                          <>
-                            <button 
-                              onClick={() => {
-                                setView('portal');
-                                setIsMenuOpen(false);
-                                window.scrollTo(0, 0);
-                              }}
-                              className="text-xl font-serif tracking-widest uppercase text-gold hover:text-gold-dark transition-colors flex items-center gap-3"
-                            >
-                              <Ticket className="w-6 h-6" /> Employee Discounts
-                            </button>
-                          </>
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.18 }}
+                        className={cn(
+                          "xl:hidden fixed inset-x-0 bottom-0 z-[9999] bg-white flex flex-col font-sans",
+                          impersonatedProfile ? "top-[102px]" : "top-16 md:top-[72px]"
                         )}
+                      >
+                        <div className="flex-1 overflow-y-auto overscroll-contain px-5 pt-2 pb-6">
+                          <nav aria-label="Main" className="divide-y divide-black/[0.06]">
+                            {NAV_LINKS.map((link) => (
+                              <a
+                                key={link.view}
+                                href={VIEW_PATHS[link.view]}
+                                onClick={handleLinkClick}
+                                aria-current={view === link.view ? 'page' : undefined}
+                                className={`flex items-center justify-between py-[11px] text-[16px] transition-colors ${view === link.view ? 'text-gold-deep font-medium' : 'text-ink'}`}
+                              >
+                                {link.label}
+                                <ChevronRight className="w-4 h-4 text-black/25" />
+                              </a>
+                            ))}
+                          </nav>
 
-                        <div className="pt-8 border-t border-black/5 w-full flex justify-center">
-                          <SilentErrorBoundary>
-                            <Suspense fallback={null}>
-                              {authActive ? (
-                              <Auth key="mobile-auth" user={user} loading={authLoading} autoOpen={openLoginOnReady} onAutoOpened={() => setOpenLoginOnReady(false)} />
-                            ) : (
-                              <LoginButton onClick={() => { setOpenLoginOnReady(true); setAuthActive(true); setIsMenuOpen(false); }} />
-                            )}
-                            </Suspense>
-                          </SilentErrorBoundary>
+                          <div className="mt-5">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/40 mb-3">Popular tools</p>
+                            <div className="grid grid-cols-2 gap-2">
+                              {MENU_TOOLS.map(({ label, href, Icon }) => (
+                                <a
+                                  key={href}
+                                  href={href}
+                                  onClick={handleLinkClick}
+                                  className="flex items-center gap-2.5 rounded-[12px] border border-black/[0.08] bg-cream/60 px-3 py-2.5 text-[14px] text-ink active:bg-black/5"
+                                >
+                                  <Icon className="w-4 h-4 shrink-0 text-gold-deep" />
+                                  <span className="truncate">{label}</span>
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="mt-5">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/40 mb-3">Moving from</p>
+                            <div className="flex gap-2">
+                              {MENU_COUNTRIES.map(({ label, href }) => (
+                                <a
+                                  key={href}
+                                  href={href}
+                                  onClick={handleLinkClick}
+                                  className="flex-1 text-center rounded-full border border-black/10 py-2 text-[14px] text-ink active:bg-black/5"
+                                >
+                                  {label}
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Staff area. Signed-in staff get Dashboard straight away, so it never sits on "Loading...". */}
+                        <div className="border-t border-black/[0.08] px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white">
+                          {user ? (
+                            <div className="flex items-center gap-2">
+                              {isWhitelisted && (
+                                <button
+                                  type="button"
+                                  onClick={() => { setView('portal'); setIsMenuOpen(false); window.scrollTo(0, 0); }}
+                                  className="flex-1 flex items-center justify-center gap-2 h-11 rounded-full bg-ink text-white text-[14px] font-medium"
+                                >
+                                  <LayoutDashboard className="w-4 h-4 text-gold" /> Staff dashboard
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => { setIsMenuOpen(false); loadFirebase().then(({ auth }) => auth.signOut()); }}
+                                className={cn("flex items-center justify-center gap-2 h-11 rounded-full border border-black/10 text-[14px] text-black/60", isWhitelisted ? "px-4" : "flex-1")}
+                              >
+                                <LogOut className="w-4 h-4" /> Sign out
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => { setOpenLoginOnReady(true); setAuthActive(true); setIsMenuOpen(false); }}
+                              className="w-full flex items-center justify-center gap-2 h-11 rounded-full border border-black/10 text-[14px] text-black/70"
+                            >
+                              <LogIn className="w-4 h-4 text-gold-deep" /> Staff login
+                            </button>
+                          )}
                         </div>
                       </motion.div>
                     )}

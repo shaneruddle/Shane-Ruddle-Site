@@ -82,7 +82,7 @@ export default function CommentsAdmin() {
           <button
             key={key}
             onClick={() => setView(key)}
-            className={`px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-widest transition-colors ${view === key ? 'bg-ink text-white' : 'bg-black/5 text-black/50 hover:text-ink'}`}
+            className={`px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-[0.12em] whitespace-nowrap transition-colors ${view === key ? 'bg-ink text-white' : 'bg-black/5 text-black/50 hover:text-ink'}`}
           >
             {key === 'pending' ? `Awaiting approval (${pendingCount})` : 'Approved'}
           </button>
@@ -92,7 +92,7 @@ export default function CommentsAdmin() {
       {shown.length === 0 ? (
         <div className="p-12 text-center rounded-3xl border-2 border-dashed border-black/5">
           <MessageCircle className="w-12 h-12 text-black/10 mx-auto mb-4" />
-          <p className="text-sm text-black/40 uppercase tracking-widest font-bold">
+          <p className="text-sm text-black/40 uppercase tracking-[0.12em] font-bold">
             {view === 'pending' ? 'No comments waiting for approval.' : 'No approved comments yet.'}
           </p>
         </div>

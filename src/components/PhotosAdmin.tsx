@@ -262,7 +262,7 @@ export default function PhotosAdmin() {
         <button
           key={key}
           onClick={() => setView(key)}
-          className={`px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-widest transition-colors ${view === key ? 'bg-ink text-white' : 'bg-black/5 text-black/50 hover:text-ink'}`}
+          className={`px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-[0.12em] whitespace-nowrap transition-colors ${view === key ? 'bg-ink text-white' : 'bg-black/5 text-black/50 hover:text-ink'}`}
         >
           {label}
         </button>
@@ -320,11 +320,11 @@ export default function PhotosAdmin() {
       ) : photos.length === 0 ? (
         <div className="p-12 text-center rounded-3xl border-2 border-dashed border-black/5">
           <Images className="w-12 h-12 text-black/10 mx-auto mb-4" />
-          <p className="text-sm text-black/40 uppercase tracking-widest font-bold">No photos yet.</p>
+          <p className="text-sm text-black/40 uppercase tracking-[0.12em] font-bold">No photos yet.</p>
         </div>
       ) : (
         <>
-          <p className="text-xs text-black/40 uppercase tracking-widest font-bold mb-4">{photos.length} photo{photos.length === 1 ? '' : 's'}</p>
+          <p className="text-xs text-black/40 uppercase tracking-[0.12em] font-bold mb-4">{photos.length} photo{photos.length === 1 ? '' : 's'}</p>
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {photos.map(p => (
               <li key={p.id} className="bg-white border border-black/10 rounded-2xl overflow-hidden flex flex-col">

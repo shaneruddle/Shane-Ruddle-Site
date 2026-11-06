@@ -170,7 +170,7 @@ export default function ActivityAdmin() {
           <button
             key={key}
             onClick={() => setView(key)}
-            className={`px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-widest transition-colors ${view === key ? 'bg-ink text-white' : 'bg-black/5 text-black/50 hover:text-ink'}`}
+            className={`px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-[0.12em] whitespace-nowrap transition-colors ${view === key ? 'bg-ink text-white' : 'bg-black/5 text-black/50 hover:text-ink'}`}
           >
             {key === 'staff' ? 'Staff' : 'Activity feed'}
           </button>
@@ -287,7 +287,7 @@ function Empty({ text }: { text: string }) {
   return (
     <div className="p-12 text-center rounded-3xl border-2 border-dashed border-black/5">
       <Activity className="w-12 h-12 text-black/10 mx-auto mb-4" />
-      <p className="text-sm text-black/40 uppercase tracking-widest font-bold">{text}</p>
+      <p className="text-sm text-black/40 uppercase tracking-[0.12em] font-bold">{text}</p>
     </div>
   );
 }

@@ -68,7 +68,7 @@ const prettyDate = (iso?: string) =>
 const emptyForm = (): Partial<Person> => ({ name: '', business: '', whereMet: '', metOn: today(), introducedBy: '', whereSeen: '', notes: '', followUpOn: addDays(today(), 14) });
 
 const inputClass = 'w-full px-4 py-2.5 rounded-xl bg-black/5 text-sm border-0 focus:ring-2 focus:ring-gold-deep/30';
-const pillClass = (on: boolean) => `px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-widest transition-colors ${on ? 'bg-ink text-white' : 'bg-black/5 text-black/50 hover:text-ink'}`;
+const pillClass = (on: boolean) => `px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-[0.12em] whitespace-nowrap transition-colors ${on ? 'bg-ink text-white' : 'bg-black/5 text-black/50 hover:text-ink'}`;
 
 // Loads a private photo as a blob URL (Storage rules check Shane's login on every read).
 function PrivatePhoto({ path, name }: { path?: string; name: string }) {
@@ -337,7 +337,7 @@ export default function CircleAdmin() {
               ))}
             </div>
             <div className="flex gap-2 mt-4">
-              <button onClick={saveTargets} className="px-4 py-2 rounded-full bg-gold text-ink text-xs font-semibold uppercase tracking-widest">Save targets</button>
+              <button onClick={saveTargets} className="px-4 py-2 rounded-full bg-gold text-ink text-xs font-semibold uppercase tracking-[0.12em]">Save targets</button>
               <button onClick={() => setEditTargets(null)} className="px-4 py-2 rounded-full text-xs text-white/55 hover:text-white">Cancel</button>
             </div>
           </div>
@@ -373,7 +373,7 @@ export default function CircleAdmin() {
           <button key={key} onClick={() => setView(key)} className={pillClass(view === key)}>{label}</button>
         ))}
         {view === 'people' && (
-          <button onClick={() => { setEditing(emptyForm()); setPhoto(null); }} className="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-full bg-gold-deep text-white text-xs font-semibold uppercase tracking-widest hover:opacity-90">
+          <button onClick={() => { setEditing(emptyForm()); setPhoto(null); }} className="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-full bg-gold-deep text-white text-xs font-semibold uppercase tracking-[0.12em] hover:opacity-90">
             <Plus className="w-3.5 h-3.5" /> Add someone
           </button>
         )}

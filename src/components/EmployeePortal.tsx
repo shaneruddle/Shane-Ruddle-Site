@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog } from '../firebase';
 import { collection, onSnapshot, query, where, doc, setDoc, addDoc, serverTimestamp, getDoc, Timestamp, getDocs } from 'firebase/firestore';
-import { Tag, History, QrCode, ArrowLeft, Loader2, CheckCircle, Sparkles, Ticket, LogOut, Settings, User, Upload, Users, MessageCircle, Images, Activity, HeartHandshake } from 'lucide-react';
+import { Tag, History, QrCode, ArrowLeft, Loader2, CheckCircle, Sparkles, Ticket, LogOut, Settings, User, Upload, Users, MessageCircle, Images, Activity, HeartHandshake, X, ArrowUpRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { updateDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
@@ -37,6 +37,17 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
     // Shane only (matches isShane() in firestore.rules), never other admins.
     ...(canManagePhotos ? [['circle', 'Circle', HeartHandshake] as [typeof activeTab, string, typeof Ticket]] : []),
   ];
+  // Phones get the section list as a slide-out drawer instead of a sideways-scrolling tab row.
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const activeLabel = portalTabs.find(([key]) => key === activeTab)?.[1] || 'Dashboard';
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setDrawerOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
+  }, [drawerOpen]);
   const [personalProfile, setPersonalProfile] = useState<Partial<UserProfile>>(userProfile);
   const [savingProfile, setSavingProfile] = useState(false);
 
@@ -181,16 +192,70 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
 
   return (
     <div className="min-h-screen bg-cream">
-      <PortalHeader active="portal" name={userProfile.name || userProfile.email} onNavigate={onNavigate} onBack={onBack} />
+      <PortalHeader active="portal" name={userProfile.name || userProfile.email} onNavigate={onNavigate} onBack={onBack} onMenu={() => setDrawerOpen(true)} section={activeLabel} />
+
+      <AnimatePresence>
+        {drawerOpen && (
+          <div className="md:hidden fixed inset-0 z-50 font-sans">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setDrawerOpen(false)}
+            />
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'tween', duration: 0.22 }}
+              className="absolute inset-y-0 left-0 w-[80%] max-w-[300px] bg-ink text-white flex flex-col shadow-2xl"
+              aria-label="Staff menu"
+            >
+              <div className="h-14 px-4 flex items-center justify-between border-b border-white/10">
+                <div className="min-w-0">
+                  <div className="text-[15px] font-semibold truncate">{userProfile.name || 'Staff'}</div>
+                  {userProfile.company && <div className="text-[12px] text-white/50 truncate">{userProfile.company}</div>}
+                </div>
+                <button type="button" onClick={() => setDrawerOpen(false)} className="w-9 h-9 -mr-2 inline-flex items-center justify-center rounded-full text-white/70 hover:bg-white/5" aria-label="Close menu">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+                {portalTabs.map(([key, label, Icon]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => { setActiveTab(key); setDrawerOpen(false); window.scrollTo(0, 0); }}
+                    aria-current={activeTab === key ? 'page' : undefined}
+                    className={`w-full flex items-center gap-3 px-4 h-12 rounded-[12px] text-[15px] transition-colors ${activeTab === key ? 'bg-white/10 text-white font-medium' : 'text-white/65 hover:bg-white/5'}`}
+                  >
+                    <Icon className={`w-[18px] h-[18px] ${activeTab === key ? 'text-gold' : ''}`} /> {label}
+                  </button>
+                ))}
+              </nav>
+              <div className="p-3 border-t border-white/10 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-1">
+                <button type="button" onClick={() => { setDrawerOpen(false); onBack(); }} className="w-full flex items-center gap-3 px-4 h-11 rounded-[12px] text-[14px] text-white/65 hover:bg-white/5">
+                  <ArrowUpRight className="w-4 h-4" /> Back to website
+                </button>
+                <button type="button" onClick={() => auth.signOut()} className="w-full flex items-center gap-3 px-4 h-11 rounded-[12px] text-[14px] text-white/65 hover:bg-white/5">
+                  <LogOut className="w-4 h-4" /> Sign out
+                </button>
+              </div>
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 md:grid md:grid-cols-[200px_minmax(0,1fr)] md:gap-10 lg:gap-14">
-        <aside className="mb-8 md:mb-0">
-          <nav className="md:sticky md:top-24 flex md:flex-col gap-1 overflow-x-auto md:overflow-visible border-b border-black/10 md:border-0 -mx-4 px-4 md:mx-0 md:px-0">
+        <aside className="hidden md:block">
+          <nav className="sticky top-24 flex flex-col gap-1">
             {portalTabs.map(([key, label, Icon]) => (
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
                 aria-current={activeTab === key ? 'page' : undefined}
-                className={`shrink-0 flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors -mb-px border-b-2 md:mb-0 md:border-b-0 md:rounded-full ${activeTab === key ? 'border-gold-deep text-ink md:bg-ink md:text-white' : 'border-transparent text-black/50 hover:text-ink md:hover:bg-black/5'}`}
+                className={`shrink-0 flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors rounded-full ${activeTab === key ? 'bg-ink text-white' : 'text-black/50 hover:text-ink hover:bg-black/5'}`}
               >
                 <Icon className="w-4 h-4" /> {label}
               </button>

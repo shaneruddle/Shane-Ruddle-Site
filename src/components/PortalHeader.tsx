@@ -1,4 +1,4 @@
-import { ArrowUpRight, LogOut, LayoutDashboard, Ticket } from 'lucide-react';
+import { ArrowUpRight, LogOut, LayoutDashboard, Ticket, Menu } from 'lucide-react';
 import { auth } from '../firebase';
 
 export type PortalView = 'portal';
@@ -9,11 +9,17 @@ export default function PortalHeader({
   name,
   onNavigate,
   onBack,
+  onMenu,
+  section,
 }: {
   active: PortalView;
   name?: string;
   onNavigate?: (view: PortalView) => void;
   onBack: () => void;
+  /** Opens the mobile section drawer (phones only). */
+  onMenu?: () => void;
+  /** Current section, shown beside the menu button on phones. */
+  section?: string;
 }) {
   const tab = (view: PortalView, label: string, Icon: typeof Ticket) => (
     <button
@@ -32,6 +38,16 @@ export default function PortalHeader({
   return (
     <header className="sticky top-0 z-30 bg-ink text-white font-sans">
       <div className="mx-auto max-w-[1600px] h-14 px-3 sm:px-5 flex items-center gap-3 sm:gap-6">
+        {onMenu && (
+          <button
+            type="button"
+            onClick={onMenu}
+            className="md:hidden inline-flex items-center justify-center w-9 h-9 -mr-1 rounded-full text-white/80 hover:bg-white/5"
+            aria-label="Open staff menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        )}
         <button type="button" onClick={onBack} className="flex items-center gap-2.5 shrink-0" title="Back to shaneruddle.com">
           <svg viewBox="0 0 120 120" className="w-8 h-8" aria-hidden="true">
             <defs>
@@ -48,7 +64,9 @@ export default function PortalHeader({
           <span className="hidden md:block text-sm font-semibold tracking-wide">Staff</span>
         </button>
 
-        <nav className="flex items-center gap-1">
+        {section && <span className="md:hidden text-[15px] font-medium truncate">{section}</span>}
+
+        <nav className={`${section ? 'hidden md:flex' : 'flex'} items-center gap-1`}>
           {tab('portal', 'Dashboard', LayoutDashboard)}
         </nav>
 

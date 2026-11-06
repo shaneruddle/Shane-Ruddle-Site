@@ -224,7 +224,8 @@ export default function Auth({ user, loading, autoOpen, onAutoOpened }: AuthProp
     setShowModal(val);
   };
 
-  if (loading) return (
+  // Once Firebase knows who's signed in, show them even if their profile is still loading.
+  if (loading && !user) return (
     <button 
       disabled 
       className="flex items-center gap-2 px-6 py-2 bg-gold/50 text-black/20 text-xs font-bold uppercase tracking-widest rounded-full cursor-wait relative z-[110]"
