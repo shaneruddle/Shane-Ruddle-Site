@@ -7,6 +7,7 @@ import { handleLinkClick } from "../lib/navigation";
 import NewsletterSignup from "./NewsletterSignup";
 import GoogleRatings from "./GoogleRatings";
 import AskShane from "./AskShane";
+import CountryPicker from "./CountryPicker";
 import { GuideTiles } from "./GuideTiles";
 import CalculatorPromo from "./CalculatorPromo";
 import AreasPromo from "./AreasPromo";
@@ -128,7 +129,7 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
             <p className="text-lg md:text-xl text-white/70 font-light leading-relaxed max-w-xl mb-10">
               {data.tagline}
             </p>
-            <div className="flex flex-wrap items-center gap-4 mb-14">
+            <div className="flex flex-wrap items-center gap-4 mb-10">
               <a
                 href={MOVE_PATH}
                 onClick={(e) => {
@@ -145,6 +146,9 @@ export default function HomePage({ data }: { data: BusinessInfo }) {
               >
                 Ask me a question
               </button>
+            </div>
+            <div className="mb-12">
+              <CountryPicker dark source="homepage_hero" />
             </div>
             <dl className="grid grid-cols-3 gap-6 max-w-lg border-t border-white/15 pt-8">
               {[

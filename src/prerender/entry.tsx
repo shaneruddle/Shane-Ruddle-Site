@@ -18,6 +18,7 @@ import AreasPage from "../components/AreasPage";
 import VisasPage from "../components/VisasPage";
 import SchoolsPage from "../components/SchoolsPage";
 import MovePlanner from "../components/MovePlanner";
+import CountryPage from "../components/CountryPage";
 import QuestionsPage from "../components/QuestionsPage";
 import BusinessCheck from "../components/BusinessCheck";
 import BuyingBusinessPage from "../components/BuyingBusinessPage";
@@ -34,6 +35,7 @@ export { CALCULATOR_FAQS, CALCULATOR_PATH } from "../lib/costOfLiving";
 export { AREAS, AREAS_META, AREAS_FAQS } from "../lib/areas";
 export { VISAS, VISAS_META, VISAS_FAQS, VISAS_PATH } from "../lib/visas";
 export { MOVE_PATH, MOVE_META, MOVE_FAQS } from "../lib/movePlan";
+export { COUNTRIES, countryPath } from "../lib/countries";
 export { QUESTIONS, QUESTIONS_META, QUESTIONS_PATH, ANSWERS_AS_OF, questionMeta } from "../lib/questions";
 export { BUSINESS_PATH, BUSINESS_META, BUSINESS_FAQS } from "../lib/businessCheck";
 export { BUYING_PATH, BUYING_META, BUYING_FAQS } from "../lib/dealCheck";
@@ -90,7 +92,7 @@ function Shell({ children }: { children: ReactNode }) {
       <main>{children}</main>
       <footer className="bg-ink text-white/60 px-6 md:px-12 py-12">
         <ul className="max-w-7xl mx-auto flex flex-wrap gap-6 text-sm">
-          {[...NAV, ["Plan my move", "/move-to-thailand"], ["Questions", "/questions"], ["Business check", "/business-in-pattaya"], ["Sell your business", "/business-in-pattaya/sell-your-business"], ["Work in Pattaya", "/work-in-pattaya"], ["Fair prices", "/pattaya-prices"], ["Pattaya's future", "/pattaya-future"], ["Newsletter", "/newsletter"], ["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]].map(([label, href]) => (
+          {[...NAV, ["Plan my move", "/move-to-thailand"], ["Moving from the UK", "/move-to-thailand/from-the-uk"], ["Moving from the USA", "/move-to-thailand/from-the-usa"], ["Moving from Australia", "/move-to-thailand/from-australia"], ["Questions", "/questions"], ["Business check", "/business-in-pattaya"], ["Sell your business", "/business-in-pattaya/sell-your-business"], ["Work in Pattaya", "/work-in-pattaya"], ["Fair prices", "/pattaya-prices"], ["Pattaya's future", "/pattaya-future"], ["Newsletter", "/newsletter"], ["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]].map(([label, href]) => (
             <li key={href}><a href={href}>{label}</a></li>
           ))}
         </ul>
@@ -199,6 +201,11 @@ export function renderWork(): string {
 /** /pattaya-prices (the checker, the "when it goes wrong" playbooks, the price sheet and the FAQ). */
 export function renderPrices(): string {
   return renderToString(<Shell><PricesPage /></Shell>);
+}
+
+/** /move-to-thailand/<from-the-uk|from-the-usa|from-australia>. */
+export function renderCountry(path: string): string {
+  return renderToString(<Shell><CountryPage path={path} /></Shell>);
 }
 
 /** /pattaya-future (the development timeline and new-build projects). */

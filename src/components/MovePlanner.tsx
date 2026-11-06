@@ -21,6 +21,8 @@ import { handleLinkClick } from "../lib/navigation";
 import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
 import AskShane, { AskTopic } from "./AskShane";
+import CountryPicker from "./CountryPicker";
+import { COUNTRIES, countryPath } from "../lib/countries";
 import NewsletterSignup from "./NewsletterSignup";
 import EmailMyResult, { type LeadSegment } from "./EmailMyResult";
 
@@ -128,6 +130,7 @@ function PlanView({ answers, plan, onRestart }: { answers: MoveAnswers; plan: Mo
   const { visa, area, cost, currency, schools, phases } = plan;
   const moveWhen = phases.find((p) => p.id === "week1")?.when;
   const family = answers.who === "family";
+  const countryGuide = COUNTRIES.find((c) => c.id === answers.from);
 
   const share = async () => {
     const url = `https://shaneruddle.com${MOVE_PATH}${answersQuery(answers)}`;
@@ -220,6 +223,24 @@ function PlanView({ answers, plan, onRestart }: { answers: MoveAnswers; plan: Mo
         </div>
       )}
 
+      {countryGuide && (
+        <a
+          href={countryPath(countryGuide.slug)}
+          onClick={(e) => {
+            trackEvent("select_content", { content_type: "country_guide", item: countryGuide.id, source: "move_planner_result" });
+            handleLinkClick(e);
+          }}
+          className="group flex items-center gap-4 p-4 md:p-5 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-gold/70 transition-colors"
+        >
+          <img src={countryGuide.flag} alt="" width={42} height={28} className="w-[42px] h-7 rounded-[3px] object-cover shrink-0" />
+          <span className="flex-1 text-white/75 leading-snug">
+            <span className="block font-serif text-xl text-white group-hover:text-gold transition-colors">Moving from {countryGuide.name}? Read my guide</span>
+            <span className="text-sm text-white/50">Your pension, tax, healthcare and banking, and what to sort out before you leave.</span>
+          </span>
+          <ArrowRight className="w-5 h-5 text-gold shrink-0 transition-transform group-hover:translate-x-1" />
+        </a>
+      )}
+
       {/* Timeline */}
       <ol className="mt-14 relative">
         {phases.map((phase, i) => (
@@ -284,7 +305,7 @@ export default function MovePlanner() {
   const [answers, setAnswers] = useState<MoveAnswers>(readAnswers);
   const [step, setStep] = useState(() => {
     const first = MOVE_QUESTIONS.findIndex((q) => !readAnswers()[q.id]);
-    return first === -1 ? MOVE_QUESTIONS.length : 0;
+    return first === -1 ? MOVE_QUESTIONS.length : first;
   });
   const started = useRef(false);
   const done = step >= MOVE_QUESTIONS.length;
@@ -342,6 +363,9 @@ export default function MovePlanner() {
                   By <a href="/about" onClick={handleLinkClick} className="text-white hover:text-gold">Shane Ruddle</a>
                   <span className="block text-white/40">20 years in Pattaya · 7 businesses here</span>
                 </span>
+              </div>
+              <div className="mb-12 md:mb-14 -mt-4 md:-mt-6">
+                <CountryPicker dark source="move_planner" label="Or read my guide for where you're moving from" />
               </div>
             </>
           )}

@@ -454,6 +454,33 @@ write(ssr.MOVE_PATH, page({
 }));
 urls.push({ loc: ssr.MOVE_PATH });
 
+// ---- Moving to Thailand from <country> ----
+for (const c of ssr.COUNTRIES) {
+  const urlPath = ssr.countryPath(c.slug);
+  write(urlPath, page({
+    urlPath,
+    title: c.metaTitle,
+    description: c.description,
+    body: ssr.renderCountry(urlPath),
+    schemas: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: c.h1,
+        description: c.description,
+        url: SITE_URL + urlPath,
+        mainEntityOfPage: SITE_URL + urlPath,
+        image: DEFAULT_OG_IMAGE,
+        author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+        publisher: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle" },
+      },
+      faqSchema(c.faqs),
+      crumbs([["Home", "/"], ["Moving to Thailand", ssr.MOVE_PATH], [c.h1, urlPath]]),
+    ],
+  }));
+  urls.push({ loc: urlPath });
+}
+
 // ---- Business reality check ----
 write(ssr.BUSINESS_PATH, page({
   urlPath: ssr.BUSINESS_PATH,

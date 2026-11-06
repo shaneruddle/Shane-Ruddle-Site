@@ -52,6 +52,7 @@ const AreasPage = lazy(() => import("./components/AreasPage"));
 const VisasPage = lazy(() => import("./components/VisasPage"));
 const SchoolsPage = lazy(() => import("./components/SchoolsPage"));
 const MovePlanner = lazy(() => import("./components/MovePlanner"));
+const CountryPage = lazy(() => import("./components/CountryPage"));
 const QuestionsPage = lazy(() => import("./components/QuestionsPage"));
 const BusinessCheck = lazy(() => import("./components/BusinessCheck"));
 const BuyingBusinessPage = lazy(() => import("./components/BuyingBusinessPage"));
@@ -238,7 +239,7 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
 
 // URL routing. Each view has a real path so pages can be linked, shared and indexed.
 // Firebase Hosting rewrites every path to index.html, so the app resolves the view here.
-type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'schools' | 'move' | 'questions' | 'business' | 'work' | 'prices' | 'future' | 'de' | 'privacy-policy' | 'terms-of-service';
+type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'schools' | 'move' | 'country' | 'questions' | 'business' | 'work' | 'prices' | 'future' | 'de' | 'privacy-policy' | 'terms-of-service';
 
 const VIEW_PATHS: Record<View, string> = {
   'home': '/',
@@ -255,6 +256,7 @@ const VIEW_PATHS: Record<View, string> = {
   'visas': '/thai-visas',
   'schools': '/international-schools-pattaya',
   'move': '/move-to-thailand',
+  'country': '/move-to-thailand/from-the-uk',
   'questions': '/questions',
   'business': '/business-in-pattaya',
   'work': '/work-in-pattaya',
@@ -282,6 +284,9 @@ const FOOTER_COLUMNS: { title: string; links: { label: string; href: string }[] 
   { title: 'Moving here', links: [
     { label: 'Start here', href: '/guides' },
     { label: 'Plan my move', href: '/move-to-thailand' },
+    { label: 'From the UK', href: '/move-to-thailand/from-the-uk' },
+    { label: 'From the USA', href: '/move-to-thailand/from-the-usa' },
+    { label: 'From Australia', href: '/move-to-thailand/from-australia' },
     { label: 'Areas', href: '/areas' },
     { label: 'Visas', href: '/thai-visas' },
     { label: 'Schools', href: '/international-schools-pattaya' },
@@ -327,6 +332,7 @@ function routeFromPath(pathname: string): { view: View } {
   if (path === '/areas' || path.startsWith('/areas/')) return { view: 'areas' };
   if (path === '/thai-visas' || path.startsWith('/thai-visas/')) return { view: 'visas' };
   if (path === '/international-schools-pattaya' || path.startsWith('/international-schools-pattaya/')) return { view: 'schools' };
+  if (path.startsWith('/move-to-thailand/')) return { view: 'country' };
   if (path === '/questions' || path.startsWith('/questions/')) return { view: 'questions' };
   if (path === '/business-in-pattaya/buying-a-business' || path === '/business-in-pattaya/sell-your-business') return { view: 'business' };
   const view = (Object.keys(VIEW_PATHS) as View[]).find(v => VIEW_PATHS[v] === path);
@@ -1112,6 +1118,13 @@ export default function App() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.25 }}>
                       <MovePlanner />
+                    </motion.div>
+                  ) : view === 'country' ? (
+                    <motion.div key={currentPath} initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <CountryPage path={currentPath} />
                     </motion.div>
                   ) : view === 'business' ? (
                     <motion.div key={currentPath} initial={{ opacity: 0 }}
