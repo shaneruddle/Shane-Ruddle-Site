@@ -16,18 +16,18 @@ interface EmployeePortalProps {
   onBack: () => void;
 }
 
-export default function EmployeePortal({ userProfile, onBack, onNavigate }: EmployeePortalProps & { onNavigate?: (view: PortalView) => void }) {
+export default function EmployeePortal({ userProfile, onBack, onNavigate, initialTab }: EmployeePortalProps & { onNavigate?: (view: PortalView) => void; initialTab?: 'circle' }) {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [myLogs, setMyLogs] = useState<UsageLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [redeeming, setRedeeming] = useState<string | null>(null);
   const [selectedDiscount, setSelectedDiscount] = useState<Discount | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'circle'>('offers');
   // Matches isAdmin() in firestore.rules, which guards comment moderation.
   const canModerateComments = userProfile.roles?.includes('admin') || userProfile.role === 'admin' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
   // Matches isOwner() in storage.rules, which guards photo uploads.
   const canManagePhotos = userProfile.uid === 'u7ElWXIkdjVTNTp76LcyXnnq3AM2' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
+  const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'circle'>(initialTab === 'circle' && canManagePhotos ? 'circle' : 'offers');
   const portalTabs: [typeof activeTab, string, typeof Ticket][] = [
     ['offers', 'Offers', Ticket],
     ['profile', 'Profile', User],

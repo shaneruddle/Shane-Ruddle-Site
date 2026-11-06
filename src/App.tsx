@@ -335,6 +335,13 @@ function routeFromPath(pathname: string): { view: View } {
 
 const initialRoute = routeFromPath(window.location.pathname);
 const startsOnPortal = initialRoute.view === 'portal';
+// Home-screen shortcut for Shane's private Circle tab (/portal?tab=circle). Swap in the Circle manifest so
+// "Add to Home Screen" saves an icon that opens straight to it. The tab itself only shows for Shane's account.
+const launchCircle = startsOnPortal && new URLSearchParams(window.location.search).get('tab') === 'circle';
+if (launchCircle) {
+  document.querySelector('link[rel="manifest"]')?.setAttribute('href', '/circle.webmanifest');
+  document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content', 'Circle');
+}
 
 export default function App() {
   const [data, setData] = useState<BusinessInfo>(fallbackData);
@@ -1045,7 +1052,7 @@ export default function App() {
                       exit={{ opacity: 0, scale: 0.98 }}
                       transition={{ duration: 0.4 }}
                     >
-                      <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} />
+                      <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} initialTab={launchCircle ? 'circle' : undefined} />
                     </motion.div>
                   ) : view === 'portal' && authLoading ? (
                     <div key="portal-loading" className="fixed inset-0 z-[100] bg-white flex items-center justify-center">
