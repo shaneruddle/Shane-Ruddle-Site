@@ -77,7 +77,7 @@ export default function CommentsAdmin() {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-8">
+      <div className="flex flex-wrap items-center gap-2 mb-8">
         {(['pending', 'approved'] as const).map(key => (
           <button
             key={key}

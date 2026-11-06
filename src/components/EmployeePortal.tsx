@@ -264,9 +264,9 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
         </aside>
 
         <div className="min-w-0">
-        <div className="grid lg:grid-cols-[1fr_auto] gap-6 items-end mb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-end mb-10">
           <div>
-            <span className="block text-[11px] font-medium uppercase tracking-[0.3em] text-gold-deep mb-3">Staff dashboard</span>
+            <span className="block text-[11px] font-medium uppercase tracking-[0.18em] text-gold-deep mb-3">Staff dashboard</span>
             <h1 className="text-4xl md:text-5xl font-serif font-normal leading-tight">Welcome, {(userProfile.name || 'Employee').split(' ')[0]}</h1>
             <p className="text-black/55 mt-2">{userProfile.company || 'Shane Ruddle group of companies'}</p>
           </div>
@@ -295,7 +295,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
                 {discounts.length === 0 ? (
                   <div className="p-12 text-center glass rounded-3xl border-2 border-dashed border-black/5">
                     <Ticket className="w-12 h-12 text-black/10 mx-auto mb-4" />
-                    <p className="text-sm text-black/40 uppercase tracking-widest font-bold">No discounts assigned to your profile.</p>
+                    <p className="text-sm text-black/40 uppercase tracking-[0.12em] font-bold">No discounts assigned to your profile.</p>
                     <p className="text-[10px] text-black/20 mt-2">Please contact your administrator to assign discounts to your account.</p>
                   </div>
                 ) : (
@@ -313,12 +313,12 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
                       <div className="flex justify-between items-start mb-4">
                         <div>
                           <h4 className="text-lg font-serif mb-1">{discount.name}</h4>
-                          <p className="text-xs text-black/40 mb-4 uppercase tracking-widest font-bold">{discount.restaurantId}</p>
+                          <p className="text-xs text-black/40 mb-4 uppercase tracking-[0.12em] font-bold">{discount.restaurantId}</p>
                         </div>
                         <div className="text-3xl font-serif text-gold-deep">{discount.percentage}%</div>
                       </div>
                       <p className="text-sm text-black/60 font-light mb-6">{discount.description}</p>
-                      <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-gold-deep">
+                      <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.12em] font-bold text-gold-deep">
                         {selectedDiscount?.id === discount.id ? (
                           <span className="flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Selected</span>
                         ) : (
@@ -346,25 +346,25 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
                         <QrCode className="w-8 h-8 text-gold-deep" />
                       </div>
                       <h3 className="text-2xl font-serif mb-2">Redeem Discount</h3>
-                      <p className="text-sm text-black/40 uppercase tracking-widest font-bold">Show this screen to the cashier</p>
+                      <p className="text-sm text-black/40 uppercase tracking-[0.12em] font-bold">Show this screen to the cashier</p>
                     </div>
 
                     <div className="bg-black/5 rounded-3xl p-6 mb-8 text-center border border-black/5">
                       <div className="text-4xl font-serif text-gold-deep mb-2">{selectedDiscount.percentage}% OFF</div>
                       <div className="text-lg font-serif mb-1">{selectedDiscount.name}</div>
-                      <div className="text-xs uppercase tracking-widest text-black/40 font-bold">{selectedDiscount.restaurantId}</div>
+                      <div className="text-xs uppercase tracking-[0.12em] text-black/40 font-bold">{selectedDiscount.restaurantId}</div>
                     </div>
 
                     <div className="space-y-4 mb-8">
-                      <div className="flex justify-between text-xs uppercase tracking-widest font-bold text-black/40 border-b border-black/5 pb-2">
+                      <div className="flex justify-between text-xs uppercase tracking-[0.12em] font-bold text-black/40 border-b border-black/5 pb-2">
                         <span>Employee</span>
                         <span className="text-black">{userProfile.name}</span>
                       </div>
-                      <div className="flex justify-between text-xs uppercase tracking-widest font-bold text-black/40 border-b border-black/5 pb-2">
+                      <div className="flex justify-between text-xs uppercase tracking-[0.12em] font-bold text-black/40 border-b border-black/5 pb-2">
                         <span>Company</span>
                         <span className="text-black">{userProfile.company || 'My Group of Companies'}</span>
                       </div>
-                      <div className="flex justify-between text-xs uppercase tracking-widest font-bold text-black/40 border-b border-black/5 pb-2">
+                      <div className="flex justify-between text-xs uppercase tracking-[0.12em] font-bold text-black/40 border-b border-black/5 pb-2">
                         <span>Code</span>
                         <span className="text-gold-deep">{userProfile.discountCode}</span>
                       </div>
@@ -386,7 +386,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
                     
                     <button 
                       onClick={() => setSelectedDiscount(null)}
-                      className="w-full mt-4 text-[10px] uppercase tracking-widest font-bold text-black/20 hover:text-black/60 transition-colors"
+                      className="w-full mt-4 text-[10px] uppercase tracking-[0.12em] font-bold text-black/20 hover:text-black/60 transition-colors"
                     >
                       Cancel Selection
                     </button>
@@ -411,7 +411,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
                           <div key={log.id} className="flex items-center justify-between p-4 bg-black/2 rounded-2xl border border-black/5">
                             <div>
                               <div className="text-sm font-medium">{log.restaurantId}</div>
-                              <div className="text-[10px] text-black/40 uppercase tracking-widest font-bold">
+                              <div className="text-[10px] text-black/40 uppercase tracking-[0.12em] font-bold">
                                 {log.timestamp?.toDate().toLocaleDateString()}
                               </div>
                             </div>
@@ -448,7 +448,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
                 <button 
                   onClick={handleUpdateProfile}
                   disabled={savingProfile}
-                  className="bg-black text-white px-8 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-gold transition-all flex items-center gap-2 disabled:opacity-50"
+                  className="bg-black text-white px-8 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-[0.12em] hover:bg-gold transition-all flex items-center gap-2 disabled:opacity-50"
                 >
                   {savingProfile ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
                   Save Profile
@@ -475,12 +475,12 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
                       />
                     </label>
                   </div>
-                  <p className="mt-4 text-[10px] text-black/30 italic uppercase tracking-widest font-bold">Change Photo</p>
+                  <p className="mt-4 text-[10px] text-black/30 italic uppercase tracking-[0.12em] font-bold">Change Photo</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">First Name</label>
+                    <label className="block text-[10px] uppercase tracking-[0.12em] font-bold text-black/40 mb-3">First Name</label>
                     <input 
                       type="text" 
                       value={personalProfile.firstName || ''}
@@ -489,7 +489,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">Last Name</label>
+                    <label className="block text-[10px] uppercase tracking-[0.12em] font-bold text-black/40 mb-3">Last Name</label>
                     <input 
                       type="text" 
                       value={personalProfile.lastName || ''}
@@ -500,7 +500,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
                 </div>
 
                 <div>
-                  <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">Display Name</label>
+                  <label className="block text-[10px] uppercase tracking-[0.12em] font-bold text-black/40 mb-3">Display Name</label>
                   <input 
                     type="text" 
                     value={personalProfile.name || ''}
@@ -510,7 +510,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
                 </div>
 
                 <div>
-                  <label className="block text-[10px] uppercase tracking-widest font-bold text-black/40 mb-3">Mobile Number</label>
+                  <label className="block text-[10px] uppercase tracking-[0.12em] font-bold text-black/40 mb-3">Mobile Number</label>
                   <input 
                     type="tel" 
                     value={personalProfile.mobile || ''}
@@ -535,7 +535,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
             className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] bg-green-500 text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-3"
           >
             <CheckCircle className="w-5 h-5" />
-            <span className="text-sm font-bold uppercase tracking-widest">Discount Redeemed Successfully!</span>
+            <span className="text-sm font-bold uppercase tracking-[0.12em]">Discount Redeemed Successfully!</span>
           </motion.div>
         )}
       </AnimatePresence>

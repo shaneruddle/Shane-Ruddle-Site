@@ -161,7 +161,7 @@ export default function PhotoPlacements({ photos, data }: { photos: SitePhoto[];
             return (
               <div key={a.slug} className="border border-black/10 rounded-3xl p-5 md:p-6 bg-white/50">
                 <a href={`/articles/${a.slug}`} target="_blank" rel="noreferrer" className="font-semibold text-ink hover:text-gold-deep">{a.title}</a>
-                <div className="grid lg:grid-cols-3 gap-6 mt-5">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-5">
                   <ul className="lg:col-span-1">
                     <SlotCard
                       label="Header + share image"
@@ -171,8 +171,8 @@ export default function PhotoPlacements({ photos, data }: { photos: SitePhoto[];
                       onReset={() => reset(articleHeaderSlot(a.slug))}
                     />
                   </ul>
-                  <div className="lg:col-span-2">
-                    <p className="text-xs uppercase tracking-widest font-bold text-black/40 mb-3">Photos inside the article</p>
+                  <div className="lg:col-span-2 min-w-0">
+                    <p className="text-xs uppercase tracking-[0.12em] font-bold text-black/40 mb-3">Photos inside the article</p>
                     {inline.length > 0 && (
                       <ul className="space-y-3 mb-5">
                         {inline.map(x => (

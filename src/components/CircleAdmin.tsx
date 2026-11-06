@@ -499,7 +499,7 @@ export default function CircleAdmin() {
           {events.length === 0 ? (
             <div className="p-10 text-center bg-white border border-dashed border-black/15 rounded-2xl text-sm text-black/50">No events loaded yet.</div>
           ) : (
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {events.slice().sort((a, b) => a.title.localeCompare(b.title)).map(e => {
                 const known = peopleAt(e);
                 return (
