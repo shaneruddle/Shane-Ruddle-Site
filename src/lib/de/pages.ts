@@ -62,7 +62,7 @@ export const DE_MOVING_FAQS: { q: string; a: string; href: string }[] = [
   },
   {
     q: "Welches Visum brauche ich für den Ruhestand in Pattaya?",
-    a: "Ein Rentnervisum, das Non-Immigrant O oder das O-A. Sie müssen mindestens 50 sein und ฿800.000 auf einem thailändischen Konto, ฿65.000 Monatseinkommen oder eine Kombination nachweisen (Stand Oktober 2026).",
+    a: "Ein Rentnervisum, das Non-Immigrant O oder das O-A. Sie müssen mindestens 50 sein und ฿800.000 auf einem thailändischen Konto, ฿65.000 Monatseinkommen oder eine Kombination nachweisen (Stand November 2026).",
     href: VISAS_PATH_DE,
   },
   {

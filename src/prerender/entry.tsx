@@ -34,7 +34,7 @@ export { FILE_ARTICLES } from "../lib/fileArticles";
 export { GUIDES, GUIDES_META } from "../lib/guides";
 export { CALCULATOR_FAQS, CALCULATOR_PATH } from "../lib/costOfLiving";
 export { AREAS, AREAS_META, AREAS_FAQS } from "../lib/areas";
-export { VISAS, VISAS_META, VISAS_FAQS, VISAS_PATH } from "../lib/visas";
+export { VISAS, VISAS_META, VISAS_FAQS, VISAS_PATH, RULES_CHECKED } from "../lib/visas";
 export { MOVE_PATH, MOVE_META, MOVE_FAQS } from "../lib/movePlan";
 export { COUNTRIES, countryPath } from "../lib/countries";
 export { QUESTIONS, QUESTIONS_META, QUESTIONS_PATH, ANSWERS_AS_OF, questionMeta } from "../lib/questions";
@@ -62,6 +62,8 @@ export interface StaticArticle {
   authorName?: string;
   createdAt?: string; // ISO
   updatedAt?: string; // ISO
+  /** File articles only: the `updated` frontmatter date, shown on the page. */
+  revisedAt?: string; // ISO
 }
 
 const noop = () => {};
@@ -153,6 +155,7 @@ export function renderArticle(a: StaticArticle): string {
         body={a.body}
         category={a.category}
         createdAt={a.createdAt ? new Date(a.createdAt) : undefined}
+        updatedAt={a.revisedAt ? new Date(a.revisedAt) : undefined}
         imageUrl={a.imageUrl}
         slug={a.slug}
       />

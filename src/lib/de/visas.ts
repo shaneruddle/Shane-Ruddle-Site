@@ -64,7 +64,7 @@ export const VISAS_DE: ThaiVisaDe[] = [
     faqs: [
       {
         q: "Wie viel Geld brauche ich für ein thailändisches Rentnervisum?",
-        a: "฿800.000 auf einem thailändischen Bankkonto oder ein Einkommen von ฿65.000 im Monat oder eine Kombination aus beidem (Stand Oktober 2026). Außerdem müssen Sie mindestens 50 sein.",
+        a: "฿800.000 auf einem thailändischen Bankkonto oder ein Einkommen von ฿65.000 im Monat oder eine Kombination aus beidem (Stand November 2026). Außerdem müssen Sie mindestens 50 sein.",
       },
       {
         q: "Was ist der Unterschied zwischen Non-O und O-A?",
@@ -126,7 +126,7 @@ export const VISAS_DE: ThaiVisaDe[] = [
     faqs: [
       {
         q: "Wie viel Geld brauche ich für das DTV?",
-        a: "Etwa ฿500.000 an Ersparnissen (Stand Oktober 2026). Die Botschaften wollen meist sehen, dass das Geld einige Monate auf dem Konto liegt.",
+        a: "Etwa ฿500.000 an Ersparnissen (Stand November 2026). Die Botschaften wollen meist sehen, dass das Geld einige Monate auf dem Konto liegt.",
       },
       {
         q: "Darf ich mit einem DTV in Thailand arbeiten?",
@@ -188,7 +188,7 @@ export const VISAS_DE: ThaiVisaDe[] = [
     faqs: [
       {
         q: "Was kostet Thailand Privilege?",
-        a: "Die Pakete beginnen bei ฿650.000 für fünf Jahre (Stand Oktober 2026), längere Pakete kosten mehr.",
+        a: "Die Pakete beginnen bei ฿650.000 für fünf Jahre (Stand November 2026), längere Pakete kosten mehr.",
       },
       {
         q: "Darf ich mit Thailand Privilege arbeiten?",
@@ -371,7 +371,7 @@ export const VISAS_DE: ThaiVisaDe[] = [
     faqs: [
       {
         q: "Wie viel Geld brauche ich für ein thailändisches Heiratsvisum?",
-        a: "฿400.000 auf einem thailändischen Bankkonto oder ein Einkommen von ฿40.000 im Monat (Stand Oktober 2026, vor dem Antrag prüfen).",
+        a: "฿400.000 auf einem thailändischen Bankkonto oder ein Einkommen von ฿40.000 im Monat (Stand November 2026, vor dem Antrag prüfen).",
       },
       {
         q: "Darf ich mit einem Heiratsvisum arbeiten?",

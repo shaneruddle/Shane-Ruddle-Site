@@ -3,9 +3,10 @@ title: "Pattaya for Digital Nomads and Remote Workers"
 description: "A Pattaya business owner of 20 years on whether Pattaya suits remote workers: internet, cost of living, how it compares with Bangkok and Chiang Mai, where nomads base themselves, and making friends."
 category: My Advice
 date: 2026-11-01
+updated: 2026-11-07
 ---
 
-People often ask whether Pattaya is a good base for working online. Here's my view.
+Yes, Pattaya is a good base for working online. The internet is very good, in my experience it's cheaper than Bangkok or Chiang Mai, there's now a visa for remote workers in the DTV, and you get city life and beach life in one place. Most remote workers here simply work from their condo. People often ask me about it, so here's my view.
 
 ## Is Thailand good for remote work?
 

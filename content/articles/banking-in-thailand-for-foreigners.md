@@ -3,9 +3,10 @@ title: "Banking and Money in Thailand: A Foreigner's Guide"
 description: "A Pattaya business owner of 20 years on banking in Thailand as a foreigner: opening an account after the crackdown, which bank to try, sending money from home, transfer limits, QR payments and why you should still carry cash."
 category: My Advice
 date: 2026-11-01
+updated: 2026-11-07
 ---
 
-I've banked in Thailand for over 20 years, and it has changed a lot recently. Here's what you need to know.
+Yes, a foreigner can still open a Thai bank account, but it's much harder than it used to be. Since the crackdown on scam centres, you basically have to prove you live here, for example with a long lease and a certificate of residence, or a work permit. These days I'd try Kasikorn Bank (KBank) first. I've banked in Thailand for over 20 years, and it has changed a lot recently. Here's what you need to know.
 
 ## Can a foreigner open a Thai bank account?
 

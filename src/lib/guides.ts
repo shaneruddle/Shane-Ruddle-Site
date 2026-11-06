@@ -73,7 +73,7 @@ export const GUIDES: Guide[] = [
       },
       {
         q: "Which visa do I need to retire in Pattaya?",
-        a: "A retirement visa, the Non-Immigrant O or the O-A. You need to be 50 or over and show ฿800,000 in a Thai bank account, an income of ฿65,000 a month, or a combination (as of October 2026).",
+        a: "A retirement visa, the Non-Immigrant O or the O-A. You need to be 50 or over and show ฿800,000 in a Thai bank account, an income of ฿65,000 a month, or a combination (as of November 2026).",
         slug: "thai-visas-in-pattaya",
       },
       {

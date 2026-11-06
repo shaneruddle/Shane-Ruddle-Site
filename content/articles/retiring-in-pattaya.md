@@ -3,9 +3,10 @@ title: "Retiring in Pattaya: Advice From 20 Years Here"
 description: "Why retirees choose Pattaya, what really catches them out, and the one thing a Pattaya business owner of 20 years advises every retiree to do."
 category: My Advice
 date: 2026-10-30
+updated: 2026-11-07
 ---
 
-I'm not retired, but after 20 years running businesses here I've met a lot of people who came to Pattaya to retire. Here's what I've seen.
+Pattaya is the cheapest of the usual places Westerners retire to, with a lot more to do and a much bigger community. Money is usually not the problem once you adjust your lifestyle. Culture shock is. I'm not retired, but after 20 years running businesses here I've met a lot of people who came to Pattaya to retire. Here's what I've seen.
 
 ## Why do retirees choose Thailand?
 

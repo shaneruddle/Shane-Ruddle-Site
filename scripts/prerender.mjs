@@ -62,6 +62,10 @@ function alternatesFor(urlPath) {
   return [["en", en], ["de", de], ["x-default", en]];
 }
 
+function hasPerson(s) {
+  return s?.["@type"] === "Person" || s?.mainEntity?.["@type"] === "Person";
+}
+
 function page({ urlPath, title: fullTitle, description: fullDescription, body, ogType = "website", image = DEFAULT_OG_IMAGE, schemas = [], lang = "en" }) {
   const title = ssr.fitTitle(fullTitle);
   const description = ssr.fitDescription(fullDescription);
@@ -82,7 +86,9 @@ function page({ urlPath, title: fullTitle, description: fullDescription, body, o
     `<meta name="twitter:description" content="${esc(description)}" />`,
     `<meta name="twitter:image" content="${esc(image)}" />`,
     `<link rel="alternate" type="application/rss+xml" title="Shane Ruddle — Articles" href="${SITE_URL}/rss.xml" />`,
-    ...schemas.map(jsonLd),
+    // Every page carries the full Person node, so the author @id each page references resolves
+    // here (name, businesses, profiles), not only on the homepage.
+    ...(schemas.some(hasPerson) ? schemas : [...schemas, personSchema()]).map(jsonLd),
   ].join("\n    ");
 
   let html = template
@@ -163,7 +169,8 @@ const fileArticles = ssr.FILE_ARTICLES.map((a) => ({
   imageUrl: a.image ? (a.image.startsWith("/") ? SITE_URL + a.image : a.image) : "",
   authorName: "Shane Ruddle",
   createdAt: `${a.date}T00:00:00+07:00`,
-  updatedAt: `${a.date}T00:00:00+07:00`,
+  updatedAt: `${a.updated || a.date}T00:00:00+07:00`,
+  revisedAt: a.updated ? `${a.updated}T00:00:00+07:00` : undefined,
 }));
 const fileSlugs = new Set(fileArticles.map((a) => a.slug));
 articles = [...fileArticles, ...articles.filter((a) => !fileSlugs.has(a.slug))]
@@ -359,7 +366,7 @@ write(ssr.VISAS_PATH, page({
     crumbs([["Home", "/"], ["Thai visas", ssr.VISAS_PATH]]),
   ],
 }));
-urls.push({ loc: ssr.VISAS_PATH });
+urls.push({ loc: ssr.VISAS_PATH, lastmod: ssr.RULES_CHECKED });
 for (const v of ssr.VISAS) {
   const urlPath = `${ssr.VISAS_PATH}/${v.slug}`;
   write(urlPath, page({
@@ -376,6 +383,7 @@ for (const v of ssr.VISAS) {
         url: SITE_URL + urlPath,
         mainEntityOfPage: SITE_URL + urlPath,
         image: DEFAULT_OG_IMAGE,
+        dateModified: ssr.RULES_CHECKED,
         author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
         publisher: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle" },
       },
@@ -383,7 +391,7 @@ for (const v of ssr.VISAS) {
       crumbs([["Home", "/"], ["Thai visas", ssr.VISAS_PATH], [v.name, urlPath]]),
     ],
   }));
-  urls.push({ loc: urlPath });
+  urls.push({ loc: urlPath, lastmod: ssr.RULES_CHECKED });
 }
 
 // ---- Real questions, answered ----
@@ -722,10 +730,10 @@ writeDe(ssr.VISAS_PATH_DE, ssr.VISAS_META_DE, [
 for (const v of ssr.VISAS_DE) {
   const urlPath = `${ssr.VISAS_PATH_DE}/${v.slug}`;
   writeDe(urlPath, { title: v.metaTitle, description: v.description }, [
-    { "@context": "https://schema.org", "@type": "Article", headline: `${v.name}: ${v.official}`, inLanguage: "de", description: v.description, url: SITE_URL + urlPath, mainEntityOfPage: SITE_URL + urlPath, image: DEFAULT_OG_IMAGE, author, publisher: author },
+    { "@context": "https://schema.org", "@type": "Article", headline: `${v.name}: ${v.official}`, inLanguage: "de", description: v.description, url: SITE_URL + urlPath, mainEntityOfPage: SITE_URL + urlPath, image: DEFAULT_OG_IMAGE, dateModified: ssr.RULES_CHECKED, author, publisher: author },
     deFaq(v.faqs),
     deCrumbs([["Thailand-Visum", ssr.VISAS_PATH_DE], [v.name, urlPath]]),
-  ]);
+  ], { lastmod: ssr.RULES_CHECKED });
 }
 for (const a of ssr.DE_ARTICLE_LIST) {
   const urlPath = `${ssr.DE_ARTICLES}/${a.slug}`;

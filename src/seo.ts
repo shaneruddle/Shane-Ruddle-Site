@@ -95,6 +95,17 @@ export function personSchema() {
     nationality: "British",
     alumniOf: { "@type": "CollegeOrUniversity", name: "Bournemouth University" },
     homeLocation: { "@type": "Place", name: "Pattaya, Chon Buri, Thailand" },
+    knowsAbout: [
+      "Pattaya",
+      "Living in Thailand",
+      "Moving to Thailand",
+      "Thai visas",
+      "Pattaya property",
+      "Buying property in Thailand as a foreigner",
+      "Car rental in Thailand",
+      "Running a business in Thailand",
+      "Restaurants and bars in Pattaya",
+    ],
     sameAs: SAME_AS,
     worksFor: ORGANISATIONS.map((o) => ({ "@type": "Organization", name: o.name, url: o.url })),
   };
