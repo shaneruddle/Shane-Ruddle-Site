@@ -29,7 +29,7 @@ At the moment most of my time goes on AI systems. I look at the problems each bu
 
 ## No fixed finishing time
 
-My day isn't structured. I try not to get pulled into things, but sometimes I'm the best person, or the only person, to solve a problem. Some days I work right up until bed. Other days I stop at two or three in the afternoon and go and play padel or go for a run.
+My day isn't structured. I try not to get pulled into things, but sometimes I'm the best person, or the only person, to solve a problem. Some days I work right up until bed. Other days I stop at two or three in the afternoon and go and play padel or [go for a run](/articles/staying-fit-in-pattaya).
 
 ## The best part
 

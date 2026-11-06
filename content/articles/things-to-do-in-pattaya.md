@@ -27,7 +27,7 @@ Want to get out of town? Here are [my favourite day trips from Pattaya](/article
 
 ## What would I skip?
 
-The temples in Pattaya. They're okay, but not that impressive compared with the Grand Palace in Bangkok. If you want temples, save yourself for Bangkok.
+The temples in Pattaya. They're okay, but not that impressive compared with the Grand Palace in Bangkok. If you want temples, save yourself for [Bangkok](/articles/pattaya-vs-bangkok).
 
 ## A hidden gem: hotel day passes
 

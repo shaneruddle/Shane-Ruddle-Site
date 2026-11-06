@@ -9,7 +9,7 @@ I've written about [how I run seven businesses](/articles/how-i-run-seven-busine
 
 ## How did I get started?
 
-It began before AI. During the pandemic there wasn't much going on, so I looked for a new skill and got into Bubble, a no-code platform for building apps. I used it for five or six years and built the Pattaya Rent a Car system and a dozen or so others. Along the way I picked up the basics of how software works: front ends, back ends, repositories, and how systems evolve.
+It began before AI. [During the pandemic](/articles/how-my-businesses-got-through-covid) there wasn't much going on, so I looked for a new skill and got into Bubble, a no-code platform for building apps. I used it for five or six years and built the Pattaya Rent a Car system and a dozen or so others. Along the way I picked up the basics of how software works: front ends, back ends, repositories, and how systems evolve.
 
 Then I saw a post online about how easy it had become to build a website with AI, using Google AI Studio. Google seemed a sensible company to learn with, since they were already a big player, so I started there. I quickly hit its limits, switched to Claude, and I've never really looked back.
 
@@ -33,7 +33,7 @@ Now I never paste API keys into an AI chat. I add them myself or through the ter
 
 No big projects at the moment. Instead, I look for problems in each business and see whether AI can solve them.
 
-A recent example: some of our property agents needed a refresher on our procedures. So we added a training section to the internal portal where agents chat with an AI that plays the customer. At the end, they get graded on their answers.
+A recent example: some of our [property agents](/articles/working-as-a-property-agent-in-pattaya) needed a refresher on our procedures. So we added a training section to the internal portal where agents chat with an AI that plays the customer. At the end, they get graded on their answers.
 
 ## My advice if you want to build your own systems
 

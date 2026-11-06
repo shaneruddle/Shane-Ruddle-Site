@@ -9,7 +9,7 @@ People worry about visiting Pattaya in the rainy season. Here's what it's actual
 
 ## When does it rain?
 
-The rain usually starts in May, just after Songkran, and May can be one of the worst months. Depending on the year, August and September can be quite bad too.
+The rain usually starts in May, just after [Songkran](/articles/songkran-in-pattaya), and May can be one of the worst months. Depending on the year, August and September can be quite bad too.
 
 ## How bad is it?
 

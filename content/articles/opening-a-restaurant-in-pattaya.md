@@ -19,7 +19,7 @@ People tell me, "I've got lots of friends, they'll come." They will, at first. B
 
 The other mistake I see all the time is spending the whole budget before opening. Say someone has ฿4 million. They spend all of it on the fit-out and open with nothing left, assuming they'll make money from day one.
 
-Keep enough to cover your costs for at least a year. You'll take some money, so you won't need to cover every fixed cost in full, but you won't take enough to turn a profit. If you're in profit within a year, you're doing really well. After a year is a good goal.
+Keep enough to cover your costs for at least a year. My [business reality check](/business-in-pattaya) gives you a rough budget for your idea. You'll take some money, so you won't need to cover every fixed cost in full, but you won't take enough to turn a profit. If you're in profit within a year, you're doing really well. After a year is a good goal.
 
 Be wary of other owners' success stories, too. People like to sound smarter than they are. "I got my money back in 18 months" might really have been two and a half years. Believe it, and you go in with false expectations.
 

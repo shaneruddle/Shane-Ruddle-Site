@@ -29,13 +29,13 @@ We were also lucky to be a first mover in Jomtien. The area has grown a lot sinc
 
 ## How did one Hemingways become three?
 
-Jomtien was the flagship, and it was making money reasonably early on. Then COVID hit. When we came out of it, a site came up in Central Pattaya that was the perfect size, a big place just like Jomtien, and far enough away that the two wouldn't compete for the same customers. The concept worked, so why not replicate it?
+Jomtien was the flagship, and it was making money reasonably early on. Then [COVID hit](/articles/how-my-businesses-got-through-covid). When we came out of it, a site came up in Central Pattaya that was the perfect size, a big place just like Jomtien, and far enough away that the two wouldn't compete for the same customers. The concept worked, so why not replicate it?
 
 Hemingways Lakeside came about the same way. It's a long way from the other two, with a different customer base out there.
 
 ## My advice if you want to open a restaurant and bar here
 
-Don't go it alone. Team up with somebody who's already doing it, or has done it before. It may look easy from the outside, but it really, really isn't.
+Don't go it alone. Team up with somebody who's already doing it, or has done it before. It may look easy from the outside, but it really, really isn't. Here's [what nobody tells you before you open](/articles/opening-a-restaurant-in-pattaya).
 
 For the wider picture, read my advice on [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya), how I went [from bar manager to seven businesses](/articles/bar-manager-to-7-businesses), and [where a restaurant owner eats in Pattaya](/articles/where-a-restaurant-owner-eats-in-pattaya).
 

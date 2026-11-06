@@ -23,7 +23,7 @@ For a long time we hovered around 40 to 50 cars. Steady, solid, dependable. Then
 
 ## The pandemic: survive first, then move fast
 
-COVID was brutal for Pattaya. Tourism stopped overnight, and a lot of rental companies didn't make it.
+[COVID was brutal for Pattaya](/articles/how-my-businesses-got-through-covid). Tourism stopped overnight, and a lot of rental companies didn't make it.
 
 We did, largely because we had money set aside. When demand came back, it came back very quickly, and many of our competitors simply weren't there anymore. Because we had cash on the sidelines, we could deploy it straight away and buy cars when others couldn't. The fleet grew past a hundred.
 
@@ -47,7 +47,7 @@ That's why referrals and returning customers mean so much to us. Someone recomme
 
 ## What's next
 
-Right now I'm refining our systems using AI, like a lot of businesses around the world. To be clear, this isn't about cutting staff. Our team is a big part of why customers come back. It's about making the whole experience smoother and more seamless for the customer, from booking to handing back the keys.
+Right now I'm [refining our systems using AI](/articles/how-i-use-ai-in-my-businesses), like a lot of businesses around the world. To be clear, this isn't about cutting staff. Our team is a big part of why customers come back. It's about making the whole experience smoother and more seamless for the customer, from booking to handing back the keys.
 
 ## Sixteen years on
 

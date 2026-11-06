@@ -19,7 +19,7 @@ Many retirees here are men, and for some of them Pattaya is a chance to start ag
 
 ## Is money the biggest problem?
 
-Usually not. Some people arrive thinking they haven't quite got enough. But once you adjust your lifestyle, so you're not out drinking, partying or eating in the best restaurants all the time, it becomes very affordable. For real numbers, read [Is Pattaya Expensive?](/articles/is-pattaya-expensive)
+Usually not, and it's [rarely why people leave](/articles/do-retirees-leave-pattaya). Some people arrive thinking they haven't quite got enough. But once you adjust your lifestyle, so you're not out drinking, partying or eating in the best restaurants all the time, it becomes very affordable. For real numbers, read [Is Pattaya Expensive?](/articles/is-pattaya-expensive)
 
 ## What catches retirees out?
 
@@ -31,6 +31,6 @@ The pace is another one. Here it's very much "tomorrow, tomorrow". In the West, 
 
 ## My best advice for retirees
 
-Try to learn some of the language. You don't need to be fluent. Basic Thai won't earn you special respect or different treatment, but it tells people around you that you're not a tourist. You've chosen Thailand and settled here. It just makes living here that little bit easier.
+Try to [learn some of the language](/articles/learning-thai). You don't need to be fluent. Basic Thai won't earn you special respect or different treatment, but it tells people around you that you're not a tourist. You've chosen Thailand and settled here. It just makes living here that little bit easier.
 
-For the visa side, read [visas in Pattaya](/articles/thai-visas-in-pattaya), and for where to live, [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya). Don't forget [healthcare and insurance](/articles/healthcare-in-pattaya) either, or [making friends](/articles/making-friends-in-pattaya).
+For the visa side, read [visas in Pattaya](/articles/thai-visas-in-pattaya) or my page on the [retirement visa](/thai-visas/retirement-visa), and for where to live, [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya). Don't forget [healthcare and insurance](/articles/healthcare-in-pattaya) either, or [making friends](/articles/making-friends-in-pattaya).

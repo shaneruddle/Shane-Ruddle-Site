@@ -9,7 +9,7 @@ I've driven around Pattaya for more than 20 years, and I'm writing this partly f
 
 ## Has it got worse?
 
-Yes, as the city has grown. It would be a lot worse if the roads hadn't improved. Projects like the tunnel at Pattaya Klang, where Central Pattaya Road crosses Sukhumvit, have helped, and plenty of roads have been built or resurfaced. The infrastructure has improved no end. There are just far more vehicles.
+Yes, as the city has grown. It would be a lot worse if the roads hadn't improved. Projects like the tunnel at Pattaya Klang, where Central Pattaya Road crosses Sukhumvit, have helped, and plenty of roads have been built or resurfaced. The infrastructure has improved no end. There are just far more vehicles. (If I were mayor, [I'd start with roundabouts](/articles/if-i-were-mayor-of-pattaya).)
 
 ## When is it worst?
 

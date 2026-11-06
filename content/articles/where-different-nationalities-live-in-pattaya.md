@@ -13,7 +13,7 @@ The Soi Buakhao area is very British. Prices are good, there are lots of sports 
 
 ## Russian
 
-There are two main Russian areas. One is on the Jomtien side of Pratumnak, around the road down to Pattaya Park, with a big Russian market at the bottom and mostly Russian-run businesses along it. The more affluent Russians tend to be in Wongamat. Cozy Beach used to be popular too, but the community seems to have moved more towards Pratumnak.
+There are two main Russian areas. One is on the Jomtien side of Pratumnak, around the road down to Pattaya Park, with a big Russian market at the bottom and mostly Russian-run businesses along it. The more affluent Russians tend to be in [Wongamat](/areas/wongamat-naklua). Cozy Beach used to be popular too, but the community seems to have moved more towards Pratumnak.
 
 That said, many Russians I know have deliberately rented elsewhere. They came here to meet new people and learn a different way of life, not to be surrounded by other Russians.
 
@@ -31,7 +31,7 @@ Scandinavians are spread out, with quite a few around Soi Buakhao. Honestly, a l
 
 ## German
 
-Naklua, from Terminal 21 up to around Soi 18, has long been the German area, with at least half a dozen German restaurants.
+Naklua, from Terminal 21 up to around Soi 18, has long been the German area, with at least half a dozen German restaurants. (If German is your first language, some of my guides are [in German too](/de).)
 
 ## American
 

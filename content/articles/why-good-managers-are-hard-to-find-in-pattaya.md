@@ -33,6 +33,6 @@ We get CVs every week for our property companies, and many show no real effort. 
 
 ## Think that's you? Get in touch
 
-If you want to stay here and build a life, you want a job, you have a strong work ethic, you'll put the effort in and you're adaptable, [get in touch](/contact).
+If you want to stay here and build a life, you want a job, you have a strong work ethic, you'll put the effort in and you're adaptable, [send me your CV](/work-in-pattaya).
 
 But do me a favour: put some thought into your application rather than sending it out to everyone. There aren't many jobs here, so it's worth getting it right. For more, read [finding a job in Pattaya](/articles/finding-a-job-in-pattaya) and [what makes a good manager in Pattaya](/articles/what-makes-a-good-manager-in-pattaya).

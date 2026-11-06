@@ -5,7 +5,7 @@ category: My Advice
 date: 2026-11-06
 ---
 
-I came to Pattaya for a couple of months to play golf. I didn't leave Thailand for the next six years. Here's what I'd tell my younger self if I could go back.
+I came to Pattaya for a couple of months to [play golf](/articles/golf-in-pattaya). I didn't leave Thailand for the next six years. Here's what I'd tell my younger self if I could go back.
 
 ## 1. Enjoy yourself without the alcohol
 

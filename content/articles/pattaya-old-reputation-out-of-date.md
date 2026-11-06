@@ -38,7 +38,7 @@ And once families arrive, a city has to grow around them. Pattaya has.
 
 ## A city that grew up
 
-Twenty years ago, shopping meant Mike's, which was less a shopping centre and more an air-conditioned market. Now we have Central and Terminal 21, along with everything that comes with them.
+Twenty years ago, shopping meant Mike's, which was less a shopping centre and more an air-conditioned market. Now we have [Central and Terminal 21](/articles/shopping-in-pattaya), along with everything that comes with them.
 
 The everyday things have improved too. The beaches are cleaner, the roads are better, and there are pavements in places where you can now walk with a pushchair, something you simply couldn't do before. There are far more restaurants, the food is much better, and the hotels have improved at every level.
 
@@ -66,7 +66,7 @@ So if you haven't been to Pattaya in ten years or more, come back and take a loo
 
 I live here, and some months even I struggle to keep up. New condos go up all the time, new hotels open, and new restaurants appear. For anyone who hasn't been in a decade, the transformation is massive.
 
-The Pattaya of twenty years ago isn't coming back. Having watched the city grow up, I can't say I miss it.
+The Pattaya of twenty years ago isn't coming back. Having watched the city grow up, I can't say I miss it. (Plenty of old hands disagree, and I've given [their side of the argument](/articles/was-pattaya-better-in-the-good-old-days) too.)
 
 If you're thinking about making Pattaya home, [East Coast Real Estate](https://thaiproperty.com) can help you find the right place.
 

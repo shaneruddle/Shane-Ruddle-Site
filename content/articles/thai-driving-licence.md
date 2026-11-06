@@ -19,7 +19,7 @@ You have two choices. A lot of people now use an agent, who charges around ฿2,
 
 If you're doing it yourself, you'll need:
 
-- Your passport, with a non-tourist visa
+- Your passport, with a [non-tourist visa](/thai-visas)
 - Your licence from home (otherwise you'll have to take the full test)
 - A certificate of residence, or other proof you live here, such as a work permit
 - Passport photos

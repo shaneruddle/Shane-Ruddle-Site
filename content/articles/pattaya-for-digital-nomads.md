@@ -25,7 +25,7 @@ Nearly always from their condo. There are a few coworking spaces in Pattaya, but
 
 ## Where should you stay?
 
-Again, I'd choose your area for the lifestyle, not the work. But if you want to be around other remote workers, Pratumnak has a lot of them. For more on the areas, read [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya).
+Again, I'd choose your area for the lifestyle, not the work. But if you want to be around other remote workers, [Pratumnak](/areas/pratumnak) has a lot of them. For more on the areas, read [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya).
 
 ## Is it lonely?
 
@@ -35,6 +35,6 @@ So a typical day is working alone in your room, but still getting out. Pattaya i
 
 ## My advice
 
-Do it, depending on what you earn online. I can't think of a better country than Thailand for remote workers. There's now a visa option for remote workers, the Destination Thailand Visa, the cost of living is much lower than most places, and you have the weather. I think it's a great place to be a young digital nomad.
+Do it, depending on what you earn online. I can't think of a better country than Thailand for remote workers. There's now a visa option for remote workers, the [Destination Thailand Visa](/thai-visas/dtv-visa), the cost of living is much lower than most places, and you have the weather. I think it's a great place to be a young digital nomad.
 
 For the work side, read [working remotely in Pattaya](/articles/working-remotely-in-pattaya). For the visa details, read [visas in Pattaya](/articles/thai-visas-in-pattaya), and for costs, [Is Pattaya Expensive?](/articles/is-pattaya-expensive)

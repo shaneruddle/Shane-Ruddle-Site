@@ -39,6 +39,6 @@ Almost never these days. In my experience, around 99% of rentals charge electric
 
 As a ballpark, budget around ฿20,000 a month. Across East Coast Real Estate and Alan Bolton, our historical average comes out at just over ฿18,000, and that's for the typical renter taking a one-bed of 30 to 45 square metres.
 
-For what each neighbourhood is like, see [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya), and for the rest of your monthly budget, [Is Pattaya Expensive?](/articles/is-pattaya-expensive) If you're thinking of buying instead, read [buying a condo in Pattaya as a foreigner](/articles/buying-a-condo-in-pattaya).
+For what each neighbourhood is like, see [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya) or my [area finder](/areas), and for the rest of your monthly budget, [Is Pattaya Expensive?](/articles/is-pattaya-expensive) If you're thinking of buying instead, read [buying a condo in Pattaya as a foreigner](/articles/buying-a-condo-in-pattaya).
 
 When you're ready to look, [East Coast Real Estate](https://thaiproperty.com) can show you what's available.

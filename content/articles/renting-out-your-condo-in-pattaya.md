@@ -31,7 +31,7 @@ I get the appeal of renting your condo out while you're not using it, like renti
 
 ## How do you find and keep a good tenant?
 
-To find one, use an agency. You can advertise on Facebook yourself and you might get lucky, but I've written before about the problems that can come up without a neutral third party in the middle.
+To find one, use an agency. You can advertise on Facebook yourself and you might get lucky, but [I've written before](/articles/renting-a-condo-in-pattaya) about the problems that can come up without a neutral third party in the middle.
 
 To keep one, just be reasonable. If the tenant tells you the bathroom smells and you refuse to fix it, don't be surprised when they move out at the end of the tenancy. Some requests are unreasonable, and that's where the agency comes in. But if you're an unreasonable landlord, you won't just lose that tenant. Word gets around the agencies, and you'll struggle to find the next one.
 

@@ -23,7 +23,7 @@ Wise used to be the cheapest way by far, and it's still a good option. But high 
 
 The fee is usually small. Where they make their money is the exchange rate, so always check the rate you're being offered.
 
-If you're a long-term resident bringing income in, check with a tax adviser whether any of it is taxable here.
+If you're a long-term resident bringing income in, check with a tax adviser whether any of it is taxable here. If you're coming from Britain, my page on [moving to Thailand from the UK](/move-to-thailand/from-the-uk) covers pensions and tax.
 
 ## What catches people out?
 

@@ -11,7 +11,7 @@ After 20 years of managing people in Pattaya, and hiring managers of my own, I t
 
 You can arrive with your own idea of how a business should work, but you need to adapt quickly once you discover how things really work here, with Thai staff, the regulations and everything else.
 
-When I left the Sportsman, the manager who took over came to me a few months in, pulling his hair out. He couldn't get through to the staff, he didn't understand the dynamic, and he thought a lot of them didn't like him. I told him the same thing had happened to me. Thai staff take time to warm up to a new foreign manager. Over the years they've worked with a lot of foreigners, good, bad and indifferent, so they're guarded. A few months later we sat down again, and he said things were much better.
+When I [left the Sportsman](/articles/bar-manager-to-7-businesses), the manager who took over came to me a few months in, pulling his hair out. He couldn't get through to the staff, he didn't understand the dynamic, and he thought a lot of them didn't like him. I told him the same thing had happened to me. Thai staff take time to warm up to a new foreign manager. Over the years they've worked with a lot of foreigners, good, bad and indifferent, so they're guarded. A few months later we sat down again, and he said things were much better.
 
 Depending on your personality, expect it to take about six months.
 

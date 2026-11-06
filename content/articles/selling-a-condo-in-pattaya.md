@@ -27,7 +27,7 @@ It's also a good way to choose who to work with. If you ask three or four agenci
 
 It depends on how motivated you are. My normal advice is to list exclusively with one agency to start with, give it around three months, then open it up to others. If you need to sell quickly, put it with as many as you can.
 
-Either way, don't dilute. There's little point listing with two agencies that serve the same kind of buyer. Better to pair one predominantly English-speaking agency with agencies that specialise in other markets, such as French, Chinese or Russian buyers.
+Either way, don't dilute. There's little point listing with two agencies that serve the same kind of buyer. Better to pair one predominantly English-speaking agency with agencies that specialise in other markets, such as French, Chinese or Russian buyers. ([Here's where each nationality tends to live](/articles/where-different-nationalities-live-in-pattaya).)
 
 ## What do you need ready before you list?
 

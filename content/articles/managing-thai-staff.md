@@ -28,7 +28,7 @@ Some of our team at Hemingways have been with us since we opened, and I think th
 
 ## My advice if you're hiring Thai staff for the first time
 
-It takes a lot longer than you think to build the team you want. Expect very high staff turnover in the early days of any business, and often you won't know why. Something just doesn't suit them, whether it's the company, the location, the salary, the boss, or even the staff food.
+It takes a lot longer than you think to build the team you want. Expect very high staff turnover in the early days of any business ([it surprised me when I opened my first restaurant](/articles/opening-a-restaurant-in-pattaya)), and often you won't know why. Something just doesn't suit them, whether it's the company, the location, the salary, the boss, or even the staff food.
 
 People will come and go. Eventually a few will fit and stay, and you might not know why they stay either. Maybe they've just moved to a room within walking distance. Then you build on that core team, and that can take a lot longer than you'd expect.
 

@@ -15,7 +15,7 @@ Looking back, I was a bit inexperienced and probably didn't take it as seriously
 
 ## What went wrong?
 
-I'd signed a three-year lease with an option to renew. When it came up, the landlady wasn't keen to renew. In the end she said she would, but at a higher rent, and wouldn't tell me what it would be.
+I'd signed a [three-year lease](/articles/business-leases-and-landlords-in-pattaya) with an option to renew. When it came up, the landlady wasn't keen to renew. In the end she said she would, but at a higher rent, and wouldn't tell me what it would be.
 
 The timing made it impossible. The nets around the range were starting to break, and golf balls were getting out because the netting wasn't good enough. Fixing it properly meant new netting and extra frames around the whole perimeter, which would have cost an awful lot of money. I couldn't put that in without knowing whether I'd still have the lease. So I walked away. The business lasted about three years.
 
@@ -23,7 +23,7 @@ The timing made it impossible. The nets around the range were starting to break,
 
 A fair amount of money, and it wasn't even my money. I'd borrowed it from my parents, so I had to pay it back after the business failed.
 
-But the money wasn't what hurt most. It was the first time I'd really failed at anything significant in my life, and that was a new feeling. In hindsight, it was the best thing that could have happened to me. It changed how I see business and made me take it far more seriously, knowing there are no guarantees and that there's a real downside.
+But the money wasn't what hurt most. It was the first time I'd really failed at anything significant in my life, and that was a new feeling. In hindsight, it was the best thing that could have happened to me. (A business partner told me at the time that [I'd be surprised how quickly things turn around](/articles/best-business-advice-ive-been-given). He was right.) It changed how I see business and made me take it far more seriously, knowing there are no guarantees and that there's a real downside.
 
 ## What came out of it?
 

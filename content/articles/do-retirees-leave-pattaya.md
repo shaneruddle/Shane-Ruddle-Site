@@ -25,4 +25,4 @@ It's tied up with family, too. When you're unwell, you may get better care back 
 
 ## My advice
 
-If you're planning to retire here, the money side is more flexible than people think, because you can always move somewhere cheaper. Health is what to plan for. Get the best health insurance you can afford, understand exactly what it covers and its limits, and have a plan for what you'd do if something serious happened.
+If you're planning to retire here, the money side is more flexible than people think, because you can always move somewhere cheaper. Health is what to plan for. Get the best health insurance you can afford, understand exactly what it covers and its limits, and have a plan for what you'd do if something serious happened. My [move to Thailand planner](/move-to-thailand) puts the visa, area and budget together in one place.

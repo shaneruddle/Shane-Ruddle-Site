@@ -16,7 +16,7 @@ The real danger is the roads. If you drive your children around in a car, you're
 
 ## Doesn't the nightlife affect family life?
 
-Not really, because families don't live near it. The nightlife is in the city centre, where the tourists are. Most families live in East Pattaya, where it's barely noticeable. Just as in any big city, you wouldn't raise children right in the middle of the busiest area, and here you don't have to.
+Not really, because families don't live near it. The nightlife is in the city centre, where the tourists are. Most families live in [East Pattaya](/areas/east-pattaya), where it's barely noticeable. Just as in any big city, you wouldn't raise children right in the middle of the busiest area, and here you don't have to.
 
 ## What's the best area in Pattaya for families?
 
@@ -32,7 +32,7 @@ Plenty, and far more than 20 years ago. There are water parks, theme parks and z
 
 ## Which international schools are in Pattaya, and what do they cost?
 
-The choice is now excellent, and some of the international schools are exceptional. The ones I'd mention are:
+The choice is now excellent, and some of the international schools are exceptional (compare them in my [international schools chooser](/international-schools-pattaya)). The ones I'd mention are:
 
 - **Rugby School Thailand,** arguably the best
 - **Highgate International School Thailand,** a brand new school that opened in August 2026
@@ -59,7 +59,7 @@ At university age. Bangkok has some very good universities. Still, for most inte
 
 ## My advice to parents thinking of moving
 
-Do your research, and go in with your eyes open. Pattaya has its pitfalls, like anywhere. Look at the schools and visit them, rent in East Pattaya before you commit to buying, and plan how your kids will get around safely. Get those right, and I think it's a fantastic place to bring up children.
+Do your research, and go in with your eyes open. Pattaya has its pitfalls, like anywhere. Look at the schools and visit them, rent in East Pattaya before you commit to buying ([here's why I'd rent a house](/articles/buying-a-house-in-pattaya)), and plan how your kids will get around safely. Get those right, and I think it's a fantastic place to bring up children.
 
 For more on day-to-day life here, read [what it's really like living in Pattaya](/articles/living-in-pattaya). And if you're looking for a family home to rent in East Pattaya, [East Coast Real Estate](https://thaiproperty.com) can help.
 

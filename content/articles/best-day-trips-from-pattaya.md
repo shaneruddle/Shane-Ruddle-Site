@@ -9,7 +9,7 @@ When friends visit and want to get out of the city for a day, these are the plac
 
 ## Bang Saray
 
-If you've got a car and one free day, this is where I'd go first. It's a quaint little fishing village that reminds me of Pattaya 10 or 20 years ago. You can walk around, the beach is nice, and there are plenty of seafood restaurants for lunch.
+If you've got a car and one free day, this is where I'd go first. It's a quaint little fishing village that reminds me of Pattaya 10 or 20 years ago. You can walk around, the beach is nice, and there are plenty of seafood restaurants for lunch. Here's [my full Bang Saray day out](/articles/bang-saray-from-pattaya).
 
 ## Koh Lan
 
@@ -47,4 +47,4 @@ For a full day in one place, like Nong Nooch, a taxi there and back works fine. 
 
 If you'd like a car for the day, [Pattaya Rent a Car](https://pattayarentacar.com) can help. Before you go, read [driving in Pattaya](/articles/driving-in-pattaya), and for things to do in town, [things to do in Pattaya](/articles/things-to-do-in-pattaya).
 
-For trips further afield, read my series on [trips from Pattaya](/articles/koh-chang-from-pattaya), starting with Koh Chang, Kanchanaburi, Khao Yai and Rayong.
+For trips further afield, read my series on [trips from Pattaya](/articles/koh-chang-from-pattaya), starting with Koh Chang, Kanchanaburi, Khao Yai and Rayong, or let my [trips from Pattaya planner](/trips-from-pattaya) suggest one.

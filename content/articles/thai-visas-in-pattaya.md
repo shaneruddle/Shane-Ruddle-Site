@@ -9,7 +9,7 @@ Visa rules in Thailand change often, so treat this as my experience rather than 
 
 ## What visa am I on?
 
-I'm on a Non-Immigrant B visa, the business visa, which you need to work in Thailand. It runs alongside your work permit.
+I'm on a [Non-Immigrant B visa](/thai-visas/business-visa-work-permit), the business visa, which you need to work in Thailand. It runs alongside your work permit.
 
 It's always been easy for me, because I've used the same agent for the last 20 years. She's still in business, I pay her, and she does it for me.
 
@@ -21,7 +21,7 @@ Retirees use a retirement visa, either the Non-Immigrant O (applied for and then
 
 ## Which visa is best for digital nomads and remote workers?
 
-For people working online, there's the DTV, the Destination Thailand Visa. It lasts five years, with stays of up to 180 days per entry, and you need to show around ฿500,000 in savings.
+For people working online, there's the [DTV, the Destination Thailand Visa](/thai-visas/dtv-visa). It lasts five years, with stays of up to 180 days per entry, and you need to show around ฿500,000 in savings.
 
 Understand what it is, though: it's essentially a long-term tourist visa. Even though it can last up to five years, you're still classed as a tourist, not an immigrant, so things like opening a bank account can be a problem, depending on the bank. (More in [banking in Thailand for foreigners](/articles/banking-in-thailand-for-foreigners), and [Pattaya for digital nomads](/articles/pattaya-for-digital-nomads).)
 
@@ -33,6 +33,6 @@ Someone I know bought an Elite visa, now called Thailand Privilege. It cost him 
 
 Then he decided he wanted to work. Thailand Privilege isn't a work visa, and there was no way to convert it into a business visa, so he had to walk away from it. It was a complete waste of money. He's now on a Non-Immigrant B visa alongside a work permit, like me.
 
-The lesson: think about what you might want to do here in a few years, not just now, and choose the visa that fits.
+The lesson: think about what you might want to do here in a few years, not just now, and choose the visa that fits. My [visa finder](/thai-visas) asks a few questions and points you to the right one.
 
 If you're thinking of working or starting a business here, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya) and [what it's really like living in Pattaya](/articles/living-in-pattaya).

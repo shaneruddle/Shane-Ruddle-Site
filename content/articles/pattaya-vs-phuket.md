@@ -33,7 +33,7 @@ The exception is the very wealthy who want a million-dollar villa overlooking th
 
 ## Which is easier to get to from Bangkok?
 
-This is another massive advantage for Pattaya. We're about an hour and a half from Suvarnabhumi, Bangkok's main airport ([here's how to get here](/articles/bangkok-airport-to-pattaya)), and we also have U-Tapao airport nearby. It's also much easier to get out to another country from here.
+This is another massive advantage for Pattaya. We're about an hour and a half from Suvarnabhumi, Bangkok's main airport ([here's how to get here](/articles/bangkok-airport-to-pattaya)), and we also have U-Tapao airport nearby ([here's what's happening with it](/pattaya-future)). It's also much easier to get out to another country from here.
 
 To reach Phuket from Bangkok, it's roughly a 10-hour drive, or a flight of about an hour and 20 minutes, which costs extra. And once you're in Phuket, you'll need a car to get around anyway. Purely on logistics, Pattaya makes much more sense.
 

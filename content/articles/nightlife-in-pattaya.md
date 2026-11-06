@@ -5,7 +5,7 @@ category: My Advice
 date: 2026-10-30
 ---
 
-In my younger years, a night out meant Walking Street. It's changed a lot since I arrived, and I haven't had a drink in over 10 years, so these days my evenings out look very different.
+In my younger years, a night out meant Walking Street. It's [changed a lot since I arrived](/articles/was-pattaya-better-in-the-good-old-days), and I haven't had a drink in over 10 years, so these days my evenings out look very different.
 
 ## Where do I go for a night out now?
 

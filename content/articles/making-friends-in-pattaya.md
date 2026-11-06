@@ -15,7 +15,7 @@ Some of the older guys who like a drink just pick a regular bar and get chatting
 
 ## How did I make friends?
 
-Through golf, at first. I was fortunate to be a good golfer, and I was a lot younger than the average person in Pattaya back then. People at the driving range could see me hitting balls, so there was natural curiosity. Every day someone would come over wanting my story: my handicap, where I was from, how old I was.
+Through [golf](/articles/golf-in-pattaya), at first. I was fortunate to be a good golfer, and I was a lot younger than the average person in Pattaya back then. People at the driving range could see me hitting balls, so there was natural curiosity. Every day someone would come over wanting my story: my handicap, where I was from, how old I was.
 
 It wasn't long before I was invited to play. Who doesn't want to play with someone who might teach them something? And golf is a great way to get to know people. You drive to the course together, play for four or five hours, drive back, and quite often stop for a drink on the way home.
 

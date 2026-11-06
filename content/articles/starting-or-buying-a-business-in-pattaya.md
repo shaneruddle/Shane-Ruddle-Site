@@ -15,7 +15,7 @@ If you can buy a business that already has customers, you save yourself that tim
 
 ## What should you check before buying a business?
 
-The normal things first: check the finances, and ask why the seller really wants out. Then look for the hidden problems.
+The normal things first: check the finances, and ask why the seller really wants out. (My [deal checker](/business-in-pattaya/buying-a-business) runs through the checks I'd do.) Then look for the hidden problems.
 
 **The team.** You can buy a really well-run business only to find the staff leave the moment you take over. Make sure the people in place are happy and plan to stay. I've written more about [finding and keeping good foreign staff](/articles/hiring-foreign-staff-in-pattaya).
 

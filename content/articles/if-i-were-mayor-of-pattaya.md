@@ -29,7 +29,7 @@ To be fair, the pavements are much better than they used to be. They're just not
 
 People might expect me to mention the flooding, but I think that's improved a lot. We still get some in a really heavy downpour, but with that volume of water I don't think much more can be done. More in [the rainy season in Pattaya](/articles/rainy-season-in-pattaya).
 
-What I'd add is roundabouts. In the UK and most of Europe they're everywhere, and I think they keep traffic flowing. Here it's stop-start at traffic lights. More in [Pattaya traffic](/articles/pattaya-traffic).
+What I'd add is roundabouts. (As I tell our rental customers, [you'll use U-turns instead](/articles/driving-in-pattaya).) In the UK and most of Europe they're everywhere, and I think they keep traffic flowing. Here it's stop-start at traffic lights. More in [Pattaya traffic](/articles/pattaya-traffic).
 
 ## 5. Do the job properly the first time
 
@@ -43,4 +43,4 @@ Pattaya is good at attracting tourists. I'd put more emphasis on traditional Tha
 
 This one isn't really a mayor's decision, but it's my biggest bugbear. I understand that taxpayers might pay a bit less, but I don't see it in most other countries I visit, like Vietnam, Japan, Singapore or Dubai. If they have it, it isn't obvious. Here it's carved into wooden signs at national parks, in English, and the foreigner price can be ten times the Thai price. It puts a negative spin on people's trips. I'd scrap it.
 
-For more on where the city is going, read [where Pattaya is heading](/articles/where-pattaya-is-heading) and [why Pattaya's old reputation is out of date](/articles/pattaya-old-reputation-out-of-date).
+For more on where the city is going, read [where Pattaya is heading](/articles/where-pattaya-is-heading), see my [Pattaya future timeline](/pattaya-future), and [why Pattaya's old reputation is out of date](/articles/pattaya-old-reputation-out-of-date).

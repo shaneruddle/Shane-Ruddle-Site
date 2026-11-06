@@ -15,7 +15,7 @@ Bear in mind the staffing rule. To get a work permit through your own company, y
 
 ## What does it cost?
 
-A small service business like that can realistically be set up for around ฿300,000 to ฿400,000.
+A small service business like that can realistically be set up for around ฿300,000 to ฿400,000. My [business reality check](/business-in-pattaya) gives you a rough budget for your own idea.
 
 I know because I did exactly that. About 20 years ago I set up Pattaya Job Centre. It was a desk in an office that cost ฿10,000 a month, run by my Thai girlfriend at the time. The costs were registering the company, desks and computers, and it came to about ฿200,000.
 
@@ -37,6 +37,6 @@ Honestly, though, the world has changed so much that starting from scratch is ve
 
 ## My advice: start small
 
-If you're set on starting from scratch, keep the risk low. Don't invest too much until you've found your feet. You can always scale up later, or pivot to a different business. Start with only as much money as you can afford to lose, because a lot of people come here and lose it all.
+If you're set on starting from scratch, keep the risk low. Don't invest too much until you've found your feet. You can always scale up later, or pivot to a different business. Start with only as much money as you can afford to lose, because a lot of people come here and lose it all. If you've only got around ฿1 million, here's [what I'd do with it instead](/articles/what-id-do-with-1-million-baht-in-pattaya).
 
 For the ownership rules and Thai partners, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya). This is part of my series on working in Pattaya: read [finding a job as a foreigner](/articles/finding-a-job-in-pattaya), [teaching English](/articles/teaching-english-in-pattaya), [working in hospitality](/articles/working-in-hospitality-in-pattaya) and [working remotely](/articles/working-remotely-in-pattaya).

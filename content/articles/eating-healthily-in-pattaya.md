@@ -21,7 +21,7 @@ The healthy part, in my opinion, is the portion size, which is usually quite sma
 
 ## How did Cajun Life Cafe start?
 
-I didn't open it. It was started by Jeff, who's from Louisiana. He got stuck here during COVID, and his work in oil and gas was in jeopardy. There weren't many healthy options in Pattaya then, and no Cajun food at all, so he opened a restaurant. He knew Cajun food, but he'd never run a restaurant.
+I didn't open it. It was started by Jeff, who's from Louisiana. He got stuck here [during COVID](/articles/how-my-businesses-got-through-covid), and his work in oil and gas was in jeopardy. There weren't many healthy options in Pattaya then, and no Cajun food at all, so he opened a restaurant. He knew Cajun food, but he'd never run a restaurant.
 
 As we came out of COVID, the oil and gas jobs started coming back, and he decided to go back to it and sell. I knew him, so I was one of the people he asked. Of course I was interested, and I bought it from him.
 
@@ -33,6 +33,6 @@ What sets us apart is a custom menu. You can order exactly how many grams of chi
 
 ## Where should you go?
 
-There are healthy options all over the city, but Pratumnak has the biggest concentration. Of course I'd put Cajun at the top, and it's one of the busiest. A few more healthy restaurants have opened in the area recently, including a national chain, which shows how much demand has grown.
+There are healthy options all over the city, but [Pratumnak](/areas/pratumnak) has the biggest concentration. Of course I'd put Cajun at the top, and it's one of the busiest. A few more healthy restaurants have opened in the area recently, including a national chain, which shows how much demand has grown.
 
 For more, read [staying fit in Pattaya](/articles/staying-fit-in-pattaya), [where a restaurant owner eats in Pattaya](/articles/where-a-restaurant-owner-eats-in-pattaya) and [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya).

@@ -27,7 +27,7 @@ There are discounts around the city for teachers too. At Hemingways Lakeside, fo
 
 About 20 years ago, when I worked at the Sportsman, a guy called Andy came in. He's a good friend now, but back then I barely knew him. He was looking to settle in Pattaya and wasn't sure what to do, and it turned out he was a qualified geography teacher in the UK.
 
-He had no idea how much demand there was for someone like him: a native English speaker with a degree and real teaching experience. I told him he'd have his pick of the schools. He ended up at St Andrews, and he's been there ever since, more than 20 years, working his way up to a senior role.
+He had no idea how much demand there was for someone like him: a native English speaker with a degree and real teaching experience. I told him he'd have his pick of the schools. He ended up at [St Andrews](/international-schools-pattaya/st-andrews-international-school-green-valley), and he's been there ever since, more than 20 years, working his way up to a senior role.
 
 ## My top tip
 

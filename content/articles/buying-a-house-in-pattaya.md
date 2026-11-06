@@ -33,7 +33,7 @@ I've always rented. (If it's a condo you're after, here's [what I tell every con
 
 ## How much does it cost to rent a family house in Pattaya?
 
-For a family home, you'd look in Jomtien, though most people live in East Pattaya. Roughly:
+For a family home, you'd look in Jomtien, though most people live in [East Pattaya](/areas/east-pattaya). Roughly:
 
 - **With a pool:** ฿40,000 to ฿50,000 a month.
 - **Without a pool:** ฿30,000 to ฿40,000 a month.

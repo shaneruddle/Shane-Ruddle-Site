@@ -23,7 +23,7 @@ Most of that learning is free or cheap nowadays, though you can pay for courses 
 
 ## It buys you time
 
-The rest of the money buys you time to learn. To live here comfortably you need about ฿50,000 to ฿60,000 a month, with rent at ฿15,000 to ฿18,000 and the rest on eating out and day-to-day costs. So ฿1 million lasts around a year and a half with no other income. More in [is Pattaya expensive?](/articles/is-pattaya-expensive)
+The rest of the money buys you time to learn. To live here comfortably you need about ฿50,000 to ฿60,000 a month, with rent at ฿15,000 to ฿18,000 and the rest on eating out and day-to-day costs. So ฿1 million lasts around a year and a half with no other income. More in [is Pattaya expensive?](/articles/is-pattaya-expensive), or work out your own figure with my [cost of living calculator](/cost-of-living-calculator).
 
 ## Never spend it on nights out
 

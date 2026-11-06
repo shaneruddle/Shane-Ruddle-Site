@@ -9,7 +9,7 @@ People often ask how I run seven businesses at the same time. The honest answer 
 
 ## What does a typical week look like?
 
-Mostly talking to my managers. Every business has one manager who is my single point of contact. I deliberately don't make myself available to everyone else in the businesses.
+Mostly talking to my managers ([here's what a typical day looks like](/articles/a-day-in-my-life)). Every business has one manager who is my single point of contact. I deliberately don't make myself available to everyone else in the businesses.
 
 The rest of my time goes into building software systems: using AI to make things more efficient, building features I think will help, and then getting the managers, and through them the staff, to use them.
 

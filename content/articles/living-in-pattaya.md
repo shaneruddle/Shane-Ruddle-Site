@@ -25,7 +25,7 @@ Oddly, the same weather that draws them here. There are no real seasons, so it's
 
 ## How much does it cost to live in Pattaya?
 
-As of 2026, I'd say a single person can live comfortably on about ฿50,000 to ฿60,000 a month, and a couple on ฿70,000 to ฿80,000. That assumes you live much as you would at home, going out once a week rather than every night. For a fuller breakdown, see [is Pattaya expensive?](/articles/is-pattaya-expensive)
+As of 2026, I'd say a single person can live comfortably on about ฿50,000 to ฿60,000 a month, and a couple on ฿70,000 to ฿80,000. That assumes you live much as you would at home, going out once a week rather than every night. For a fuller breakdown, see [is Pattaya expensive?](/articles/is-pattaya-expensive), or work out your own figure with my [cost of living calculator](/cost-of-living-calculator).
 
 Children change the sums. Most foreign families choose international schools, mainly for the English-language teaching and a curriculum that carries over if they move home. They're private, so they're not cheap. They still cost less than in the West, but fees will take a big bite out of a budget. I've written separately about [what Pattaya is like for families](/articles/is-pattaya-good-for-families), including school fees.
 
@@ -64,7 +64,7 @@ Assuming it's cheaper than it is. Pattaya is good value if you manage your money
 ## What I'd tell a friend before moving here
 
 - **Rent before you buy.** I wouldn't buy property anywhere in the world without trying the place first, ideally for a few years. Here's my guide to [which area suits you](/articles/best-area-to-live-in-pattaya), and [what to know before buying a condo](/articles/buying-a-condo-in-pattaya).
-- **Expect a 12-month lease.** Most landlords want a 12-month contract and two months up front, which you lose if you leave early. Shorter rentals exist, but they're harder to find.
+- **Expect a 12-month lease.** Most landlords want a 12-month contract and two months up front, which you lose if you leave early. Shorter rentals exist, but they're harder to find. More in [renting a condo in Pattaya](/articles/renting-a-condo-in-pattaya).
 - **Budget realistically,** especially for the first few months.
 - **Get health insurance** before you need it.
 - **Go with the flow.** Things take longer, so plan around it.

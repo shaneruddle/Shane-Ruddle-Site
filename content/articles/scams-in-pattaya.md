@@ -9,7 +9,7 @@ After 20 years in Pattaya, my honest view is that most of the "scams" people tal
 
 ## Overcharging
 
-The thing that catches most tourists out is being overcharged. It's not nice, but if you pay ฿200 for something that should be ฿100, I'm not sure that's a scam. It's more people taking advantage.
+The thing that catches most tourists out is being overcharged. It's not nice, but if you pay ฿200 for something that should be ฿100, I'm not sure that's a scam. It's more people taking advantage. If you're not sure what something should cost, check my [fair price checker](/pattaya-prices).
 
 It happens most with taxis. Baht buses on their normal routes have set fares, now ฿15 or ฿20. Go off the route and negotiate with the driver, and you'll usually get a high price to start with that comes down. Markets without price tags work the same way. Haggling is part of the experience of being in Thailand. More in [getting around Pattaya](/articles/getting-around-pattaya).
 
@@ -41,7 +41,7 @@ I see people lose money in businesses here all the time. But again, it's rarely 
 
 The genuine scam I see most is foreigners who want to stay here but don't have the money or the ability to earn it. They borrow from everyone they can with no intention of paying it back. When it finally comes undone, or they leave the country, it turns out they've borrowed from half the town. It happens more often than you'd think.
 
-I've been caught out myself a few times, including by people who worked for me, which is why I was more sympathetic. I've also had customers at Pattaya Rent a Bike get into financial trouble and have the bike they rented from me taken off them, then be unable to pay for it. These days I take it on the chin as a cost of doing business. That's true anywhere, but the difference here is that people leave the country and you never hear from them again.
+I've been caught out myself a few times, including by [people who worked for me](/articles/hiring-and-firing-in-pattaya), which is why I was more sympathetic. I've also had customers at Pattaya Rent a Bike get into financial trouble and have the bike they rented from me taken off them, then be unable to pay for it. These days I take it on the chin as a cost of doing business. That's true anywhere, but the difference here is that people leave the country and you never hear from them again.
 
 So now I don't lend money. I'm honest about it. I tell people I've been asked before, I've lent before, and because of how that went, I'm not going to lend to them.
 

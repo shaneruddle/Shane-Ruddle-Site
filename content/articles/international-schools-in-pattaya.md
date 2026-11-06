@@ -11,7 +11,7 @@ I have children at school in Pattaya, so I've been through choosing an internati
 
 Mainly on location. All the international schools are quite a way from the city centre, and when we chose, we lived close to the centre. In high season, the drive back from some of the other schools would have taken a long time.
 
-We chose Tara Pattana. Logistics probably isn't the best reason to choose a school, but at primary age I didn't think it made much difference to go to the very best one. It's also more reasonably priced, in my opinion.
+We chose [Tara Pattana](/international-schools-pattaya/tara-pattana-international-school). Logistics probably isn't the best reason to choose a school, but at primary age I didn't think it made much difference to go to the very best one. It's also more reasonably priced, in my opinion.
 
 ## What are the main international schools around Pattaya?
 
@@ -23,7 +23,7 @@ We chose Tara Pattana. Logistics probably isn't the best reason to choose a scho
 
 **Highgate International School Thailand.** Brand new, opened in August 2026. I don't know much about it yet, though I know some of the teachers there. It runs a Man City Football School in partnership with Manchester City, which I think is a really nice touch.
 
-There are also some smaller schools, such as Lovell International School and Hastin International School.
+There are also some smaller schools, such as Lovell International School and Hastin International School. To compare them side by side, try my [international schools chooser](/international-schools-pattaya).
 
 ## How much do international schools in Pattaya cost?
 

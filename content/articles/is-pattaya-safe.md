@@ -13,7 +13,7 @@ Not much. Petty theft has never happened to me, and off the top of my head I can
 
 ## Are there many scams aimed at foreigners?
 
-Not really, in my experience. If anything, scams are mostly aimed at Thais, simply because there are so many more of them. If I were Thai, I'd be more on guard than I am as a foreigner.
+Not really, in my experience. If anything, [scams](/articles/scams-in-pattaya) are mostly aimed at Thais, simply because there are so many more of them. If I were Thai, I'd be more on guard than I am as a foreigner.
 
 ## When do foreigners get into trouble?
 
@@ -29,7 +29,7 @@ If you drive here for long enough, you will have an accident. It will most likel
 
 ## My safety tips for first-time visitors
 
-Only rent a motorbike if you're very experienced and ride confidently. If you're not both, rent a car instead.
+Only rent a motorbike if you're very experienced and ride confidently. If you're not both, [rent a car instead](/articles/scooter-or-car-in-pattaya).
 
 Drive defensively, assume other drivers might do something unexpected, and read [what I tell every Pattaya Rent a Car customer about driving here](/articles/driving-in-pattaya).
 

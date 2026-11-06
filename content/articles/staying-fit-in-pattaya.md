@@ -9,7 +9,7 @@ I do something active every day. At 45, I find it hard to do more than one thing
 
 ## Why padel?
 
-I was looking for a way to meet new people, and I'd heard padel was becoming more popular. It seemed like a good chance to meet a different crowd.
+I was looking for a way to [meet new people](/articles/making-friends-in-pattaya), and I'd heard padel was becoming more popular. It seemed like a good chance to meet a different crowd.
 
 It has absolutely worked. I've met some really nice guys. When I started, there was only one place to play, in Pratumnak, with two courts. Now there are several more, including Prime Padel, one club with around seven courts, and another in East Pattaya. It's a decent scene now, and you can always get a game.
 
@@ -31,7 +31,7 @@ Then I had a family. Golf here takes all day: you drive to the course, play, and
 
 ## What difference did giving up drinking make?
 
-A big one. I haven't had a drink in over 10 years, and it's probably one of the best decisions I've ever made. It changes everything.
+A big one. I haven't had a drink in over 10 years, and it's probably one of the best decisions I've ever made. It changes everything, and it's top of the list of [what I'd tell my younger self](/articles/what-id-tell-my-younger-self).
 
 When you drink, you spend time with other people who drink, so it changed who I spend time with. My eating has definitely improved, because when you're drinking or hungover you don't eat well. And my focus and energy are much better. Personally, I'd recommend anyone knock it on the head, even if they only drink in moderation.
 

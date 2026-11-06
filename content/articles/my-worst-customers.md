@@ -17,7 +17,7 @@ We never got anything back for the extra days, the flight or the time. The most 
 
 ## The customer who kicked off at Hemingways
 
-At Hemingways Jomtien, a customer propositioned one of our staff. She turned him down, and he didn't like it. He kicked off in the restaurant, then left us bad reviews. We threw him out and he's not welcome back. My staff come first.
+At Hemingways Jomtien, a customer propositioned one of our staff. She turned him down, and he didn't like it. He kicked off in the restaurant, then left us [bad reviews](/articles/customer-service-and-online-reviews). We threw him out and he's not welcome back. My staff come first.
 
 ## Speakerphones at Cajun
 

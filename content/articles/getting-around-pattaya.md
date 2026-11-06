@@ -15,7 +15,7 @@ Communication can be an issue, so know the name of where you're going. Keep it t
 
 ## Baht buses (songthaews)
 
-Definitely worth using. The fare was ฿10 for as long as anyone can remember. In 2026, after fuel prices rose, it went up to ฿15 for most trips around town, and up to ฿20 for longer ones.
+Definitely worth using. The fare was ฿10 for as long as anyone can remember. In 2026, after fuel prices rose, it went up to ฿15 for most trips around town, and up to ฿20 for longer ones. My [fair price checker](/pattaya-prices) has the going rate for every way of getting around.
 
 There are routes, but they're not well publicised, and sometimes it feels like the drivers don't know them either. The trick is to jump on, and when it turns somewhere you don't want to go, press the buzzer, hop off, and catch another one.
 

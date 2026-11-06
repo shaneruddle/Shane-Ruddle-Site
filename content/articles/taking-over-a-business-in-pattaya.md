@@ -43,6 +43,6 @@ I've never bought into the entertainment side of Pattaya, meaning Walking Street
 
 The businesses advertised on Facebook or through agents usually aren't the best ones. The best ones sell quietly. The owner mentions to a few friends that they're thinking of selling, and word gets round. Of the last five or six businesses I've bought, other business people told me afterwards they hadn't even known they were for sale.
 
-If you're new and those opportunities aren't coming your way, get to know other business owners. Friends you play padel with are great for other reasons, but if you want to buy a business here, the people who hear about the quiet sales are other owners.
+If you're new and those opportunities aren't coming your way, get to know other business owners. Friends you play padel with are great for other reasons, but if you want to buy a business here, the people who hear about the quiet sales are other owners. And if you're the one thinking of selling, [here's how I buy businesses quietly](/business-in-pattaya/sell-your-business).
 
 This is part of my series on buying a business in Pattaya: [why buy rather than start](/articles/why-buy-a-business-in-pattaya), [how to value a business](/articles/valuing-a-business-in-pattaya), [leases, landlords and paperwork](/articles/business-leases-and-landlords-in-pattaya) and [taking over: the first few months](/articles/taking-over-a-business-in-pattaya). For the basics, including foreign ownership rules, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya).

@@ -22,7 +22,7 @@ First, that they're settled here. I want some sign that Thailand is home: their 
 
 Second, that they're someone I'd like to work with. We're not necessarily going to be friends, and I don't hire for that. But in hospitality, if I find someone likeable, approachable and friendly, most of our customers will too.
 
-So someone overqualified who doesn't come across as confident, friendly and kind isn't for me. They might be excellent at stock-taking and at communicating with staff, but for me the job is more than that.
+So someone overqualified who doesn't come across as confident, friendly and kind isn't for me. They might be excellent at stock-taking and at communicating with staff, but for me the job is more than that. More in [what makes a good manager in Pattaya](/articles/what-makes-a-good-manager-in-pattaya).
 
 ## How do you get in?
 

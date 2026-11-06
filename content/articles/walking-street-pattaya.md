@@ -19,7 +19,7 @@ Absolutely. What's on offer has changed too. It used to be built around go-go ba
 
 ## Is it safe?
 
-Very. Past midnight there are some drunk people, and occasionally a fight, but considering how many people are out drinking, it's maybe one or two a week. And I've not come across the old rip-offs people warn about.
+Very. Past midnight there are some drunk people, and occasionally a fight, but considering how many people are out drinking, it's maybe one or two a week. And I've not come across [the old rip-offs](/articles/scams-in-pattaya) people warn about.
 
 There's a big security presence: tourist police, regular police, security guards, and doormen on most clubs. As I've written in [is Pattaya safe?](/articles/is-pattaya-safe), Thais are very tolerant of foreigners and rarely get involved unless they're seriously provoked. Unless you go looking for trouble, you won't find it. And if it found you unfairly, with so many guards, doormen and police around, it would be sorted out quickly.
 

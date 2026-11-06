@@ -11,7 +11,7 @@ After 20 years here, running businesses in property, car rental and hospitality,
 
 I think it's simply continued, steady growth. Pattaya will keep growing the way it has, as more condos get built.
 
-There could be a big jump if the U-Tapao Airport expansion ends up bringing in international flights from lots of new places. That would have a major impact. But I don't think it will happen the way everyone expects. It will expand, just maybe not as promised.
+There could be a big jump if the [U-Tapao Airport expansion](/pattaya-future) ends up bringing in international flights from lots of new places. That would have a major impact. But I don't think it will happen the way everyone expects. It will expand, just maybe not as promised.
 
 ## Why am I sceptical about the big projects?
 
@@ -23,7 +23,7 @@ The high-speed rail to U-Tapao is a good example. It's been talked about for yea
 
 ## Where will Pattaya grow most?
 
-Jomtien. It's already happening. Jomtien Second Road completely changed the area. Before, it was really just Beach Road and a few side roads. Now getting in and out is much easier.
+[Jomtien](/areas/jomtien). It's already happening. Jomtien Second Road completely changed the area. Before, it was really just Beach Road and a few side roads. Now getting in and out is much easier.
 
 There's still a lot of empty land along Jomtien Second Road. Condos are already built and being built there, but there's plenty of room left, so I think that's where most of the growth will come over the next ten years.
 

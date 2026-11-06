@@ -25,7 +25,7 @@ A standard hospital visit is normally between ฿2,000 and ฿3,000, depending o
 
 There are a lot of stories in Thailand of uninsured patients who can't pay being turned away by private hospitals and sent to a government hospital instead. Sometimes that can be critical. Getting insurance really can be life-saving, so that situation never happens to you.
 
-Even with insurance, you're not necessarily out of the woods. Every policy has a limit, and depending on what's wrong, a claim can skyrocket quickly. Having insurance doesn't automatically mean you're fully covered, so check your limits.
+Even with insurance, you're not necessarily out of the woods. Every policy has a limit, and depending on what's wrong, a claim can skyrocket quickly. Having insurance doesn't automatically mean you're fully covered, so check your limits. It's the main reason I've seen [retirees leave Pattaya](/articles/do-retirees-leave-pattaya).
 
 ## Who do we insure with?
 

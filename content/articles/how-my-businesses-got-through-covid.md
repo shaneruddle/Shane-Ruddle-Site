@@ -37,9 +37,9 @@ In hindsight it wasn't that bad for me. But when you're in it and don't know how
 
 Plenty. Personally, I did quite well out of COVID, because when we came out of it I was in a position to take the opportunities.
 
-Some good businesses came up for sale because their owners had run out of cash or simply didn't want to carry on. That's how I picked up Alan Bolton Property Consultants and the site that became Hemingways Pattaya.
+Some good businesses came up for sale because their owners had run out of cash or simply didn't want to carry on. That's how I picked up Alan Bolton Property Consultants and the site that became Hemingways Pattaya, and it's a big part of [why I'd rather buy a business than start one](/articles/why-buy-a-business-in-pattaya).
 
-But the best decision was at Pattaya Rent a Car. So many competitors had gone out of business, selling their cars just to live, that when demand came back there wasn't enough supply. My business partner and I bought a lot of cars and almost doubled our fleet within a year or so. The cars went out really well, and for good money.
+But the best decision was at Pattaya Rent a Car. So many competitors had gone out of business, selling their cars just to live, that when demand came back there wasn't enough supply. My business partner and I bought a lot of cars and [almost doubled our fleet](/articles/16-years-of-pattaya-rent-a-car) within a year or so. The cars went out really well, and for good money.
 
 ## What did COVID teach me?
 

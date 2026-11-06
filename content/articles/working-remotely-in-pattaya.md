@@ -17,7 +17,7 @@ Most of the people I know don't work for big international companies. They work 
 
 Before the DTV, people just worked from their condos on tourist visas with extensions and visa runs, on ordinary non-immigrant visas, or on education visas while learning Thai. They weren't taking a job from a Thai, so it was mostly overlooked. And how would anyone catch someone working on a laptop in their room?
 
-Thailand then did what Singapore and other countries had done and set out to attract digital nomads. The DTV (Destination Thailand Visa) made it official, and most remote workers here should now be on it. It covers remote work for employers and clients outside Thailand. For the details, read [visas in Pattaya](/articles/thai-visas-in-pattaya).
+Thailand then did what Singapore and other countries had done and set out to attract digital nomads. The [DTV (Destination Thailand Visa)](/thai-visas/dtv-visa) made it official, and most remote workers here should now be on it. It covers remote work for employers and clients outside Thailand. For the details, read [visas in Pattaya](/articles/thai-visas-in-pattaya).
 
 ## The downsides
 
@@ -49,7 +49,7 @@ If you're working remotely in the West and only just covering your bills, seriou
 
 ## What about tax?
 
-Check this before you move. If you spend 180 days or more in Thailand in a calendar year, you're generally a Thai tax resident for that year. Since 2024, residents can owe Thai tax on foreign income they bring into the country. The DTV is a visa, not a tax exemption, and tax treaties with your home country can change the picture. I'm not a tax adviser, so get professional advice on your own situation.
+Check this before you move. If you spend 180 days or more in Thailand in a calendar year, you're generally a Thai tax resident for that year. Since 2024, residents can owe Thai tax on foreign income they bring into the country. The DTV is a visa, not a tax exemption, and tax treaties with your home country can change the picture. I'm not a tax adviser, so get professional advice on your own situation. My pages on moving from [the UK](/move-to-thailand/from-the-uk), [the USA](/move-to-thailand/from-the-usa) and [Australia](/move-to-thailand/from-australia) cover the basics for each.
 
 If you look into it and the numbers make sense, I think it's a move you won't regret.
 

@@ -57,7 +57,7 @@ But here's the thing. The people I've met over the years who made money from pro
 
 ## How do you buy a condo smart in Pattaya?
 
-**Location.** Look for areas that are on the way up, as you would anywhere. Anyone who bought in Pratumnak ten years ago is very happy now, because values there have only gone up.
+**Location.** Look for areas that are on the way up, as you would anywhere. My [Pattaya future timeline](/pattaya-future) shows what's actually being built, and where. Anyone who bought in [Pratumnak](/areas/pratumnak) ten years ago is very happy now, because values there have only gone up.
 
 **The building matters even more.** Talk to people who already live there to get a feel for it, while remembering they may be biased. And find out about the juristic person, the management company. Some are very good and some are very poor, and it makes a huge difference to how the money gets spent. You can have a fantastic unit, but if the building needs repainting and the funds have been mismanaged, the value of your condo can drop massively. The building is often overlooked in favour of the unit.
 

@@ -31,7 +31,7 @@ Town is about a five-minute drive. Jomtien is just as close, since the road from
 
 ## What about Wongamat and Naklua?
 
-Wongamat and Naklua, in the north of the city, are particularly popular with Russian residents, but anyone can enjoy living there. There are great restaurants, and Terminal 21 is within walking distance.
+Wongamat and Naklua, in the north of the city, are particularly popular with Russian residents ([here's where different nationalities tend to live](/articles/where-different-nationalities-live-in-pattaya)), but anyone can enjoy living there. There are great restaurants, and Terminal 21 is within walking distance.
 
 If you want a condo, it's really all about Naklua Soi 18 and Soi 19, which meet halfway along. Away from those, the area is mostly hotels. That's where you'll find buildings such as Sky Beach, Northpoint, Arom and Nova Mirage.
 
@@ -39,7 +39,7 @@ It's one of the pricier areas: ฿20,000 a month might only get you a small stud
 
 ## Is East Pattaya good for families?
 
-Yes. East Pattaya is quieter and suits families and older retirees. It's mainly houses, close to most of the international schools, and if you have pets, it's usually where you'll end up; few condos on the beach side of Sukhumvit Road allow them. I've written more about [raising a family in Pattaya](/articles/is-pattaya-good-for-families).
+Yes. East Pattaya is quieter and suits families and older retirees. It's mainly houses, close to most of the [international schools](/international-schools-pattaya), and [if you have pets](/articles/dogs-in-pattaya), it's usually where you'll end up; few condos on the beach side of Sukhumvit Road allow them. I've written more about [raising a family in Pattaya](/articles/is-pattaya-good-for-families).
 
 It's also where your money goes furthest: for ฿20,000 a month, you might get a two- or three-bedroom house, though without a pool.
 

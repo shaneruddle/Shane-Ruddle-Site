@@ -37,7 +37,7 @@ Do that for a few months and you'll know enough of the right people. If you're t
 
 A proper employer will sort out your work permit. Some charge for it, because there's an upfront fee.
 
-In my companies, we pay for the work permit, but the visa is the employee's responsibility. If someone is on a marriage visa, for example, I don't think I should be responsible for maintaining it. You can work on a marriage visa, as long as you have a work permit too. Every company has its own rules, so ask at the start.
+In my companies, we pay for the work permit, but the visa is the employee's responsibility. If someone is on a marriage visa, for example, I don't think I should be responsible for maintaining it. You can work on a marriage visa, as long as you have a work permit too. Every company has its own rules, so ask at the start. If you're not sure which visa suits you, try my [visa finder](/thai-visas).
 
 ## What can you earn?
 

@@ -21,7 +21,7 @@ For more, read [renting a condo in Pattaya](/articles/renting-a-condo-in-pattaya
 
 ## The admin
 
-Once your visa is set up, open a bank account. You don't need a certificate of residence unless the bank, or later the licence office, asks for one. More in [banking in Thailand](/articles/banking-in-thailand-for-foreigners) and [visas in Pattaya](/articles/thai-visas-in-pattaya).
+Once [your visa is set up](/thai-visas), open a bank account. You don't need a certificate of residence unless the bank, or later the licence office, asks for one. More in [banking in Thailand](/articles/banking-in-thailand-for-foreigners) and [visas in Pattaya](/articles/thai-visas-in-pattaya).
 
 Then [get a Thai driving licence](/articles/thai-driving-licence).
 

@@ -23,7 +23,7 @@ We close the restaurants on the 19th. It's New Year for the staff, and they want
 
 Pattaya Rent a Car closes on the 19th too, for the same reason, and because the city is gridlocked. Thais come in from all the neighbouring provinces to celebrate, and so many cars, motorbikes and people pour in that you can't get around by car. On a motorbike you can, but not in a car.
 
-The days before, though, we're very busy. A lot of expats, me included, use Songkran as a chance to get away. So many businesses close, and if you're not into it, it's the perfect time for a golf trip or a visit to somewhere in Thailand where Songkran has already come and gone.
+The days before, though, we're very busy. A lot of expats, me included, use Songkran as a chance to get away. So many businesses close, and if you're not into it, it's the perfect time for a golf trip or [a trip somewhere in Thailand](/trips-from-pattaya) where Songkran has already come and gone.
 
 ## How do you stay safe on the roads?
 

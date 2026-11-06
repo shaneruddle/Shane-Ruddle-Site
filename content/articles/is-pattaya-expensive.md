@@ -25,7 +25,7 @@ For families, the big cost is schooling. Thai schools are relatively cheap, but 
 
 **Going out.** Entertainment and drinking aren't as cheap as people think. You can do it cheaply, but depending on your appetite, it can get expensive.
 
-**Visas and admin.** Visas, paperwork and the other admin you have to do here can add up.
+**Visas and admin.** [Visas](/articles/thai-visas-in-pattaya), paperwork and the other admin you have to do here can add up.
 
 **Health insurance.** I always recommend getting it, and it can be expensive. Here's more on [healthcare and insurance in Pattaya](/articles/healthcare-in-pattaya).
 
@@ -35,6 +35,6 @@ Getting around is cheap, and eating out is cheap ([here's where I eat](/articles
 
 ## How do you live well in Pattaya without overspending?
 
-Manage your finances and keep an eye on your expenses. And take care in relationships: choosing the wrong partner can end up costing you a lot of money.
+Manage your finances and keep an eye on your expenses. And [take care in relationships](/articles/relationships-in-pattaya): choosing the wrong partner can end up costing you a lot of money.
 
 If you're working out your budget and want to see what your rent would get you in each area, read [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya), or [East Coast Real Estate](https://thaiproperty.com) can show you what's available.

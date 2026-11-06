@@ -27,7 +27,7 @@ Then we respond to the review. Often we can work out who the customer is, so we 
 
 ## What about unfair reviews?
 
-We've had plenty over the years. Fake ones, not so many, but unfair ones, absolutely.
+We've had plenty over the years, some from [my worst customers](/articles/my-worst-customers). Fake ones, not so many, but unfair ones, absolutely.
 
 At Pattaya Rent a Car we've had one-star reviews because our staff didn't speak the customer's language, which wasn't English or Thai. We've had them because we had no cars available, which is like giving a hotel one star for being fully booked. Recently, a customer was quoted a price online, came to the office, chose a different and more expensive car, then gave us one star because he thought we'd put the price up.
 
@@ -37,7 +37,7 @@ Remember who you're really talking to. When you reply to a Google review, you're
 
 ## Who writes the replies?
 
-- **Standard five-star reviews:** to be honest, AI drafts the reply.
+- **Standard five-star reviews:** to be honest, [AI drafts the reply](/articles/how-i-use-ai-in-my-businesses).
 - **Three stars:** my staff handle it.
 - **One or two stars:** I reply myself as the owner, especially if it's scathing.
 

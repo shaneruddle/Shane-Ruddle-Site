@@ -9,7 +9,7 @@ I own two real estate agencies in Pattaya, Alan Bolton Property Consultants and 
 
 ## What makes a good property agent?
 
-Passion: for property and for helping people. Real estate is tough everywhere. There's a lot of rejection and a lot of admin. AI makes the admin a bit easier now, but there's far more to the job than people outside realise. Without a passion for it, you won't last.
+Passion: for property and for helping people. Real estate is tough everywhere. There's a lot of rejection and a lot of admin. [AI makes the admin a bit easier now](/articles/how-i-use-ai-in-my-businesses), but there's far more to the job than people outside realise. Without a passion for it, you won't last.
 
 ## What does a typical day look like?
 

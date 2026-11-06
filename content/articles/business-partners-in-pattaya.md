@@ -19,7 +19,7 @@ Given the choice, I'd now do things on my own, and each of those reasons has cha
 
 Risk: with experience, I'm better at judging whether a business is risky. If it's so risky I'd need partners to share it, I just don't do it. I move on to the next opportunity.
 
-Money: if I need extra funding, I'd rather borrow and pay interest than give away equity. I also prefer buying existing businesses to starting from scratch, which should mean less risk anyway.
+Money: if I need extra funding, I'd rather borrow and pay interest than give away equity. I also [prefer buying existing businesses to starting from scratch](/articles/why-buy-a-business-in-pattaya), which should mean less risk anyway.
 
 The baton: some past partners said they'd be willing to take over and drive the business, but for different reasons it never happened. Either they weren't capable and hadn't been upfront about it, or they didn't have the drive and were happier for me to do the work while they sat back.
 

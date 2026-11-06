@@ -15,7 +15,7 @@ I expected somewhere much less developed. I knew I'd experience a different coun
 
 How much I was going to enjoy it here. If I'd known, I would have treated it as my home from the start and put down roots earlier.
 
-Instead, I spent a bit too long in tourist party mode and didn't worry much about jeopardising my life here. Now I'm very protective of it.
+Instead, I spent a bit too long in tourist party mode and didn't worry much about jeopardising my life here. It's one of the things [I'd tell my younger self](/articles/what-id-tell-my-younger-self). Now I'm very protective of it.
 
 ## What would I have done differently with money?
 

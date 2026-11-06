@@ -39,6 +39,6 @@ Keeping my emotions under control, and not taking life so seriously. I was broug
 
 Learn the language ([here's my own honest experience](/articles/learning-thai)). It shows Thais you're not a tourist, it helps you understand the context of what's going on, and it earns you a little extra respect. I'd give the same advice to anyone moving to a country where their language isn't the official one, whether that's Thailand, Germany or France.
 
-For more, read [what I wish I'd known before moving to Thailand](/articles/what-i-wish-id-known-before-moving-to-thailand) and [retiring in Pattaya](/articles/retiring-in-pattaya).
+For more, read [what I wish I'd known before moving to Thailand](/articles/what-i-wish-id-known-before-moving-to-thailand), [the expat habits that drive me mad](/articles/things-expats-do-that-drive-me-mad) and [retiring in Pattaya](/articles/retiring-in-pattaya).
 
 For relationships specifically, read [relationships in Pattaya: an honest take](/articles/relationships-in-pattaya).

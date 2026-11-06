@@ -13,7 +13,7 @@ Plenty of people use them, mostly for the convenience. But of the beaches close 
 
 ## Which beach would I choose?
 
-The Navy Beach, about a 30-minute drive from Pattaya. Everyone calls it that because you go through Navy grounds to get to it.
+The Navy Beach, about a 30-minute drive from Pattaya. Everyone calls it that because you go through Navy grounds to get to it. I've explained how to get in, and what else is nearby, in [Bang Saray from Pattaya](/articles/bang-saray-from-pattaya).
 
 ## The island beaches
 

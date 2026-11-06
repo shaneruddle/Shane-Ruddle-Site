@@ -17,7 +17,7 @@ When you rent, you also get help with insurance, maintenance and breakdowns. If 
 
 ## What do you need to buy a car as a foreigner?
 
-For a new car, you need the right visa. I believe you can buy one as a tourist, but you'd have to pay cash. To buy on finance from a dealer like Toyota or Honda, you'd need a work permit and a credit history.
+For a new car, you need the right visa (my [visa finder](/thai-visas) will tell you which fits). I believe you can buy one as a tourist, but you'd have to pay cash. To buy on finance from a dealer like Toyota or Honda, you'd need a work permit and a credit history.
 
 To register a car in your own name, you'll also need proof of address, usually a certificate of residence from immigration or a letter from your embassy. That's much harder to get on a tourist visa, so check with the Department of Land Transport before you commit.
 
