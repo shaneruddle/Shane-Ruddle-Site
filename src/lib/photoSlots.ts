@@ -101,3 +101,9 @@ export function withInlinePhotos(slug: string, body: string): string {
   flush();
   return out.join("\n");
 }
+
+/** How many spots on the site use a library photo. */
+export function photoUsage(data: PhotoSlotsData, photoId: string): number {
+  return Object.values(data.slots).filter((s) => s.photoId === photoId).length +
+    Object.values(data.inline).reduce((n, l) => n + l.filter((x) => x.photoId === photoId).length, 0);
+}

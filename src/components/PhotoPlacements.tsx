@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { db } from '../firebase';
 import { doc, setDoc, updateDoc, deleteField, FieldPath, serverTimestamp } from 'firebase/firestore';
-import { ImageOff, X, Plus, Trash2, AlertTriangle } from 'lucide-react';
+import { ImageOff, X, Plus, Trash2, AlertTriangle, Search } from 'lucide-react';
 import { toast } from 'sonner';
-import { FIXED_SLOTS, articleHeaderSlot, sectionHeadings, PhotoSlotsData, SlotPhoto, InlinePhoto } from '../lib/photoSlots';
+import { FIXED_SLOTS, articleHeaderSlot, sectionHeadings, photoUsage, PhotoSlotsData, SlotPhoto, InlinePhoto } from '../lib/photoSlots';
 import { FILE_ARTICLES } from '../lib/fileArticles';
 import type { SitePhoto } from './PhotosAdmin';
 
@@ -15,7 +15,10 @@ export const toSlotPhoto = (p: SitePhoto): SlotPhoto => ({ photoId: p.id, url: p
 // which never add "## " lines, so their headings are the originals.
 const ARTICLES = FILE_ARTICLES.map(a => ({ slug: a.slug, title: a.title, headings: sectionHeadings(a.body) }));
 
-function PhotoPicker({ photos, onPick, onClose }: { photos: SitePhoto[]; onPick: (p: SitePhoto) => void; onClose: () => void }) {
+function PhotoPicker({ photos, data, onPick, onClose }: { photos: SitePhoto[]; data: PhotoSlotsData; onPick: (p: SitePhoto) => void; onClose: () => void }) {
+  const [q, setQ] = useState('');
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const shown = photos.filter(p => words.every(w => `${p.name} ${p.alt}`.toLowerCase().includes(w)));
   return (
     <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[85vh] overflow-y-auto p-6 md:p-8" onClick={e => e.stopPropagation()}>
@@ -26,16 +29,38 @@ function PhotoPicker({ photos, onPick, onClose }: { photos: SitePhoto[]; onPick:
         {photos.length === 0 ? (
           <p className="text-black/50">Your library is empty. Upload photos in the Library view first.</p>
         ) : (
-          <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {photos.map(p => (
-              <li key={p.id}>
-                <button onClick={() => onPick(p)} className="block w-full text-left group">
-                  <img src={p.url} alt={p.alt} loading="lazy" className="w-full aspect-[4/3] object-cover rounded-xl ring-2 ring-transparent group-hover:ring-gold-deep" />
-                  <span className="block mt-1 text-xs text-black/60 truncate">{p.name}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <>
+            <label className="flex items-center gap-2 mb-5 bg-black/[0.04] rounded-full px-4 py-2.5">
+              <Search className="w-4 h-4 text-black/40 flex-shrink-0" />
+              <input
+                value={q}
+                onChange={e => setQ(e.target.value)}
+                placeholder="Search names and descriptions"
+                className="flex-1 min-w-0 bg-transparent outline-none text-sm"
+                aria-label="Search photos"
+              />
+            </label>
+            {shown.length === 0 ? (
+              <p className="text-black/50">No photos match “{q}”.</p>
+            ) : (
+              <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {shown.map(p => {
+                  const used = photoUsage(data, p.id);
+                  return (
+                    <li key={p.id}>
+                      <button onClick={() => onPick(p)} className="block w-full text-left group">
+                        <img src={p.thumbUrl || p.url} alt={p.alt} loading="lazy" className="w-full aspect-[4/3] object-cover rounded-xl ring-2 ring-transparent group-hover:ring-gold-deep" />
+                        <span className="block mt-1 text-xs text-black/60 truncate">{p.name}</span>
+                        <span className={`block text-[11px] truncate ${p.alt ? 'text-black/40' : 'text-amber-700'}`}>
+                          {p.alt ? (used ? `Used in ${used} place${used === 1 ? '' : 's'}` : 'Not used yet') : 'No description yet'}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -126,6 +151,9 @@ export default function PhotoPlacements({ photos, data }: { photos: SitePhoto[];
 
   const groups = Array.from(new Set(FIXED_SLOTS.map(s => s.group)));
 
+  // Placed photos keep the full-size URL; show the library thumbnail here when there is one.
+  const thumb = (x?: SlotPhoto) => x && { ...x, url: photos.find(p => p.id === x.photoId)?.thumbUrl || x.url };
+
   return (
     <div className="space-y-14">
       <p className="text-sm text-black/50 bg-gold/10 border border-gold/30 rounded-2xl px-5 py-4">
@@ -141,7 +169,7 @@ export default function PhotoPlacements({ photos, data }: { photos: SitePhoto[];
                 key={s.id}
                 label={s.label}
                 aspect={s.aspect}
-                current={data.slots[s.id]}
+                current={thumb(data.slots[s.id])}
                 defaultSrc={s.defaultSrc}
                 onChoose={() => openPicker(p => assign(s.id, p))}
                 onReset={() => reset(s.id)}
@@ -166,7 +194,7 @@ export default function PhotoPlacements({ photos, data }: { photos: SitePhoto[];
                     <SlotCard
                       label="Header + share image"
                       aspect="16/9"
-                      current={data.slots[articleHeaderSlot(a.slug)]}
+                      current={thumb(data.slots[articleHeaderSlot(a.slug)])}
                       onChoose={() => openPicker(p => assign(articleHeaderSlot(a.slug), p))}
                       onReset={() => reset(articleHeaderSlot(a.slug))}
                     />
@@ -177,7 +205,7 @@ export default function PhotoPlacements({ photos, data }: { photos: SitePhoto[];
                       <ul className="space-y-3 mb-5">
                         {inline.map(x => (
                           <li key={x.id} className="flex items-center gap-4 bg-white border border-black/10 rounded-2xl p-3">
-                            <img src={x.url} alt="" className="w-20 h-14 object-cover rounded-lg flex-shrink-0" />
+                            <img src={thumb(x)!.url} alt="" loading="lazy" className="w-20 h-14 object-cover rounded-lg flex-shrink-0" />
                             <div className="min-w-0 flex-1 text-sm">
                               <p className="text-black/70 truncate">End of “{x.heading}”</p>
                               {x.caption && <p className="text-xs text-black/40 truncate">{x.caption}</p>}
@@ -228,7 +256,7 @@ export default function PhotoPlacements({ photos, data }: { photos: SitePhoto[];
         </div>
       </section>
 
-      {picker && <PhotoPicker photos={photos} onPick={picker} onClose={() => setPicker(null)} />}
+      {picker && <PhotoPicker photos={photos} data={data} onPick={picker} onClose={() => setPicker(null)} />}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage
 import { ImagePlus, Trash2, Loader2, Images, Copy, Rocket, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import PhotoPlacements from './PhotoPlacements';
-import { PhotoSlotsData } from '../lib/photoSlots';
+import { PhotoSlotsData, photoUsage } from '../lib/photoSlots';
 
 export interface SitePhoto {
   id: string;
@@ -13,6 +13,9 @@ export interface SitePhoto {
   alt: string;
   url: string;
   path: string;
+  /** Small copy for the dashboard grids. Photos uploaded before thumbnails existed don't have one. */
+  thumbUrl?: string;
+  thumbPath?: string;
   width: number;
   height: number;
   bytes: number;
@@ -25,8 +28,10 @@ interface PublishStatus {
   lastSuccessStartedAt?: string | null;
 }
 
-// Longest edge after resizing. Big enough for full-width headers on retina screens.
-const MAX_EDGE = 2400;
+// Longest edge after resizing. Articles are 768px wide, so this stays sharp on retina screens.
+const MAX_EDGE = 1600;
+// Longest edge of the dashboard thumbnail.
+const THUMB_EDGE = 480;
 
 const slugify = (s: string) =>
   s.toLowerCase().replace(/\.[^.]+$/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'photo';
@@ -35,25 +40,33 @@ const formatDate = (t?: Timestamp) =>
   t ? t.toDate().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' }) : '';
 
 // Resize in the browser and re-encode as WebP (JPEG where the browser can't encode WebP).
-async function resizeImage(file: File): Promise<{ blob: Blob; width: number; height: number; ext: string }> {
-  const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
-  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+// Re-encoding also drops the camera's EXIF data, including GPS location.
+async function encode(bitmap: ImageBitmap, maxEdge: number, quality: number): Promise<{ blob: Blob; width: number; height: number; ext: string }> {
+  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
   const width = Math.round(bitmap.width * scale);
   const height = Math.round(bitmap.height * scale);
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   canvas.getContext('2d')!.drawImage(bitmap, 0, 0, width, height);
-  bitmap.close();
   const toBlob = (type: string, q: number) => new Promise<Blob | null>(res => canvas.toBlob(res, type, q));
-  let blob = await toBlob('image/webp', 0.85);
+  let blob = await toBlob('image/webp', quality);
   let ext = 'webp';
   if (!blob || blob.type !== 'image/webp') {
-    blob = await toBlob('image/jpeg', 0.85);
+    blob = await toBlob('image/jpeg', quality);
     ext = 'jpg';
   }
   if (!blob) throw new Error('Could not process image');
   return { blob, width, height, ext };
+}
+
+async function resizeImage(file: File) {
+  const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+  try {
+    return { full: await encode(bitmap, MAX_EDGE, 0.85), thumb: await encode(bitmap, THUMB_EDGE, 0.75) };
+  } finally {
+    bitmap.close();
+  }
 }
 
 // Admin photo library: upload, describe and delete photos, then choose where each one appears on the site.
@@ -69,6 +82,7 @@ export default function PhotosAdmin() {
   const [slotsUpdatedAt, setSlotsUpdatedAt] = useState<number>(0);
   const [publish, setPublish] = useState<PublishStatus | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'no-alt' | 'unused'>('all');
 
   useEffect(() => {
     return onSnapshot(doc(db, 'settings', 'photo_slots'), (snap) => {
@@ -121,9 +135,7 @@ export default function PhotosAdmin() {
   const unpublished = slotsUpdatedAt > lastLive;
 
   // Spots keep a copy of each photo's details, so description edits and deletes are copied across.
-  const usageCount = (photoId: string) =>
-    Object.values(slotsData.slots).filter(s => s.photoId === photoId).length +
-    Object.values(slotsData.inline).reduce((n, l) => n + l.filter(x => x.photoId === photoId).length, 0);
+  const usageCount = (photoId: string) => photoUsage(slotsData, photoId);
 
   const syncSlots = async (photoId: string, change: { alt: string } | 'remove') => {
     if (!usageCount(photoId)) return;
@@ -163,16 +175,25 @@ export default function PhotosAdmin() {
     let ok = 0;
     for (const file of images) {
       try {
-        const { blob, width, height, ext } = await resizeImage(file);
-        const path = `site-photos/${Date.now()}-${slugify(file.name)}.${ext}`;
-        const storageRef = ref(storage, path);
-        await uploadBytes(storageRef, blob, { contentType: blob.type, cacheControl: 'public, max-age=31536000' });
-        const url = await getDownloadURL(storageRef);
+        const { full, thumb } = await resizeImage(file);
+        const { blob, width, height, ext } = full;
+        const base = `site-photos/${Date.now()}-${slugify(file.name)}`;
+        const put = async (path: string, b: Blob) => {
+          const storageRef = ref(storage, path);
+          await uploadBytes(storageRef, b, { contentType: b.type, cacheControl: 'public, max-age=31536000' });
+          return getDownloadURL(storageRef);
+        };
+        const path = `${base}.${ext}`;
+        const thumbPath = `${base}-thumb.${thumb.ext}`;
+        const url = await put(path, blob);
+        const thumbUrl = await put(thumbPath, thumb.blob);
         await addDoc(collection(db, 'site_photos'), {
           name: file.name.replace(/\.[^.]+$/, ''),
           alt: '',
           url,
           path,
+          thumbUrl,
+          thumbPath,
           width,
           height,
           bytes: blob.size,
@@ -207,9 +228,11 @@ export default function PhotosAdmin() {
     if (!window.confirm(`Delete "${p.name}"?${where} This can't be undone.`)) return;
     setBusyId(p.id);
     try {
-      await deleteObject(ref(storage, p.path)).catch(err => {
-        if (err?.code !== 'storage/object-not-found') throw err;
-      });
+      for (const path of [p.path, p.thumbPath].filter(Boolean) as string[]) {
+        await deleteObject(ref(storage, path)).catch(err => {
+          if (err?.code !== 'storage/object-not-found') throw err;
+        });
+      }
       await syncSlots(p.id, 'remove');
       await deleteDoc(doc(db, 'site_photos', p.id));
       toast.success('Photo deleted');
@@ -324,12 +347,26 @@ export default function PhotosAdmin() {
         </div>
       ) : (
         <>
-          <p className="text-xs text-black/40 uppercase tracking-[0.12em] font-bold mb-4">{photos.length} photo{photos.length === 1 ? '' : 's'}</p>
+          <div className="flex flex-wrap items-center gap-2 mb-5">
+            {([
+              ['all', `All (${photos.length})`],
+              ['no-alt', `No description (${photos.filter(p => !p.alt).length})`],
+              ['unused', `Not used yet (${photos.filter(p => !usageCount(p.id)).length})`],
+            ] as const).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setFilter(key)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${filter === key ? 'bg-gold text-ink' : 'bg-black/5 text-black/50 hover:text-ink'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {photos.map(p => (
+            {photos.filter(p => filter === 'all' || (filter === 'no-alt' ? !p.alt : !usageCount(p.id))).map(p => (
               <li key={p.id} className="bg-white border border-black/10 rounded-2xl overflow-hidden flex flex-col">
                 <a href={p.url} target="_blank" rel="noreferrer" className="block bg-black/5">
-                  <img src={p.url} alt={p.alt} loading="lazy" className="w-full aspect-[4/3] object-cover" />
+                  <img src={p.thumbUrl || p.url} alt={p.alt} loading="lazy" className="w-full aspect-[4/3] object-cover" />
                 </a>
                 <div className="p-4 flex flex-col gap-3 flex-1">
                   <input
@@ -346,6 +383,12 @@ export default function PhotosAdmin() {
                     className="text-sm text-black/70 bg-black/[0.03] rounded-lg p-2 outline-none focus:ring-1 focus:ring-gold-deep resize-none"
                     aria-label="Photo description"
                   />
+                  <div className="flex flex-wrap gap-2 text-xs font-semibold">
+                    {!p.alt && <span className="px-2 py-1 rounded-full bg-amber-100 text-amber-800">No description yet</span>}
+                    <span className={`px-2 py-1 rounded-full ${usageCount(p.id) ? 'bg-green-50 text-green-700' : 'bg-black/5 text-black/45'}`}>
+                      {usageCount(p.id) ? `Used in ${usageCount(p.id)} place${usageCount(p.id) === 1 ? '' : 's'}` : 'Not used yet'}
+                    </span>
+                  </div>
                   <div className="flex items-center justify-between text-xs text-black/40 mt-auto">
                     <span>{p.width}×{p.height} · {Math.round(p.bytes / 1024)} KB · {formatDate(p.createdAt)}</span>
                   </div>
