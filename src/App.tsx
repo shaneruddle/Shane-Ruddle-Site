@@ -367,12 +367,19 @@ function routeFromPath(pathname: string): { view: View } {
 
 const initialRoute = routeFromPath(window.location.pathname);
 const startsOnPortal = initialRoute.view === 'portal';
-// Home-screen shortcut for Shane's private Circle tab (/portal?tab=circle). Swap in the Circle manifest so
-// "Add to Home Screen" saves an icon that opens straight to it. The tab itself only shows for Shane's account.
-const launchCircle = startsOnPortal && new URLSearchParams(window.location.search).get('tab') === 'circle';
-if (launchCircle) {
-  document.querySelector('link[rel="manifest"]')?.setAttribute('href', '/circle.webmanifest');
-  document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content', 'Circle');
+// Home-screen shortcuts for Shane's private tabs (/portal?tab=circle, /portal?tab=reminders). Swap in that tab's
+// manifest and icon so "Add to Home Screen" saves an icon that opens straight to it. The tabs only show for Shane's account.
+const LAUNCH_TABS = {
+  circle: { manifest: '/circle.webmanifest', title: 'Circle', icon: '/apple-touch-icon.png' },
+  reminders: { manifest: '/reminders.webmanifest', title: 'Reminders', icon: '/reminders-touch-icon.png' },
+} as const;
+const launchTabParam = new URLSearchParams(window.location.search).get('tab');
+const launchTab = startsOnPortal && launchTabParam && launchTabParam in LAUNCH_TABS ? launchTabParam as keyof typeof LAUNCH_TABS : undefined;
+if (launchTab) {
+  const t = LAUNCH_TABS[launchTab];
+  document.querySelector('link[rel="manifest"]')?.setAttribute('href', t.manifest);
+  document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content', t.title);
+  document.querySelector('link[rel="apple-touch-icon"]')?.setAttribute('href', t.icon);
 }
 
 export default function App() {
@@ -1132,7 +1139,7 @@ export default function App() {
                       exit={{ opacity: 0, scale: 0.98 }}
                       transition={{ duration: 0.4 }}
                     >
-                      <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} initialTab={launchCircle ? 'circle' : undefined} />
+                      <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} initialTab={launchTab} />
                     </motion.div>
                   ) : view === 'portal' && authLoading ? (
                     <div key="portal-loading" className="fixed inset-0 z-[100] bg-white flex items-center justify-center">

@@ -188,6 +188,15 @@ service cloud.firestore {
       allow read, write: if isShane();
     }
 
+    // Shane's private Reminders (portal tab): same Shane-only lock as Circle.
+    match /reminders/{reminderId} {
+      allow read, write: if isShane();
+    }
+
+    match /reminder_lists/{listId} {
+      allow read, write: if isShane();
+    }
+
     // Article comments: anyone can submit (held as pending); only approved ones are public; admins moderate.
     match /comments/{commentId} {
       allow read: if resource.data.status == 'approved' || isAdmin();

@@ -1,0 +1,17 @@
+{
+  "name": "Reminders",
+  "short_name": "Reminders",
+  "start_url": "/portal?tab=reminders",
+  "scope": "/",
+  "id": "/portal?tab=reminders",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "icons": [
+    { "src": "/reminders-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/reminders-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/reminders-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/reminders-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

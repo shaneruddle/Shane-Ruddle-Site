@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog } from '../firebase';
 import { collection, onSnapshot, query, where, doc, setDoc, addDoc, serverTimestamp, getDoc, Timestamp, getDocs } from 'firebase/firestore';
-import { Tag, History, QrCode, ArrowLeft, Loader2, CheckCircle, Sparkles, Ticket, LogOut, Settings, User, Upload, Users, MessageCircle, Images, Activity, HeartHandshake, X, ArrowUpRight } from 'lucide-react';
+import { Tag, History, QrCode, ArrowLeft, Loader2, CheckCircle, Sparkles, Ticket, LogOut, Settings, User, Upload, Users, MessageCircle, Images, Activity, HeartHandshake, ListChecks, X, ArrowUpRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { updateDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
@@ -10,13 +10,14 @@ import CommentsAdmin from './CommentsAdmin';
 import PhotosAdmin from './PhotosAdmin';
 import ActivityAdmin from './ActivityAdmin';
 import CircleAdmin from './CircleAdmin';
+import RemindersAdmin from './RemindersAdmin';
 
 interface EmployeePortalProps {
   userProfile: UserProfile;
   onBack: () => void;
 }
 
-export default function EmployeePortal({ userProfile, onBack, onNavigate, initialTab }: EmployeePortalProps & { onNavigate?: (view: PortalView) => void; initialTab?: 'circle' }) {
+export default function EmployeePortal({ userProfile, onBack, onNavigate, initialTab }: EmployeePortalProps & { onNavigate?: (view: PortalView) => void; initialTab?: 'circle' | 'reminders' }) {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [myLogs, setMyLogs] = useState<UsageLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +28,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
   const canModerateComments = userProfile.roles?.includes('admin') || userProfile.role === 'admin' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
   // Matches isOwner() in storage.rules, which guards photo uploads.
   const canManagePhotos = userProfile.uid === 'u7ElWXIkdjVTNTp76LcyXnnq3AM2' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
-  const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'circle'>(initialTab === 'circle' && canManagePhotos ? 'circle' : 'offers');
+  const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'circle' | 'reminders'>(initialTab && canManagePhotos ? initialTab : 'offers');
   const portalTabs: [typeof activeTab, string, typeof Ticket][] = [
     ['offers', 'Offers', Ticket],
     ['profile', 'Profile', User],
@@ -36,6 +37,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
     ...(canModerateComments ? [['activity', 'Activity', Activity] as [typeof activeTab, string, typeof Ticket]] : []),
     // Shane only (matches isShane() in firestore.rules), never other admins.
     ...(canManagePhotos ? [['circle', 'Circle', HeartHandshake] as [typeof activeTab, string, typeof Ticket]] : []),
+    ...(canManagePhotos ? [['reminders', 'Reminders', ListChecks] as [typeof activeTab, string, typeof Ticket]] : []),
   ];
   // Phones get the section list as a slide-out drawer instead of a sideways-scrolling tab row.
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -433,6 +435,8 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
           <ActivityAdmin />
         ) : activeTab === 'circle' && canManagePhotos ? (
           <CircleAdmin />
+        ) : activeTab === 'reminders' && canManagePhotos ? (
+          <RemindersAdmin />
         ) : (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
