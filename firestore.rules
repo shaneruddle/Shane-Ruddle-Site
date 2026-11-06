@@ -167,6 +167,27 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Shane's private "Circle" (portal tab): people he wants to meet and has met, plus events.
+    // Shane only, deliberately NOT isAdmin(): other admins and managers can't read it.
+    function isShane() {
+      return isAuthenticated() && (
+        request.auth.uid == "u7ElWXIkdjVTNTp76LcyXnnq3AM2" ||
+        (request.auth.token.email.lower() == "shaneruddle@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    match /circle_people/{personId} {
+      allow read, write: if isShane();
+    }
+
+    match /circle_events/{eventId} {
+      allow read, write: if isShane();
+    }
+
+    match /circle_settings/{docId} {
+      allow read, write: if isShane();
+    }
+
     // Article comments: anyone can submit (held as pending); only approved ones are public; admins moderate.
     match /comments/{commentId} {
       allow read: if resource.data.status == 'approved' || isAdmin();
