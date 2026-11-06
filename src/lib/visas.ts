@@ -6,7 +6,9 @@
 import type { AskTopic } from "../components/AskShane";
 
 export const VISAS_PATH = "/thai-visas";
-export const RULES_AS_OF = "October 2026";
+export const RULES_AS_OF = "November 2026";
+/** ISO date the visa figures were last checked (sent to Google as dateModified). */
+export const RULES_CHECKED = "2026-11-07";
 
 /** Articles that show the visa finder card above Ask Shane. */
 export const VISA_PROMO_ARTICLES = new Set([
@@ -106,7 +108,7 @@ export const VISAS: ThaiVisa[] = [
     faqs: [
       {
         q: "How much money do I need for a Thai retirement visa?",
-        a: "฿800,000 in a Thai bank account, or an income of ฿65,000 a month, or a combination of the two (as of October 2026). You also need to be 50 or over.",
+        a: "฿800,000 in a Thai bank account, or an income of ฿65,000 a month, or a combination of the two (as of November 2026). You also need to be 50 or over.",
       },
       {
         q: "What's the difference between the Non-O and the O-A?",
@@ -168,7 +170,7 @@ export const VISAS: ThaiVisa[] = [
     faqs: [
       {
         q: "How much money do I need for the DTV?",
-        a: "Around ฿500,000 in savings (as of October 2026). Embassies usually want to see it held for a few months.",
+        a: "Around ฿500,000 in savings (as of November 2026). Embassies usually want to see it held for a few months.",
       },
       {
         q: "Can I work in Thailand on a DTV?",
@@ -230,7 +232,7 @@ export const VISAS: ThaiVisa[] = [
     faqs: [
       {
         q: "How much does Thailand Privilege cost?",
-        a: "Packages start at ฿650,000 for five years (as of October 2026), with longer packages for more money.",
+        a: "Packages start at ฿650,000 for five years (as of November 2026), with longer packages for more money.",
       },
       {
         q: "Can I work on a Thailand Privilege visa?",
@@ -413,7 +415,7 @@ export const VISAS: ThaiVisa[] = [
     faqs: [
       {
         q: "How much money do I need for a Thai marriage visa?",
-        a: "฿400,000 in a Thai bank account or an income of ฿40,000 a month (as of October 2026, check before applying).",
+        a: "฿400,000 in a Thai bank account or an income of ฿40,000 a month (as of November 2026, check before applying).",
       },
       {
         q: "Can I work on a Thai marriage visa?",

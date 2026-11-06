@@ -50,6 +50,9 @@ const filePosts: BlogPost[] = FILE_ARTICLES.map(a => ({
   createdAt: { toDate: () => new Date(`${a.date}T00:00:00+07:00`) } as BlogPost['createdAt'],
 }));
 
+// `updated` frontmatter dates, shown on file articles as "Updated …".
+const FILE_UPDATED = new Map(FILE_ARTICLES.filter(a => a.updated).map(a => [a.slug, new Date(`${a.updated}T00:00:00+07:00`)]));
+
 const mergePosts = (firestorePosts: BlogPost[]) => {
   const fileSlugs = new Set(filePosts.map(p => p.slug));
   return [...filePosts, ...firestorePosts.filter(p => !fileSlugs.has(p.slug || p.id))]
@@ -156,6 +159,7 @@ export default function BlogPage({ onBack }: BlogPageProps) {
         body={selectedPost.body}
         category={selectedPost.category}
         createdAt={selectedPost.createdAt?.toDate()}
+        updatedAt={FILE_UPDATED.get(selectedPost.slug || selectedPost.id)}
         imageUrl={selectedPost.imageUrl}
         slug={selectedPost.slug || selectedPost.id}
       >

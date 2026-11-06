@@ -41,10 +41,55 @@ function afterLoad(fn: () => void) {
   else window.addEventListener("load", () => setTimeout(fn, 0), { once: true });
 }
 
+// AI assistants that send visitors with a referrer or a utm_source. Google's own AI Overviews and
+// AI Mode can't be told apart this way: they arrive as ordinary google.com visits.
+const AI_SOURCES: [RegExp, string][] = [
+  [/(^|\.)(chatgpt\.com|chat\.openai\.com|openai\.com)$/, "chatgpt"],
+  [/(^|\.)perplexity\.ai$/, "perplexity"],
+  [/(^|\.)gemini\.google\.com$|^bard\.google\.com$/, "gemini"],
+  [/(^|\.)copilot\.microsoft\.com$|^edgeservices\.bing\.com$/, "copilot"],
+  [/(^|\.)claude\.ai$/, "claude"],
+  [/(^|\.)(deepseek\.com|chat\.deepseek\.com)$/, "deepseek"],
+  [/(^|\.)(you\.com|phind\.com|meta\.ai|grok\.com|x\.ai|mistral\.ai)$/, "other_ai"],
+];
+
+function aiSource(): string | null {
+  const candidates: string[] = [];
+  try {
+    if (document.referrer) candidates.push(new URL(document.referrer).hostname);
+  } catch {
+    /* ignore malformed referrers */
+  }
+  const utm = new URLSearchParams(window.location.search).get("utm_source");
+  if (utm) candidates.push(utm.toLowerCase());
+  for (const host of candidates) {
+    for (const [re, name] of AI_SOURCES) if (re.test(host)) return name;
+  }
+  return null;
+}
+
+// Sends one "ai_referral" event per visit that started from an AI assistant, so GA4 can count
+// them (Reports > Engagement > Events, or the insights endpoint with eventName = ai_referral).
+let aiChecked = false;
+function trackAiReferral() {
+  if (aiChecked) return;
+  aiChecked = true;
+  const source = aiSource();
+  if (!source) return;
+  try {
+    if (sessionStorage.getItem("ai_referral")) return;
+    sessionStorage.setItem("ai_referral", source);
+  } catch {
+    /* storage blocked: still send once for this page load */
+  }
+  window.gtag?.("event", "ai_referral", { ai_source: source, landing_page: window.location.pathname });
+}
+
 export function trackPageView() {
   if (!isTrackable()) return;
   afterLoad(() => {
     start();
+    trackAiReferral();
     // Let the new page set its title first.
     setTimeout(() => {
       window.gtag?.("event", "page_view", {

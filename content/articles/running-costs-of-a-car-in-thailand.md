@@ -3,9 +3,18 @@ title: "What It Really Costs to Run a Car in Thailand"
 description: "A Pattaya car rental owner on what a car really costs to run in Thailand: insurance, servicing, road tax, fuel, electric cars and the cost everyone forgets."
 category: Car Rental
 date: 2026-11-03
+updated: 2026-11-07
 ---
 
 Running a car in Thailand is cheap compared with the West, as long as you buy the right car. Here's what to budget for, from someone who's run a rental fleet here since 2010.
+
+The short version, for a typical car in 2026:
+
+- **First class insurance:** around ฿18,000 a year
+- **Service at a dealer:** around ฿1,200, every 10,000 km or six months
+- **Compulsory insurance (Por Ror Bor):** about ฿645 a year
+- **Road tax:** roughly ฿1,000 to ฿1,700 a year for a small car
+- **Fuel:** gasohol is around ฿41 a litre
 
 ## Insurance: always go first class
 

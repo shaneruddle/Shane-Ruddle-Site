@@ -6,6 +6,7 @@
 //   description: One or two sentences for Google and social previews (max ~155 characters).
 //   category: Car Rental            # My Advice | Property | Car Rental | Pattaya News
 //   date: 2026-10-19                # publish date, YYYY-MM-DD
+//   updated: 2026-11-07             # optional: last real revision, shown as "Updated" and sent to Google
 //   image: /images/articles/x.webp  # optional
 //   seoTitle: Shorter title for Google  # optional: search title if it should differ from the headline
 //   draft: true                     # optional: hides the article
@@ -25,6 +26,8 @@ export interface FileArticle {
   description: string;
   category: string;
   date: string; // YYYY-MM-DD
+  /** Last real revision (YYYY-MM-DD), when later than `date`. */
+  updated?: string;
   image?: string;
   body: string;
 }
@@ -48,6 +51,7 @@ function parse(path: string, raw: string): (FileArticle & { draft: boolean }) | 
     description: meta.description || "",
     category: meta.category || "My Advice",
     date: meta.date || "1970-01-01",
+    updated: meta.updated && meta.updated > (meta.date || "") ? meta.updated : undefined,
     image: PHOTO_SLOTS.slots[articleHeaderSlot(slug)]?.url || meta.image || undefined,
     body: withInlinePhotos(slug, match[2].trim()),
     draft: meta.draft === "true",

@@ -3,9 +3,10 @@ title: "Getting a Thai Driving Licence in Pattaya"
 description: "The owner of Pattaya Rent a Car on getting a Thai driving licence as a foreigner: when you need one, doing it yourself or with an agent, what to bring, the tests on the day, renewals and why it's worth having."
 category: Car Rental
 date: 2026-11-01
+updated: 2026-11-07
 ---
 
-As the owner of a car rental company, I get asked about Thai driving licences a lot. Here's how it works.
+If you live in Thailand and you're here to stay, get a Thai driving licence. With your licence from home, there's no driving test: you watch a video and do a few quick physical tests at the licence office. An agent will hold your hand through it for around ฿2,500 to ฿3,000. As the owner of a car rental company, I get asked about Thai driving licences a lot. Here's how it works.
 
 ## When do you need a Thai licence?
 

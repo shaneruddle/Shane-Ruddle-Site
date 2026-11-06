@@ -3,9 +3,10 @@ title: "The Rainy Season in Pattaya: What It's Really Like"
 description: "A Pattaya business owner of 20 years on the rainy season: when it rains, how bad the flooding gets, who should still visit, how it affects his businesses and what to bring."
 category: My Advice
 date: 2026-11-01
+updated: 2026-11-07
 ---
 
-People worry about visiting Pattaya in the rainy season. Here's what it's actually like.
+Pattaya's rainy season starts in May, just after Songkran, and May can be one of the worst months, with August and September sometimes bad too. Most downpours last less than an hour, flooded roads soon clear, and it's still a good time for golf. It's not a great time for a beach holiday. People worry about visiting in the rainy season, so here's what it's actually like, from someone who's run businesses here for 20 years.
 
 ## When does it rain?
 

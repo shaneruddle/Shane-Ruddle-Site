@@ -3,9 +3,10 @@ title: "Scooter or Car in Pattaya? Advice From a Rental Company Owner"
 description: "Should you rent a scooter or a car in Pattaya? The owner of Pattaya Rent a Car on safety, scooter insurance, police checks and fines, and where beginners should ride."
 category: Car Rental
 date: 2026-10-31
+updated: 2026-11-07
 ---
 
-I've run Pattaya Rent a Car since 2010, and visitors ask me this all the time: should I rent a scooter or a car?
+I've run Pattaya Rent a Car since 2010, and visitors ask me this all the time: should I rent a scooter or a car? My answer is a car, if your budget allows it. The roads here are more chaotic than in the West, and most rental scooters only carry the very basic government insurance.
 
 Renting a car? Here's [what to check before you sign](/articles/renting-a-car-in-pattaya).
 

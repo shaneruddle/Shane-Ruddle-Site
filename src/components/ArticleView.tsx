@@ -11,6 +11,8 @@ export interface ArticleViewProps {
   body: string;
   category?: string;
   createdAt?: Date;
+  /** Shown as "Updated …" when later than createdAt. */
+  updatedAt?: Date;
   imageUrl?: string;
   /** Used to link the article to its "Start here" guide. */
   slug?: string;
@@ -24,11 +26,15 @@ const formatArticleDate = (d: Date) =>
 
 // One article layout shared by the build-time prerender and the live app, so the page
 // doesn't jump when the app takes over from the static HTML.
-export default function ArticleView({ title, body, category, createdAt, imageUrl, slug, children }: ArticleViewProps) {
+export default function ArticleView({ title, body, category, createdAt, updatedAt, imageUrl, slug, children }: ArticleViewProps) {
   const readMinutes = Math.max(1, Math.ceil(body.split(/\s+/).length / 200));
   const guide = guideForArticle(slug);
   const asked = slug ? questionsForArticle(slug).slice(0, 4) : [];
-  const meta = [category, createdAt ? formatArticleDate(createdAt) : null, `${readMinutes} min read`].filter(Boolean).join(" · ");
+  const updated =
+    updatedAt && createdAt && formatArticleDate(updatedAt) !== formatArticleDate(createdAt) && updatedAt > createdAt
+      ? `Updated ${formatArticleDate(updatedAt)}`
+      : null;
+  const meta = [category, createdAt ? formatArticleDate(createdAt) : null, updated, `${readMinutes} min read`].filter(Boolean).join(" · ");
 
   return (
     <article className="min-h-screen bg-white pt-28 md:pt-32 pb-24 px-6">
