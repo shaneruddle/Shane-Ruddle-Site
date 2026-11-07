@@ -118,3 +118,40 @@ export const DEFAULT_AREAS: { name: string; color: string; aliases: string }[] =
   { name: 'Personal', color: '#57534E', aliases: 'me, health, admin, visa' },
   { name: 'Family', color: '#DB2777', aliases: 'family, kids, home' },
 ];
+
+// ---- Notifications (server/inboxPush.ts), settings saved in inbox_settings/profile.notify ----
+export interface NotifySettings { enabled: boolean; briefing: boolean; briefingTime: string; quietStart: string; quietEnd: string }
+export const NOTIFY_DEFAULTS: NotifySettings = { enabled: true, briefing: true, briefingTime: '07:30', quietStart: '22:00', quietEnd: '07:00' };
+
+// Quiet hours can run past midnight (22:00 to 07:00). Equal start and end means none.
+export const inQuietHours = (time: string, n: Pick<NotifySettings, 'quietStart' | 'quietEnd'>) =>
+  n.quietStart === n.quietEnd ? false
+    : n.quietStart < n.quietEnd ? time >= n.quietStart && time < n.quietEnd
+      : time >= n.quietStart || time < n.quietEnd;
+
+const daysBetween = (from: string, to: string) => Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000);
+
+// The morning briefing: what's due, what's late, who to chase, plus a nudge or two. Null when there's nothing.
+export function briefingFor(items: Item[], today: string): { title: string; body: string } | null {
+  const open = items.filter(i => i.status !== 'done' && i.status !== 'archived');
+  const tasks = open.filter(i => i.kind === 'task');
+  const overdue = tasks.filter(i => i.dueDate && i.dueDate < today);
+  const dueToday = tasks.filter(i => i.dueDate === today).sort((a, b) => (a.dueTime || '99').localeCompare(b.dueTime || '99'));
+  const chase = open.filter(i => i.status === 'waiting' && i.followUpDate && i.followUpDate <= today);
+  const stale = open.filter(i => i.status === 'waiting' && !i.followUpDate && i.waitingSince && daysBetween(i.waitingSince, today) >= 7);
+  const unsorted = open.filter(i => i.status === 'inbox').length;
+  const next = tasks.filter(i => i.status === 'next' && !i.dueDate)
+    .sort((a, b) => Number(!!b.flagged) - Number(!!a.flagged) || (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
+
+  const names = (l: Item[], n = 2) => l.slice(0, n).map(i => i.title.slice(0, 50)).join(', ') + (l.length > n ? ` +${l.length - n}` : '');
+  const parts: string[] = [];
+  if (dueToday.length) parts.push(`Today: ${names(dueToday)}`);
+  if (overdue.length) parts.push(`Overdue: ${names(overdue)}`);
+  if (chase.length) parts.push(`Chase ${[...new Set(chase.map(i => i.waitingOn).filter(Boolean))].slice(0, 3).join(', ')}`);
+  if (stale.length) parts.push(`Waiting on ${stale[0].waitingOn} for ${daysBetween(stale[0].waitingSince!, today)} days`);
+  if (!dueToday.length && !overdue.length && next.length) parts.push(`Next up: ${names(next, 1)}`);
+  if (unsorted >= 3) parts.push(`${unsorted} captures to sort`);
+  if (!parts.length) return null;
+  const count = dueToday.length + overdue.length + chase.length;
+  return { title: count ? `Good morning. ${count} thing${count === 1 ? '' : 's'} need you today` : 'Good morning. Nothing due today', body: parts.join(' · ') };
+}

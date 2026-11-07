@@ -54,6 +54,17 @@ jobs:
             --set-env-vars "NODE_ENV=production,SMTP_HOST=${{ secrets.SMTP_HOST }},SMTP_PORT=${{ secrets.SMTP_PORT }},SMTP_USER=${{ secrets.SMTP_USER }},SMTP_PASS=${SMTP_PASS},BREVO_API_KEY=${BREVO_API_KEY},BREVO_LIST_ID=${BREVO_LIST_ID},ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY},GH_DISPATCH_TOKEN=${GH_DISPATCH_TOKEN},GA4_PROPERTY_ID=515917636" \
             --set-secrets "INSIGHTS_TOKEN=insights-token:latest" \
             --quiet
+      - name: Inbox reminder scheduler (every minute)
+        # Best effort: if the service account can't manage Cloud Scheduler, the 5-minute GitHub job
+        # in inbox-tick.yml still sends reminders.
+        continue-on-error: true
+        run: |
+          gcloud services enable cloudscheduler.googleapis.com --project shane-ruddle-site --quiet || true
+          set -- --project shane-ruddle-site --location asia-east1 --schedule "* * * * *" --time-zone "Asia/Bangkok" \
+            --uri "https://shane-ruddle-server-qzxgxus4ia-de.a.run.app/api/inbox/tick" --http-method POST \
+            --oidc-service-account-email "github-deploy@shane-ruddle-site.iam.gserviceaccount.com" \
+            --oidc-token-audience "shane-ruddle-inbox" --attempt-deadline 60s --quiet
+          gcloud scheduler jobs update http inbox-tick "$@" || gcloud scheduler jobs create http inbox-tick "$@"
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
       - name: Deploy Firebase Hosting

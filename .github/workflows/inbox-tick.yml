@@ -1,0 +1,29 @@
+name: Inbox reminders
+# Backup for the Cloud Scheduler job "inbox-tick" (set up by deploy.yml, runs every minute): every 5 minutes ask
+# the server to send any Inbox reminders and the morning briefing that are due. Sending is idempotent, so the two
+# can overlap safely. See server/inboxPush.ts. Run by hand with dry=1 to see what would send.
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: 'Dry run (report only, send nothing)'
+        type: boolean
+        default: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      - name: Send due reminders
+        run: |
+          TOKEN=$(gcloud auth print-identity-token --audiences=shane-ruddle-inbox)
+          QUERY=""
+          if [ "${{ inputs.dry }}" = "true" ]; then QUERY="?dry=1"; fi
+          curl -fsS -X POST -H "Authorization: Bearer $TOKEN" "https://shane-ruddle-server-qzxgxus4ia-de.a.run.app/api/inbox/tick$QUERY"

@@ -12,6 +12,7 @@ import { registerLeadRoutes } from "./server/leads";
 import { registerCircleRoutes } from "./server/circle";
 import { registerInboxRoutes } from "./server/inbox";
 import { registerInboxMcpRoutes } from "./server/inboxMcp";
+import { registerInboxPushRoutes } from "./server/inboxPush";
 
 dotenv.config();
 
@@ -390,6 +391,7 @@ Reply with JSON only, no other text: {"approve": true or false, "reason": "a few
   // ---- Shane's private Inbox: AI sorting, questions, Apple import (server/inbox.ts) ----
   registerInboxRoutes(app, { getDb: getCommentsDb });
   registerInboxMcpRoutes(app, { getDb: getCommentsDb });
+  registerInboxPushRoutes(app, { getDb: getCommentsDb });
 
   // ---- Photo publishing ----
   // The portal Photos tab saves photo choices to Firestore; publishing rebuilds the site so they go live.
