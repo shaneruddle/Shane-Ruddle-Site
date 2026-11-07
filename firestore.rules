@@ -206,6 +206,14 @@ service cloud.firestore {
       allow read, write: if isShane();
     }
 
+    // Assistants connected to the Inbox (server/inboxMcp.ts). Shane can see them and switch one off;
+    // tokens, codes and clients stay server-only.
+    match /inbox_connections/{docId} {
+      allow read: if isShane();
+      allow update: if isShane() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['revoked', 'revokedAt'])
+        && request.resource.data.revoked == true;
+    }
+
     match /reminders/{reminderId} {
       allow read, write: if isShane();
     }

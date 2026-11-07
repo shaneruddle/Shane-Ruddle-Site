@@ -359,7 +359,7 @@ function routeFromPath(pathname: string): { view: View } {
   if (path === '/thai-visas' || path.startsWith('/thai-visas/')) return { view: 'visas' };
   if (path === '/international-schools-pattaya' || path.startsWith('/international-schools-pattaya/')) return { view: 'schools' };
   if (path.startsWith('/move-to-thailand/')) return { view: 'country' };
-  if (path === '/inbox' || path === '/portal') return { view: 'portal' };
+  if (path === '/inbox' || path.startsWith('/inbox/') || path === '/portal') return { view: 'portal' };
   if (path === '/questions' || path.startsWith('/questions/')) return { view: 'questions' };
   if (path === '/business-in-pattaya/buying-a-business' || path === '/business-in-pattaya/sell-your-business') return { view: 'business' };
   const view = (Object.keys(VIEW_PATHS) as View[]).find(v => VIEW_PATHS[v] === path);
@@ -378,7 +378,7 @@ const LAUNCH_TABS = {
   circle: { manifest: '/circle.webmanifest', title: 'Circle', icon: '/apple-touch-icon.png' },
   inbox: { manifest: '/inbox.webmanifest', title: 'Inbox', icon: '/inbox-touch-icon.png' },
 } as const;
-const launchTab: keyof typeof LAUNCH_TABS | undefined = window.location.pathname === '/inbox' ? 'inbox'
+const launchTab: keyof typeof LAUNCH_TABS | undefined = window.location.pathname === '/inbox' || window.location.pathname.startsWith('/inbox/') ? 'inbox'
   : startsOnPortal && new URLSearchParams(window.location.search).get('tab') === 'circle' ? 'circle' : undefined;
 if (launchTab) {
   const t = LAUNCH_TABS[launchTab];
