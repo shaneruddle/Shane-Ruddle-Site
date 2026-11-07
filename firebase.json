@@ -31,6 +31,14 @@
         "destination": "/app.html"
       },
       {
+        "source": "/inbox",
+        "destination": "/app.html"
+      },
+      {
+        "source": "/inbox/**",
+        "destination": "/app.html"
+      },
+      {
         "source": "/articles/**",
         "destination": "/app.html"
       },
