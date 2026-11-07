@@ -13,6 +13,7 @@ import {
   computeAlertAt, searchText, statusFor, STATUS_LABEL, DEFAULT_AREAS, type Item, type Kind, type Status, type AiSuggestion,
 } from '../../server/inboxShared';
 import { Connections } from './InboxConnect';
+import { Notifications } from './InboxNotify';
 
 // Shane's private Inbox at /inbox: one place for quick captures, notes, ideas and tasks.
 // Data: inbox_items, inbox_history (audit trail), inbox_areas, inbox_settings, all Shane-only in firestore.rules.
@@ -78,7 +79,8 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
   const [slow, setSlow] = useState(false);
   const [outbox, setOutbox] = useState<Pending[]>(readOutbox);
   const [online, setOnline] = useState(navigator.onLine);
-  const [screen, setScreen] = useState<Screen>({ tab: 'inbox' });
+  // A tapped notification opens /inbox?tab=today or /inbox?item=<id>.
+  const [screen, setScreen] = useState<Screen>(() => ({ tab: new URLSearchParams(window.location.search).get('tab') === 'today' ? 'today' : 'inbox' }));
   const [open, setOpen] = useState<Item | null>(null);
   const [clock, setClock] = useState(() => ({ day: bkkToday(), time: bkkNowTime() }));
   const flushing = useRef(false);
@@ -103,6 +105,16 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
     window.addEventListener('offline', off);
     return () => { offItems(); offAreas(); clearInterval(tick); clearTimeout(slowTimer); window.removeEventListener('online', on); window.removeEventListener('offline', off); };
   }, []);
+
+  useEffect(() => {
+    if (!ready.items) return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('item') && !params.has('tab')) return;
+    const hit = items.find(i => i.id === params.get('item'));
+    if (hit) setOpen(hit);
+    window.history.replaceState(null, '', '/inbox');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready.items]);
 
   // First run: create the business/personal areas, then move any reminders from the first version across.
   useEffect(() => {
@@ -461,6 +473,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
         })}
       </ul>
       <button onClick={exportAll} className="mt-6 w-full py-3 rounded-2xl bg-white border border-black/10 text-[15px] text-black/60 flex items-center justify-center gap-2"><Download className="w-4 h-4" /> Export everything (JSON + CSV)</button>
+      <Notifications />
       <Connections />
     </>
   );
