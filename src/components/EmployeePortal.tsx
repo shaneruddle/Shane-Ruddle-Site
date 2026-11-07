@@ -11,6 +11,7 @@ import PhotosAdmin from './PhotosAdmin';
 import ActivityAdmin from './ActivityAdmin';
 import CircleAdmin from './CircleAdmin';
 import InboxApp from './InboxApp';
+import { ConnectScreen } from './InboxConnect';
 
 interface EmployeePortalProps {
   userProfile: UserProfile;
@@ -193,7 +194,9 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
   };
 
   // /inbox opens Shane's private Inbox as its own full-screen app (home-screen icon), outside the portal chrome.
-  if (initialTab === 'inbox' && canManagePhotos) return <InboxApp onExit={() => { window.location.href = '/portal'; }} />;
+  if (initialTab === 'inbox' && canManagePhotos) {
+    return window.location.pathname === '/inbox/connect' ? <ConnectScreen /> : <InboxApp onExit={() => { window.location.href = '/portal'; }} />;
+  }
 
   return (
     <div className="min-h-screen bg-cream">

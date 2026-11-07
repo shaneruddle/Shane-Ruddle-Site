@@ -23,6 +23,48 @@
         }
       },
       {
+        "source": "/mcp",
+        "run": {
+          "serviceId": "shane-ruddle-server",
+          "region": "asia-east1"
+        }
+      },
+      {
+        "source": "/oauth/**",
+        "run": {
+          "serviceId": "shane-ruddle-server",
+          "region": "asia-east1"
+        }
+      },
+      {
+        "source": "/.well-known/oauth-protected-resource",
+        "run": {
+          "serviceId": "shane-ruddle-server",
+          "region": "asia-east1"
+        }
+      },
+      {
+        "source": "/.well-known/oauth-protected-resource/**",
+        "run": {
+          "serviceId": "shane-ruddle-server",
+          "region": "asia-east1"
+        }
+      },
+      {
+        "source": "/.well-known/oauth-authorization-server",
+        "run": {
+          "serviceId": "shane-ruddle-server",
+          "region": "asia-east1"
+        }
+      },
+      {
+        "source": "/.well-known/oauth-authorization-server/**",
+        "run": {
+          "serviceId": "shane-ruddle-server",
+          "region": "asia-east1"
+        }
+      },
+      {
         "source": "/portal",
         "destination": "/app.html"
       },

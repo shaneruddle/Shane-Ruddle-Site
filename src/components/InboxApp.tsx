@@ -12,6 +12,7 @@ import { bkkToday, bkkNowTime, addDays, nextDue, repeatLabel, type Repeat, type 
 import {
   computeAlertAt, searchText, statusFor, STATUS_LABEL, DEFAULT_AREAS, type Item, type Kind, type Status, type AiSuggestion,
 } from '../../server/inboxShared';
+import { Connections } from './InboxConnect';
 
 // Shane's private Inbox at /inbox: one place for quick captures, notes, ideas and tasks.
 // Data: inbox_items, inbox_history (audit trail), inbox_areas, inbox_settings, all Shane-only in firestore.rules.
@@ -460,6 +461,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
         })}
       </ul>
       <button onClick={exportAll} className="mt-6 w-full py-3 rounded-2xl bg-white border border-black/10 text-[15px] text-black/60 flex items-center justify-center gap-2"><Download className="w-4 h-4" /> Export everything (JSON + CSV)</button>
+      <Connections />
     </>
   );
 
