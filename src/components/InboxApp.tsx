@@ -73,6 +73,8 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
   const [items, setItems] = useState<Item[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [ready, setReady] = useState({ items: false, areas: false });
+  const [loadError, setLoadError] = useState('');
+  const [slow, setSlow] = useState(false);
   const [outbox, setOutbox] = useState<Pending[]>(readOutbox);
   const [online, setOnline] = useState(navigator.onLine);
   const [screen, setScreen] = useState<Screen>({ tab: 'inbox' });
@@ -87,17 +89,18 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
     const offItems = onSnapshot(collection(db, 'inbox_items'), snap => {
       setItems(snap.docs.map(d => ({ id: d.id, ...d.data() } as Item)));
       setReady(r => ({ ...r, items: true }));
-    }, err => { console.error('Inbox load failed:', err.message); toast.error('Could not load your inbox'); });
+    }, err => { console.error('Inbox load failed:', err.code, err.message); setLoadError(err.code === 'permission-denied' ? 'This inbox is only for Shane\'s account. Sign out and back in with it.' : `Couldn't load your inbox (${err.code}).`); });
     const offAreas = onSnapshot(collection(db, 'inbox_areas'), snap => {
       setAreas(snap.docs.map(d => ({ id: d.id, ...d.data() } as Area)).sort((a, b) => (a.order ?? 99) - (b.order ?? 99)));
       setReady(r => ({ ...r, areas: true }));
-    });
+    }, err => { console.error('Inbox areas failed:', err.code, err.message); setLoadError(`Couldn't load your inbox (${err.code}).`); });
+    const slowTimer = setTimeout(() => setSlow(true), 12_000);
     const tick = setInterval(() => setClock({ day: bkkToday(), time: bkkNowTime() }), 30_000);
     const on = () => setOnline(true);
     const off = () => setOnline(false);
     window.addEventListener('online', on);
     window.addEventListener('offline', off);
-    return () => { offItems(); offAreas(); clearInterval(tick); window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+    return () => { offItems(); offAreas(); clearInterval(tick); clearTimeout(slowTimer); window.removeEventListener('online', on); window.removeEventListener('offline', off); };
   }, []);
 
   // First run: create the business/personal areas, then move any reminders from the first version across.
@@ -289,7 +292,17 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
   };
 
   if (!ready.items || !ready.areas) {
-    return <div className="min-h-[100dvh] flex items-center justify-center bg-cream"><Loader2 className="w-8 h-8 animate-spin text-gold-deep" /></div>;
+    return (
+      <div className="min-h-[100dvh] flex flex-col items-center justify-center gap-4 bg-cream px-8 text-center">
+        {loadError ? <CloudOff className="w-8 h-8 text-black/40" /> : <Loader2 className="w-8 h-8 animate-spin text-gold-deep" />}
+        {(loadError || slow) && (
+          <>
+            <p className="text-[15px] text-black/60">{loadError || 'Still connecting to your inbox. Check your signal, then try again.'}</p>
+            <button onClick={() => window.location.reload()} className="px-5 py-2.5 rounded-full bg-ink text-white text-sm font-semibold">Try again</button>
+          </>
+        )}
+      </div>
+    );
   }
 
   const now = clock.day;

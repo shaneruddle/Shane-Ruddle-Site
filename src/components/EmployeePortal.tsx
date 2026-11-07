@@ -232,7 +232,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
                   <button
                     key={key}
                     type="button"
-                    onClick={() => { setActiveTab(key); setDrawerOpen(false); window.scrollTo(0, 0); }}
+                    onClick={() => { if (key === 'inbox') { window.location.href = '/inbox'; return; } setActiveTab(key); setDrawerOpen(false); window.scrollTo(0, 0); }}
                     aria-current={activeTab === key ? 'page' : undefined}
                     className={`w-full flex items-center gap-3 px-4 h-12 rounded-[12px] text-[15px] transition-colors ${activeTab === key ? 'bg-white/10 text-white font-medium' : 'text-white/65 hover:bg-white/5'}`}
                   >
@@ -258,7 +258,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
             {portalTabs.map(([key, label, Icon]) => (
               <button
                 key={key}
-                onClick={() => setActiveTab(key)}
+                onClick={() => { if (key === 'inbox') { window.location.href = '/inbox'; return; } setActiveTab(key); }}
                 aria-current={activeTab === key ? 'page' : undefined}
                 className={`shrink-0 flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors rounded-full ${activeTab === key ? 'bg-ink text-white' : 'text-black/50 hover:text-ink hover:bg-black/5'}`}
               >
