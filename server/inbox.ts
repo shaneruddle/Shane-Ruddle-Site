@@ -1,16 +1,13 @@
 import type { Express, Request, Response } from "express";
-import crypto from "crypto";
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import { bkkToday, bkkNowTime } from "./reminderDates";
-import { cleanSuggestion, computeAlertAt, statusFor, searchText, type AiSuggestion, type Item, type Kind, type Status } from "./inboxShared";
-import type { Repeat, RepeatFreq } from "./reminderDates";
+import { cleanSuggestion, computeAlertAt, statusFor, searchText, type AiSuggestion, type Item } from "./inboxShared";
 
 // Shane's private Inbox (notes, ideas, tasks). Firestore: inbox_items, inbox_history (audit trail),
 // inbox_areas, inbox_settings, all locked to Shane in firestore.rules. The server uses the admin SDK.
 //   POST /api/inbox/process  Claude sorts a new capture (kind, area, people, place, dates actually said).
 //   POST /api/inbox/ask      Answers a question from the stored items, citing them as [[id]].
-//   POST /api/inbox/import   One-off Apple Reminders + Notes import (INSIGHTS_TOKEN, used by Claude).
 // Saved content is treated as data: prompts say so, and the model never gets tools that change anything.
 
 type Deps = { getDb: () => Firestore };
@@ -250,83 +247,6 @@ export function registerInboxRoutes(app: Express, { getDb }: Deps) {
     } catch (error) {
       console.error("Inbox ask failed:", error instanceof Error ? error.message : error);
       res.status(502).json({ error: "Couldn't answer right now. Try search instead." });
-    }
-  });
-
-  // ---- One-off Apple Reminders + Notes import (Claude reads them on Shane's Mac) ----
-  const importAuthorised = (header: string) => {
-    const given = header.replace(/^Bearer\s+/i, "");
-    const expected = process.env.INSIGHTS_TOKEN || "";
-    return expected.length > 0 && given.length === expected.length && crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected));
-  };
-  const FREQS: RepeatFreq[] = ["daily", "weekdays", "weekly", "monthly", "yearly"];
-  const isDate = (v: unknown) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
-  const isTime = (v: unknown) => typeof v === "string" && /^\d{2}:\d{2}$/.test(v);
-  const hash = (v: string) => crypto.createHash("sha256").update(v).digest("hex").slice(0, 24);
-  const line = (v: unknown, max: number) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, max);
-
-  app.post("/api/inbox/import", async (req, res) => {
-    if (!importAuthorised(String(req.headers.authorization || ""))) return res.status(401).json({ error: "Unauthorised" });
-    const reminders = Array.isArray(req.body?.reminders) ? req.body.reminders.slice(0, 3000) : [];
-    const notes = Array.isArray(req.body?.notes) ? req.body.notes.slice(0, 3000) : [];
-    try {
-      const db = getDb();
-      const { areas } = await areasAndContext(db);
-      const areaFor = (name: string) => {
-        const n = name.toLowerCase();
-        if (!n) return null;
-        return areas.find(a => a.name.toLowerCase() === n || a.aliases.toLowerCase().split(/,\s*/).includes(n))?.id || null;
-      };
-      const rows: { id: string; data: Record<string, unknown> }[] = [];
-      for (const r of reminders) {
-        const title = line(r?.title, 300);
-        const appleId = line(r?.appleId, 200);
-        if (!title || !appleId) continue;
-        const freq = FREQS.includes(r?.repeat?.freq) ? (r.repeat.freq as RepeatFreq) : null;
-        const repeat: Repeat | null = freq ? { freq, interval: Math.max(1, Math.round(Number(r.repeat.interval) || 1)) } : null;
-        const list = line(r?.list, 80);
-        const dueDate = isDate(r?.dueDate) ? r.dueDate : null;
-        const created = Date.parse(String(r?.created || ""));
-        const item = {
-          title, kind: "task" as Kind, status: (r?.done ? "done" : "next") as Status,
-          body: String(r?.notes ?? "").trim().slice(0, 20000), area: areaFor(list),
-          dueDate, dueTime: dueDate && isTime(r?.dueTime) ? r.dueTime : null, repeat, flagged: !!r?.flagged,
-        };
-        rows.push({ id: `a_${hash(appleId)}`, data: { ...item, raw: title, appleId, appleList: list, appleCreatedAt: Number.isFinite(created) ? created : null, alertAt: computeAlertAt(item), search: searchText({ ...item, body: `${item.body} ${list}` }) } });
-      }
-      for (const n of notes) {
-        const title = line(n?.title, 300) || "Untitled note";
-        const appleId = line(n?.appleId, 200);
-        if (!appleId) continue;
-        const folder = line(n?.folder, 80);
-        const item = { title, kind: "note" as Kind, status: "filed" as Status, body: String(n?.body ?? "").trim().slice(0, 60000), area: areaFor(folder) };
-        rows.push({ id: `n_${hash(appleId)}`, data: { ...item, raw: "", appleId, appleFolder: folder, alertAt: null, search: searchText({ ...item, body: `${item.body.slice(0, 4000)} ${folder}` }) } });
-      }
-
-      let added = 0;
-      let updated = 0;
-      for (let i = 0; i < rows.length; i += 200) {
-        const chunk = rows.slice(i, i + 200);
-        const existing = await db.getAll(...chunk.map(r => db.collection("inbox_items").doc(r.id)));
-        const batch = db.batch();
-        chunk.forEach((r, k) => {
-          const ref = db.collection("inbox_items").doc(r.id);
-          if (existing[k].exists) {
-            // Re-running the import keeps anything Shane changed in the app; it only fills in Apple's creation date.
-            batch.set(ref, { appleId: r.data.appleId, importedAt: FieldValue.serverTimestamp(), ...(r.data.appleCreatedAt ? { appleCreatedAt: r.data.appleCreatedAt } : {}) }, { merge: true });
-            updated++;
-          } else {
-            batch.set(ref, { ...r.data, ai: { state: "off" }, version: 1, createdBy: "import", updatedBy: "import", createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(), importedAt: FieldValue.serverTimestamp() });
-            added++;
-          }
-        });
-        await batch.commit();
-      }
-      await history(db, "-", "import", "imported", { added, updated, reminders: reminders.length, notes: notes.length });
-      res.json({ added, updated });
-    } catch (error) {
-      console.error("Inbox import failed:", error instanceof Error ? error.message : error);
-      res.status(500).json({ error: "Import failed." });
     }
   });
 }

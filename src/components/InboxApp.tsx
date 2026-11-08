@@ -489,7 +489,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
   // ---- home: the deck ----
   const greeting = clock.time < '12:00' ? 'Morning' : clock.time < '17:00' ? 'Afternoon' : 'Evening';
   const dateLine = new Date(`${now}T12:00:00+07:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Bangkok' });
-  const syncLabel = !online ? `Offline${unsynced.length ? `, ${unsynced.length} on phone` : ''}` : unsynced.length ? `Uploading ${unsynced.length}` : sortingCount ? `Sorting ${sortingCount}` : 'Synced';
+  const syncLabel = !online ? `Offline${unsynced.length ? `, ${unsynced.length} on phone` : ''}` : unsynced.length ? `Uploading ${unsynced.length}` : sortingCount ? `Sorting ${sortingCount}` : '';
 
   const homeView = () => (
     <div className="min-h-[100dvh] bg-[#0E0D0C] text-white" style={{ paddingTop: 'env(safe-area-inset-top)' }}
@@ -499,9 +499,9 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
         <header className="flex items-center justify-between pt-4">
           <span className="text-[12px] uppercase tracking-[0.18em] text-white/45 font-semibold">{dateLine}</span>
           <div className="flex items-center gap-3">
-            <span className={`inline-flex items-center gap-1.5 text-[12px] ${online && !unsynced.length ? 'text-white/40' : 'text-amber-400'}`}>
+            {syncLabel && <span className={`inline-flex items-center gap-1.5 text-[12px] ${online && !unsynced.length ? 'text-white/40' : 'text-amber-400'}`}>
               {online ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}{syncLabel}
-            </span>
+            </span>}
             <button onClick={() => go({ view: 'search' })} aria-label="Search" className="p-1 text-white/60"><Search className="w-5 h-5" /></button>
           </div>
         </header>
@@ -584,7 +584,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
         <header className={`px-5 pt-4 pb-5 ${o.dark ? 'text-[#1a1405]' : 'text-white'}`}>
           <div className="flex items-center justify-between">
             <button onClick={goHome} className="flex items-center gap-0.5 -ml-1.5 text-[15px] opacity-80"><ChevronLeft className="w-5 h-5" /> All cards</button>
-            <span className="inline-flex items-center gap-1.5 text-[12px] opacity-60">{online ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}{syncLabel}</span>
+            {syncLabel && <span className="inline-flex items-center gap-1.5 text-[12px] opacity-60">{online ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}{syncLabel}</span>}
           </div>
           <h1 className={`mt-3 font-serif text-[42px] leading-[1.02] font-bold ${o.dark ? 'text-[#1a1405]' : 'text-white'}`}>{o.title}</h1>
           {o.meta && <p className="mt-1.5 text-[14px] opacity-75">{o.meta}</p>}
