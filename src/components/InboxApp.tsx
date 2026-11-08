@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode, type KeyboardEvent as ReactKeyboardEvent, type FormEvent } from 'react';
 import { Reorder, useDragControls } from 'motion/react';
 import { auth, db } from '../firebase';
 import {
@@ -777,49 +777,92 @@ const SpeechCtor = (): (new () => SpeechRec) | undefined => (window as unknown a
 function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw: string) => void; placeholder: string; accent: string; dark: boolean }) {
   const [text, setText] = useState('');
   const [listening, setListening] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
   const rec = useRef<SpeechRec | null>(null);
   const before = useRef('');
+  const latest = useRef('');
+  latest.current = text;
+  const silence = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const autoSave = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   }, [text]);
-  useEffect(() => () => rec.current?.stop(), []);
+  useEffect(() => () => { rec.current?.stop(); clearTimeout(silence.current); clearTimeout(autoSave.current); }, []);
+  const save = (raw: string) => {
+    clearTimeout(autoSave.current);
+    setAutoSaving(false);
+    if (!raw.trim()) return;
+    onCapture(raw);
+    setText('');
+    latest.current = '';
+  };
   const submit = () => {
     if (!text.trim()) return;
-    rec.current?.stop();
-    onCapture(text);
-    setText('');
+    if (rec.current) { rec.current.onend = null; rec.current.stop(); rec.current = null; setListening(false); }
+    save(text);
   };
+  // The gold mic: talk, and when you stop (a short pause or tapping the mic again) it's saved. No second tap.
   const mic = () => {
     if (listening) { rec.current?.stop(); return; }
     const Ctor = SpeechCtor();
-    if (!Ctor) { ref.current?.focus(); toast('Tap the mic on your keyboard to talk'); return; }
+    if (!Ctor) { ref.current?.focus(); toast('Tap the mic on your keyboard to talk. It saves itself when you stop.'); return; }
     const r = new Ctor();
     r.lang = 'en-GB';
     r.interimResults = true;
     r.continuous = true;
     before.current = text ? `${text.trim()} ` : '';
-    r.onresult = e => setText(before.current + Array.from(e.results).map(x => x[0].transcript).join(''));
-    r.onend = () => setListening(false);
+    r.onresult = e => {
+      setText(before.current + Array.from(e.results).map(x => x[0].transcript).join(''));
+      clearTimeout(silence.current);
+      silence.current = setTimeout(() => r.stop(), 2000);
+    };
+    r.onend = () => {
+      clearTimeout(silence.current);
+      setListening(false);
+      rec.current = null;
+      save(latest.current);
+    };
     r.onerror = () => { setListening(false); toast('Could not hear you. Try the keyboard mic.'); };
     rec.current = r;
     try { r.start(); setListening(true); } catch { setListening(false); }
+  };
+  // The keyboard's own dictation drops in whole phrases at once. When that happens, save after a short pause,
+  // unless you carry on typing or editing (any key or change cancels it).
+  const onInput = (e: FormEvent<HTMLTextAreaElement>) => {
+    const ev = e.nativeEvent as InputEvent;
+    clearTimeout(autoSave.current);
+    setAutoSaving(false);
+    const added = (ev.data || '').trim();
+    if (!listening && (ev.inputType === 'insertText' || ev.inputType === 'insertReplacementText') && added.split(/\s+/).length >= 3) {
+      setAutoSaving(true);
+      autoSave.current = setTimeout(() => save(latest.current), 2500);
+    }
   };
   const light = accent === '#D4AF37' || accent === '#B8860B';
   return (
     <div className="fixed bottom-0 inset-x-0 z-40 px-4 pt-6"
       style={{ paddingBottom: 'calc(14px + env(safe-area-inset-bottom))', background: dark ? 'linear-gradient(transparent, rgba(14,13,12,0.92) 38%)' : 'linear-gradient(transparent, rgba(249,248,246,0.96) 38%)' }}>
+      {autoSaving && (
+        <div className="max-w-xl mx-auto mb-2 flex justify-center">
+          <button onClick={() => { clearTimeout(autoSave.current); setAutoSaving(false); ref.current?.focus(); }}
+            className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium ${dark ? 'bg-white/15 text-white' : 'bg-ink text-white'}`}>
+            Saving… tap to keep editing
+          </button>
+        </div>
+      )}
       <div className={`max-w-xl mx-auto flex items-end gap-2 rounded-[28px] p-1.5 pl-[18px] ${dark ? 'bg-white/10 border border-white/15 backdrop-blur-xl' : 'bg-white border border-black/10 shadow-[0_6px_20px_rgba(0,0,0,0.08)]'}`}>
         <textarea
           ref={ref}
           value={text}
           rows={1}
           onChange={e => setText(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }}
-          placeholder={listening ? 'Listening…' : placeholder}
+          onInput={onInput}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } else { clearTimeout(autoSave.current); setAutoSaving(false); } }}
+          placeholder={listening ? 'Listening… stop talking to save' : placeholder}
           enterKeyHint="send"
           className={`flex-1 resize-none bg-transparent border-0 outline-none focus:outline-none p-0 py-[11px] text-[17px] leading-snug focus:ring-0 ${dark ? 'text-white placeholder:text-white/45' : 'text-ink placeholder:text-black/35'}`}
         />
