@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { db, storage } from '../firebase';
 import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp, arrayUnion, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getBlob, deleteObject } from 'firebase/storage';
-import { Loader2, Plus, Search, X, Camera, Trash2, CalendarClock, Check, Clock, ExternalLink, UserRound, Sparkles, MapPin, Trophy, Target, Flame } from 'lucide-react';
+import { Loader2, Plus, Search, X, Camera, Trash2, Check, Clock, ExternalLink, UserRound, Sparkles, MapPin, Trophy, Target, Flame } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Shane's private Circle. Data lives in circle_people / circle_events, which firestore.rules lock to Shane alone
@@ -65,7 +65,7 @@ const weekStart = (iso: string) => {
 const prettyDate = (iso?: string) =>
   iso ? new Date(`${iso}T12:00:00+07:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' }) : '';
 
-const emptyForm = (): Partial<Person> => ({ name: '', business: '', whereMet: '', metOn: today(), introducedBy: '', whereSeen: '', notes: '', followUpOn: addDays(today(), 14) });
+const emptyForm = (): Partial<Person> => ({ name: '', business: '', whereMet: '', metOn: today(), introducedBy: '', whereSeen: '', notes: '' });
 
 const inputClass = 'w-full px-4 py-2.5 rounded-xl bg-black/5 text-sm border-0 focus:ring-2 focus:ring-gold-deep/30';
 const pillClass = (on: boolean) => `px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-[0.12em] whitespace-nowrap transition-colors ${on ? 'bg-ink text-white' : 'bg-black/5 text-black/50 hover:text-ink'}`;
@@ -117,7 +117,7 @@ const PLAYBOOK: { title: string; points: string[] }[] = [
     points: [
       'Message within 48 hours with one thing you talked about: "Good to meet you. Here\'s that golf course I mentioned."',
       'Suggest a specific second meeting (day, place). "We should catch up sometime" never happens.',
-      'Three to five meetings in the first couple of months is what turns an acquaintance into a friend. The follow-up dates here keep you on that rhythm.',
+      'Three to five meetings in the first couple of months is what turns an acquaintance into a friend.',
       'Be the connector: introduce two people who should know each other. They both remember you for it, and you get invited to more.',
     ],
   },
@@ -159,7 +159,6 @@ export default function CircleAdmin() {
   const matches = (p: Person) => !q || [p.name, p.business, p.whereMet, p.introducedBy, p.whereSeen, p.notes].some(v => v?.toLowerCase().includes(q));
 
   const contacts = useMemo(() => people.filter(p => p.status === 'contact'), [people]);
-  const due = useMemo(() => contacts.filter(p => p.followUpOn && p.followUpOn <= now).sort((a, b) => (a.followUpOn || '').localeCompare(b.followUpOn || '')), [contacts, now]);
   const suggested = useMemo(() => people.filter(p => p.status === 'suggested' || p.status === 'later' || (showSkipped && p.status === 'skipped'))
     .sort((a, b) => (a.status === 'suggested' ? 0 : 1) - (b.status === 'suggested' ? 0 : 1) || (a.sinceYear || 9999) - (b.sinceYear || 9999)), [people, showSkipped]);
 
@@ -263,13 +262,13 @@ export default function CircleAdmin() {
     updateDoc(doc(db, 'circle_people', p.id), { ...fields, updatedAt: serverTimestamp() }).catch(() => toast.error('Could not update'));
 
   const caughtUp = (p: Person) => {
-    updateDoc(doc(db, 'circle_people', p.id), { lastSeenOn: now, followUpOn: addDays(now, 21), catchUps: arrayUnion(now), updatedAt: serverTimestamp() })
+    updateDoc(doc(db, 'circle_people', p.id), { lastSeenOn: now, catchUps: arrayUnion(now), updatedAt: serverTimestamp() })
       .catch(() => toast.error('Could not update'));
-    toast.success(`Next catch-up with ${p.name.split(' ')[0]} set for 3 weeks`);
+    toast.success(`Caught up with ${p.name.split(' ')[0]}`);
   };
 
   const met = (p: Person) => {
-    const fields = { status: 'contact' as Status, metOn: now, followUpOn: addDays(now, 14) };
+    const fields = { status: 'contact' as Status, metOn: now };
     update(p, fields);
     setEditing({ ...p, ...fields });
     setView('people');
@@ -292,11 +291,6 @@ export default function CircleAdmin() {
             <button onClick={() => { setEditing(p); setPhoto(null); }} className="text-left font-serif text-lg text-ink hover:text-gold-deep">{p.name}</button>
             {p.business && <div className="text-sm text-black/55">{[p.role, p.business].filter(Boolean).join(', ')}</div>}
           </div>
-          {p.followUpOn && (
-            <span className={`shrink-0 text-[11px] px-2.5 py-1 rounded-full ${p.followUpOn <= now ? 'bg-amber-50 text-amber-800' : 'bg-black/5 text-black/45'}`}>
-              {p.followUpOn <= now ? 'Catch up now' : `Catch up ${prettyDate(p.followUpOn)}`}
-            </span>
-          )}
         </div>
         <div className="mt-2 text-xs text-black/50 space-y-0.5">
           {(p.whereMet || p.metOn) && <div>Met {p.whereMet ? `at ${p.whereMet}` : ''}{p.metOn ? `, ${prettyDate(p.metOn)}` : ''}</div>}
@@ -362,7 +356,6 @@ export default function CircleAdmin() {
               <span className="flex items-center gap-1.5"><Flame className="w-4 h-4 text-gold" /> {score.streak} week{score.streak === 1 ? '' : 's'} in a row on target</span>
               <span>{score.catchUpsMonth} catch-up{score.catchUpsMonth === 1 ? '' : 's'} this month</span>
               <span>{contacts.length} people in total</span>
-              <span>{due.length} catch-up{due.length === 1 ? '' : 's'} due</span>
             </div>
           </>
         )}
@@ -407,9 +400,6 @@ export default function CircleAdmin() {
                 <label className="text-xs text-black/45">Met on
                   <input type="date" value={editing.metOn || ''} onChange={e => setEditing({ ...editing, metOn: e.target.value })} className={`${inputClass} mt-1`} />
                 </label>
-                <label className="text-xs text-black/45">Catch up by
-                  <input type="date" value={editing.followUpOn || ''} onChange={e => setEditing({ ...editing, followUpOn: e.target.value })} className={`${inputClass} mt-1`} />
-                </label>
               </div>
             </div>
             <div className="flex items-center gap-3 mt-6">
@@ -426,12 +416,6 @@ export default function CircleAdmin() {
 
       {view === 'people' && (
         <div className="space-y-8">
-          {due.length > 0 && (
-            <section>
-              <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-800 mb-3"><CalendarClock className="w-4 h-4" /> Catch up with</h3>
-              <div className="grid gap-3">{due.map(personCard)}</div>
-            </section>
-          )}
           {connectors.length > 0 && (
             <section className="p-5 rounded-2xl bg-ink text-white">
               <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold mb-2">Your best connectors</h3>

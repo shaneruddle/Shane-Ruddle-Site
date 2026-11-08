@@ -16,6 +16,7 @@ import {
 import { Connections } from './InboxConnect';
 import { Notifications } from './InboxNotify';
 import { NoteEditor, plainPreview, type NoteEditorHandle } from './NoteEditor';
+import OwnerTabBar, { OWNER_TAB_BAR_HEIGHT } from './OwnerTabBar';
 
 // Shane's private Inbox at /inbox: one place for quick captures, notes, ideas and tasks.
 // Data: inbox_items, inbox_history (audit trail), inbox_areas, inbox_settings, all Shane-only in firestore.rules.
@@ -75,7 +76,7 @@ const ago = (ms?: number) => {
 const isOpen = (i: Item) => i.status !== 'done' && i.status !== 'archived';
 const isTaskOpen = (i: Item) => i.kind === 'task' && isOpen(i);
 
-export default function InboxApp({ onExit }: { onExit?: () => void }) {
+export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; onCircle?: () => void }) {
   const [items, setItems] = useState<Item[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [ready, setReady] = useState({ items: false, areas: false });
@@ -84,7 +85,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
   const [outbox, setOutbox] = useState<Pending[]>(readOutbox);
   const [online, setOnline] = useState(navigator.onLine);
   // A tapped notification opens /inbox?tab=today or /inbox?item=<id>.
-  const [screen, setScreen] = useState<Screen>(() => ({ view: new URLSearchParams(window.location.search).get('tab') === 'today' ? 'today' : 'home' }));
+  const [screen, setScreen] = useState<Screen>(() => { const t = new URLSearchParams(window.location.search).get('tab'); return { view: t === 'today' || t === 'notes' ? t : 'home' }; });
   const [open, setOpen] = useState<Item | null>(null);
   const [note, setNote] = useState<{ id: string; version: number; fresh?: boolean } | null>(null);
   const [notesQuery, setNotesQuery] = useState('');
@@ -495,7 +496,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
     <div className="min-h-[100dvh] bg-[#0E0D0C] text-white" style={{ paddingTop: 'env(safe-area-inset-top)' }}
       onTouchStart={e => { pull.current = window.scrollY <= 0 ? e.touches[0].clientY : null; }}
       onTouchMove={e => { if (pull.current !== null && e.touches[0].clientY - pull.current > 90) { pull.current = null; go({ view: 'search' }); } }}>
-      <div className="max-w-xl mx-auto px-[18px] pb-44">
+      <div className="max-w-xl mx-auto px-[18px] pb-60">
         <header className="flex items-center justify-between pt-4">
           <span className="text-[12px] uppercase tracking-[0.18em] text-white/45 font-semibold">{dateLine}</span>
           <div className="flex items-center gap-3">
@@ -590,7 +591,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
           {o.meta && <p className="mt-1.5 text-[14px] opacity-75">{o.meta}</p>}
           {o.seg}
         </header>
-        <div className="flex-1 bg-cream text-ink rounded-t-[28px] px-4 pt-1 pb-44">{body}</div>
+        <div className="flex-1 bg-cream text-ink rounded-t-[28px] px-4 pt-1 pb-60">{body}</div>
       </div>
     </div>
   );
@@ -732,6 +733,9 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
     <div className="min-h-[100dvh] bg-cream text-ink">
       {page}
 
+      <OwnerTabBar active={view === 'today' ? 'today' : view === 'notes' ? 'notes' : 'inbox'}
+        onSelect={t => t === 'circle' ? onCircle?.() : go({ view: t === 'inbox' ? 'home' : t })} />
+
       {dockFor && <CaptureDock key={view + (screen.area || '')} dark={view === 'home'} placeholder={dockFor.placeholder} accent={dockFor.accent}
         onCapture={raw => capture(raw, view === 'area' ? screen.area : null, view === 'today')} />}
 
@@ -845,8 +849,8 @@ function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw
   };
   const light = accent === '#D4AF37' || accent === '#B8860B';
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40 px-4 pt-6"
-      style={{ paddingBottom: 'calc(14px + env(safe-area-inset-bottom))', background: dark ? 'linear-gradient(transparent, rgba(14,13,12,0.92) 38%)' : 'linear-gradient(transparent, rgba(249,248,246,0.96) 38%)' }}>
+    <div className="fixed inset-x-0 z-40 px-4 pt-6"
+      style={{ bottom: `calc(${OWNER_TAB_BAR_HEIGHT}px + env(safe-area-inset-bottom))`, paddingBottom: 10, background: dark ? 'linear-gradient(transparent, rgba(14,13,12,0.92) 38%)' : 'linear-gradient(transparent, rgba(249,248,246,0.96) 38%)' }}>
       {autoSaving && (
         <div className="max-w-xl mx-auto mb-2 flex justify-center">
           <button onClick={() => { clearTimeout(autoSave.current); setAutoSaving(false); ref.current?.focus(); }}

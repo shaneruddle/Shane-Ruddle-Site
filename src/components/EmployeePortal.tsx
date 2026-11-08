@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { updateDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 import PortalHeader, { PortalView } from './PortalHeader';
+import OwnerTabBar, { type OwnerTab } from './OwnerTabBar';
 import CommentsAdmin from './CommentsAdmin';
 import PhotosAdmin from './PhotosAdmin';
 import ActivityAdmin from './ActivityAdmin';
@@ -30,6 +31,19 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
   // Matches isOwner() in storage.rules, which guards photo uploads.
   const canManagePhotos = userProfile.uid === 'u7ElWXIkdjVTNTp76LcyXnnq3AM2' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
   const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'circle' | 'inbox'>(initialTab === 'circle' && canManagePhotos ? 'circle' : 'offers');
+  // Shane's bottom menu swaps between the Inbox app and the Circle tab in place, no page reload.
+  const [inboxOpen, setInboxOpen] = useState(initialTab === 'inbox');
+  const ownerGo = (tab: OwnerTab) => {
+    if (tab === 'circle') {
+      window.history.replaceState(null, '', '/portal?tab=circle');
+      setInboxOpen(false);
+      setActiveTab('circle');
+    } else {
+      window.history.replaceState(null, '', tab === 'inbox' ? '/inbox' : `/inbox?tab=${tab}`);
+      setInboxOpen(true);
+    }
+    window.scrollTo(0, 0);
+  };
   const portalTabs: [typeof activeTab, string, typeof Ticket][] = [
     ['offers', 'Offers', Ticket],
     ['profile', 'Profile', User],
@@ -194,8 +208,8 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
   };
 
   // /inbox opens Shane's private Inbox as its own full-screen app (home-screen icon), outside the portal chrome.
-  if (initialTab === 'inbox' && canManagePhotos) {
-    return window.location.pathname === '/inbox/connect' ? <ConnectScreen /> : <InboxApp onExit={() => { window.location.href = '/portal'; }} />;
+  if (inboxOpen && canManagePhotos) {
+    return window.location.pathname === '/inbox/connect' ? <ConnectScreen /> : <InboxApp onExit={() => { window.location.href = '/portal'; }} onCircle={() => ownerGo('circle')} />;
   }
 
   return (
@@ -465,7 +479,11 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
         ) : activeTab === 'activity' && canModerateComments ? (
           <ActivityAdmin />
         ) : activeTab === 'circle' && canManagePhotos ? (
-          <CircleAdmin />
+          <>
+            <CircleAdmin />
+            <div className="h-24 md:hidden" />
+            <OwnerTabBar active="circle" onSelect={ownerGo} className="md:hidden" />
+          </>
         ) : activeTab === 'inbox' && canManagePhotos ? (
           <div className="max-w-xl mx-auto p-8 rounded-2xl bg-white border border-black/10 text-center">
             <h2 className="text-2xl font-serif">Your <span className="italic">Reminders &amp; Notes</span></h2>
