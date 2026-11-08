@@ -1,4 +1,5 @@
 import type { Express, Request, Response } from "express";
+import crypto from "crypto";
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import { bkkToday, bkkNowTime } from "./reminderDates";
@@ -247,6 +248,35 @@ export function registerInboxRoutes(app: Express, { getDb }: Deps) {
     } catch (error) {
       console.error("Inbox ask failed:", error instanceof Error ? error.message : error);
       res.status(502).json({ error: "Couldn't answer right now. Try search instead." });
+    }
+  });
+
+  // Permanent delete of imported Apple notes Shane has already archived (8 Nov 2026: "delete for good").
+  // Only touches the ids sent, and only if each is an archived note that came from the Apple import.
+  app.post("/api/inbox/purge-archived-imports", async (req, res) => {
+    const given = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+    const expected = process.env.INSIGHTS_TOKEN || "";
+    if (!expected || given.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected))) return res.status(401).json({ error: "Unauthorised" });
+    const ids: string[] = Array.isArray(req.body?.ids) ? req.body.ids.map(String).filter((id: string) => /^n_[a-f0-9]{24}$/.test(id)).slice(0, 1000) : [];
+    const dry = req.query.dry === "1";
+    try {
+      const db = getDb();
+      let deleted = 0;
+      const skipped: string[] = [];
+      for (let i = 0; i < ids.length; i += 200) {
+        const snaps = await db.getAll(...ids.slice(i, i + 200).map(id => db.collection("inbox_items").doc(id)));
+        const batch = db.batch();
+        snaps.forEach(s => {
+          if (s.exists && s.get("status") === "archived" && s.get("createdBy") === "import" && s.get("kind") === "note") { batch.delete(s.ref); deleted++; }
+          else skipped.push(s.id);
+        });
+        if (!dry) await batch.commit();
+      }
+      if (!dry && deleted) await history(db, "-", "import", "deleted archived imported notes", { deleted });
+      res.json({ deleted, skipped, dry });
+    } catch (error) {
+      console.error("Inbox purge failed:", error instanceof Error ? error.message : error);
+      res.status(500).json({ error: "Purge failed." });
     }
   });
 }
