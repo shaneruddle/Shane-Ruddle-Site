@@ -368,6 +368,12 @@ function routeFromPath(pathname: string): { view: View } {
 
 const initialRoute = routeFromPath(window.location.pathname);
 const startsOnPortal = initialRoute.view === 'portal';
+// Shane, when signed in, lands on his dashboard instead of the homepage. The hint is set once his
+// account has loaded on this device, so the homepage doesn't flash first on later visits.
+const OWNER_HOME_KEY = 'sr_owner_dashboard';
+const SHANE_UID = 'u7ElWXIkdjVTNTp76LcyXnnq3AM2';
+const startsOnHome = window.location.pathname === '/';
+const ownerHomeHint = (() => { try { return startsOnHome && !!localStorage.getItem(OWNER_HOME_KEY); } catch { return false; } })();
 // Home-screen shortcuts for Shane's private areas: /portal?tab=circle and the Inbox app at /inbox. Swap in that
 // manifest and icon so "Add to Home Screen" saves an icon that opens straight to it. Both only open for Shane's account.
 // /portal?tab=reminders was the Inbox's first address, so old home-screen icons are sent to /inbox.
@@ -421,6 +427,8 @@ export default function App() {
   const [authActive, setAuthActive] = useState<boolean>(() => hasSessionHint() || startsOnPortal);
   const [openLoginOnReady, setOpenLoginOnReady] = useState(() => startsOnPortal && !hasSessionHint());
   const [authLoading, setAuthLoading] = useState<boolean>(authActive);
+  // True until we know whether this homepage visit should jump to Shane's dashboard.
+  const [ownerRedirectPending, setOwnerRedirectPending] = useState(startsOnHome);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -487,7 +495,7 @@ export default function App() {
           setUser(firebaseUser);
           try {
             if (firebaseUser) localStorage.setItem(SESSION_HINT_KEY, '1');
-            else localStorage.removeItem(SESSION_HINT_KEY);
+            else { localStorage.removeItem(SESSION_HINT_KEY); localStorage.removeItem(OWNER_HOME_KEY); }
           } catch { /* ignore */ }
           if (!firebaseUser) {
             setUserProfile(null);
@@ -499,7 +507,7 @@ export default function App() {
     };
     // Returning users: wait until the page is idle so the homepage paints first.
     const w = window as any;
-    const idleId = (openLoginOnReady || startsOnPortal) ? (start(), 0) : (w.requestIdleCallback ? w.requestIdleCallback(start, { timeout: 2000 }) : window.setTimeout(start, 800));
+    const idleId = (openLoginOnReady || startsOnPortal || ownerHomeHint) ? (start(), 0) : (w.requestIdleCallback ? w.requestIdleCallback(start, { timeout: 2000 }) : window.setTimeout(start, 800));
     const authTimeout = window.setTimeout(() => isMounted && setAuthLoading(false), 5000);
     return () => {
       isMounted = false;
@@ -508,6 +516,25 @@ export default function App() {
       clearTimeout(authTimeout);
     };
   }, [authActive]);
+
+  // Opening shaneruddle.com while signed in as Shane goes straight to the dashboard (once per page load,
+  // and only if he's still on the homepage, so "Website" from the dashboard still shows the public site).
+  useEffect(() => {
+    if (!ownerRedirectPending) return;
+    const isShane = !!userProfile && (userProfile.uid === SHANE_UID || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com');
+    if (isShane) {
+      try { localStorage.setItem(OWNER_HOME_KEY, '1'); } catch { /* ignore */ }
+      if (view === 'home' && window.location.pathname === '/') {
+        setViewState('portal');
+        window.history.replaceState(null, '', VIEW_PATHS.portal);
+        setCurrentPath(VIEW_PATHS.portal);
+      }
+      setOwnerRedirectPending(false);
+    } else if (userProfile || !authLoading || view !== 'home') {
+      if (userProfile) { try { localStorage.removeItem(OWNER_HOME_KEY); } catch { /* ignore */ } }
+      setOwnerRedirectPending(false);
+    }
+  }, [ownerRedirectPending, userProfile, authLoading, view]);
 
   // Real-time companies listener - removed to save quota, using initial fetch only
   useEffect(() => {
@@ -1146,7 +1173,7 @@ export default function App() {
                     >
                       <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} initialTab={launchTab} />
                     </motion.div>
-                  ) : view === 'portal' && authLoading ? (
+                  ) : (view === 'portal' && authLoading) || (view === 'home' && ownerHomeHint && ownerRedirectPending) ? (
                     <div key="portal-loading" className="fixed inset-0 z-[100] bg-white flex items-center justify-center">
                       <div className="w-10 h-10 border-2 border-gold border-t-transparent rounded-full animate-spin" />
                     </div>

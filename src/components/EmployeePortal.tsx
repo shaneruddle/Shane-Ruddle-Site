@@ -289,6 +289,31 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
           </div>
         </div>
 
+        {/* Shane's shortcuts: his private Circle and Inbox (notes and reminders), one tap each. */}
+        {canManagePhotos && activeTab === 'offers' && (
+          <div className="-mt-4 mb-12">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-xl">
+              <button type="button" onClick={() => { setActiveTab('circle'); window.scrollTo(0, 0); }} className="group h-44 sm:h-48 rounded-[20px] bg-ink text-white p-5 flex flex-col justify-between text-left hover:bg-black transition-colors">
+                <span className="w-14 h-14 rounded-[16px] bg-white/10 text-gold inline-flex items-center justify-center"><HeartHandshake className="w-7 h-7" /></span>
+                <span>
+                  <span className="block text-2xl font-serif">Circle</span>
+                  <span className="block text-[13px] text-white/55 mt-0.5">People worth knowing</span>
+                </span>
+              </button>
+              <a href="/inbox" className="group h-44 sm:h-48 rounded-[20px] bg-ink text-white p-5 flex flex-col justify-between hover:bg-black transition-colors">
+                <span className="w-14 h-14 rounded-[16px] bg-white/10 text-gold inline-flex items-center justify-center"><ListChecks className="w-7 h-7" /></span>
+                <span>
+                  <span className="block text-2xl font-serif">Inbox</span>
+                  <span className="block text-[13px] text-white/55 mt-0.5">Notes and reminders</span>
+                </span>
+              </a>
+            </div>
+            <button type="button" onClick={onBack} className="mt-4 inline-flex items-center gap-1.5 text-[13px] text-black/50 hover:text-ink">
+              View site <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 className="w-8 h-8 animate-spin text-gold-deep" />
