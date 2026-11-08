@@ -425,6 +425,10 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
     .slice(0, 5);
   const todayAll = [...new Map([...overdue, ...dueToday, ...todayList, ...remindToday, ...chase].map(i => [i.id, i])).values()];
   const unsorted = items.filter(i => i.status === 'inbox').sort(byNewest);
+  // Captured in the last week and already sorted by Claude (shown under "Captured this week").
+  const weekAgo = Date.now() - 7 * 86400_000;
+  const recent = items.filter(i => i.status !== 'inbox' && i.status !== 'archived' && (i.createdAt?.toMillis() || 0) > weekAgo && i.createdBy !== 'import').sort(byNewest);
+  const toSort = unsorted.length + unsynced.length;
   const waiting = items.filter(i => i.status === 'waiting');
   const allNotes = items.filter(i => i.kind === 'note' && isOpen(i));
   const ideas = items.filter(i => i.kind === 'idea' && isOpen(i));
@@ -526,10 +530,15 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
 
         {/* Small cards */}
         <div className="grid grid-cols-3 gap-2.5 my-3">
-          {([['inbox', unsorted.length + unsynced.length, 'Needs a look'], ['waiting', waiting.length, 'Waiting on'], ['notes', allNotes.length, 'Notes']] as const).map(([v, n, label]) => (
+          {/* Inbox: the number to sort, or (when all sorted) how many were captured this week, so it never reads 0 over a full list. */}
+          {([
+            ['inbox', toSort || recent.length, 'Inbox', toSort ? 'to sort' : recent.length ? 'new this week' : 'all sorted'],
+            ['waiting', waiting.length, 'Waiting on', ''],
+            ['notes', allNotes.length, 'Notes', ''],
+          ] as const).map(([v, n, label, sub]) => (
             <button key={v} onClick={() => go({ view: v })} className="rounded-[18px] bg-[#1E1C1A] px-3.5 py-3 text-left">
-              <div className={`text-[24px] font-bold leading-none ${v === 'inbox' && n ? 'text-gold' : ''}`}>{n}</div>
-              <div className="mt-1.5 text-[12px] text-white/55">{label}</div>
+              <div className={`text-[24px] font-bold leading-none ${v === 'inbox' && toSort ? 'text-gold' : ''}`}>{n}</div>
+              <div className="mt-1.5 text-[12px] text-white/55 leading-tight">{label}{sub && <span className="block text-white/35">{sub}</span>}</div>
             </button>
           ))}
         </div>
@@ -618,8 +627,6 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
   };
 
   const inboxBody = () => {
-    const weekAgo = Date.now() - 7 * 86400_000;
-    const recent = items.filter(i => i.status !== 'inbox' && i.status !== 'archived' && (i.createdAt?.toMillis() || 0) > weekAgo && i.createdBy !== 'import').sort(byNewest);
     return (
       <>
         {unsynced.length > 0 && (
@@ -633,7 +640,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
             ))}</ul>
           </section>
         )}
-        {section('Needs a look', unsorted, { empty: unsynced.length ? undefined : 'All sorted. Capture anything below.' })}
+        {section('To sort', unsorted, { empty: unsynced.length ? undefined : 'Nothing to sort. Claude has already filed what you captured.' })}
         {section('Captured this week', recent)}
       </>
     );
@@ -700,7 +707,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
   const area = screen.area ? areaById[screen.area] : undefined;
   const page = view === 'home' ? homeView()
     : view === 'today' ? cardScreen({ color: 'linear-gradient(160deg,#E9C75A,#B8860B 70%)', dark: true, title: 'Today', meta: todayAll.length ? `${plural(todayAll.length, 'thing')} to do${overdue.length ? `, ${overdue.length} overdue` : ''}` : 'Nothing due' }, todayBody())
-    : view === 'inbox' ? cardScreen({ color: '#2A2724', title: 'Needs a look', meta: unsorted.length ? `${plural(unsorted.length, 'capture')} to sort` : 'All sorted' }, inboxBody())
+    : view === 'inbox' ? cardScreen({ color: '#2A2724', title: 'Inbox', meta: [toSort ? `${plural(toSort, 'capture')} to sort` : 'Nothing to sort', recent.length && `${recent.length} captured this week`].filter(Boolean).join(' · ') }, inboxBody())
     : view === 'waiting' ? cardScreen({ color: '#3B3550', title: 'Waiting on', meta: waiting.length ? `${plural(waiting.length, 'thing')}${chase.length ? `, ${chase.length} to chase` : ''}` : undefined }, waitingBody())
     : view === 'notes' ? cardScreen({ color: '#6B5B45', title: 'Notes', meta: plural(allNotes.length, 'note') }, notesBody())
     : view === 'ideas' ? cardScreen({ color: '#B45309', title: 'Ideas', meta: plural(ideas.length, 'idea') }, notesGrid(ideas, 'Ideas') || <p className="py-12 text-center text-black/35">No ideas saved yet.</p>)
