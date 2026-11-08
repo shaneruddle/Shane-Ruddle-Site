@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { Reorder, useDragControls } from 'motion/react';
 import { auth, db } from '../firebase';
 import {
   collection, doc, onSnapshot, runTransaction, writeBatch, serverTimestamp, increment, updateDoc, query, where, orderBy, limit, getDocs, setDoc, deleteDoc,
 } from 'firebase/firestore';
 import {
-  Loader2, Inbox as InboxIcon, Sun, LayoutGrid, Hourglass, Search, ArrowUp, Check, Lightbulb, StickyNote, Flag, Repeat as RepeatIcon,
+  Loader2, Sun, Hourglass, Plus, Pin, Settings, Mic, ListChecks, SlidersHorizontal, Search, ArrowUp, Check, Lightbulb, StickyNote, Flag, Repeat as RepeatIcon,
   MapPin, GripVertical, Bell, CalendarDays, User, ChevronLeft, ChevronRight, X, Sparkles, Scissors, RotateCcw, Archive, Trash2, CloudOff, Cloud, Download, LogOut, History,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -26,8 +26,10 @@ interface Area { id: string; name: string; color: string; aliases?: string; orde
 interface Pending { id: string; raw: string; area?: string | null; at: number; today?: boolean }
 interface HistoryEntry { id: string; by: string; action: string; changes?: Record<string, unknown>; at?: { toMillis(): number } }
 
-type Tab = 'inbox' | 'today' | 'areas' | 'waiting' | 'search';
-type Screen = { tab: Tab; area?: string; sub?: 'ideas' | 'done' };
+// The home screen is a deck of cards: Today, Needs a look, Waiting on, Notes, then one per business.
+// Every other screen is one of those cards opened full screen.
+type View = 'home' | 'today' | 'inbox' | 'waiting' | 'notes' | 'ideas' | 'done' | 'settings' | 'search' | 'area';
+type Screen = { view: View; area?: string; seg?: 'all' | 'todo' | 'notes' };
 
 const OUTBOX_KEY = 'inbox_outbox_v1';
 const readOutbox = (): Pending[] => { try { return JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]'); } catch { return []; } };
@@ -81,8 +83,13 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
   const [outbox, setOutbox] = useState<Pending[]>(readOutbox);
   const [online, setOnline] = useState(navigator.onLine);
   // A tapped notification opens /inbox?tab=today or /inbox?item=<id>.
-  const [screen, setScreen] = useState<Screen>(() => ({ tab: new URLSearchParams(window.location.search).get('tab') === 'today' ? 'today' : 'inbox' }));
+  const [screen, setScreen] = useState<Screen>(() => ({ view: new URLSearchParams(window.location.search).get('tab') === 'today' ? 'today' : 'home' }));
   const [open, setOpen] = useState<Item | null>(null);
+  const [note, setNote] = useState<{ id: string; version: number; fresh?: boolean } | null>(null);
+  const [notesQuery, setNotesQuery] = useState('');
+  const [notesFilter, setNotesFilter] = useState('all');
+  const [notesShown, setNotesShown] = useState(60);
+  const pull = useRef<number | null>(null);
   const [clock, setClock] = useState(() => ({ day: bkkToday(), time: bkkNowTime() }));
   const flushing = useRef(false);
   const sorting = useRef(new Set<string>());
@@ -112,7 +119,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
     const params = new URLSearchParams(window.location.search);
     if (!params.has('item') && !params.has('tab')) return;
     const hit = items.find(i => i.id === params.get('item'));
-    if (hit) setOpen(hit);
+    if (hit) { if (hit.kind === 'task') setOpen(hit); else setNote({ id: hit.id, version: hit.version || 0 }); }
     window.history.replaceState(null, '', '/inbox');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready.items]);
@@ -156,6 +163,17 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
       toast.success(`Moved ${old.size} reminder${old.size === 1 ? '' : 's'} into your inbox`);
     })().catch(err => console.error('Inbox setup failed:', err));
   }, [ready, areas]);
+
+  // The colour behind the status bar and the top bounce follows the open card.
+  useEffect(() => {
+    const top = screen.view === 'home' ? '#0E0D0C' : screen.view === 'area' ? areas.find(a => a.id === screen.area)?.color || '#0E0D0C'
+      : ({ today: '#E9C75A', inbox: '#2A2724', waiting: '#3B3550', notes: '#6B5B45', ideas: '#B45309', done: '#44403C', settings: '#292524', search: '#1E1C1A' } as Record<string, string>)[screen.view] || '#0E0D0C';
+    const meta = document.querySelector('meta[name="theme-color"]');
+    const was = { meta: meta?.getAttribute('content'), bg: document.body.style.backgroundColor };
+    meta?.setAttribute('content', top);
+    document.body.style.backgroundColor = top;
+    return () => { if (was.meta) meta?.setAttribute('content', was.meta); document.body.style.backgroundColor = was.bg; };
+  }, [screen, areas]);
 
   const areaById = useMemo(() => Object.fromEntries(areas.map(a => [a.id, a])), [areas]);
   const areaName = useCallback((id?: string | null) => (id ? areaById[id]?.name || '' : ''), [areaById]);
@@ -365,7 +383,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
             {i.kind === 'idea' ? <Lightbulb className="w-3.5 h-3.5 text-amber-600" /> : <StickyNote className="w-3.5 h-3.5 text-black/45" />}
           </span>
         )}
-        <button onClick={() => setOpen(i)} className="min-w-0 flex-1 text-left">
+        <button onClick={() => (i.kind === 'task' ? setOpen(i) : setNote({ id: i.id, version: i.version || 0 }))} className="min-w-0 flex-1 text-left">
           <div className={`text-[16px] leading-snug ${done ? 'text-black/35 line-through' : 'text-ink'}`}>{i.title}</div>
           {i.body && i.kind !== 'task' && <div className="text-[13px] text-black/45 mt-0.5 line-clamp-2">{i.body}</div>}
           {meta.length > 0 && <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[12px] text-black/50">{meta}</div>}
@@ -391,45 +409,196 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
   const byNewest = (a: Item, b: Item) => (b.createdAt?.toMillis() || Date.now()) - (a.createdAt?.toMillis() || Date.now());
   const byDue = (a: Item, b: Item) => `${a.dueDate || '9999'}${a.dueTime || '99'}`.localeCompare(`${b.dueDate || '9999'}${b.dueTime || '99'}`);
 
-  // ---- views ----
-  const inboxView = () => {
-    const unsorted = items.filter(i => i.status === 'inbox').sort(byNewest);
-    const weekAgo = Date.now() - 7 * 86400_000;
-    const recent = items.filter(i => i.status !== 'inbox' && i.status !== 'archived' && (i.createdAt?.toMillis() || 0) > weekAgo && i.createdBy !== 'import').sort(byNewest);
+  // ---- the deck: shared numbers ----
+  const openTasks = items.filter(isTaskOpen);
+  const overdue = openTasks.filter(i => i.dueDate && i.dueDate < now).sort(byDue);
+  const dueToday = openTasks.filter(i => i.dueDate === now).sort(byDue);
+  const remindToday = openTasks.filter(i => i.remindDate && i.remindDate <= now && !(i.dueDate && i.dueDate <= now));
+  const chase = items.filter(i => i.status === 'waiting' && i.followUpDate && i.followUpDate <= now);
+  const early = new Set([...overdue, ...dueToday, ...remindToday, ...chase].map(i => i.id));
+  // The Today list: things Shane put on it (or Apple's TODAY list), newest first unless he dragged them.
+  const todayList = items.filter(i => isOpen(i) && isOnTodayList(i) && !early.has(i.id)).sort((a, b) => todaySortKey(b) - todaySortKey(a));
+  const shownToday = new Set([...early, ...todayList.map(i => i.id)]);
+  // A short pick of next actions with no date: flagged first, then the ones waiting longest.
+  const upNext = openTasks.filter(i => i.status === 'next' && !shownToday.has(i.id) && !i.dueDate)
+    .sort((a, b) => Number(!!b.flagged) - Number(!!a.flagged) || (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0))
+    .slice(0, 5);
+  const todayAll = [...new Map([...overdue, ...dueToday, ...todayList, ...remindToday, ...chase].map(i => [i.id, i])).values()];
+  const unsorted = items.filter(i => i.status === 'inbox').sort(byNewest);
+  const waiting = items.filter(i => i.status === 'waiting');
+  const allNotes = items.filter(i => i.kind === 'note' && isOpen(i));
+  const ideas = items.filter(i => i.kind === 'idea' && isOpen(i));
+  const byPinned = (a: Item, b: Item) => Number(!!b.pinned) - Number(!!a.pinned) || (b.updatedAt?.toMillis?.() || 0) - (a.updatedAt?.toMillis?.() || 0);
+  const areaTasks = (id: string) => openTasks.filter(i => i.area === id && (i.status === 'next' || i.status === 'inbox'));
+  const areaNotes = (id: string) => items.filter(i => i.area === id && (i.kind === 'note' || i.kind === 'idea') && isOpen(i));
+  const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+  const go = (s: Screen) => { setScreen(s); window.scrollTo(0, 0); };
+  const goHome = () => go({ view: 'home' });
+
+  // A blank note, saved straight away (no AI sorting) and opened as a page. Empty ones are removed on close.
+  const newNote = async (area?: string | null) => {
+    const ref = doc(collection(db, 'inbox_items'));
+    const item = { title: '', body: '', kind: 'note' as Kind, status: 'filed' as Status, area: area || null, pinned: false };
+    setNote({ id: ref.id, version: 1, fresh: true });
+    await setDoc(ref, {
+      ...item, search: searchText(item, areaName(area)), ai: { state: 'off' }, version: 1,
+      createdBy: 'shane', updatedBy: 'shane', createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    }).catch(() => { toast.error('Could not start a note'); setNote(null); });
+  };
+
+  // Notes and ideas as tiles, like Apple Notes' gallery. Pinned first, then most recently edited.
+  const notesGrid = (list: Item[], label: string, opts: { area?: string | null; showArea?: boolean; limit?: number; add?: boolean } = {}) => {
+    const sorted = [...list].sort(byPinned);
+    const shown = opts.limit ? sorted.slice(0, opts.limit) : sorted;
+    if (!sorted.length && !opts.add) return null;
     return (
-      <>
-        {unsynced.length > 0 && (
-          <section className="mt-5">
-            <h3 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-black/45">Saved on this phone · {unsynced.length}</h3>
-            <ul>{unsynced.map(p => (
-              <li key={p.id} className="flex items-start gap-3 py-3.5 border-b border-black/[0.07] last:border-0">
-                <CloudOff className="w-5 h-5 mt-0.5 text-black/30 shrink-0" />
-                <div className="text-[16px] text-ink">{p.raw}<div className="text-[12px] text-black/45 mt-0.5">Will upload when you're back online</div></div>
-              </li>
-            ))}</ul>
-          </section>
+      <section className="mt-6">
+        <h3 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-black/45">{label}{sorted.length ? ` · ${sorted.length}` : ''}</h3>
+        <div className="mt-2.5 grid grid-cols-2 gap-2.5">
+          {opts.add && (
+            <button onClick={() => newNote(opts.area)} className="h-[124px] rounded-[18px] border-2 border-dashed border-black/15 text-black/45 flex flex-col items-center justify-center gap-1.5 text-[14px] font-medium">
+              <Plus className="w-6 h-6" /> New note
+            </button>
+          )}
+          {shown.map(i => {
+            const area = opts.showArea ? areaById[i.area || ''] : undefined;
+            return (
+              <button key={i.id} onClick={() => setNote({ id: i.id, version: i.version || 0 })}
+                className={`relative h-[124px] rounded-[18px] p-3 text-left flex flex-col justify-start overflow-hidden shadow-[0_1px_0_rgba(0,0,0,0.05),0_4px_14px_rgba(0,0,0,0.05)] ${i.kind === 'idea' ? 'bg-[#FFF7E0]' : 'bg-white'}`}>
+                {i.pinned && <Pin className="absolute top-2.5 right-2.5 w-3.5 h-3.5 text-gold-deep fill-gold/40" />}
+                <div className="pr-4 text-[14px] font-semibold leading-snug line-clamp-2 text-ink">{i.kind === 'idea' && <Lightbulb className="inline w-3.5 h-3.5 -mt-0.5 mr-1 text-amber-600" />}{i.title || 'Untitled'}</div>
+                <div className={`mt-1 text-[12px] leading-snug text-black/50 whitespace-pre-line break-words ${area ? 'line-clamp-3' : 'line-clamp-4'}`}>{(i.body || '').replace(/^- \[ \] /gm, '☐ ').replace(/^- \[x\] /gm, '☑ ').slice(0, 220)}</div>
+                {area && <span className="absolute left-3 bottom-2.5 inline-flex items-center gap-1 text-[10.5px] text-black/45"><span className="w-1.5 h-1.5 rounded-full" style={{ background: area.color }} />{area.name}</span>}
+              </button>
+            );
+          })}
+        </div>
+        {opts.limit && sorted.length > opts.limit && (
+          <button onClick={() => setNotesShown(n => n + 60)} className="mt-4 w-full py-3 rounded-2xl bg-white border border-black/10 text-[14px] text-black/55">Show more ({sorted.length - opts.limit} left)</button>
         )}
-        {section('Needs a look', unsorted, { empty: unsynced.length ? undefined : 'All sorted. Capture anything above.' })}
-        {section('Captured this week', recent)}
-      </>
+      </section>
     );
   };
 
-  const todayView = () => {
-    const open = items.filter(isTaskOpen);
-    const overdue = open.filter(i => i.dueDate && i.dueDate < now).sort(byDue);
-    const dueToday = open.filter(i => i.dueDate === now).sort(byDue);
-    const remindToday = open.filter(i => i.remindDate && i.remindDate <= now && !(i.dueDate && i.dueDate <= now));
-    const chase = items.filter(i => i.status === 'waiting' && i.followUpDate && i.followUpDate <= now);
-    const early = new Set([...overdue, ...dueToday, ...remindToday, ...chase].map(i => i.id));
-    // The Today list: things Shane put on it (or Apple's TODAY list), in the order they were added.
-    const todayList = items.filter(i => isOpen(i) && isOnTodayList(i) && !early.has(i.id)).sort((a, b) => todaySortKey(b) - todaySortKey(a));
-    const shown = new Set([...early, ...todayList.map(i => i.id)]);
-    // A short pick of next actions with no date: flagged first, then the ones waiting longest.
-    const upNext = open.filter(i => i.status === 'next' && !shown.has(i.id) && !i.dueDate)
-      .sort((a, b) => Number(!!b.flagged) - Number(!!a.flagged) || (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0))
-      .slice(0, 5);
-    const nothing = !overdue.length && !dueToday.length && !todayList.length && !remindToday.length && !chase.length && !upNext.length;
+  // ---- home: the deck ----
+  const greeting = clock.time < '12:00' ? 'Morning' : clock.time < '17:00' ? 'Afternoon' : 'Evening';
+  const dateLine = new Date(`${now}T12:00:00+07:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Bangkok' });
+  const syncLabel = !online ? `Offline${unsynced.length ? `, ${unsynced.length} on phone` : ''}` : unsynced.length ? `Uploading ${unsynced.length}` : sortingCount ? `Sorting ${sortingCount}` : 'Synced';
+
+  const homeView = () => (
+    <div className="min-h-[100dvh] bg-[#0E0D0C] text-white" style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      onTouchStart={e => { pull.current = window.scrollY <= 0 ? e.touches[0].clientY : null; }}
+      onTouchMove={e => { if (pull.current !== null && e.touches[0].clientY - pull.current > 90) { pull.current = null; go({ view: 'search' }); } }}>
+      <div className="max-w-xl mx-auto px-[18px] pb-44">
+        <header className="flex items-center justify-between pt-4">
+          <span className="text-[12px] uppercase tracking-[0.18em] text-white/45 font-semibold">{dateLine}</span>
+          <div className="flex items-center gap-3">
+            <span className={`inline-flex items-center gap-1.5 text-[12px] ${online && !unsynced.length ? 'text-white/40' : 'text-amber-400'}`}>
+              {online ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}{syncLabel}
+            </span>
+            <button onClick={() => go({ view: 'search' })} aria-label="Search" className="p-1 text-white/60"><Search className="w-5 h-5" /></button>
+          </div>
+        </header>
+        <h1 className="mt-1 mb-4 font-serif text-[40px] leading-tight font-bold text-white">{greeting}, Shane</h1>
+
+        {/* Today card */}
+        <div role="button" tabIndex={0} onClick={() => go({ view: 'today' })} onKeyDown={e => { if (e.key === 'Enter') go({ view: 'today' }); }}
+          className="rounded-[22px] p-[18px] cursor-pointer text-[#1a1405] bg-[linear-gradient(135deg,#E9C75A,#B8860B)] shadow-[0_10px_30px_rgba(212,175,55,0.22)]">
+          <div className="flex items-baseline justify-between">
+            <span className="text-[13px] font-bold uppercase tracking-[0.12em]">Today</span>
+            <span className="text-[13px] font-semibold">{todayAll.length ? `${todayAll.length} to do` : 'Clear'}{overdue.length ? ` · ${overdue.length} overdue` : ''}</span>
+          </div>
+          {todayAll.length ? (
+            <ul className="mt-2">
+              {todayAll.slice(0, 3).map(i => (
+                <li key={i.id} className="flex items-center gap-2.5 py-1.5 text-[15.5px] leading-snug">
+                  {i.kind === 'task'
+                    ? <button onClick={e => { e.stopPropagation(); complete(i); }} aria-label="Mark done" className="w-[19px] h-[19px] shrink-0 rounded-full border-2 border-[#1a1405]/45" />
+                    : <Hourglass className="w-4 h-4 shrink-0 opacity-60" />}
+                  <span className={`line-clamp-1 ${overdue.includes(i) ? 'font-semibold' : ''}`}>{i.title}</span>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="mt-2 text-[15px] opacity-75">{upNext.length ? `Nothing due. Next up: ${upNext[0].title}` : 'Nothing due today.'}</p>}
+          {todayAll.length > 3 && <div className="mt-1 text-[12.5px] font-semibold opacity-70">+{todayAll.length - 3} more</div>}
+        </div>
+
+        {/* Small cards */}
+        <div className="grid grid-cols-3 gap-2.5 my-3">
+          {([['inbox', unsorted.length + unsynced.length, 'Needs a look'], ['waiting', waiting.length, 'Waiting on'], ['notes', allNotes.length, 'Notes']] as const).map(([v, n, label]) => (
+            <button key={v} onClick={() => go({ view: v })} className="rounded-[18px] bg-[#1E1C1A] px-3.5 py-3 text-left">
+              <div className={`text-[24px] font-bold leading-none ${v === 'inbox' && n ? 'text-gold' : ''}`}>{n}</div>
+              <div className="mt-1.5 text-[12px] text-white/55">{label}</div>
+            </button>
+          ))}
+        </div>
+
+        {/* One card per business, stacked like a wallet */}
+        <div className="pt-1">
+          {areas.map((a, k) => {
+            const t = areaTasks(a.id);
+            const n = areaNotes(a.id).length;
+            const last = k === areas.length - 1;
+            return (
+              <button key={a.id} onClick={() => go({ view: 'area', area: a.id })}
+                className={`relative flex flex-col justify-start w-full text-left rounded-[22px] px-[18px] pt-4 ${last ? 'pb-6' : 'h-[96px]'} ${k ? '-mt-[36px]' : ''} shadow-[0_-6px_18px_rgba(0,0,0,0.35)]`}
+                style={{ background: a.color, zIndex: k }}>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[16px] font-semibold truncate">{a.name}</span>
+                  <span className="shrink-0 text-[12px] px-2.5 py-[3px] rounded-full bg-white/20">
+                    {[t.length && `${t.length} to do`, n && plural(n, 'note')].filter(Boolean).join(' · ') || 'Nothing open'}
+                  </span>
+                </div>
+                {last && t[0] && <div className="mt-1.5 text-[13px] text-white/80 truncate">Next: {t[0].title}</div>}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-6 flex gap-2">
+          <button onClick={() => go({ view: 'ideas' })} className="flex-1 py-3 rounded-2xl bg-[#1E1C1A] text-[13px] text-white/70 flex items-center justify-center gap-1.5"><Lightbulb className="w-4 h-4" /> Ideas {ideas.length || ''}</button>
+          <button onClick={() => go({ view: 'done' })} className="flex-1 py-3 rounded-2xl bg-[#1E1C1A] text-[13px] text-white/70 flex items-center justify-center gap-1.5"><Archive className="w-4 h-4" /> Done</button>
+          <button onClick={() => go({ view: 'settings' })} className="flex-1 py-3 rounded-2xl bg-[#1E1C1A] text-[13px] text-white/70 flex items-center justify-center gap-1.5"><Settings className="w-4 h-4" /> Settings</button>
+        </div>
+        {onExit && <button onClick={onExit} className="mt-4 w-full py-2 text-[12px] text-white/30 flex items-center justify-center gap-1.5"><LogOut className="w-3.5 h-3.5" /> Leave inbox</button>}
+        <p className="mt-2 text-center text-[11px] text-white/25">Pull down to search</p>
+      </div>
+    </div>
+  );
+
+  // ---- an opened card: coloured header, cream sheet ----
+  const cardScreen = (o: { color: string; dark?: boolean; title: string; meta?: string; seg?: ReactNode }, body: ReactNode) => (
+    <div className="min-h-[100dvh] flex flex-col" style={{ background: o.color, paddingTop: 'env(safe-area-inset-top)' }}>
+      <div className="w-full max-w-xl mx-auto flex-1 flex flex-col">
+        <header className={`px-5 pt-4 pb-5 ${o.dark ? 'text-[#1a1405]' : 'text-white'}`}>
+          <div className="flex items-center justify-between">
+            <button onClick={goHome} className="flex items-center gap-0.5 -ml-1.5 text-[15px] opacity-80"><ChevronLeft className="w-5 h-5" /> All cards</button>
+            <span className="inline-flex items-center gap-1.5 text-[12px] opacity-60">{online ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}{syncLabel}</span>
+          </div>
+          <h1 className={`mt-3 font-serif text-[42px] leading-[1.02] font-bold ${o.dark ? 'text-[#1a1405]' : 'text-white'}`}>{o.title}</h1>
+          {o.meta && <p className="mt-1.5 text-[14px] opacity-75">{o.meta}</p>}
+          {o.seg}
+        </header>
+        <div className="flex-1 bg-cream text-ink rounded-t-[28px] px-4 pt-1 pb-44">{body}</div>
+      </div>
+    </div>
+  );
+
+  const segBar = (color: string) => (
+    <div className="mt-4 flex rounded-[14px] bg-black/20 p-1">
+      {(['all', 'todo', 'notes'] as const).map(s => (
+        <button key={s} onClick={() => setScreen({ ...screen, seg: s })}
+          className={`flex-1 py-2 rounded-[10px] text-[14px] font-semibold ${(screen.seg || 'all') === s ? 'bg-white' : 'text-white/75'}`}
+          style={(screen.seg || 'all') === s ? { color } : undefined}>
+          {{ all: 'Everything', todo: 'To do', notes: 'Notes' }[s]}
+        </button>
+      ))}
+    </div>
+  );
+
+  const todayBody = () => {
+    const nothing = !todayAll.length && !upNext.length;
     return (
       <>
         {section('Overdue', overdue, { tone: 'danger' })}
@@ -448,117 +617,125 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
     );
   };
 
-  const waitingView = () => {
-    const waiting = items.filter(i => i.status === 'waiting');
+  const inboxBody = () => {
+    const weekAgo = Date.now() - 7 * 86400_000;
+    const recent = items.filter(i => i.status !== 'inbox' && i.status !== 'archived' && (i.createdAt?.toMillis() || 0) > weekAgo && i.createdBy !== 'import').sort(byNewest);
+    return (
+      <>
+        {unsynced.length > 0 && (
+          <section className="mt-5">
+            <h3 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-black/45">Saved on this phone · {unsynced.length}</h3>
+            <ul>{unsynced.map(p => (
+              <li key={p.id} className="flex items-start gap-3 py-3.5 border-b border-black/[0.07] last:border-0">
+                <CloudOff className="w-5 h-5 mt-0.5 text-black/30 shrink-0" />
+                <div className="text-[16px] text-ink">{p.raw}<div className="text-[12px] text-black/45 mt-0.5">Will upload when you're back online</div></div>
+              </li>
+            ))}</ul>
+          </section>
+        )}
+        {section('Needs a look', unsorted, { empty: unsynced.length ? undefined : 'All sorted. Capture anything below.' })}
+        {section('Captured this week', recent)}
+      </>
+    );
+  };
+
+  const waitingBody = () => {
     const people = [...new Set(waiting.map(i => i.waitingOn || 'Someone'))].sort();
     return waiting.length ? <>{people.map(p => <div key={p}>{section(p, waiting.filter(i => (i.waitingOn || 'Someone') === p).sort(byDue))}</div>)}</>
       : <p className="py-12 text-center text-black/35">You're not waiting on anyone.</p>;
   };
 
-  const areaView = (id: string) => {
+  const areaBody = (id: string) => {
     const mine = items.filter(i => i.area === id);
+    const seg = screen.seg || 'all';
     return (
       <>
-        {section('Next actions', mine.filter(i => i.kind === 'task' && (i.status === 'next' || i.status === 'inbox')).sort(byDue), { showArea: false, empty: 'No open tasks.' })}
-        {section('Waiting on', mine.filter(i => i.status === 'waiting'), { showArea: false })}
-        {section('Ideas', mine.filter(i => i.kind === 'idea' && isOpen(i)).sort(byNewest), { showArea: false })}
-        {section('Notes', mine.filter(i => i.kind === 'note' && isOpen(i)).sort(byNewest), { showArea: false })}
-        {section('Someday', mine.filter(i => i.kind === 'task' && i.status === 'someday'), { showArea: false })}
+        {seg !== 'notes' && (
+          <>
+            {section('To do', areaTasks(id).sort(byDue), { showArea: false, empty: 'No open tasks.' })}
+            {section('Waiting on', mine.filter(i => i.status === 'waiting'), { showArea: false })}
+            {section('Someday', mine.filter(i => i.kind === 'task' && i.status === 'someday'), { showArea: false })}
+          </>
+        )}
+        {seg !== 'todo' && notesGrid(areaNotes(id), 'Notes & ideas', { area: id, add: true })}
       </>
     );
   };
 
-  const areasView = () => (
+  const notesBody = () => {
+    const words = notesQuery.toLowerCase().split(/\s+/).filter(Boolean);
+    const hit = (i: Item) => !words.length || words.every(w => ((i as Item & { search?: string }).search || searchText(i, areaName(i.area))).includes(w));
+    const list = allNotes.filter(i => (notesFilter === 'all' || (notesFilter === 'none' ? !areaById[i.area || ''] : i.area === notesFilter)) && hit(i));
+    return (
+      <>
+        <input value={notesQuery} onChange={e => { setNotesQuery(e.target.value); setNotesShown(60); }} placeholder="Find a note…" enterKeyHint="search"
+          className="mt-4 w-full px-4 py-3 rounded-2xl bg-white border border-black/10 text-[16px] focus:ring-2 focus:ring-gold-deep/30" />
+        <div className="mt-3 flex gap-2 overflow-x-auto -mx-4 px-4 pb-1">
+          {[['all', 'All'], ['none', 'No business'], ...areas.map(a => [a.id, a.name])].map(([v, l]) => (
+            <button key={v} onClick={() => { setNotesFilter(v); setNotesShown(60); }} className={`px-3.5 py-1.5 rounded-full text-[13px] whitespace-nowrap ${notesFilter === v ? 'bg-ink text-white' : 'bg-black/5 text-black/55'}`}>{l}</button>
+          ))}
+        </div>
+        {notesGrid(list, words.length ? 'Matching notes' : 'Notes', { showArea: true, limit: notesShown, add: !words.length, area: notesFilter !== 'all' && notesFilter !== 'none' ? notesFilter : null })}
+        {!list.length && words.length > 0 && <p className="py-10 text-center text-black/35">No notes match.</p>}
+      </>
+    );
+  };
+
+  const doneBody = () => (
     <>
-      <div className="grid grid-cols-2 gap-3 mt-4">
-        {[['ideas', 'Ideas', Lightbulb, items.filter(i => i.kind === 'idea' && isOpen(i)).length], ['done', 'Done & archive', Archive, items.filter(i => !isOpen(i)).length]].map(([key, label, Icon, n]) => {
-          const I = Icon as typeof Lightbulb;
-          return (
-            <button key={key as string} onClick={() => setScreen({ tab: 'areas', sub: key as 'ideas' | 'done' })} className="p-4 rounded-2xl bg-white border border-black/10 text-left">
-              <div className="flex items-center justify-between"><I className="w-5 h-5 text-black/50" /><span className="text-xl font-semibold">{n as number}</span></div>
-              <div className="mt-2 text-[14px] font-semibold text-black/60">{label as string}</div>
-            </button>
-          );
-        })}
-      </div>
-      <ul className="mt-4 rounded-2xl bg-white border border-black/10 overflow-hidden">
-        {areas.map(a => {
-          const n = items.filter(i => i.area === a.id && isOpen(i) && i.kind === 'task').length;
-          return (
-            <li key={a.id} className="border-b border-black/[0.07] last:border-0">
-              <button onClick={() => setScreen({ tab: 'areas', area: a.id })} className="w-full flex items-center gap-3 px-4 py-4 text-left">
-                <span className="w-3 h-3 rounded-full" style={{ background: a.color }} />
-                <span className="flex-1 text-[16px] text-ink">{a.name}</span>
-                <span className="text-[15px] text-black/40">{n || ''}</span>
-                <ChevronRight className="w-4 h-4 text-black/25" />
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-      <button onClick={exportAll} className="mt-6 w-full py-3 rounded-2xl bg-white border border-black/10 text-[15px] text-black/60 flex items-center justify-center gap-2"><Download className="w-4 h-4" /> Export everything (JSON + CSV)</button>
+      {section('Done', items.filter(i => i.status === 'done').sort((a, b) => (b.completedAt?.toMillis?.() || 0) - (a.completedAt?.toMillis?.() || 0)).slice(0, 100), { empty: 'Nothing done yet.' })}
+      {section('Archived', items.filter(i => i.status === 'archived' && !(i.ai?.split && i.ai.split.length > 1)).sort(byNewest).slice(0, 100))}
+    </>
+  );
+
+  const settingsBody = () => (
+    <>
+      <button onClick={exportAll} className="mt-5 w-full py-3 rounded-2xl bg-white border border-black/10 text-[15px] text-black/60 flex items-center justify-center gap-2"><Download className="w-4 h-4" /> Export everything (JSON + CSV)</button>
       <Notifications />
       <Connections />
     </>
   );
 
-  const subView = (sub: 'ideas' | 'done') => sub === 'ideas'
-    ? section('Ideas', items.filter(i => i.kind === 'idea' && isOpen(i)).sort(byNewest), { empty: 'No ideas saved yet.' })
-    : <>
-        {section('Done', items.filter(i => i.status === 'done').sort((a, b) => (b.completedAt?.toMillis?.() || 0) - (a.completedAt?.toMillis?.() || 0)).slice(0, 100), { empty: 'Nothing done yet.' })}
-        {section('Archived', items.filter(i => i.status === 'archived' && !(i.ai?.split && i.ai.split.length > 1)).sort(byNewest).slice(0, 100))}
-      </>;
+  const view = screen.view;
+  const area = screen.area ? areaById[screen.area] : undefined;
+  const page = view === 'home' ? homeView()
+    : view === 'today' ? cardScreen({ color: 'linear-gradient(160deg,#E9C75A,#B8860B 70%)', dark: true, title: 'Today', meta: todayAll.length ? `${plural(todayAll.length, 'thing')} to do${overdue.length ? `, ${overdue.length} overdue` : ''}` : 'Nothing due' }, todayBody())
+    : view === 'inbox' ? cardScreen({ color: '#2A2724', title: 'Needs a look', meta: unsorted.length ? `${plural(unsorted.length, 'capture')} to sort` : 'All sorted' }, inboxBody())
+    : view === 'waiting' ? cardScreen({ color: '#3B3550', title: 'Waiting on', meta: waiting.length ? `${plural(waiting.length, 'thing')}${chase.length ? `, ${chase.length} to chase` : ''}` : undefined }, waitingBody())
+    : view === 'notes' ? cardScreen({ color: '#6B5B45', title: 'Notes', meta: plural(allNotes.length, 'note') }, notesBody())
+    : view === 'ideas' ? cardScreen({ color: '#B45309', title: 'Ideas', meta: plural(ideas.length, 'idea') }, notesGrid(ideas, 'Ideas') || <p className="py-12 text-center text-black/35">No ideas saved yet.</p>)
+    : view === 'done' ? cardScreen({ color: '#44403C', title: 'Done & archive' }, doneBody())
+    : view === 'settings' ? cardScreen({ color: '#292524', title: 'Settings' }, settingsBody())
+    : view === 'search' ? cardScreen({ color: '#1E1C1A', title: 'Search & ask' }, <SearchView items={items} areaName={areaName} row={row} />)
+    : area ? cardScreen({
+        color: area.color, title: area.name,
+        meta: `${areaTasks(area.id).length} to do · ${plural(areaNotes(area.id).length, 'note')}`,
+        seg: segBar(area.color),
+      }, areaBody(area.id))
+    : homeView();
 
-  const title = screen.area ? areaName(screen.area) : screen.sub === 'ideas' ? 'Ideas' : screen.sub === 'done' ? 'Done & archive'
-    : { inbox: 'Inbox', today: 'Today', areas: 'Areas', waiting: 'Waiting on', search: 'Search & ask' }[screen.tab];
-
-  const tabs: [Tab, string, typeof Sun][] = [['inbox', 'Inbox', InboxIcon], ['today', 'Today', Sun], ['areas', 'Areas', LayoutGrid], ['waiting', 'Waiting', Hourglass], ['search', 'Search', Search]];
-  const inboxCount = items.filter(i => i.status === 'inbox').length + unsynced.length;
-  const todayCount = items.filter(i => isTaskOpen(i) && ((i.dueDate && i.dueDate <= now) || (i.remindDate && i.remindDate <= now))).length;
+  const dockFor = view === 'search' || view === 'settings' || view === 'done' ? null
+    : view === 'area' && area ? { placeholder: `Add to ${area.name.replace(/^Hemingways /, '')}…`, accent: area.color }
+    : view === 'today' ? { placeholder: 'Add to Today…', accent: '#B8860B' }
+    : { placeholder: 'Capture anything…', accent: '#D4AF37' };
+  const noteItem = note ? items.find(i => i.id === note.id) : undefined;
 
   return (
-    <div className="min-h-[100dvh] bg-cream text-ink" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-      <div className="max-w-xl mx-auto px-4 pb-32">
-        <header className="flex items-center justify-between pt-4 pb-2">
-          {screen.area || screen.sub ? (
-            <button onClick={() => setScreen({ tab: 'areas' })} className="flex items-center gap-1 -ml-1 text-[15px] text-gold-deep font-medium"><ChevronLeft className="w-5 h-5" /> Areas</button>
-          ) : <span className="text-[12px] uppercase tracking-[0.2em] text-black/40 font-semibold">Shane's Inbox</span>}
-          <div className="flex items-center gap-3">
-            <span className={`inline-flex items-center gap-1.5 text-[12px] ${online && !unsynced.length ? 'text-black/40' : 'text-amber-700'}`}>
-              {online ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}
-              {!online ? `Offline${unsynced.length ? `, ${unsynced.length} saved on phone` : ''}` : unsynced.length ? `Uploading ${unsynced.length}` : sortingCount ? `Sorting ${sortingCount}` : 'Synced'}
-            </span>
-            {onExit && <button onClick={onExit} aria-label="Leave inbox" className="p-1 text-black/35"><LogOut className="w-4 h-4" /></button>}
-          </div>
-        </header>
-        <h1 className="text-[34px] font-bold leading-tight tracking-tight" style={screen.area ? { color: areaById[screen.area]?.color } : undefined}>{title}</h1>
+    <div className="min-h-[100dvh] bg-cream text-ink">
+      {page}
 
-        {screen.tab !== 'search' && !screen.sub && <CaptureBox onCapture={raw => capture(raw, screen.area, screen.tab === 'today')} areaName={screen.area ? areaName(screen.area) : ''} />}
+      {dockFor && <CaptureDock key={view + (screen.area || '')} dark={view === 'home'} placeholder={dockFor.placeholder} accent={dockFor.accent}
+        onCapture={raw => capture(raw, view === 'area' ? screen.area : null, view === 'today')} />}
 
-        {screen.tab === 'search' ? <SearchView items={items} areaName={areaName} row={row} />
-          : screen.area ? areaView(screen.area)
-          : screen.sub ? subView(screen.sub)
-          : screen.tab === 'inbox' ? inboxView()
-          : screen.tab === 'today' ? todayView()
-          : screen.tab === 'waiting' ? waitingView()
-          : areasView()}
-      </div>
-
-      <nav className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-black/10" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <div className="max-w-xl mx-auto grid grid-cols-5">
-          {tabs.map(([key, label, Icon]) => {
-            const on = screen.tab === key;
-            const badge = key === 'inbox' ? inboxCount : key === 'today' ? todayCount : 0;
-            return (
-              <button key={key} onClick={() => { setScreen({ tab: key }); window.scrollTo(0, 0); }} className={`relative flex flex-col items-center gap-1 pt-2.5 pb-2 text-[11px] font-medium ${on ? 'text-ink' : 'text-black/40'}`}>
-                <Icon className="w-6 h-6" strokeWidth={on ? 2.2 : 1.7} />
-                {label}
-                {badge > 0 && <span className="absolute top-1.5 left-1/2 ml-2 min-w-[18px] h-[18px] px-1 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center">{badge}</span>}
-              </button>
-            );
-          })}
-        </div>
-      </nav>
+      {note && noteItem && (
+        <NotePage key={note.id} item={noteItem} openedVersion={note.version} fresh={!!note.fresh} areas={areas}
+          onClose={() => setNote(null)}
+          onSave={(changes, version) => save(noteItem, changes, 'edited', version)}
+          onDetails={() => { setOpen(noteItem); setNote(null); }}
+          onArchive={() => { save(noteItem, { status: noteItem.status === 'archived' ? statusFor(noteItem.kind, noteItem.waitingOn) : 'archived' }, noteItem.status === 'archived' ? 'restored' : 'archived'); setNote(null); }}
+          onDiscard={() => { deleteDoc(doc(db, 'inbox_items', noteItem.id)).catch(() => {}); setNote(null); }}
+        />
+      )}
 
       {open && (
         <ItemSheet
@@ -585,37 +762,213 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
   );
 }
 
-// ---- capture box ----
-function CaptureBox({ onCapture, areaName }: { onCapture: (raw: string) => void; areaName: string }) {
+// ---- capture dock: pinned to the bottom, within thumb reach, with a mic ----
+type SpeechRec = { lang: string; interimResults: boolean; continuous: boolean; start(): void; stop(): void; onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onend: (() => void) | null; onerror: (() => void) | null };
+const SpeechCtor = (): (new () => SpeechRec) | undefined => (window as unknown as { SpeechRecognition?: new () => SpeechRec; webkitSpeechRecognition?: new () => SpeechRec }).SpeechRecognition
+  || (window as unknown as { webkitSpeechRecognition?: new () => SpeechRec }).webkitSpeechRecognition;
+
+function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw: string) => void; placeholder: string; accent: string; dark: boolean }) {
   const [text, setText] = useState('');
+  const [listening, setListening] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
+  const rec = useRef<SpeechRec | null>(null);
+  const before = useRef('');
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, 220)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   }, [text]);
+  useEffect(() => () => rec.current?.stop(), []);
   const submit = () => {
     if (!text.trim()) return;
+    rec.current?.stop();
     onCapture(text);
     setText('');
-    ref.current?.focus();
   };
+  const mic = () => {
+    if (listening) { rec.current?.stop(); return; }
+    const Ctor = SpeechCtor();
+    if (!Ctor) { ref.current?.focus(); toast('Tap the mic on your keyboard to talk'); return; }
+    const r = new Ctor();
+    r.lang = 'en-GB';
+    r.interimResults = true;
+    r.continuous = true;
+    before.current = text ? `${text.trim()} ` : '';
+    r.onresult = e => setText(before.current + Array.from(e.results).map(x => x[0].transcript).join(''));
+    r.onend = () => setListening(false);
+    r.onerror = () => { setListening(false); toast('Could not hear you. Try the keyboard mic.'); };
+    rec.current = r;
+    try { r.start(); setListening(true); } catch { setListening(false); }
+  };
+  const light = accent === '#D4AF37' || accent === '#B8860B';
   return (
-    <div className="mt-3 rounded-[22px] bg-white border border-black/10 shadow-sm flex items-end gap-2 p-2 pl-4 focus-within:border-gold-deep/50">
-      <textarea
-        ref={ref}
-        value={text}
-        rows={1}
-        onChange={e => setText(e.target.value)}
-        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }}
-        placeholder={areaName ? 'Capture for this area…' : 'Capture a thought, task or note…'}
-        enterKeyHint="send"
-        className="flex-1 resize-none bg-transparent border-0 outline-none focus:outline-none p-0 py-2 text-[17px] leading-snug focus:ring-0 placeholder:text-black/30"
-      />
-      <button onClick={submit} disabled={!text.trim()} aria-label="Save" className="w-11 h-11 shrink-0 rounded-full bg-ink text-white flex items-center justify-center disabled:opacity-20">
-        <ArrowUp className="w-5 h-5" strokeWidth={2.5} />
-      </button>
+    <div className="fixed bottom-0 inset-x-0 z-40 px-4 pt-6"
+      style={{ paddingBottom: 'calc(14px + env(safe-area-inset-bottom))', background: dark ? 'linear-gradient(transparent, rgba(14,13,12,0.92) 38%)' : 'linear-gradient(transparent, rgba(249,248,246,0.96) 38%)' }}>
+      <div className={`max-w-xl mx-auto flex items-end gap-2 rounded-[28px] p-1.5 pl-[18px] ${dark ? 'bg-white/10 border border-white/15 backdrop-blur-xl' : 'bg-white border border-black/10 shadow-[0_6px_20px_rgba(0,0,0,0.08)]'}`}>
+        <textarea
+          ref={ref}
+          value={text}
+          rows={1}
+          onChange={e => setText(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }}
+          placeholder={listening ? 'Listening…' : placeholder}
+          enterKeyHint="send"
+          className={`flex-1 resize-none bg-transparent border-0 outline-none focus:outline-none p-0 py-[11px] text-[17px] leading-snug focus:ring-0 ${dark ? 'text-white placeholder:text-white/45' : 'text-ink placeholder:text-black/35'}`}
+        />
+        <button onClick={text.trim() && !listening ? submit : mic} aria-label={text.trim() && !listening ? 'Save' : listening ? 'Stop listening' : 'Talk'}
+          className={`w-[46px] h-[46px] shrink-0 rounded-full flex items-center justify-center ${listening ? 'bg-danger animate-pulse' : ''}`}
+          style={listening ? undefined : { background: accent }}>
+          {text.trim() && !listening
+            ? <ArrowUp className={`w-5 h-5 ${light ? 'text-[#1a1405]' : 'text-white'}`} strokeWidth={2.6} />
+            : <Mic className={`w-5 h-5 ${listening || !light ? 'text-white' : 'text-[#1a1405]'}`} strokeWidth={2.4} />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ---- a note, opened as a page to write on ----
+// Lines starting ☐ or ☑ (or markdown "- [ ] " / "- [x] ") are tick boxes. They're tappable when reading; tap the text to edit.
+// Saves a moment after you stop typing, and again on close, with the same version check as the item sheet.
+const CHECK = /^(?:- \[[ x]\]|☐|☑) ?/;
+const isTicked = (l: string) => l.startsWith('- [x]') || l.startsWith('☑');
+const linkify = (t: string) => t.split(/(https?:\/\/\S+)/g).map((p, k) => (/^https?:\/\//.test(p)
+  ? <a key={k} href={p} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-gold-deep underline break-all">{p}</a> : <span key={k}>{p}</span>));
+
+function NotePage({ item, openedVersion, fresh, areas, onClose, onSave, onDetails, onArchive, onDiscard }: {
+  item: Item; openedVersion: number; fresh: boolean; areas: Area[]; onClose: () => void;
+  onSave: (changes: Partial<Item>, version: number) => Promise<boolean>; onDetails: () => void; onArchive: () => void; onDiscard: () => void;
+}) {
+  const [title, setTitle] = useState(item.title || '');
+  const [body, setBody] = useState(item.body || '');
+  const [pinned, setPinned] = useState(!!item.pinned);
+  const [area, setArea] = useState(item.area || '');
+  const [editing, setEditing] = useState(fresh);
+  const saved = useRef({ title: item.title || '', body: item.body || '', pinned: !!item.pinned, area: item.area || '' });
+  const version = useRef(openedVersion);
+  const busy = useRef<Promise<boolean> | null>(null);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+  const areaObj = areas.find(a => a.id === area);
+  const color = areaObj?.color || '#8A6D0B';
+
+  const flush = useCallback(async () => {
+    if (busy.current) await busy.current;
+    const s = saved.current;
+    const finalTitle = title.trim() || body.trim().split('\n')[0].replace(CHECK, '').slice(0, 80);
+    const changes: Partial<Item> = {};
+    if (finalTitle !== s.title && (finalTitle || s.title)) changes.title = finalTitle || 'Untitled';
+    if (body !== s.body) changes.body = body;
+    if (pinned !== s.pinned) changes.pinned = pinned;
+    if (area !== s.area) changes.area = area || null;
+    if (!Object.keys(changes).length) return true;
+    busy.current = onSave(changes, version.current);
+    const ok = await busy.current;
+    busy.current = null;
+    if (ok) {
+      version.current += 1;
+      saved.current = { title: changes.title ?? s.title, body, pinned, area };
+    }
+    return ok;
+  }, [title, body, pinned, area, onSave]);
+
+  // Autosave a moment after typing stops, and when the app goes to the background.
+  useEffect(() => {
+    if (!title.trim() && !body.trim()) return;
+    const t = setTimeout(flush, 1500);
+    const hide = () => { if (document.visibilityState === 'hidden') flush(); };
+    document.addEventListener('visibilitychange', hide);
+    return () => { clearTimeout(t); document.removeEventListener('visibilitychange', hide); };
+  }, [flush, title, body]);
+
+  useEffect(() => { for (const el of [bodyRef.current, titleRef.current]) if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px`; } }, [body, title, editing]);
+  useEffect(() => { if (fresh) titleRef.current?.focus(); }, [fresh]);
+
+  const close = async () => {
+    if (!title.trim() && !body.trim()) { if (fresh || !item.title) onDiscard(); else onClose(); return; }
+    if (await flush()) onClose();
+  };
+
+  const toggle = (n: number) => setBody(b => b.split('\n').map((l, k) => (k === n ? l.replace(CHECK, isTicked(l) ? '☐ ' : '☑ ') : l)).join('\n'));
+  const addChecklist = () => {
+    const el = bodyRef.current;
+    if (!editing || !el) { setBody(b => `${b.replace(/\s+$/, '')}${b.trim() ? '\n' : ''}☐ `); setEditing(true); setTimeout(() => { bodyRef.current?.focus(); const l = bodyRef.current?.value.length || 0; bodyRef.current?.setSelectionRange(l, l); }, 30); return; }
+    const pos = el.selectionStart;
+    const start = body.lastIndexOf('\n', pos - 1) + 1;
+    const line = body.slice(start);
+    const next = CHECK.test(line) ? body.slice(0, start) + line.replace(CHECK, '') : `${body.slice(0, start)}☐ ${line}`;
+    setBody(next);
+    setTimeout(() => { el.focus(); const p = pos + (next.length - body.length); el.setSelectionRange(p, p); }, 0);
+  };
+  // Enter on a tick-box line starts another tick box; Enter on an empty one ends the list.
+  const onBodyKey = (e: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key !== 'Enter') return;
+    const el = e.currentTarget;
+    const pos = el.selectionStart;
+    const start = body.lastIndexOf('\n', pos - 1) + 1;
+    const line = body.slice(start, pos);
+    if (!CHECK.test(line)) return;
+    e.preventDefault();
+    if (!line.replace(CHECK, '').trim()) { const next = body.slice(0, start) + body.slice(pos); setBody(next); setTimeout(() => el.setSelectionRange(start, start), 0); return; }
+    const next = `${body.slice(0, pos)}\n☐ ${body.slice(pos)}`;
+    setBody(next);
+    setTimeout(() => el.setSelectionRange(pos + 3, pos + 3), 0);
+  };
+
+  const edited = item.updatedAt?.toMillis?.();
+  const editedLabel = edited ? new Date(edited).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: new Date(edited).getFullYear() === new Date().getFullYear() ? undefined : 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Bangkok' }) : '';
+
+  return (
+    <div className="fixed inset-0 z-50 bg-[#FBF8F1] text-[#1b1a17] overflow-y-auto" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <div className="max-w-xl mx-auto px-6 pb-40">
+        <div className="sticky top-0 z-10 -mx-6 px-6 py-3 flex items-center justify-between bg-[#FBF8F1]/95 backdrop-blur">
+          <button onClick={close} className="flex items-center gap-0.5 -ml-1.5 text-[16px] font-semibold text-gold-deep"><ChevronLeft className="w-5 h-5" /> Back</button>
+          <button onClick={close} className="text-[16px] font-semibold text-gold-deep">Done</button>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <label className="relative inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12.5px] font-semibold" style={{ background: `${color}1A`, color }}>
+            <span className="w-2 h-2 rounded-full" style={{ background: color }} />{areaObj?.name || 'No business'}
+            <select value={area} onChange={e => setArea(e.target.value)} aria-label="Business" className="absolute inset-0 opacity-0">
+              <option value="">No business</option>
+              {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </label>
+          {pinned && <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[12.5px] font-semibold bg-gold/15 text-gold-deep"><Pin className="w-3 h-3" /> Pinned</span>}
+          {item.kind === 'idea' && <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[12.5px] font-semibold bg-amber-100 text-amber-700"><Lightbulb className="w-3 h-3" /> Idea</span>}
+        </div>
+        <textarea ref={titleRef} value={title} rows={1} onChange={e => setTitle(e.target.value.replace(/\n/g, ' '))} placeholder="Title"
+          className="mt-3 w-full resize-none overflow-hidden bg-transparent border-0 p-0 font-serif text-[34px] leading-[1.1] font-bold outline-none focus:outline-none focus:ring-0 placeholder:text-black/20" />
+        {editedLabel && <div className="mt-1 mb-4 text-[12.5px] text-black/40">Edited {editedLabel}</div>}
+
+        {editing ? (
+          <textarea ref={bodyRef} value={body} onChange={e => setBody(e.target.value)} onKeyDown={onBodyKey} placeholder="Start writing…" rows={6}
+            className="w-full min-h-[40dvh] resize-none overflow-hidden bg-transparent border-0 p-0 text-[17px] leading-[1.6] outline-none focus:outline-none focus:ring-0 placeholder:text-black/25" />
+        ) : (
+          <div onClick={() => { setEditing(true); setTimeout(() => bodyRef.current?.focus(), 30); }} className="min-h-[40dvh] text-[17px] leading-[1.6] cursor-text">
+            {body.trim() ? body.split('\n').map((l, k) => CHECK.test(l) ? (
+              <div key={k} className="flex items-start gap-3 py-1">
+                <button onClick={e => { e.stopPropagation(); toggle(k); }} aria-label="Tick"
+                  className="mt-[3px] w-[21px] h-[21px] shrink-0 rounded-[6px] border-2 flex items-center justify-center"
+                  style={isTicked(l) ? { background: color, borderColor: color } : { borderColor: 'rgba(0,0,0,0.3)' }}>
+                  {isTicked(l) && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+                </button>
+                <span className={isTicked(l) ? 'line-through text-black/40' : ''}>{linkify(l.replace(CHECK, ''))}</span>
+              </div>
+            ) : l.trim() ? <p key={k} className="mb-2 whitespace-pre-wrap break-words">{linkify(l)}</p> : <div key={k} className="h-3" />)
+              : <p className="text-black/25">Tap to write…</p>}
+          </div>
+        )}
+      </div>
+
+      <div className="fixed bottom-0 inset-x-0 bg-[#F3EFE6] border-t border-black/[0.06]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="max-w-xl mx-auto grid grid-cols-4 text-[12px] font-semibold text-gold-deep">
+          <button onClick={addChecklist} className="py-3 flex flex-col items-center gap-1"><ListChecks className="w-5 h-5" /> Checklist</button>
+          <button onClick={() => setPinned(p => !p)} className="py-3 flex flex-col items-center gap-1"><Pin className={`w-5 h-5 ${pinned ? 'fill-gold/50' : ''}`} /> {pinned ? 'Unpin' : 'Pin'}</button>
+          <button onClick={async () => { if (title.trim() || body.trim()) await flush(); onDetails(); }} className="py-3 flex flex-col items-center gap-1"><SlidersHorizontal className="w-5 h-5" /> Details</button>
+          <button onClick={async () => { if (title.trim() || body.trim()) await flush(); onArchive(); }} className="py-3 flex flex-col items-center gap-1"><Archive className="w-5 h-5" /> {item.status === 'archived' ? 'Restore' : 'Archive'}</button>
+        </div>
+      </div>
     </div>
   );
 }

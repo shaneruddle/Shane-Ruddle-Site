@@ -46,6 +46,7 @@ export interface Item {
   waitingSince?: string | null;
   followUpDate?: string | null;
   flagged?: boolean;
+  pinned?: boolean;         // notes: pinned to the top of their grid
   onToday?: boolean | null;  // on the Today list; unset means it follows Apple's TODAY list from the import
   appleList?: string;
   appleCreatedAt?: number | null; // when it was created in Apple Reminders (imported items)
