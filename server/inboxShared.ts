@@ -149,7 +149,7 @@ export function briefingFor(items: Item[], today: string): { title: string; body
   if (overdue.length) parts.push(`Overdue: ${names(overdue)}`);
   if (chase.length) parts.push(`Chase ${[...new Set(chase.map(i => i.waitingOn).filter(Boolean))].slice(0, 3).join(', ')}`);
   if (stale.length) parts.push(`Waiting on ${stale[0].waitingOn} for ${daysBetween(stale[0].waitingSince!, today)} days`);
-  if (!dueToday.length && !overdue.length && next.length) parts.push(`Next up: ${names(next, 1)}`);
+  if (!dueToday.length && !overdue.length && next.length) parts.push(`Next up: ${next[0].title.slice(0, 60)}`);
   if (unsorted >= 3) parts.push(`${unsorted} captures to sort`);
   if (!parts.length) return null;
   const count = dueToday.length + overdue.length + chase.length;

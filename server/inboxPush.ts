@@ -134,6 +134,8 @@ export async function tick(db: Firestore, send: (db: Firestore, p: Payload) => P
   const quiet = inQuietHours(time, notify);
   const report = { at: `${today} ${time}`, quiet, due: 0, sent: 0, held: 0, briefing: "" as string, phones: 0 };
   if (!notify.enabled) return { ...report, briefing: "notifications off" };
+  // No phone set up yet: send nothing and mark nothing sent, so nothing is lost before the first phone joins.
+  if ((await db.collection("inbox_push_subs").limit(1).get()).empty) return { ...report, briefing: "no phones yet" };
 
   // Reminders whose moment has come and haven't been sent for this moment yet.
   const snap = await db.collection("inbox_items").where("alertAt", "<=", now).where("alertAt", ">=", now - CATCH_UP).get();
