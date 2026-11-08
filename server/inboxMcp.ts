@@ -2,7 +2,7 @@ import express, { type Express, type Request, type Response } from "express";
 import crypto from "crypto";
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import { bkkToday, bkkNowTime, nextDue, type Repeat, type RepeatFreq } from "./reminderDates";
-import { computeAlertAt, isOnTodayList, searchText, statusFor, STATUS_LABEL, type Actor, type Item, type Kind, type Status } from "./inboxShared";
+import { computeAlertAt, isOnTodayList, todaySortKey, searchText, statusFor, STATUS_LABEL, type Actor, type Item, type Kind, type Status } from "./inboxShared";
 import { areasAndContext, requireOwner, sortItem } from "./inbox";
 
 // The assistant connector for Shane's Inbox: lets Claude (and ChatGPT, if he ever wants it) read and change
@@ -474,7 +474,7 @@ function fieldsFrom(args: Record<string, unknown>, areas: Area[]) {
     f.repeat = freq ? ({ freq, interval: 1 } as Repeat) : null;
   }
   if (has("flagged")) f.flagged = !!args.flagged;
-  if (has("on_today_list")) f.onToday = !!args.on_today_list;
+  if (has("on_today_list")) { f.onToday = !!args.on_today_list; if (f.onToday) f.todayRank = Date.now(); }
   return f;
 }
 
@@ -502,7 +502,7 @@ async function runTool(db: Firestore, conn: Conn, name: string, args: Record<str
       const reminders = open.filter(i => i.remindDate && i.remindDate <= today && !(i.dueDate && i.dueDate <= today));
       const chase = items.filter(i => i.status === "waiting" && i.followUpDate && i.followUpDate <= today);
       const early = new Set([...overdue, ...dueToday, ...reminders, ...chase].map(i => i.id));
-      const todayList = open.filter(i => isOnTodayList(i) && !early.has(i.id));
+      const todayList = items.filter(i => isOpen(i) && isOnTodayList(i) && !early.has(i.id)).sort((a, b) => todaySortKey(b) - todaySortKey(a));
       const shown = new Set([...early, ...todayList.map(i => i.id)]);
       const next = open.filter(i => i.status === "next" && !shown.has(i.id) && !i.dueDate)
         .sort((a, b) => Number(!!b.flagged) - Number(!!a.flagged) || (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0)).slice(0, 5);

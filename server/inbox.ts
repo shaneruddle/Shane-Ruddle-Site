@@ -286,12 +286,13 @@ export function registerInboxRoutes(app: Express, { getDb }: Deps) {
         const repeat: Repeat | null = freq ? { freq, interval: Math.max(1, Math.round(Number(r.repeat.interval) || 1)) } : null;
         const list = line(r?.list, 80);
         const dueDate = isDate(r?.dueDate) ? r.dueDate : null;
+        const created = Date.parse(String(r?.created || ""));
         const item = {
           title, kind: "task" as Kind, status: (r?.done ? "done" : "next") as Status,
           body: String(r?.notes ?? "").trim().slice(0, 20000), area: areaFor(list),
           dueDate, dueTime: dueDate && isTime(r?.dueTime) ? r.dueTime : null, repeat, flagged: !!r?.flagged,
         };
-        rows.push({ id: `a_${hash(appleId)}`, data: { ...item, raw: title, appleId, appleList: list, alertAt: computeAlertAt(item), search: searchText({ ...item, body: `${item.body} ${list}` }) } });
+        rows.push({ id: `a_${hash(appleId)}`, data: { ...item, raw: title, appleId, appleList: list, appleCreatedAt: Number.isFinite(created) ? created : null, alertAt: computeAlertAt(item), search: searchText({ ...item, body: `${item.body} ${list}` }) } });
       }
       for (const n of notes) {
         const title = line(n?.title, 300) || "Untitled note";
@@ -311,8 +312,8 @@ export function registerInboxRoutes(app: Express, { getDb }: Deps) {
         chunk.forEach((r, k) => {
           const ref = db.collection("inbox_items").doc(r.id);
           if (existing[k].exists) {
-            // Re-running the import refreshes Apple's text but keeps anything Shane changed in the app.
-            batch.set(ref, { appleId: r.data.appleId, importedAt: FieldValue.serverTimestamp() }, { merge: true });
+            // Re-running the import keeps anything Shane changed in the app; it only fills in Apple's creation date.
+            batch.set(ref, { appleId: r.data.appleId, importedAt: FieldValue.serverTimestamp(), ...(r.data.appleCreatedAt ? { appleCreatedAt: r.data.appleCreatedAt } : {}) }, { merge: true });
             updated++;
           } else {
             batch.set(ref, { ...r.data, ai: { state: "off" }, version: 1, createdBy: "import", updatedBy: "import", createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(), importedAt: FieldValue.serverTimestamp() });

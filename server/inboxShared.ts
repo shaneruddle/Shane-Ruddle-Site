@@ -48,6 +48,8 @@ export interface Item {
   flagged?: boolean;
   onToday?: boolean | null;  // on the Today list; unset means it follows Apple's TODAY list from the import
   appleList?: string;
+  appleCreatedAt?: number | null; // when it was created in Apple Reminders (imported items)
+  todayRank?: number | null; // Today list order, highest first; set by dragging or adding to the list
   links?: string[];
   ai?: { state: 'pending' | 'done' | 'failed' | 'off'; error?: string; split?: AiSuggestion[]; applied?: string[]; at?: number };
   version?: number;
@@ -69,6 +71,10 @@ export const computeAlertAt = (i: Pick<Item, 'remindDate' | 'remindTime' | 'dueD
 
 // On the Today list: set in the app, or imported from the Apple Reminders list called TODAY.
 export const isOnTodayList = (i: Pick<Item, 'onToday' | 'appleList'>) => i.onToday ?? (i.appleList || '').trim().toUpperCase() === 'TODAY';
+
+// Today list order: newest first by default (Apple's creation date for imports), unless Shane dragged it.
+export const todaySortKey = (i: Pick<Item, 'todayRank' | 'appleCreatedAt' | 'createdAt'>) =>
+  i.todayRank ?? i.appleCreatedAt ?? i.createdAt?.toMillis?.() ?? Date.now();
 
 // Default status for a kind once sorted. Never 'done'.
 export const statusFor = (kind: Kind, waitingOn?: string | null): Status =>

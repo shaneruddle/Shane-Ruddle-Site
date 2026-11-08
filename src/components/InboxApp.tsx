@@ -1,16 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode } from 'react';
+import { Reorder, useDragControls } from 'motion/react';
 import { auth, db } from '../firebase';
 import {
-  collection, doc, onSnapshot, runTransaction, writeBatch, serverTimestamp, increment, query, where, orderBy, limit, getDocs, setDoc, deleteDoc,
+  collection, doc, onSnapshot, runTransaction, writeBatch, serverTimestamp, increment, updateDoc, query, where, orderBy, limit, getDocs, setDoc, deleteDoc,
 } from 'firebase/firestore';
 import {
   Loader2, Inbox as InboxIcon, Sun, LayoutGrid, Hourglass, Search, ArrowUp, Check, Lightbulb, StickyNote, Flag, Repeat as RepeatIcon,
-  MapPin, Bell, CalendarDays, User, ChevronLeft, ChevronRight, X, Sparkles, Scissors, RotateCcw, Archive, Trash2, CloudOff, Cloud, Download, LogOut, History,
+  MapPin, GripVertical, Bell, CalendarDays, User, ChevronLeft, ChevronRight, X, Sparkles, Scissors, RotateCcw, Archive, Trash2, CloudOff, Cloud, Download, LogOut, History,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { bkkToday, bkkNowTime, addDays, nextDue, repeatLabel, type Repeat, type RepeatFreq } from '../../server/reminderDates';
 import {
-  computeAlertAt, searchText, statusFor, isOnTodayList, STATUS_LABEL, DEFAULT_AREAS, type Item, type Kind, type Status, type AiSuggestion,
+  computeAlertAt, searchText, statusFor, isOnTodayList, todaySortKey, STATUS_LABEL, DEFAULT_AREAS, type Item, type Kind, type Status, type AiSuggestion,
 } from '../../server/inboxShared';
 import { Connections } from './InboxConnect';
 import { Notifications } from './InboxNotify';
@@ -22,7 +23,7 @@ import { Notifications } from './InboxNotify';
 // (/api/inbox/process); if that fails the capture stays exactly as written.
 
 interface Area { id: string; name: string; color: string; aliases?: string; order?: number }
-interface Pending { id: string; raw: string; area?: string | null; at: number }
+interface Pending { id: string; raw: string; area?: string | null; at: number; today?: boolean }
 interface HistoryEntry { id: string; by: string; action: string; changes?: Record<string, unknown>; at?: { toMillis(): number } }
 
 type Tab = 'inbox' | 'today' | 'areas' | 'waiting' | 'search';
@@ -189,7 +190,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
           await runTransaction(db, async tx => {
             const snap = await tx.get(ref);
             if (snap.exists()) return; // already saved by an earlier try
-            const item: Partial<Item> = { title: p.raw.slice(0, 200), raw: p.raw, kind: 'task', status: 'inbox', area: p.area || null };
+            const item: Partial<Item> = { title: p.raw.slice(0, 200), raw: p.raw, kind: 'task', status: 'inbox', area: p.area || null, ...(p.today ? { onToday: true, todayRank: p.at } : {}) };
             tx.set(ref, {
               ...item, body: p.raw.length > 200 ? p.raw : '', search: searchText(item, areaName(p.area)), ai: { state: 'pending' },
               version: 1, createdBy: 'shane', updatedBy: 'shane', capturedAt: p.at, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
@@ -216,10 +217,10 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
     return () => { clearInterval(t); window.removeEventListener('online', flush); };
   }, [flush]);
 
-  const capture = (raw: string, area?: string | null) => {
+  const capture = (raw: string, area?: string | null, today = false) => {
     const text = raw.trim();
     if (!text) return;
-    const next = [...readOutbox(), { id: doc(collection(db, 'inbox_items')).id, raw: text, area: area || null, at: Date.now() }];
+    const next = [...readOutbox(), { id: doc(collection(db, 'inbox_items')).id, raw: text, area: area || null, at: Date.now(), ...(today ? { today: true } : {}) }];
     writeOutbox(next);
     setOutbox(next);
     flush();
@@ -254,6 +255,17 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
       else toast.error('Could not save');
       return false;
     }
+  };
+
+  // Dragging on the Today list: give the moved item a rank between its new neighbours (highest is at the top).
+  // Order isn't content, so it skips the version check and history.
+  const moveOnToday = (list: Item[], id: string) => {
+    const k = list.findIndex(i => i.id === id);
+    if (k < 0) return;
+    const above = k > 0 ? todaySortKey(list[k - 1]) : null;
+    const below = k < list.length - 1 ? todaySortKey(list[k + 1]) : null;
+    const rank = above === null ? (below ?? Date.now()) + 60_000 : below === null ? above - 60_000 : (above + below) / 2;
+    updateDoc(doc(db, 'inbox_items', id), { todayRank: rank }).catch(() => toast.error('Could not save the new order'));
   };
 
   const complete = async (i: Item) => {
@@ -324,7 +336,10 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
   const sortingCount = items.filter(i => i.ai?.state === 'pending').length;
 
   // ---- shared bits ----
-  const row = (i: Item, opts: { showArea?: boolean } = {}) => {
+  const row = (i: Item, opts: { showArea?: boolean } = {}) => (
+    <li key={i.id} className="flex items-start gap-3 py-3.5 border-b border-black/[0.07] last:border-0">{rowBody(i, opts)}</li>
+  );
+  const rowBody = (i: Item, opts: { showArea?: boolean } = {}) => {
     const area = areaById[i.area || ''];
     const done = i.status === 'done';
     const overdue = isOpen(i) && !!i.dueDate && (i.dueDate < now || (i.dueDate === now && !!i.dueTime && i.dueTime < clock.time));
@@ -339,7 +354,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
       opts.showArea !== false && area && <span key="a" className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: area.color }} />{area.name}</span>,
     ].filter(Boolean);
     return (
-      <li key={i.id} className="flex items-start gap-3 py-3.5 border-b border-black/[0.07] last:border-0">
+      <>
         {i.kind === 'task' ? (
           <button onClick={() => complete(i)} aria-label={done ? 'Mark not done' : 'Mark done'}
             className={`mt-0.5 w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center ${done ? 'bg-ink border-ink' : 'border-black/25'}`}>
@@ -361,7 +376,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
           )}
         </button>
         {i.flagged && <Flag className="w-4 h-4 mt-1 text-orange-500 fill-orange-500 shrink-0" />}
-      </li>
+      </>
     );
   };
 
@@ -408,7 +423,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
     const chase = items.filter(i => i.status === 'waiting' && i.followUpDate && i.followUpDate <= now);
     const early = new Set([...overdue, ...dueToday, ...remindToday, ...chase].map(i => i.id));
     // The Today list: things Shane put on it (or Apple's TODAY list), in the order they were added.
-    const todayList = open.filter(i => isOnTodayList(i) && !early.has(i.id)).sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
+    const todayList = items.filter(i => isOpen(i) && isOnTodayList(i) && !early.has(i.id)).sort((a, b) => todaySortKey(b) - todaySortKey(a));
     const shown = new Set([...early, ...todayList.map(i => i.id)]);
     // A short pick of next actions with no date: flagged first, then the ones waiting longest.
     const upNext = open.filter(i => i.status === 'next' && !shown.has(i.id) && !i.dueDate)
@@ -419,7 +434,12 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
       <>
         {section('Overdue', overdue, { tone: 'danger' })}
         {section('Due today', dueToday)}
-        {section('Today list', todayList)}
+        {todayList.length > 0 && (
+          <section className="mt-5">
+            <h3 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-black/45">Today list · {todayList.length}</h3>
+            <TodayList items={todayList} body={i => rowBody(i)} onMove={moveOnToday} />
+          </section>
+        )}
         {section('Reminders', remindToday)}
         {section('Chase up', chase, { tone: 'danger' })}
         {section('Up next', upNext)}
@@ -513,7 +533,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
         </header>
         <h1 className="text-[34px] font-bold leading-tight tracking-tight" style={screen.area ? { color: areaById[screen.area]?.color } : undefined}>{title}</h1>
 
-        {screen.tab !== 'search' && !screen.sub && <CaptureBox onCapture={raw => capture(raw, screen.area)} areaName={screen.area ? areaName(screen.area) : ''} />}
+        {screen.tab !== 'search' && !screen.sub && <CaptureBox onCapture={raw => capture(raw, screen.area, screen.tab === 'today')} areaName={screen.area ? areaName(screen.area) : ''} />}
 
         {screen.tab === 'search' ? <SearchView items={items} areaName={areaName} row={row} />
           : screen.area ? areaView(screen.area)
@@ -705,7 +725,7 @@ function ItemSheet({ item, openedVersion, areas, now, onClose, onSave, onComplet
   };
 
   const commit = () => {
-    const keys: (keyof Item)[] = ['title', 'body', 'kind', 'status', 'area', 'people', 'dueDate', 'dueTime', 'remindDate', 'remindTime', 'repeat', 'place', 'placeWhen', 'waitingOn', 'followUpDate', 'flagged', 'onToday'];
+    const keys: (keyof Item)[] = ['title', 'body', 'kind', 'status', 'area', 'people', 'dueDate', 'dueTime', 'remindDate', 'remindTime', 'repeat', 'place', 'placeWhen', 'waitingOn', 'followUpDate', 'flagged', 'onToday', 'todayRank'];
     const changes: Partial<Item> = {};
     for (const k of keys) {
       if (JSON.stringify(f[k] ?? null) !== JSON.stringify(item[k] ?? null)) (changes as Record<string, unknown>)[k] = f[k] ?? null;
@@ -811,7 +831,7 @@ function ItemSheet({ item, openedVersion, areas, now, onClose, onSave, onComplet
         <div className="mt-3 grid grid-cols-2 gap-2">
           {item.kind === 'task' && <button onClick={() => onComplete(item)} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><Check className="w-4 h-4" /> {item.status === 'done' ? 'Not done' : 'Done'}</button>}
           <button onClick={() => set({ flagged: !f.flagged })} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><Flag className={`w-4 h-4 ${f.flagged ? 'text-orange-500 fill-orange-500' : ''}`} /> {f.flagged ? 'Flagged' : 'Flag'}</button>
-          {item.kind === 'task' && <button onClick={() => set({ onToday: !isOnTodayList(f) })} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><Sun className={`w-4 h-4 ${isOnTodayList(f) ? 'text-amber-500' : ''}`} /> {isOnTodayList(f) ? 'On Today list' : 'Add to Today'}</button>}
+          {item.kind === 'task' && <button onClick={() => set(isOnTodayList(f) ? { onToday: false } : { onToday: true, todayRank: Date.now() })} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><Sun className={`w-4 h-4 ${isOnTodayList(f) ? 'text-amber-500' : ''}`} /> {isOnTodayList(f) ? 'On Today list' : 'Add to Today'}</button>}
           <button onClick={() => onArchive(item)} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><Archive className="w-4 h-4" /> {item.status === 'archived' ? 'Restore' : 'Archive'}</button>
           {item.raw && <button onClick={() => { onResort(item); toast('Sorting again…'); onClose(); }} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><RotateCcw className="w-4 h-4" /> Sort again</button>}
         </div>
@@ -827,5 +847,39 @@ function ItemSheet({ item, openedVersion, areas, now, onClose, onSave, onComplet
         )}
       </div>
     </div>
+  );
+}
+
+// The Today list with drag handles. Drag by the grip so scrolling and tapping still work on a phone.
+function TodayList({ items, body, onMove }: { items: Item[]; body: (i: Item) => ReactNode; onMove: (list: Item[], id: string) => void }) {
+  const [order, setOrder] = useState(items);
+  const dragging = useRef<string | null>(null);
+  const latest = useRef(order);
+  latest.current = order;
+  // Follow live updates, except while a drag is in progress.
+  useEffect(() => { if (!dragging.current) setOrder(items); }, [items]);
+  return (
+    <Reorder.Group as="ul" axis="y" values={order} onReorder={setOrder}>
+      {order.map(i => (
+        <TodayRow key={i.id} item={i} onStart={() => { dragging.current = i.id; }}
+          onEnd={() => { const id = dragging.current; dragging.current = null; if (id) onMove(latest.current, id); }}>
+          {body(i)}
+        </TodayRow>
+      ))}
+    </Reorder.Group>
+  );
+}
+
+function TodayRow({ item, children, onStart, onEnd }: { item: Item; children: ReactNode; onStart: () => void; onEnd: () => void }) {
+  const controls = useDragControls();
+  return (
+    <Reorder.Item value={item} dragListener={false} dragControls={controls} onDragStart={onStart} onDragEnd={onEnd}
+      className="relative flex items-start gap-3 py-3.5 border-b border-black/[0.07] last:border-0 bg-cream">
+      {children}
+      <button aria-label="Drag to reorder" onPointerDown={e => { e.preventDefault(); controls.start(e); }}
+        className="-mr-1 px-1 py-0.5 text-black/25 touch-none cursor-grab active:cursor-grabbing shrink-0">
+        <GripVertical className="w-5 h-5" />
+      </button>
+    </Reorder.Item>
   );
 }
