@@ -46,6 +46,8 @@ export interface Item {
   waitingSince?: string | null;
   followUpDate?: string | null;
   flagged?: boolean;
+  onToday?: boolean | null;  // on the Today list; unset means it follows Apple's TODAY list from the import
+  appleList?: string;
   links?: string[];
   ai?: { state: 'pending' | 'done' | 'failed' | 'off'; error?: string; split?: AiSuggestion[]; applied?: string[]; at?: number };
   version?: number;
@@ -64,6 +66,9 @@ export const STATUS_LABEL: Record<Status, string> = {
 // The reminder time wins; otherwise alert on the due date (at its time, or 9am).
 export const computeAlertAt = (i: Pick<Item, 'remindDate' | 'remindTime' | 'dueDate' | 'dueTime'>) =>
   i.remindDate ? alertAt(i.remindDate, i.remindTime) : alertAt(i.dueDate, i.dueTime);
+
+// On the Today list: set in the app, or imported from the Apple Reminders list called TODAY.
+export const isOnTodayList = (i: Pick<Item, 'onToday' | 'appleList'>) => i.onToday ?? (i.appleList || '').trim().toUpperCase() === 'TODAY';
 
 // Default status for a kind once sorted. Never 'done'.
 export const statusFor = (kind: Kind, waitingOn?: string | null): Status =>
@@ -140,6 +145,7 @@ export function briefingFor(items: Item[], today: string): { title: string; body
   const chase = open.filter(i => i.status === 'waiting' && i.followUpDate && i.followUpDate <= today);
   const stale = open.filter(i => i.status === 'waiting' && !i.followUpDate && i.waitingSince && daysBetween(i.waitingSince, today) >= 7);
   const unsorted = open.filter(i => i.status === 'inbox').length;
+  const todayList = tasks.filter(i => isOnTodayList(i) && !(i.dueDate && i.dueDate <= today));
   const next = tasks.filter(i => i.status === 'next' && !i.dueDate)
     .sort((a, b) => Number(!!b.flagged) - Number(!!a.flagged) || (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
 
@@ -147,9 +153,10 @@ export function briefingFor(items: Item[], today: string): { title: string; body
   const parts: string[] = [];
   if (dueToday.length) parts.push(`Today: ${names(dueToday)}`);
   if (overdue.length) parts.push(`Overdue: ${names(overdue)}`);
+  if (todayList.length) parts.push(`${todayList.length} on your Today list`);
   if (chase.length) parts.push(`Chase ${[...new Set(chase.map(i => i.waitingOn).filter(Boolean))].slice(0, 3).join(', ')}`);
   if (stale.length) parts.push(`Waiting on ${stale[0].waitingOn} for ${daysBetween(stale[0].waitingSince!, today)} days`);
-  if (!dueToday.length && !overdue.length && next.length) parts.push(`Next up: ${next[0].title.slice(0, 60)}`);
+  if (!dueToday.length && !overdue.length && !todayList.length && next.length) parts.push(`Next up: ${next[0].title.slice(0, 60)}`);
   if (unsorted >= 3) parts.push(`${unsorted} captures to sort`);
   if (!parts.length) return null;
   const count = dueToday.length + overdue.length + chase.length;

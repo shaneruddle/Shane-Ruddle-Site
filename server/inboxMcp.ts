@@ -2,7 +2,7 @@ import express, { type Express, type Request, type Response } from "express";
 import crypto from "crypto";
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import { bkkToday, bkkNowTime, nextDue, type Repeat, type RepeatFreq } from "./reminderDates";
-import { computeAlertAt, searchText, statusFor, STATUS_LABEL, type Actor, type Item, type Kind, type Status } from "./inboxShared";
+import { computeAlertAt, isOnTodayList, searchText, statusFor, STATUS_LABEL, type Actor, type Item, type Kind, type Status } from "./inboxShared";
 import { areasAndContext, requireOwner, sortItem } from "./inbox";
 
 // The assistant connector for Shane's Inbox: lets Claude (and ChatGPT, if he ever wants it) read and change
@@ -329,6 +329,7 @@ const FIELDS = {
   place_when: { type: "string", enum: ["arrive", "leave"] },
   repeat: { type: ["string", "null"], enum: ["daily", "weekdays", "weekly", "monthly", "yearly", null] },
   flagged: { type: "boolean" },
+  on_today_list: { type: "boolean", description: "Put it on (true) or take it off (false) Shane's Today list." },
 };
 const READ_ONLY = { readOnlyHint: true, openWorldHint: false };
 const WRITES = { readOnlyHint: false, destructiveHint: false, openWorldHint: false };
@@ -336,7 +337,7 @@ const WRITES = { readOnlyHint: false, destructiveHint: false, openWorldHint: fal
 const TOOLS = [
   {
     name: "get_today", scope: "inbox:read" as Scope, title: "What's on today",
-    description: "Shane's day: overdue, due today, reminders, people to chase, and a few next actions.",
+    description: "Shane's day: overdue, due today, his Today list, reminders, people to chase, and a few next actions.",
     inputSchema: { type: "object", properties: {} }, annotations: READ_ONLY,
   },
   {
@@ -419,6 +420,7 @@ const view = (i: Item, areas: Area[], full = false) => {
   add("place", i.place ? `${i.placeWhen === "leave" ? "leaving" : "at"} ${i.place}` : null);
   add("repeat", i.repeat?.freq);
   add("flagged", i.flagged || null);
+  add("on_today_list", isOnTodayList(i) || null);
   if (full) {
     add("notes", i.body?.slice(0, 8000));
     add("original_words", i.raw && i.raw !== i.title ? i.raw : null);
@@ -472,6 +474,7 @@ function fieldsFrom(args: Record<string, unknown>, areas: Area[]) {
     f.repeat = freq ? ({ freq, interval: 1 } as Repeat) : null;
   }
   if (has("flagged")) f.flagged = !!args.flagged;
+  if (has("on_today_list")) f.onToday = !!args.on_today_list;
   return f;
 }
 
@@ -498,12 +501,14 @@ async function runTool(db: Firestore, conn: Conn, name: string, args: Record<str
       const dueToday = open.filter(i => i.dueDate === today).sort(byDue);
       const reminders = open.filter(i => i.remindDate && i.remindDate <= today && !(i.dueDate && i.dueDate <= today));
       const chase = items.filter(i => i.status === "waiting" && i.followUpDate && i.followUpDate <= today);
-      const shown = new Set([...overdue, ...dueToday, ...reminders, ...chase].map(i => i.id));
+      const early = new Set([...overdue, ...dueToday, ...reminders, ...chase].map(i => i.id));
+      const todayList = open.filter(i => isOnTodayList(i) && !early.has(i.id));
+      const shown = new Set([...early, ...todayList.map(i => i.id)]);
       const next = open.filter(i => i.status === "next" && !shown.has(i.id) && !i.dueDate)
         .sort((a, b) => Number(!!b.flagged) - Number(!!a.flagged) || (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0)).slice(0, 5);
       const v = (l: Item[]) => l.slice(0, 30).map(i => view(i, areas));
       return {
-        today: `${today} ${bkkNowTime()} (Bangkok)`, overdue: v(overdue), due_today: v(dueToday), reminders: v(reminders), chase_up: v(chase), up_next: v(next),
+        today: `${today} ${bkkNowTime()} (Bangkok)`, overdue: v(overdue), due_today: v(dueToday), today_list: v(todayList), reminders: v(reminders), chase_up: v(chase), up_next: v(next),
         unsorted_in_inbox: items.filter(i => i.status === "inbox").length,
       };
     }

@@ -10,7 +10,7 @@ import {
 import { toast } from 'sonner';
 import { bkkToday, bkkNowTime, addDays, nextDue, repeatLabel, type Repeat, type RepeatFreq } from '../../server/reminderDates';
 import {
-  computeAlertAt, searchText, statusFor, STATUS_LABEL, DEFAULT_AREAS, type Item, type Kind, type Status, type AiSuggestion,
+  computeAlertAt, searchText, statusFor, isOnTodayList, STATUS_LABEL, DEFAULT_AREAS, type Item, type Kind, type Status, type AiSuggestion,
 } from '../../server/inboxShared';
 import { Connections } from './InboxConnect';
 import { Notifications } from './InboxNotify';
@@ -406,16 +406,20 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
     const dueToday = open.filter(i => i.dueDate === now).sort(byDue);
     const remindToday = open.filter(i => i.remindDate && i.remindDate <= now && !(i.dueDate && i.dueDate <= now));
     const chase = items.filter(i => i.status === 'waiting' && i.followUpDate && i.followUpDate <= now);
-    const shown = new Set([...overdue, ...dueToday, ...remindToday, ...chase].map(i => i.id));
+    const early = new Set([...overdue, ...dueToday, ...remindToday, ...chase].map(i => i.id));
+    // The Today list: things Shane put on it (or Apple's TODAY list), in the order they were added.
+    const todayList = open.filter(i => isOnTodayList(i) && !early.has(i.id)).sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
+    const shown = new Set([...early, ...todayList.map(i => i.id)]);
     // A short pick of next actions with no date: flagged first, then the ones waiting longest.
     const upNext = open.filter(i => i.status === 'next' && !shown.has(i.id) && !i.dueDate)
       .sort((a, b) => Number(!!b.flagged) - Number(!!a.flagged) || (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0))
       .slice(0, 5);
-    const nothing = !overdue.length && !dueToday.length && !remindToday.length && !chase.length && !upNext.length;
+    const nothing = !overdue.length && !dueToday.length && !todayList.length && !remindToday.length && !chase.length && !upNext.length;
     return (
       <>
         {section('Overdue', overdue, { tone: 'danger' })}
         {section('Due today', dueToday)}
+        {section('Today list', todayList)}
         {section('Reminders', remindToday)}
         {section('Chase up', chase, { tone: 'danger' })}
         {section('Up next', upNext)}
@@ -701,7 +705,7 @@ function ItemSheet({ item, openedVersion, areas, now, onClose, onSave, onComplet
   };
 
   const commit = () => {
-    const keys: (keyof Item)[] = ['title', 'body', 'kind', 'status', 'area', 'people', 'dueDate', 'dueTime', 'remindDate', 'remindTime', 'repeat', 'place', 'placeWhen', 'waitingOn', 'followUpDate', 'flagged'];
+    const keys: (keyof Item)[] = ['title', 'body', 'kind', 'status', 'area', 'people', 'dueDate', 'dueTime', 'remindDate', 'remindTime', 'repeat', 'place', 'placeWhen', 'waitingOn', 'followUpDate', 'flagged', 'onToday'];
     const changes: Partial<Item> = {};
     for (const k of keys) {
       if (JSON.stringify(f[k] ?? null) !== JSON.stringify(item[k] ?? null)) (changes as Record<string, unknown>)[k] = f[k] ?? null;
@@ -807,6 +811,7 @@ function ItemSheet({ item, openedVersion, areas, now, onClose, onSave, onComplet
         <div className="mt-3 grid grid-cols-2 gap-2">
           {item.kind === 'task' && <button onClick={() => onComplete(item)} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><Check className="w-4 h-4" /> {item.status === 'done' ? 'Not done' : 'Done'}</button>}
           <button onClick={() => set({ flagged: !f.flagged })} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><Flag className={`w-4 h-4 ${f.flagged ? 'text-orange-500 fill-orange-500' : ''}`} /> {f.flagged ? 'Flagged' : 'Flag'}</button>
+          {item.kind === 'task' && <button onClick={() => set({ onToday: !isOnTodayList(f) })} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><Sun className={`w-4 h-4 ${isOnTodayList(f) ? 'text-amber-500' : ''}`} /> {isOnTodayList(f) ? 'On Today list' : 'Add to Today'}</button>}
           <button onClick={() => onArchive(item)} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><Archive className="w-4 h-4" /> {item.status === 'archived' ? 'Restore' : 'Archive'}</button>
           {item.raw && <button onClick={() => { onResort(item); toast('Sorting again…'); onClose(); }} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><RotateCcw className="w-4 h-4" /> Sort again</button>}
         </div>
