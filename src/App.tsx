@@ -382,7 +382,7 @@ if (window.location.pathname === '/portal' && new URLSearchParams(window.locatio
 }
 const LAUNCH_TABS = {
   circle: { manifest: '/circle.webmanifest', title: 'Circle', icon: '/apple-touch-icon.png' },
-  inbox: { manifest: '/inbox.webmanifest', title: 'Inbox', icon: '/inbox-touch-icon.png' },
+  inbox: { manifest: '/inbox.webmanifest', title: 'Reminders', icon: '/inbox-touch-icon.png' },
 } as const;
 const launchTab: keyof typeof LAUNCH_TABS | undefined = window.location.pathname === '/inbox' || window.location.pathname.startsWith('/inbox/') ? 'inbox'
   : startsOnPortal && new URLSearchParams(window.location.search).get('tab') === 'circle' ? 'circle' : undefined;

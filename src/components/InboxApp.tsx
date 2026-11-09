@@ -101,11 +101,11 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
     const offItems = onSnapshot(collection(db, 'inbox_items'), snap => {
       setItems(snap.docs.map(d => ({ id: d.id, ...d.data() } as Item)));
       setReady(r => ({ ...r, items: true }));
-    }, err => { console.error('Inbox load failed:', err.code, err.message); setLoadError(err.code === 'permission-denied' ? 'This inbox is only for Shane\'s account. Sign out and back in with it.' : `Couldn't load your inbox (${err.code}).`); });
+    }, err => { console.error('Inbox load failed:', err.code, err.message); setLoadError(err.code === 'permission-denied' ? 'Reminders & Notes is only for Shane\'s account. Sign out and back in with it.' : `Couldn't load your reminders (${err.code}).`); });
     const offAreas = onSnapshot(collection(db, 'inbox_areas'), snap => {
       setAreas(snap.docs.map(d => ({ id: d.id, ...d.data() } as Area)).sort((a, b) => (a.order ?? 99) - (b.order ?? 99)));
       setReady(r => ({ ...r, areas: true }));
-    }, err => { console.error('Inbox areas failed:', err.code, err.message); setLoadError(`Couldn't load your inbox (${err.code}).`); });
+    }, err => { console.error('Inbox areas failed:', err.code, err.message); setLoadError(`Couldn't load your reminders (${err.code}).`); });
     const slowTimer = setTimeout(() => setSlow(true), 12_000);
     const tick = setInterval(() => setClock({ day: bkkToday(), time: bkkNowTime() }), 30_000);
     const on = () => setOnline(true);
@@ -533,7 +533,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
         <div className="grid grid-cols-3 gap-2.5 my-3">
           {/* Inbox: the number to sort, or (when all sorted) how many were captured this week, so it never reads 0 over a full list. */}
           {([
-            ['inbox', toSort || recent.length, 'Inbox', toSort ? 'to sort' : recent.length ? 'new this week' : 'all sorted'],
+            ['inbox', toSort || recent.length, 'Reminders', toSort ? 'to sort' : recent.length ? 'new this week' : 'all sorted'],
             ['waiting', waiting.length, 'Waiting on', ''],
             ['notes', allNotes.length, 'Notes', ''],
           ] as const).map(([v, n, label, sub]) => (
@@ -708,7 +708,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
   const area = screen.area ? areaById[screen.area] : undefined;
   const page = view === 'home' ? homeView()
     : view === 'today' ? cardScreen({ color: 'linear-gradient(160deg,#E9C75A,#B8860B 70%)', dark: true, title: 'Today', meta: todayAll.length ? `${plural(todayAll.length, 'thing')} to do${overdue.length ? `, ${overdue.length} overdue` : ''}` : 'Nothing due' }, todayBody())
-    : view === 'inbox' ? cardScreen({ color: '#2A2724', title: 'Inbox', meta: [toSort ? `${plural(toSort, 'capture')} to sort` : 'Nothing to sort', recent.length && `${recent.length} captured this week`].filter(Boolean).join(' · ') }, inboxBody())
+    : view === 'inbox' ? cardScreen({ color: '#2A2724', title: 'Reminders', meta: [toSort ? `${plural(toSort, 'capture')} to sort` : 'Nothing to sort', recent.length && `${recent.length} captured this week`].filter(Boolean).join(' · ') }, inboxBody())
     : view === 'waiting' ? cardScreen({ color: '#3B3550', title: 'Waiting on', meta: waiting.length ? `${plural(waiting.length, 'thing')}${chase.length ? `, ${chase.length} to chase` : ''}` : undefined }, waitingBody())
     : view === 'notes' ? cardScreen({ color: '#6B5B45', title: 'Notes', meta: plural(allNotes.length, 'note') }, notesBody())
     : view === 'ideas' ? cardScreen({ color: '#B45309', title: 'Ideas', meta: plural(ideas.length, 'idea') }, notesGrid(ideas, 'Ideas') || <p className="py-12 text-center text-black/35">No ideas saved yet.</p>)

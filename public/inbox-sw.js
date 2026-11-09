@@ -6,7 +6,7 @@ self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim(
 self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch { data = { body: event.data && event.data.text() }; }
-  event.waitUntil(self.registration.showNotification(data.title || 'Inbox', {
+  event.waitUntil(self.registration.showNotification(data.title || 'Reminders', {
     body: data.body || '',
     tag: data.tag,
     data: { url: data.url || '/inbox' },

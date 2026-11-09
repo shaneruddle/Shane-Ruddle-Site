@@ -38,7 +38,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
     ...(canModerateComments ? [['activity', 'Activity', Activity] as [typeof activeTab, string, typeof Ticket]] : []),
     // Shane only (matches isShane() in firestore.rules), never other admins.
     ...(canManagePhotos ? [['circle', 'Circle', HeartHandshake] as [typeof activeTab, string, typeof Ticket]] : []),
-    ...(canManagePhotos ? [['inbox', 'Inbox', ListChecks] as [typeof activeTab, string, typeof Ticket]] : []),
+    ...(canManagePhotos ? [['inbox', 'Reminders', ListChecks] as [typeof activeTab, string, typeof Ticket]] : []),
   ];
   // Phones get the section list as a slide-out drawer instead of a sideways-scrolling tab row.
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -303,7 +303,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
               <a href="/inbox" className="group h-44 sm:h-48 rounded-[20px] bg-ink text-white p-5 flex flex-col justify-between hover:bg-black transition-colors">
                 <span className="w-14 h-14 rounded-[16px] bg-white/10 text-gold inline-flex items-center justify-center"><ListChecks className="w-7 h-7" /></span>
                 <span>
-                  <span className="block text-2xl font-serif">Inbox</span>
+                  <span className="block text-2xl font-serif">Reminders</span>
                   <span className="block text-[13px] text-white/55 mt-0.5">Notes and reminders</span>
                 </span>
               </a>
@@ -468,9 +468,9 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
           <CircleAdmin />
         ) : activeTab === 'inbox' && canManagePhotos ? (
           <div className="max-w-xl mx-auto p-8 rounded-2xl bg-white border border-black/10 text-center">
-            <h2 className="text-2xl font-serif">Your <span className="italic">Inbox</span></h2>
+            <h2 className="text-2xl font-serif">Your <span className="italic">Reminders &amp; Notes</span></h2>
             <p className="text-sm text-black/50 mt-2">Notes, ideas and reminders in one place. It opens as its own app so you can add it to your home screen.</p>
-            <a href="/inbox" className="inline-block mt-5 px-6 py-3 rounded-full bg-ink text-white text-sm font-semibold">Open Inbox</a>
+            <a href="/inbox" className="inline-block mt-5 px-6 py-3 rounded-full bg-ink text-white text-sm font-semibold">Open Reminders</a>
           </div>
         ) : (
           <motion.div 

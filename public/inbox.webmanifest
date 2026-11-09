@@ -1,6 +1,6 @@
 {
-  "name": "Inbox",
-  "short_name": "Inbox",
+  "name": "Reminders & Notes",
+  "short_name": "Reminders",
   "start_url": "/inbox",
   "scope": "/",
   "id": "/inbox",

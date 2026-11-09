@@ -93,7 +93,7 @@ export function registerInboxPushRoutes(app: Express, { getDb }: Deps) {
 
   app.post("/api/inbox/push/test", async (req, res) => {
     if (!(await requireOwner(req, res, getDb))) return;
-    const result = await sendAll(getDb(), { title: "Inbox", body: "Notifications are working.", url: "/inbox", tag: "test" });
+    const result = await sendAll(getDb(), { title: "Reminders", body: "Notifications are working.", url: "/inbox", tag: "test" });
     res.json(result);
   });
 

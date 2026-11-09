@@ -59,7 +59,7 @@ export function registerInboxMcpRoutes(app: Express, { getDb }: Deps) {
 
   // ---------- discovery ----------
   const protectedResource = (_req: Request, res: Response) => {
-    noStore(res).json({ resource: RESOURCE(), authorization_servers: [BASE()], scopes_supported: SCOPES, bearer_methods_supported: ["header"], resource_name: "Shane's Inbox" });
+    noStore(res).json({ resource: RESOURCE(), authorization_servers: [BASE()], scopes_supported: SCOPES, bearer_methods_supported: ["header"], resource_name: "Shane's Reminders & Notes" });
   };
   app.get("/.well-known/oauth-protected-resource", protectedResource);
   app.get("/.well-known/oauth-protected-resource/mcp", protectedResource);
@@ -270,7 +270,7 @@ export function registerInboxMcpRoutes(app: Express, { getDb }: Deps) {
         return reply({
           protocolVersion: PROTOCOLS.includes(asked) ? asked : PROTOCOLS[0],
           capabilities: { tools: {} },
-          serverInfo: { name: "shanes-inbox", title: "Shane's Inbox", version: "1.0.0" },
+          serverInfo: { name: "shanes-inbox", title: "Shane's Reminders & Notes", version: "1.0.0" },
           instructions: INSTRUCTIONS,
         });
       }

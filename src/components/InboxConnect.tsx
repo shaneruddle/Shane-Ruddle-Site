@@ -43,10 +43,10 @@ export function ConnectScreen() {
 
   return (
     <div className="min-h-[100dvh] bg-cream px-6 pt-[max(env(safe-area-inset-top),2.5rem)] pb-10 max-w-md mx-auto">
-      <p className="text-[12px] uppercase tracking-[0.2em] text-black/40 font-semibold">Shane's Inbox</p>
+      <p className="text-[12px] uppercase tracking-[0.2em] text-black/40 font-semibold">Reminders & Notes</p>
       {error ? <p className="mt-8 text-[16px] text-black/70">{error}</p> : !client ? <Loader2 className="mt-10 w-7 h-7 animate-spin text-gold-deep" /> : (
         <>
-          <h1 className="mt-3 text-[28px] font-bold leading-tight tracking-tight">Let {client.name} use your Inbox?</h1>
+          <h1 className="mt-3 text-[28px] font-bold leading-tight tracking-tight">Let {client.name} use your Reminders & Notes?</h1>
           <p className="mt-2 text-[15px] text-black/55">It will sign in as you through {client.redirectHost}. You can switch it off any time under Areas, Connected assistants.</p>
           <div className="mt-6 space-y-3">
             {([
@@ -59,7 +59,7 @@ export function ConnectScreen() {
               </button>
             ))}
           </div>
-          <p className="mt-5 flex gap-2 text-[13px] text-black/45"><ShieldCheck className="w-4 h-4 shrink-0" /> It can only use your Inbox. It can't send messages, spend money or contact anyone.</p>
+          <p className="mt-5 flex gap-2 text-[13px] text-black/45"><ShieldCheck className="w-4 h-4 shrink-0" /> It can only use your Reminders & Notes. It can't send messages, spend money or contact anyone.</p>
           <button disabled={busy} onClick={() => answer(true)} className="mt-6 w-full py-3.5 rounded-2xl bg-ink text-white text-[16px] font-semibold disabled:opacity-50">{busy ? 'Connecting…' : 'Allow'}</button>
           <button disabled={busy} onClick={() => answer(false)} className="mt-2 w-full py-3 rounded-2xl text-[15px] text-black/55">Cancel</button>
         </>
@@ -84,7 +84,7 @@ export function Connections() {
   }, err => console.error('Connections load failed:', err.code)), []);
 
   const revoke = async (c: Connection) => {
-    if (!window.confirm(`Switch off ${c.name}? It will need to connect again to use your Inbox.`)) return;
+    if (!window.confirm(`Switch off ${c.name}? It will need to connect again to use your Reminders & Notes.`)) return;
     await updateDoc(doc(db, 'inbox_connections', c.id), { revoked: true, revokedAt: serverTimestamp() })
       .then(() => toast.success(`${c.name} switched off`)).catch(() => toast.error('Could not switch it off'));
   };

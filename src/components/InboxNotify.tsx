@@ -115,8 +115,8 @@ export function Notifications() {
           <span className="flex-1 text-[15px] text-black/60">
             {state === 'checking' ? 'Checking…'
               : state === 'on' ? 'On for this phone. Reminders arrive at their time.'
-              : state === 'needs-home-screen' ? 'On iPhone, open the Inbox from its home-screen icon to turn these on (Share, Add to Home Screen).'
-              : state === 'blocked' ? 'Blocked. Turn them on in iPhone Settings, Notifications, Inbox.'
+              : state === 'needs-home-screen' ? 'On iPhone, open Reminders from its home-screen icon to turn these on (Share, Add to Home Screen).'
+              : state === 'blocked' ? 'Blocked. Turn them on in iPhone Settings, Notifications, Reminders.'
               : state === 'unsupported' ? "This browser can't receive notifications."
               : 'Off for this phone.'}
           </span>
