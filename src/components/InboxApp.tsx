@@ -15,6 +15,7 @@ import {
 } from '../../server/inboxShared';
 import { Connections } from './InboxConnect';
 import { Notifications } from './InboxNotify';
+import { NoteEditor, plainPreview, type NoteEditorHandle } from './NoteEditor';
 
 // Shane's private Inbox at /inbox: one place for quick captures, notes, ideas and tasks.
 // Data: inbox_items, inbox_history (audit trail), inbox_areas, inbox_settings, all Shane-only in firestore.rules.
@@ -385,7 +386,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
         )}
         <button onClick={() => (i.kind === 'task' ? setOpen(i) : setNote({ id: i.id, version: i.version || 0 }))} className="min-w-0 flex-1 text-left">
           <div className={`text-[16px] leading-snug ${done ? 'text-black/35 line-through' : 'text-ink'}`}>{i.title}</div>
-          {i.body && i.kind !== 'task' && <div className="text-[13px] text-black/45 mt-0.5 line-clamp-2">{i.body}</div>}
+          {i.body && i.kind !== 'task' && <div className="text-[13px] text-black/45 mt-0.5 line-clamp-2">{plainPreview(i.body)}</div>}
           {meta.length > 0 && <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[12px] text-black/50">{meta}</div>}
           {i.ai?.state === 'pending' && <div className="mt-1 inline-flex items-center gap-1 text-[12px] text-gold-deep"><Loader2 className="w-3 h-3 animate-spin" /> Sorting…</div>}
           {i.ai?.state === 'failed' && i.status === 'inbox' && <div className="mt-1 text-[12px] text-black/45">Saved as written. Couldn't sort it automatically.</div>}
@@ -472,7 +473,7 @@ export default function InboxApp({ onExit }: { onExit?: () => void }) {
                 className={`relative h-[124px] rounded-[18px] p-3 text-left flex flex-col justify-start overflow-hidden shadow-[0_1px_0_rgba(0,0,0,0.05),0_4px_14px_rgba(0,0,0,0.05)] ${i.kind === 'idea' ? 'bg-[#FFF7E0]' : 'bg-white'}`}>
                 {i.pinned && <Pin className="absolute top-2.5 right-2.5 w-3.5 h-3.5 text-gold-deep fill-gold/40" />}
                 <div className="pr-4 text-[14px] font-semibold leading-snug line-clamp-2 text-ink">{i.kind === 'idea' && <Lightbulb className="inline w-3.5 h-3.5 -mt-0.5 mr-1 text-amber-600" />}{i.title || 'Untitled'}</div>
-                <div className={`mt-1 text-[12px] leading-snug text-black/50 whitespace-pre-line break-words ${area ? 'line-clamp-3' : 'line-clamp-4'}`}>{(i.body || '').replace(/^- \[ \] /gm, '☐ ').replace(/^- \[x\] /gm, '☑ ').slice(0, 220)}</div>
+                <div className={`mt-1 text-[12px] leading-snug text-black/50 whitespace-pre-line break-words ${area ? 'line-clamp-3' : 'line-clamp-4'}`}>{plainPreview(i.body || '').slice(0, 220)}</div>
                 {area && <span className="absolute left-3 bottom-2.5 inline-flex items-center gap-1 text-[10.5px] text-black/45"><span className="w-1.5 h-1.5 rounded-full" style={{ background: area.color }} />{area.name}</span>}
               </button>
             );
@@ -882,9 +883,6 @@ function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw
 // Lines starting ☐ or ☑ (or markdown "- [ ] " / "- [x] ") are tick boxes. They're tappable when reading; tap the text to edit.
 // Saves a moment after you stop typing, and again on close, with the same version check as the item sheet.
 const CHECK = /^(?:- \[[ x]\]|☐|☑) ?/;
-const isTicked = (l: string) => l.startsWith('- [x]') || l.startsWith('☑');
-const linkify = (t: string) => t.split(/(https?:\/\/\S+)/g).map((p, k) => (/^https?:\/\//.test(p)
-  ? <a key={k} href={p} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-gold-deep underline break-all">{p}</a> : <span key={k}>{p}</span>));
 
 function NotePage({ item, openedVersion, fresh, areas, onClose, onSave, onDetails, onArchive, onDiscard }: {
   item: Item; openedVersion: number; fresh: boolean; areas: Area[]; onClose: () => void;
@@ -894,11 +892,11 @@ function NotePage({ item, openedVersion, fresh, areas, onClose, onSave, onDetail
   const [body, setBody] = useState(item.body || '');
   const [pinned, setPinned] = useState(!!item.pinned);
   const [area, setArea] = useState(item.area || '');
-  const [editing, setEditing] = useState(fresh);
+  const [typing, setTyping] = useState(false);
+  const editor = useRef<NoteEditorHandle>(null);
   const saved = useRef({ title: item.title || '', body: item.body || '', pinned: !!item.pinned, area: item.area || '' });
   const version = useRef(openedVersion);
   const busy = useRef<Promise<boolean> | null>(null);
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const areaObj = areas.find(a => a.id === area);
   const color = areaObj?.color || '#8A6D0B';
@@ -906,7 +904,7 @@ function NotePage({ item, openedVersion, fresh, areas, onClose, onSave, onDetail
   const flush = useCallback(async () => {
     if (busy.current) await busy.current;
     const s = saved.current;
-    const finalTitle = title.trim() || body.trim().split('\n')[0].replace(CHECK, '').slice(0, 80);
+    const finalTitle = title.trim() || plainPreview(body.trim().split('\n')[0]).replace(CHECK, '').replace(/^[•\-*]\s+|^\d+[.)]\s+/, '').slice(0, 80);
     const changes: Partial<Item> = {};
     if (finalTitle !== s.title && (finalTitle || s.title)) changes.title = finalTitle || 'Untitled';
     if (body !== s.body) changes.body = body;
@@ -932,7 +930,7 @@ function NotePage({ item, openedVersion, fresh, areas, onClose, onSave, onDetail
     return () => { clearTimeout(t); document.removeEventListener('visibilitychange', hide); };
   }, [flush, title, body]);
 
-  useEffect(() => { for (const el of [bodyRef.current, titleRef.current]) if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px`; } }, [body, title, editing]);
+  useEffect(() => { const el = titleRef.current; if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px`; } }, [title]);
   useEffect(() => { if (fresh) titleRef.current?.focus(); }, [fresh]);
 
   const close = async () => {
@@ -940,31 +938,7 @@ function NotePage({ item, openedVersion, fresh, areas, onClose, onSave, onDetail
     if (await flush()) onClose();
   };
 
-  const toggle = (n: number) => setBody(b => b.split('\n').map((l, k) => (k === n ? l.replace(CHECK, isTicked(l) ? '☐ ' : '☑ ') : l)).join('\n'));
-  const addChecklist = () => {
-    const el = bodyRef.current;
-    if (!editing || !el) { setBody(b => `${b.replace(/\s+$/, '')}${b.trim() ? '\n' : ''}☐ `); setEditing(true); setTimeout(() => { bodyRef.current?.focus(); const l = bodyRef.current?.value.length || 0; bodyRef.current?.setSelectionRange(l, l); }, 30); return; }
-    const pos = el.selectionStart;
-    const start = body.lastIndexOf('\n', pos - 1) + 1;
-    const line = body.slice(start);
-    const next = CHECK.test(line) ? body.slice(0, start) + line.replace(CHECK, '') : `${body.slice(0, start)}☐ ${line}`;
-    setBody(next);
-    setTimeout(() => { el.focus(); const p = pos + (next.length - body.length); el.setSelectionRange(p, p); }, 0);
-  };
-  // Enter on a tick-box line starts another tick box; Enter on an empty one ends the list.
-  const onBodyKey = (e: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key !== 'Enter') return;
-    const el = e.currentTarget;
-    const pos = el.selectionStart;
-    const start = body.lastIndexOf('\n', pos - 1) + 1;
-    const line = body.slice(start, pos);
-    if (!CHECK.test(line)) return;
-    e.preventDefault();
-    if (!line.replace(CHECK, '').trim()) { const next = body.slice(0, start) + body.slice(pos); setBody(next); setTimeout(() => el.setSelectionRange(start, start), 0); return; }
-    const next = `${body.slice(0, pos)}\n☐ ${body.slice(pos)}`;
-    setBody(next);
-    setTimeout(() => el.setSelectionRange(pos + 3, pos + 3), 0);
-  };
+  const addChecklist = () => editor.current?.addChecklist();
 
   const edited = item.updatedAt?.toMillis?.();
   const editedLabel = edited ? new Date(edited).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: new Date(edited).getFullYear() === new Date().getFullYear() ? undefined : 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Bangkok' }) : '';
@@ -987,31 +961,14 @@ function NotePage({ item, openedVersion, fresh, areas, onClose, onSave, onDetail
           {pinned && <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[12.5px] font-semibold bg-gold/15 text-gold-deep"><Pin className="w-3 h-3" /> Pinned</span>}
           {item.kind === 'idea' && <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[12.5px] font-semibold bg-amber-100 text-amber-700"><Lightbulb className="w-3 h-3" /> Idea</span>}
         </div>
-        <textarea ref={titleRef} value={title} rows={1} onChange={e => setTitle(e.target.value.replace(/\n/g, ' '))} placeholder="Title"
+        <textarea ref={titleRef} value={title} rows={1} onChange={e => setTitle(e.target.value.replace(/\n/g, ' '))} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); editor.current?.focusEnd(); } }} placeholder="Title"
           className="mt-3 w-full resize-none overflow-hidden bg-transparent border-0 p-0 font-serif text-[34px] leading-[1.1] font-bold outline-none focus:outline-none focus:ring-0 placeholder:text-black/20" />
         {editedLabel && <div className="mt-1 mb-4 text-[12.5px] text-black/40">Edited {editedLabel}</div>}
 
-        {editing ? (
-          <textarea ref={bodyRef} value={body} onChange={e => setBody(e.target.value)} onKeyDown={onBodyKey} placeholder="Start writing…" rows={6}
-            className="w-full min-h-[40dvh] resize-none overflow-hidden bg-transparent border-0 p-0 text-[17px] leading-[1.6] outline-none focus:outline-none focus:ring-0 placeholder:text-black/25" />
-        ) : (
-          <div onClick={() => { setEditing(true); setTimeout(() => bodyRef.current?.focus(), 30); }} className="min-h-[40dvh] text-[17px] leading-[1.6] cursor-text">
-            {body.trim() ? body.split('\n').map((l, k) => CHECK.test(l) ? (
-              <div key={k} className="flex items-start gap-3 py-1">
-                <button onClick={e => { e.stopPropagation(); toggle(k); }} aria-label="Tick"
-                  className="mt-[3px] w-[21px] h-[21px] shrink-0 rounded-[6px] border-2 flex items-center justify-center"
-                  style={isTicked(l) ? { background: color, borderColor: color } : { borderColor: 'rgba(0,0,0,0.3)' }}>
-                  {isTicked(l) && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
-                </button>
-                <span className={isTicked(l) ? 'line-through text-black/40' : ''}>{linkify(l.replace(CHECK, ''))}</span>
-              </div>
-            ) : l.trim() ? <p key={k} className="mb-2 whitespace-pre-wrap break-words">{linkify(l)}</p> : <div key={k} className="h-3" />)
-              : <p className="text-black/25">Tap to write…</p>}
-          </div>
-        )}
+        <NoteEditor ref={editor} value={body} onChange={setBody} color={color} placeholder="Tap to write…" onFocusChange={setTyping} />
       </div>
 
-      <div className="fixed bottom-0 inset-x-0 bg-[#F3EFE6] border-t border-black/[0.06]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className={`fixed bottom-0 inset-x-0 bg-[#F3EFE6] border-t border-black/[0.06] ${typing ? 'hidden' : ''}`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="max-w-xl mx-auto grid grid-cols-4 text-[12px] font-semibold text-gold-deep">
           <button onClick={addChecklist} className="py-3 flex flex-col items-center gap-1"><ListChecks className="w-5 h-5" /> Checklist</button>
           <button onClick={() => setPinned(p => !p)} className="py-3 flex flex-col items-center gap-1"><Pin className={`w-5 h-5 ${pinned ? 'fill-gold/50' : ''}`} /> {pinned ? 'Unpin' : 'Pin'}</button>
