@@ -1,14 +1,14 @@
 import { Inbox, CalendarCheck, StickyNote, HeartHandshake } from 'lucide-react';
 
-// Shane's sticky bottom menu, shared by the Inbox app and the Circle tab, so each is one tap from the others.
+// Shane's sticky bottom menu, shared by the Reminders & Notes app (/inbox) and the Circle tab, so each is one tap from the others.
 export type OwnerTab = 'inbox' | 'today' | 'notes' | 'circle';
 
 // Height of the bar above the iPhone home indicator. The Inbox capture dock sits on top of it.
 export const OWNER_TAB_BAR_HEIGHT = 58;
 
 const TABS: [OwnerTab, string, typeof Inbox][] = [
-  ['inbox', 'Inbox', Inbox],
-  ['today', 'Reminders', CalendarCheck],
+  ['inbox', 'Reminders', Inbox],
+  ['today', 'Today', CalendarCheck],
   ['notes', 'Notes', StickyNote],
   ['circle', 'Circle', HeartHandshake],
 ];
