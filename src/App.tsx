@@ -1166,9 +1166,9 @@ export default function App() {
                   ) : view === 'portal' && displayProfile ? (
                     <motion.div
                       key="portal"
-                      initial={{ opacity: 0, scale: 0.98 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.98 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                       transition={{ duration: 0.4 }}
                     >
                       <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} initialTab={launchTab} />

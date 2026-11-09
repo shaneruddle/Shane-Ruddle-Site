@@ -13,9 +13,10 @@ const TABS: [OwnerTab, string, typeof Inbox][] = [
   ['circle', 'Circle', HeartHandshake],
 ];
 
-export default function OwnerTabBar({ active, onSelect, className = '' }: { active?: OwnerTab; onSelect: (tab: OwnerTab) => void; className?: string }) {
+// `docked` = drawn inside a parent that is already pinned to the bottom (the Inbox stacks its capture bar on top).
+export default function OwnerTabBar({ active, onSelect, className = '', docked = false }: { active?: OwnerTab; onSelect: (tab: OwnerTab) => void; className?: string; docked?: boolean }) {
   return (
-    <nav className={`fixed bottom-0 inset-x-0 z-40 bg-[#0E0D0C]/95 backdrop-blur-xl border-t border-white/10 font-sans ${className}`}
+    <nav className={`${docked ? '' : 'fixed bottom-0 inset-x-0 z-40 '}bg-[#0E0D0C]/95 backdrop-blur-xl border-t border-white/10 font-sans ${className}`}
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="max-w-xl mx-auto grid grid-cols-4" style={{ height: OWNER_TAB_BAR_HEIGHT }}>
         {TABS.map(([id, label, Icon]) => {

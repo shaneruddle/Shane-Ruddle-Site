@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement, type ReactNode, type KeyboardEvent as ReactKeyboardEvent, type FormEvent } from 'react';
 import { Reorder, useDragControls } from 'motion/react';
 import { auth, db } from '../firebase';
@@ -16,7 +17,7 @@ import {
 import { Connections } from './InboxConnect';
 import { Notifications } from './InboxNotify';
 import { NoteEditor, plainPreview, type NoteEditorHandle } from './NoteEditor';
-import OwnerTabBar, { OWNER_TAB_BAR_HEIGHT } from './OwnerTabBar';
+import OwnerTabBar from './OwnerTabBar';
 
 // Shane's private Inbox at /inbox: one place for quick captures, notes, ideas and tasks.
 // Data: inbox_items, inbox_history (audit trail), inbox_areas, inbox_settings, all Shane-only in firestore.rules.
@@ -733,11 +734,17 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
     <div className="min-h-[100dvh] bg-cream text-ink">
       {page}
 
-      <OwnerTabBar active={view === 'today' ? 'today' : view === 'notes' ? 'notes' : 'inbox'}
-        onSelect={t => t === 'circle' ? onCircle?.() : go({ view: t === 'inbox' ? 'home' : t })} />
-
-      {dockFor && <CaptureDock key={view + (screen.area || '')} dark={view === 'home'} placeholder={dockFor.placeholder} accent={dockFor.accent}
-        onCapture={raw => capture(raw, view === 'area' ? screen.area : null, view === 'today')} />}
+      {/* Capture bar + bottom menu, pinned together. Mounted on <body> so no animated (transformed) parent
+          can turn position:fixed into "fixed to that parent", which left the bar floating mid-page on iPhone. */}
+      {createPortal(
+        <div className="fixed bottom-0 inset-x-0 z-40">
+          {dockFor && <CaptureDock key={view + (screen.area || '')} dark={view === 'home'} placeholder={dockFor.placeholder} accent={dockFor.accent}
+            onCapture={raw => capture(raw, view === 'area' ? screen.area : null, view === 'today')} />}
+          <OwnerTabBar docked active={view === 'today' ? 'today' : view === 'notes' ? 'notes' : 'inbox'}
+            onSelect={t => t === 'circle' ? onCircle?.() : go({ view: t === 'inbox' ? 'home' : t })} />
+        </div>,
+        document.body,
+      )}
 
       {note && noteItem && (
         <NotePage key={note.id} item={noteItem} openedVersion={note.version} fresh={!!note.fresh} areas={areas}
@@ -849,8 +856,8 @@ function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw
   };
   const light = accent === '#D4AF37' || accent === '#B8860B';
   return (
-    <div className="fixed inset-x-0 z-40 px-4 pt-6"
-      style={{ bottom: `calc(${OWNER_TAB_BAR_HEIGHT}px + env(safe-area-inset-bottom))`, paddingBottom: 10, background: dark ? 'linear-gradient(transparent, rgba(14,13,12,0.92) 38%)' : 'linear-gradient(transparent, rgba(249,248,246,0.96) 38%)' }}>
+    <div className="px-4 pt-6"
+      style={{ paddingBottom: 10, background: dark ? 'linear-gradient(transparent, rgba(14,13,12,0.92) 38%)' : 'linear-gradient(transparent, rgba(249,248,246,0.96) 38%)' }}>
       {autoSaving && (
         <div className="max-w-xl mx-auto mb-2 flex justify-center">
           <button onClick={() => { clearTimeout(autoSave.current); setAutoSaving(false); ref.current?.focus(); }}
