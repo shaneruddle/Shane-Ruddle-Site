@@ -283,7 +283,9 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
   };
 
   // ---- edits ----
-  const save = async (item: Item, changes: Partial<Item>, action = 'edited', expectVersion?: number) => {
+  // expectVersion: refuse if anything changed since. base: the values the editor started from; then only refuse
+  // if a field being saved was changed elsewhere to something else (a tag, tick, reorder or our own retried save is fine).
+  const save = async (item: Item, changes: Partial<Item>, action = 'edited', expectVersion?: number, base?: Partial<Item>) => {
     const ref = doc(db, 'inbox_items', item.id);
     const merged = { ...item, ...changes };
     const update = {
@@ -292,10 +294,15 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
     };
     const entry = { itemId: item.id, by: 'shane', action, changes: plain(changes), at: serverTimestamp() };
     try {
-      if (expectVersion !== undefined) {
+      if (expectVersion !== undefined || base) {
         await runTransaction(db, async tx => {
           const snap = await tx.get(ref);
-          if ((snap.data()?.version || 0) !== expectVersion) throw new Error('conflict');
+          const cur = (snap.data() || {}) as Record<string, unknown>;
+          const same = (a: unknown, b: unknown) => (a ?? '') === (b ?? '') || (a === false && b == null) || (b === false && a == null);
+          const clash = base
+            ? Object.keys(changes).some(k => !same(cur[k], (base as Record<string, unknown>)[k]) && !same(cur[k], (changes as Record<string, unknown>)[k]))
+            : ((cur.version as number) || 0) !== expectVersion;
+          if (clash) throw new Error('conflict');
           tx.update(ref, update);
           tx.set(doc(collection(db, 'inbox_history')), entry);
         });
@@ -877,9 +884,9 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
       )}
 
       {note && noteItem && (
-        <NotePage key={note.id} item={noteItem} openedVersion={note.version} fresh={!!note.fresh} areas={areas}
+        <NotePage key={note.id} item={noteItem} fresh={!!note.fresh} areas={areas}
           onClose={() => setNote(null)}
-          onSave={(changes, version) => save(noteItem, changes, 'edited', version)}
+          onSave={(changes, base) => save(noteItem, changes, 'edited', undefined, base)}
           onDetails={() => { setOpen(noteItem); setNote(null); }}
           onArchive={() => { save(noteItem, { status: noteItem.status === 'archived' ? statusFor(noteItem.kind, noteItem.waitingOn) : 'archived' }, noteItem.status === 'archived' ? 'restored' : 'archived'); setNote(null); }}
           onDiscard={() => { deleteDoc(doc(db, 'inbox_items', noteItem.id)).catch(() => {}); setNote(null); }}
@@ -1022,12 +1029,12 @@ function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw
 
 // ---- a note, opened as a page to write on ----
 // Lines starting ☐ or ☑ (or markdown "- [ ] " / "- [x] ") are tick boxes. They're tappable when reading; tap the text to edit.
-// Saves a moment after you stop typing, and again on close, with the same version check as the item sheet.
+// Saves a moment after you stop typing, and again on close. Only refuses if the same text was changed elsewhere.
 const CHECK = /^(?:- \[[ x]\]|☐|☑) ?/;
 
-function NotePage({ item, openedVersion, fresh, areas, onClose, onSave, onDetails, onArchive, onDiscard }: {
-  item: Item; openedVersion: number; fresh: boolean; areas: Area[]; onClose: () => void;
-  onSave: (changes: Partial<Item>, version: number) => Promise<boolean>; onDetails: () => void; onArchive: () => void; onDiscard: () => void;
+function NotePage({ item, fresh, areas, onClose, onSave, onDetails, onArchive, onDiscard }: {
+  item: Item; fresh: boolean; areas: Area[]; onClose: () => void;
+  onSave: (changes: Partial<Item>, base: Partial<Item>) => Promise<boolean>; onDetails: () => void; onArchive: () => void; onDiscard: () => void;
 }) {
   const [title, setTitle] = useState(item.title || '');
   const [body, setBody] = useState(item.body || '');
@@ -1036,7 +1043,6 @@ function NotePage({ item, openedVersion, fresh, areas, onClose, onSave, onDetail
   const [typing, setTyping] = useState(false);
   const editor = useRef<NoteEditorHandle>(null);
   const saved = useRef({ title: item.title || '', body: item.body || '', pinned: !!item.pinned, area: item.area || '' });
-  const version = useRef(openedVersion);
   const busy = useRef<Promise<boolean> | null>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const areaObj = areas.find(a => a.id === area);
@@ -1052,11 +1058,10 @@ function NotePage({ item, openedVersion, fresh, areas, onClose, onSave, onDetail
     if (pinned !== s.pinned) changes.pinned = pinned;
     if (area !== s.area) changes.area = area || null;
     if (!Object.keys(changes).length) return true;
-    busy.current = onSave(changes, version.current);
+    busy.current = onSave(changes, { ...s, area: s.area || null });
     const ok = await busy.current;
     busy.current = null;
     if (ok) {
-      version.current += 1;
       saved.current = { title: changes.title ?? s.title, body, pinned, area };
     }
     return ok;
