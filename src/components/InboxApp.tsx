@@ -96,6 +96,19 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
   // A tapped notification opens /inbox?tab=today or /inbox?item=<id>.
   const [screen, setScreen] = useState<Screen>(() => { const t = new URLSearchParams(window.location.search).get('tab'); return { view: t === 'notes' ? t : 'home' }; });
   const [open, setOpen] = useState<Item | null>(null);
+  // Long-press a row to tag it with a filter (Lakeside, Personal…).
+  const [tagging, setTagging] = useState<Item | null>(null);
+  const press = useRef<{ t?: ReturnType<typeof setTimeout>; x: number; y: number; fired: boolean }>({ x: 0, y: 0, fired: false });
+  const longPress = (i: Item) => ({
+    onPointerDown: (e: React.PointerEvent) => {
+      clearTimeout(press.current.t);
+      press.current = { x: e.clientX, y: e.clientY, fired: false, t: setTimeout(() => { press.current.fired = true; navigator.vibrate?.(10); setTagging(i); }, 450) };
+    },
+    onPointerMove: (e: React.PointerEvent) => { if (Math.abs(e.clientX - press.current.x) + Math.abs(e.clientY - press.current.y) > 10) clearTimeout(press.current.t); },
+    onPointerUp: () => clearTimeout(press.current.t),
+    onPointerCancel: () => clearTimeout(press.current.t),
+    onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+  });
   const [note, setNote] = useState<{ id: string; version: number; fresh?: boolean } | null>(null);
   const [notesQuery, setNotesQuery] = useState('');
   const [notesFilter, setNotesFilter] = useState('all');
@@ -409,7 +422,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
             <StickyNote className="w-3.5 h-3.5 text-black/45" />
           </span>
         )}
-        <button onClick={() => (i.kind === 'task' ? setOpen(i) : setNote({ id: i.id, version: i.version || 0 }))} className="min-w-0 flex-1 text-left">
+        <button {...longPress(i)} onClick={() => { if (press.current.fired) { press.current.fired = false; return; } if (i.kind === 'task') setOpen(i); else setNote({ id: i.id, version: i.version || 0 }); }} className="min-w-0 flex-1 text-left select-none [-webkit-touch-callout:none]">
           <div className={`text-[16px] leading-snug ${done ? 'text-black/35 line-through' : 'text-ink'}`}>{i.title}</div>
           {i.body && i.kind !== 'task' && <div className="text-[13px] text-black/45 mt-0.5 line-clamp-2">{plainPreview(i.body)}</div>}
           {meta.length > 0 && <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[12px] text-black/50">{meta}</div>}
@@ -806,6 +819,27 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
           {dockFor && <CaptureDock key={view + (screen.area || '')} dark={false} placeholder={dockFor.placeholder} accent={dockFor.accent}
             onCapture={raw => capture(raw, view === 'area' ? screen.area : view === 'home' ? filterArea : null, view !== 'notes')} />}
           <div style={{ height: 'calc(env(safe-area-inset-bottom) + 6px)' }} />
+        </div>,
+        document.body,
+      )}
+
+      {tagging && createPortal(
+        <div className="fixed inset-0 z-50 flex items-end bg-black/30" onClick={() => setTagging(null)}>
+          <div className="w-full max-w-xl mx-auto rounded-t-[24px] bg-cream px-4 pt-3" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 18px)' }} onClick={e => e.stopPropagation()}>
+            <div className="mx-auto w-10 h-1.5 rounded-full bg-black/15" />
+            <div className="mt-3 text-[13px] text-black/45">Tag</div>
+            <div className="text-[16px] font-semibold text-ink line-clamp-2">{tagging.title || 'Untitled'}</div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {[...areas.map(a => [a.id, shortName(a), a.color] as const), ['', 'None', '#57534E'] as const].map(([id, l, c]) => {
+                const on = (tagging.area || '') === id;
+                return (
+                  <button key={id || 'none'} onClick={() => { const it = tagging; setTagging(null); if ((it.area || '') !== id) save(it, { area: id || null }, 'tagged').then(() => toast.success(id ? `Tagged ${l}` : 'Tag removed')); }}
+                    className={`px-4 py-2.5 rounded-full text-[15px] font-bold border-2 ${on ? 'text-white' : 'bg-white'}`}
+                    style={on ? { background: c, borderColor: c } : { color: c, borderColor: `${c}33` }}>{l}</button>
+                );
+              })}
+            </div>
+          </div>
         </div>,
         document.body,
       )}
