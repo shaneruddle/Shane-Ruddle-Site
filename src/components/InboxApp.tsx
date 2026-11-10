@@ -595,7 +595,8 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
   const filterArea = listFilter !== 'all' && listFilter !== 'none' ? listFilter : null;
 
   const homeView = () => (
-    <div className="min-h-[100dvh] bg-cream text-ink" style={{ paddingTop: 'env(safe-area-inset-top)' }}
+    // No text selection anywhere on the list: on iPhone a long press (to tag) would otherwise start selecting text.
+    <div className="min-h-[100dvh] bg-cream text-ink select-none [-webkit-touch-callout:none]" style={{ paddingTop: 'env(safe-area-inset-top)' }}
       onTouchStart={e => { pull.current = window.scrollY <= 0 ? e.touches[0].clientY : null; }}
       onTouchMove={e => { if (pull.current !== null && e.touches[0].clientY - pull.current > 90) { pull.current = null; go({ view: 'search' }); } }}>
       <div className="max-w-xl mx-auto px-4 pb-60">
@@ -824,7 +825,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
       )}
 
       {tagging && createPortal(
-        <div className="fixed inset-0 z-50 flex items-end bg-black/30" onClick={() => setTagging(null)}>
+        <div className="fixed inset-0 z-50 flex items-end bg-black/30 select-none [-webkit-touch-callout:none]" onClick={() => setTagging(null)} onContextMenu={e => e.preventDefault()}>
           <div className="w-full max-w-xl mx-auto rounded-t-[24px] bg-cream px-4 pt-3" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 18px)' }} onClick={e => e.stopPropagation()}>
             <div className="mx-auto w-10 h-1.5 rounded-full bg-black/15" />
             <div className="mt-3 text-[13px] text-black/45">Tag</div>
