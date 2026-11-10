@@ -615,21 +615,21 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
           <button onClick={() => newNote(filterArea)} className="ml-auto inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-black/10 text-[13px] text-black/60"><Plus className="w-3.5 h-3.5" /> Note</button></p>
 
         {/* One-touch filters: what kind, then which company (logos) */}
-        <div className="sticky top-0 z-10 bg-cream -mx-4 px-4 pt-3 pb-2">
-          <div className="flex rounded-[12px] bg-black/[0.06] p-1">
+        <div className="sticky top-0 z-10 bg-cream -mx-4 px-4 pt-2 pb-1.5">
+          <div className="flex rounded-[10px] bg-black/[0.06] p-0.5">
             {([['all', 'All'], ['reminders', 'Reminders'], ['notes', 'Notes']] as const).map(([v, l]) => (
               <button key={v} onClick={() => setKindFilter(v)}
-                className={`flex-1 py-1.5 rounded-[9px] text-[14px] font-semibold ${kindFilter === v ? 'bg-white text-ink shadow-sm' : 'text-black/50'}`}>{l}</button>
+                className={`flex-1 py-1 rounded-[8px] text-[13px] font-semibold ${kindFilter === v ? 'bg-white text-ink shadow-sm' : 'text-black/50'}`}>{l}</button>
             ))}
           </div>
-          <div className="mt-2.5 flex gap-2 overflow-x-auto -mx-4 px-4 pb-1">
+          <div className="mt-2 flex gap-1.5 overflow-x-auto -mx-4 px-4 pb-0.5">
             {[['all', 'All'] as const, ...areas.map(a => [a.id, shortName(a)] as const), ['none', 'Other'] as const].map(([v, l]) => {
               const a = areaById[v];
               const color = a?.color || '#1a1a1a';
               const on = listFilter === v;
               return (
                 <button key={v} onClick={() => setListFilter(v)} title={a?.name || l} aria-pressed={on}
-                  className={`shrink-0 px-4 py-2 rounded-full text-[14px] font-bold border-2 ${on ? 'text-white' : 'bg-white'}`}
+                  className={`shrink-0 px-3 py-1 rounded-full text-[13px] font-bold border-[1.5px] ${on ? 'text-white' : 'bg-white'}`}
                   style={on ? { background: color, borderColor: color } : { color, borderColor: `${color}33` }}>
                   {l}
                 </button>
