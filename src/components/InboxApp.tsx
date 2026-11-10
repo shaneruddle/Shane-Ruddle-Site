@@ -7,7 +7,7 @@ import {
 } from 'firebase/firestore';
 import {
   Loader2, Sun, Hourglass, Plus, Pin, Settings, Mic, ListChecks, SlidersHorizontal, Search, ArrowUp, Check, Lightbulb, StickyNote, Flag, Repeat as RepeatIcon,
-  MapPin, GripVertical, Bell, CalendarDays, User, ChevronLeft, ChevronRight, X, Sparkles, Scissors, RotateCcw, Archive, Trash2, CloudOff, Cloud, Download, LogOut, History,
+  MapPin, GripVertical, Bell, CalendarDays, User, ChevronLeft, ChevronRight, X, Sparkles, Scissors, RotateCcw, Archive, Trash2, CloudOff, Cloud, Download, LogOut, History, Folder,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { bkkToday, bkkNowTime, addDays, nextDue, repeatLabel, type Repeat, type RepeatFreq } from '../../server/reminderDates';
@@ -490,6 +490,64 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
     );
   };
 
+  // The Notes tab as a list, like Apple Notes: pinned first, then newest edited, grouped by when they were last edited.
+  const notesList = (list: Item[], limitTo: number) => {
+    const edited = (i: Item) => i.updatedAt?.toMillis?.() || i.createdAt?.toMillis?.() || Date.now();
+    const sorted = [...list].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || edited(b) - edited(a));
+    const shown = sorted.slice(0, limitTo);
+    const bkkDay = (ms: number) => new Date(ms + 7 * 3600_000).toISOString().slice(0, 10);
+    const daysAgo = (ms: number) => Math.round((Date.parse(now) - Date.parse(bkkDay(ms))) / 86400_000);
+    const groupOf = (i: Item) => {
+      if (i.pinned) return 'Pinned';
+      const d = daysAgo(edited(i));
+      if (d <= 0) return 'Today';
+      if (d === 1) return 'Yesterday';
+      if (d <= 7) return 'Previous 7 Days';
+      if (d <= 30) return 'Previous 30 Days';
+      const dt = new Date(edited(i));
+      const sameYear = bkkDay(edited(i)).slice(0, 4) === now.slice(0, 4);
+      return dt.toLocaleDateString('en-GB', { month: 'long', ...(sameYear ? {} : { year: 'numeric' }), timeZone: 'Asia/Bangkok' });
+    };
+    const dayOf = (ms: number) => {
+      const d = daysAgo(ms);
+      if (d <= 0) return new Date(ms).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' });
+      if (d === 1) return 'Yesterday';
+      if (d <= 7) return new Date(ms).toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'Asia/Bangkok' });
+      return new Date(ms).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Bangkok' });
+    };
+    const groups: [string, Item[]][] = [];
+    shown.forEach(i => { const g = groupOf(i); const last = groups[groups.length - 1]; if (last && last[0] === g) last[1].push(i); else groups.push([g, [i]]); });
+    return (
+      <>
+        {groups.map(([g, rows]) => (
+          <section key={g} className="mt-5">
+            <h3 className="font-sans text-[20px] font-bold tracking-normal normal-case text-ink">{g}</h3>
+            <div className="mt-2 rounded-[18px] bg-white overflow-hidden">
+              {rows.map(i => {
+                const preview = plainPreview(i.body || '').split('\n').map(l => l.trim()).map(l => l.replace(/^[•\-*☐☑]\s*/, '')).filter(l => l && l !== i.title)[0] || 'No additional text';
+                const area = areaById[i.area || ''];
+                return (
+                  <button key={i.id} onClick={() => setNote({ id: i.id, version: i.version || 0 })} className="w-full text-left pl-4 group">
+                    <div className="pr-4 py-2.5 border-b border-black/[0.08] group-last:border-0">
+                      <div className="text-[16px] font-semibold text-ink leading-snug line-clamp-1">
+                        {i.kind === 'idea' && <Lightbulb className="inline w-3.5 h-3.5 -mt-0.5 mr-1 text-amber-600" />}{i.title || 'Untitled'}
+                      </div>
+                      <div className="text-[14px] text-black/45 leading-snug line-clamp-1"><span className="mr-2">{dayOf(edited(i))}</span>{preview}</div>
+                      <div className="mt-0.5 text-[13px] text-black/40 flex items-center gap-1"><Folder className="w-3.5 h-3.5" />{area ? area.name : 'Notes'}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+        {sorted.length > limitTo && (
+          <button onClick={() => setNotesShown(n => n + 60)} className="mt-4 w-full py-3 rounded-2xl bg-white border border-black/10 text-[14px] text-black/55">Show more ({sorted.length - limitTo} left)</button>
+        )}
+      </>
+    );
+  };
+
   // ---- home: the deck ----
   const greeting = clock.time < '12:00' ? 'Morning' : clock.time < '17:00' ? 'Afternoon' : 'Evening';
   const dateLine = new Date(`${now}T12:00:00+07:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Bangkok' });
@@ -687,7 +745,12 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
             <button key={v} onClick={() => { setNotesFilter(v); setNotesShown(60); }} className={`px-3.5 py-1.5 rounded-full text-[13px] whitespace-nowrap ${notesFilter === v ? 'bg-ink text-white' : 'bg-black/5 text-black/55'}`}>{l}</button>
           ))}
         </div>
-        {notesGrid(list, words.length ? 'Matching notes' : 'Notes', { showArea: true, limit: notesShown, add: !words.length, area: notesFilter !== 'all' && notesFilter !== 'none' ? notesFilter : null })}
+        {!words.length && (
+          <button onClick={() => newNote(notesFilter !== 'all' && notesFilter !== 'none' ? notesFilter : null)} className="mt-4 w-full py-3 rounded-2xl bg-white border border-black/10 text-[15px] font-medium text-black/60 flex items-center justify-center gap-1.5">
+            <Plus className="w-4 h-4" /> New note
+          </button>
+        )}
+        {notesList(list, notesShown)}
         {!list.length && words.length > 0 && <p className="py-10 text-center text-black/35">No notes match.</p>}
       </>
     );
