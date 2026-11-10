@@ -74,6 +74,8 @@ const ago = (ms?: number) => {
   return `${Math.round(m / 1440)}d ago`;
 };
 
+// How many Today entries the home card shows before "+N more".
+const TODAY_CARD_ROWS = 6;
 const isOpen = (i: Item) => i.status !== 'done' && i.status !== 'archived';
 const isTaskOpen = (i: Item) => i.kind === 'task' && isOpen(i);
 
@@ -518,7 +520,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
           </div>
           {todayAll.length ? (
             <ul className="mt-2">
-              {todayAll.slice(0, 3).map(i => (
+              {todayAll.slice(0, TODAY_CARD_ROWS).map(i => (
                 <li key={i.id} className="flex items-center gap-2.5 py-1.5 text-[15.5px] leading-snug">
                   {i.kind === 'task'
                     ? <button onClick={e => { e.stopPropagation(); complete(i); }} aria-label="Mark done" className="w-[19px] h-[19px] shrink-0 rounded-full border-2 border-[#1a1405]/45" />
@@ -528,7 +530,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
               ))}
             </ul>
           ) : <p className="mt-2 text-[15px] opacity-75">{upNext.length ? `Nothing due. Next up: ${upNext[0].title}` : 'Nothing due today.'}</p>}
-          {todayAll.length > 3 && <div className="mt-1 text-[12.5px] font-semibold opacity-70">+{todayAll.length - 3} more</div>}
+          {todayAll.length > TODAY_CARD_ROWS && <div className="mt-1 text-[12.5px] font-semibold opacity-70">+{todayAll.length - TODAY_CARD_ROWS} more</div>}
         </div>
 
         {/* Small cards */}
@@ -739,7 +741,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
       {createPortal(
         <div className="fixed bottom-0 inset-x-0 z-40">
           {dockFor && <CaptureDock key={view + (screen.area || '')} dark={view === 'home'} placeholder={dockFor.placeholder} accent={dockFor.accent}
-            onCapture={raw => capture(raw, view === 'area' ? screen.area : null, view === 'today')} />}
+            onCapture={raw => capture(raw, view === 'area' ? screen.area : null, view !== 'notes')} />}
           <OwnerTabBar docked active={view === 'today' ? 'today' : view === 'notes' ? 'notes' : 'inbox'}
             onSelect={t => t === 'circle' ? onCircle?.() : go({ view: t === 'inbox' ? 'home' : t })} />
         </div>,
@@ -1245,10 +1247,11 @@ function TodayRow({ item, children, onStart, onEnd }: { item: Item; children: Re
   const controls = useDragControls();
   return (
     <Reorder.Item value={item} dragListener={false} dragControls={controls} onDragStart={onStart} onDragEnd={onEnd}
-      className="relative flex items-start gap-3 py-3.5 border-b border-black/[0.07] last:border-0 bg-cream">
+      onContextMenu={e => e.preventDefault()}
+      className="relative flex items-start gap-3 py-3.5 border-b border-black/[0.07] last:border-0 bg-cream select-none [-webkit-touch-callout:none]">
       {children}
       <button aria-label="Drag to reorder" onPointerDown={e => { e.preventDefault(); controls.start(e); }}
-        className="-mr-1 px-1 py-0.5 text-black/25 touch-none cursor-grab active:cursor-grabbing shrink-0">
+        className="-mr-2 -my-2 px-2 py-2.5 text-black/25 touch-none select-none [-webkit-touch-callout:none] cursor-grab active:cursor-grabbing shrink-0">
         <GripVertical className="w-5 h-5" />
       </button>
     </Reorder.Item>

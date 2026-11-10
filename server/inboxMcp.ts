@@ -329,7 +329,7 @@ const FIELDS = {
   place_when: { type: "string", enum: ["arrive", "leave"] },
   repeat: { type: ["string", "null"], enum: ["daily", "weekdays", "weekly", "monthly", "yearly", null] },
   flagged: { type: "boolean" },
-  on_today_list: { type: "boolean", description: "Put it on (true) or take it off (false) Shane's Today list." },
+  on_today_list: { type: "boolean", description: "Put it on (true) or take it off (false) Shane's Today list. New tasks go on it unless you pass false." },
 };
 const READ_ONLY = { readOnlyHint: true, openWorldHint: false };
 const WRITES = { readOnlyHint: false, destructiveHint: false, openWorldHint: false };
@@ -547,7 +547,8 @@ async function runTool(db: Firestore, conn: Conn, name: string, args: Record<str
       const ref = db.collection("inbox_items").doc(id);
       const created = await db.runTransaction(async tx => {
         if ((await tx.get(ref)).exists) return false;
-        const item: Partial<Item> = { title: raw.slice(0, 200), raw, kind: "task", status: "inbox", body: raw.length > 200 ? raw : "" };
+        // New captures go on Shane's Today list; he moves them afterwards.
+        const item: Partial<Item> = { title: raw.slice(0, 200), raw, kind: "task", status: "inbox", body: raw.length > 200 ? raw : "", onToday: true, todayRank: Date.now() };
         tx.set(ref, {
           ...item, search: searchText(item), alertAt: null, ai: { state: "pending" }, version: 1,
           createdBy: by, updatedBy: by, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
@@ -574,6 +575,8 @@ async function runTool(db: Firestore, conn: Conn, name: string, args: Record<str
       if (!f.title) throw new ToolError("Title is required.");
       const kind = f.kind || "task";
       const item: Partial<Item> = { kind, status: f.status || statusFor(kind, f.waitingOn), raw: f.title, ...f };
+      // New tasks go on the Today list unless Claude said otherwise.
+      if (kind === "task" && item.onToday === undefined) { item.onToday = true; item.todayRank = Date.now(); }
       if (item.waitingOn) item.waitingSince = today;
       if (item.status === "done") throw new ToolError("Create it first, then complete it.");
       const ref = db.collection("inbox_items").doc(id);

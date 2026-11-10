@@ -429,6 +429,9 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState<boolean>(authActive);
   // True until we know whether this homepage visit should jump to Shane's dashboard.
   const [ownerRedirectPending, setOwnerRedirectPending] = useState(startsOnHome);
+  // Which private area the portal opens on: a home-screen shortcut, or Reminders when Shane lands from the homepage.
+  const [portalTab, setPortalTab] = useState<typeof launchTab>(launchTab);
+  useEffect(() => { if (view !== 'portal') setPortalTab(undefined); }, [view]);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -517,7 +520,7 @@ export default function App() {
     };
   }, [authActive]);
 
-  // Opening shaneruddle.com while signed in as Shane goes straight to the dashboard (once per page load,
+  // Opening shaneruddle.com while signed in as Shane goes straight to his Reminders app (once per page load,
   // and only if he's still on the homepage, so "Website" from the dashboard still shows the public site).
   useEffect(() => {
     if (!ownerRedirectPending) return;
@@ -525,9 +528,10 @@ export default function App() {
     if (isShane) {
       try { localStorage.setItem(OWNER_HOME_KEY, '1'); } catch { /* ignore */ }
       if (view === 'home' && window.location.pathname === '/') {
+        setPortalTab('inbox');
         setViewState('portal');
-        window.history.replaceState(null, '', VIEW_PATHS.portal);
-        setCurrentPath(VIEW_PATHS.portal);
+        window.history.replaceState(null, '', '/inbox');
+        setCurrentPath('/inbox');
       }
       setOwnerRedirectPending(false);
     } else if (userProfile || !authLoading || view !== 'home') {
@@ -1171,7 +1175,7 @@ export default function App() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.4 }}
                     >
-                      <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} initialTab={launchTab} />
+                      <EmployeePortal userProfile={displayProfile} onBack={() => setView('home')} initialTab={portalTab} />
                     </motion.div>
                   ) : (view === 'portal' && authLoading) || (view === 'home' && ownerHomeHint && ownerRedirectPending) ? (
                     <div key="portal-loading" className="fixed inset-0 z-[100] bg-white flex items-center justify-center">

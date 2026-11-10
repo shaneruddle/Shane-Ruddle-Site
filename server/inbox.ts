@@ -139,6 +139,8 @@ export async function sortItem(db: Firestore, id: string, force = false): Promis
         kind: s.kind,
         status: current.status === "inbox" ? statusFor(s.kind, s.waitingOn) : current.status,
       };
+      // Captures land on the Today list; a capture that turns out to be a note doesn't belong there.
+      if (s.kind === "note" && current.onToday) fields.onToday = false;
       if (!current.area && s.area) fields.area = s.area;
       if (!current.people?.length && s.people?.length) fields.people = s.people;
       if (!current.place && s.place) { fields.place = s.place; fields.placeWhen = s.placeWhen || "arrive"; }
