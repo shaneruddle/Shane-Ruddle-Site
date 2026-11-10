@@ -7,7 +7,7 @@ import {
 } from 'firebase/firestore';
 import {
   Loader2, Sun, Hourglass, Plus, Pin, Settings, Mic, ListChecks, SlidersHorizontal, Search, ArrowUp, Check, Lightbulb, StickyNote, Flag, Repeat as RepeatIcon,
-  MapPin, GripVertical, Bell, CalendarDays, User, ChevronLeft, ChevronRight, X, Sparkles, Scissors, RotateCcw, Archive, Trash2, CloudOff, Cloud, Download, LogOut, History, Folder,
+  MapPin, GripVertical, Bell, CalendarDays, User, ChevronLeft, ChevronRight, X, Sparkles, Scissors, RotateCcw, Archive, Trash2, CloudOff, Cloud, Download, LogOut, History, Folder, HeartHandshake,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { bkkToday, bkkNowTime, addDays, nextDue, repeatLabel, type Repeat, type RepeatFreq } from '../../server/reminderDates';
@@ -17,7 +17,6 @@ import {
 import { Connections } from './InboxConnect';
 import { Notifications } from './InboxNotify';
 import { NoteEditor, plainPreview, type NoteEditorHandle } from './NoteEditor';
-import OwnerTabBar from './OwnerTabBar';
 
 // Shane's private Inbox at /inbox: one place for quick captures, notes, ideas and tasks.
 // Data: inbox_items, inbox_history (audit trail), inbox_areas, inbox_settings, all Shane-only in firestore.rules.
@@ -74,6 +73,13 @@ const ago = (ms?: number) => {
   return `${Math.round(m / 1440)}d ago`;
 };
 
+// Business logos (public/images), matched on the area's name. Areas without one (Personal, Family) show their name.
+const AREA_LOGOS: [RegExp, string][] = [
+  [/alan bolton|abpc/i, '/images/logo-abpc.webp'], [/east coast|ecre/i, '/images/logo-ecre.webp'], [/rent a car|prac/i, '/images/logo-prac.webp'],
+  [/jomtien/i, '/images/logo-hemingways-jomtien.webp'], [/lakeside/i, '/images/logo-hemingways-lakeside.webp'],
+  [/hemingways pattaya/i, '/images/logo-hemingways-pattaya.webp'], [/cajun/i, '/images/logo-cajun-life-cafe.webp'],
+];
+const areaLogo = (name: string) => AREA_LOGOS.find(([re]) => re.test(name))?.[1] || null;
 // How many Today entries the home card shows before "+N more".
 const TODAY_CARD_ROWS = 6;
 const isOpen = (i: Item) => i.status !== 'done' && i.status !== 'archived';
@@ -95,6 +101,8 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
   const [notesFilter, setNotesFilter] = useState('all');
   // The one Reminders list: 'all', 'none' (no business) or a business id.
   const [listFilter, setListFilter] = useState('all');
+  // One-touch filter for what kind of thing to show: everything, reminders (tasks + ideas) or notes.
+  const [kindFilter, setKindFilter] = useState<'all' | 'reminders' | 'notes'>('all');
   const [notesShown, setNotesShown] = useState(60);
   const pull = useRef<number | null>(null);
   const [clock, setClock] = useState(() => ({ day: bkkToday(), time: bkkNowTime() }));
@@ -376,7 +384,9 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
       i.waitingOn && <span key="w" className={`inline-flex items-center gap-1 ${followUpDue ? 'text-danger font-medium' : ''}`}><Hourglass className="w-3 h-3" />{i.waitingOn}{i.followUpDate ? `, chase ${dayLabel(i.followUpDate, now)}` : ''}</span>,
       i.place && <span key="pl" className="inline-flex items-center gap-1"><MapPin className="w-3 h-3" />{i.placeWhen === 'leave' ? 'Leaving' : 'At'} {i.place}</span>,
       !i.waitingOn && i.people?.length ? <span key="pp" className="inline-flex items-center gap-1"><User className="w-3 h-3" />{i.people.join(', ')}</span> : null,
-      opts.showArea !== false && area && <span key="a" className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: area.color }} />{area.name}</span>,
+      opts.showArea !== false && area && (areaLogo(area.name)
+        ? <span key="a" className="inline-flex items-center gap-1.5"><img src={areaLogo(area.name)!} alt={area.name} title={area.name} className="h-[18px] max-w-[46px] object-contain rounded-[3px] bg-white" />{/^Hemingways /.test(area.name) && area.name.replace(/^Hemingways /, '')}</span>
+        : <span key="a" className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: area.color }} />{area.name}</span>),
     ].filter(Boolean);
     return (
       <>
@@ -558,7 +568,8 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
 
   // Every open reminder, idea and note in one list, in Shane's order (drag to reorder, newest on top by default).
   const allReminders = items.filter(i => isOpen(i)).sort((a, b) => todaySortKey(b) - todaySortKey(a));
-  const inFilter = (i: Item) => listFilter === 'all' || (listFilter === 'none' ? !areaById[i.area || ''] : i.area === listFilter);
+  const inFilter = (i: Item) => (listFilter === 'all' || (listFilter === 'none' ? !areaById[i.area || ''] : i.area === listFilter))
+    && (kindFilter === 'all' || (kindFilter === 'notes' ? i.kind === 'note' : i.kind !== 'note'));
   const shownReminders = allReminders.filter(inFilter);
   const filterArea = listFilter !== 'all' && listFilter !== 'none' ? listFilter : null;
 
@@ -574,25 +585,37 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
               {online ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}{syncLabel}
             </span>}
             <button onClick={() => go({ view: 'search' })} aria-label="Search" className="p-1 text-black/50"><Search className="w-5 h-5" /></button>
+            {onCircle && <button onClick={onCircle} aria-label="Circle" className="p-1 text-black/50"><HeartHandshake className="w-5 h-5" /></button>}
           </div>
         </header>
         <h1 className="mt-1 font-serif text-[36px] leading-tight font-bold text-ink">{greeting}, Shane</h1>
         <p className="mt-0.5 text-[14px] text-black/50 flex items-center gap-1 flex-wrap">{plural(shownReminders.filter(i => i.kind !== 'note').length, 'reminder')}{shownReminders.some(i => i.kind === 'note') ? `, ${plural(shownReminders.filter(i => i.kind === 'note').length, 'note')}` : ''}{overdue.filter(inFilter).length ? <span className="text-danger font-medium"> · {overdue.filter(inFilter).length} overdue</span> : null}
           <button onClick={() => newNote(filterArea)} className="ml-auto inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-black/10 text-[13px] text-black/60"><Plus className="w-3.5 h-3.5" /> Note</button></p>
 
-        {/* Filter by company */}
-        <div className="mt-4 flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 sticky top-0 z-10 bg-cream py-2">
-          {[['all', 'All', allReminders.length] as const, ...areas.map(a => [a.id, a.name, allReminders.filter(i => i.area === a.id).length] as const), ['none', 'No business', allReminders.filter(i => !areaById[i.area || '']).length] as const].map(([v, l, n]) => {
-            const a = areaById[v];
-            const on = listFilter === v;
-            return (
-              <button key={v} onClick={() => setListFilter(v)}
-                className={`px-3.5 py-1.5 rounded-full text-[13px] whitespace-nowrap inline-flex items-center gap-1.5 ${on ? 'text-white' : 'bg-black/5 text-black/60'}`}
-                style={on ? { background: a?.color || '#1a1a1a' } : undefined}>
-                {a && !on && <span className="w-2 h-2 rounded-full" style={{ background: a.color }} />}{l}{n ? <span className={on ? 'text-white/70' : 'text-black/35'}>{n}</span> : null}
-              </button>
-            );
-          })}
+        {/* One-touch filters: what kind, then which company (logos) */}
+        <div className="sticky top-0 z-10 bg-cream -mx-4 px-4 pt-3 pb-2">
+          <div className="flex rounded-[12px] bg-black/[0.06] p-1">
+            {([['all', 'All'], ['reminders', 'Reminders'], ['notes', 'Notes']] as const).map(([v, l]) => (
+              <button key={v} onClick={() => setKindFilter(v)}
+                className={`flex-1 py-1.5 rounded-[9px] text-[14px] font-semibold ${kindFilter === v ? 'bg-white text-ink shadow-sm' : 'text-black/50'}`}>{l}</button>
+            ))}
+          </div>
+          <div className="mt-2.5 flex gap-2 overflow-x-auto -mx-4 px-4 pb-1">
+            {[['all', 'All'] as const, ...areas.map(a => [a.id, a.name] as const), ['none', 'Other'] as const].map(([v, l]) => {
+              const a = areaById[v];
+              const logo = a ? areaLogo(a.name) : null;
+              const on = listFilter === v;
+              return (
+                <button key={v} onClick={() => setListFilter(v)} aria-label={l} title={l} aria-pressed={on}
+                  className={`shrink-0 h-11 rounded-[12px] flex items-center justify-center overflow-hidden ${logo ? 'w-[76px] bg-white' : 'px-3.5 text-[13px] font-medium'} ${on ? 'ring-2 ring-offset-2 ring-offset-cream' : 'border border-black/10'} ${!logo && on ? 'text-white' : !logo ? 'bg-white text-black/60' : ''}`}
+                  style={{ ...(on ? { ['--tw-ring-color' as string]: a?.color || '#1a1a1a' } : {}), ...(!logo && on ? { background: a?.color || '#1a1a1a' } : {}) }}>
+                  {logo && /^Hemingways /.test(l)
+                    ? <span className="flex flex-col items-center leading-none"><img src={logo} alt="" className="max-w-[64px] max-h-[22px] object-contain" /><span className="mt-0.5 text-[10px] font-semibold text-black/60">{l.replace(/^Hemingways /, '')}</span></span>
+                    : logo ? <img src={logo} alt={l} className={`max-w-[68px] max-h-9 object-contain ${on ? '' : 'opacity-80'}`} /> : l}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {shownReminders.length
@@ -775,8 +798,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
         <div className="fixed bottom-0 inset-x-0 z-40">
           {dockFor && <CaptureDock key={view + (screen.area || '')} dark={false} placeholder={dockFor.placeholder} accent={dockFor.accent}
             onCapture={raw => capture(raw, view === 'area' ? screen.area : view === 'home' ? filterArea : null, view !== 'notes')} />}
-          <OwnerTabBar docked active={view === 'today' ? 'today' : view === 'notes' ? 'notes' : 'inbox'}
-            onSelect={t => t === 'circle' ? onCircle?.() : go({ view: t === 'inbox' ? 'home' : t })} />
+          <div style={{ height: 'calc(env(safe-area-inset-bottom) + 6px)' }} />
         </div>,
         document.body,
       )}

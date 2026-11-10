@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { updateDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 import PortalHeader, { PortalView } from './PortalHeader';
-import OwnerTabBar, { type OwnerTab } from './OwnerTabBar';
+import { type OwnerTab } from './OwnerTabBar';
 import CommentsAdmin from './CommentsAdmin';
 import PhotosAdmin from './PhotosAdmin';
 import ActivityAdmin from './ActivityAdmin';
@@ -482,7 +482,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
           <>
             <CircleAdmin />
             <div className="h-24 md:hidden" />
-            <OwnerTabBar active="circle" onSelect={ownerGo} className="md:hidden" />
+            <button onClick={() => ownerGo('inbox')} className="md:hidden fixed left-4 z-40 px-4 py-2.5 rounded-full bg-[#0E0D0C] text-white text-[14px] font-medium shadow-lg" style={{ bottom: 'calc(env(safe-area-inset-bottom) + 14px)' }}>‹ Reminders</button>
           </>
         ) : activeTab === 'inbox' && canManagePhotos ? (
           <div className="max-w-xl mx-auto p-8 rounded-2xl bg-white border border-black/10 text-center">
