@@ -816,7 +816,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
       {/* Capture bar + bottom menu, pinned together. Mounted on <body> so no animated (transformed) parent
           can turn position:fixed into "fixed to that parent", which left the bar floating mid-page on iPhone. */}
       {createPortal(
-        <div className="fixed bottom-0 inset-x-0 z-40">
+        <div className="fixed bottom-0 inset-x-0 z-40 pt-2 bg-gradient-to-b from-cream/0 via-cream to-cream after:absolute after:inset-x-0 after:top-full after:h-[320px] after:bg-cream">
           {dockFor && <CaptureDock key={view + (screen.area || '')} dark={false} placeholder={dockFor.placeholder} accent={dockFor.accent}
             onCapture={raw => capture(raw, view === 'area' ? screen.area : view === 'home' ? filterArea : null, view !== 'notes')} />}
           <div style={{ height: 'calc(env(safe-area-inset-bottom) + 6px)' }} />
