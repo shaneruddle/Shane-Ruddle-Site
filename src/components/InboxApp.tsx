@@ -380,11 +380,11 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
     ].filter(Boolean);
     return (
       <>
-        {i.kind === 'task' || i.kind === 'idea' ? (
-          // Ideas tick off like tasks; the bulb inside the circle shows it's an idea.
+        {i.kind === 'task' || i.kind === 'idea' || i.kind === 'note' ? (
+          // Ideas and notes tick off like tasks; the icon inside the circle shows what it is.
           <button onClick={() => complete(i)} aria-label={done ? 'Mark not done' : 'Mark done'}
             className={`mt-0.5 w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center ${done ? 'bg-ink border-ink' : i.kind === 'idea' ? 'border-amber-500/60' : 'border-black/25'}`}>
-            {done ? <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} /> : i.kind === 'idea' && <Lightbulb className="w-3 h-3 text-amber-600" />}
+            {done ? <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} /> : i.kind === 'idea' ? <Lightbulb className="w-3 h-3 text-amber-600" /> : i.kind === 'note' && <StickyNote className="w-3 h-3 text-black/40" />}
           </button>
         ) : (
           <span className="mt-0.5 w-6 h-6 shrink-0 rounded-full bg-black/5 flex items-center justify-center">
@@ -556,8 +556,8 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
   const dateLine = new Date(`${now}T12:00:00+07:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Bangkok' });
   const syncLabel = !online ? `Offline${unsynced.length ? `, ${unsynced.length} on phone` : ''}` : unsynced.length ? `Uploading ${unsynced.length}` : sortingCount ? `Sorting ${sortingCount}` : '';
 
-  // Every open reminder and idea in one list, in Shane's order (drag to reorder, newest on top by default).
-  const allReminders = items.filter(i => isOpen(i) && i.kind !== 'note').sort((a, b) => todaySortKey(b) - todaySortKey(a));
+  // Every open reminder, idea and note in one list, in Shane's order (drag to reorder, newest on top by default).
+  const allReminders = items.filter(i => isOpen(i)).sort((a, b) => todaySortKey(b) - todaySortKey(a));
   const inFilter = (i: Item) => listFilter === 'all' || (listFilter === 'none' ? !areaById[i.area || ''] : i.area === listFilter);
   const shownReminders = allReminders.filter(inFilter);
   const filterArea = listFilter !== 'all' && listFilter !== 'none' ? listFilter : null;
@@ -577,7 +577,8 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
           </div>
         </header>
         <h1 className="mt-1 font-serif text-[36px] leading-tight font-bold text-ink">{greeting}, Shane</h1>
-        <p className="mt-0.5 text-[14px] text-black/50">{plural(shownReminders.length, 'reminder')}{overdue.filter(inFilter).length ? <span className="text-danger font-medium"> · {overdue.filter(inFilter).length} overdue</span> : null}</p>
+        <p className="mt-0.5 text-[14px] text-black/50 flex items-center gap-1 flex-wrap">{plural(shownReminders.filter(i => i.kind !== 'note').length, 'reminder')}{shownReminders.some(i => i.kind === 'note') ? `, ${plural(shownReminders.filter(i => i.kind === 'note').length, 'note')}` : ''}{overdue.filter(inFilter).length ? <span className="text-danger font-medium"> · {overdue.filter(inFilter).length} overdue</span> : null}
+          <button onClick={() => newNote(filterArea)} className="ml-auto inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-black/10 text-[13px] text-black/60"><Plus className="w-3.5 h-3.5" /> Note</button></p>
 
         {/* Filter by company */}
         <div className="mt-4 flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 sticky top-0 z-10 bg-cream py-2">
