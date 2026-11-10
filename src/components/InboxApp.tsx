@@ -24,7 +24,7 @@ import { NoteEditor, plainPreview, type NoteEditorHandle } from './NoteEditor';
 // fixed id inside a transaction, so a retry can never make a duplicate. Claude sorts each capture on the server
 // (/api/inbox/process); if that fails the capture stays exactly as written.
 
-interface Area { id: string; name: string; color: string; aliases?: string; order?: number }
+interface Area { id: string; name: string; color: string; aliases?: string; order?: number; short?: string }
 interface Pending { id: string; raw: string; area?: string | null; at: number; today?: boolean }
 interface HistoryEntry { id: string; by: string; action: string; changes?: Record<string, unknown>; at?: { toMillis(): number } }
 
@@ -73,13 +73,13 @@ const ago = (ms?: number) => {
   return `${Math.round(m / 1440)}d ago`;
 };
 
-// Business logos (public/images), matched on the area's name. Areas without one (Personal, Family) show their name.
-const AREA_LOGOS: [RegExp, string][] = [
-  [/alan bolton|abpc/i, '/images/logo-abpc.webp'], [/east coast|ecre/i, '/images/logo-ecre.webp'], [/rent a car|prac/i, '/images/logo-prac.webp'],
-  [/jomtien/i, '/images/logo-hemingways-jomtien.webp'], [/lakeside/i, '/images/logo-hemingways-lakeside.webp'],
-  [/hemingways pattaya/i, '/images/logo-hemingways-pattaya.webp'], [/cajun/i, '/images/logo-cajun-life-cafe.webp'],
+// Short names, brand colours and Shane's order for the filters, applied once to the businesses that don't have a short name yet.
+// After that Shane edits them (and adds his own filters) in Settings.
+const AREA_BRANDS: [RegExp, string, string][] = [
+  [/alan bolton|abpc/i, 'ABPC', '#1F5550'], [/east coast|ecre/i, 'ECRE', '#C62828'], [/rent a car|prac/i, 'PRAC', '#E8790C'],
+  [/cajun/i, 'Cajun', '#A8841A'], [/hemingways pattaya/i, 'Pattaya', '#92400E'], [/lakeside/i, 'Lakeside', '#0F766E'], [/jomtien/i, 'Jomtien', '#B8860B'],
 ];
-const areaLogo = (name: string) => AREA_LOGOS.find(([re]) => re.test(name))?.[1] || null;
+const shortName = (a: Area) => a.short || a.name;
 // How many Today entries the home card shows before "+N more".
 const TODAY_CARD_ROWS = 6;
 const isOpen = (i: Item) => i.status !== 'done' && i.status !== 'archived';
@@ -153,6 +153,16 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
           return { id: ref.id, ...a, order };
         });
         await batch.commit();
+      }
+      // Give the businesses their short names and brand colours once.
+      const missing = current.filter(a => !a.short);
+      if (missing.length) {
+        const b = writeBatch(db);
+        missing.forEach(a => {
+          const k = AREA_BRANDS.findIndex(([re]) => re.test(a.name));
+          b.update(doc(db, 'inbox_areas', a.id), k >= 0 ? { short: AREA_BRANDS[k][1], color: AREA_BRANDS[k][2], order: k } : { short: a.name, order: AREA_BRANDS.length + (a.order ?? 0) });
+        });
+        await b.commit().catch(() => {});
       }
       const old = await getDocs(collection(db, 'reminders')).catch(() => null);
       if (!old?.size) return;
@@ -384,9 +394,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
       i.waitingOn && <span key="w" className={`inline-flex items-center gap-1 ${followUpDue ? 'text-danger font-medium' : ''}`}><Hourglass className="w-3 h-3" />{i.waitingOn}{i.followUpDate ? `, chase ${dayLabel(i.followUpDate, now)}` : ''}</span>,
       i.place && <span key="pl" className="inline-flex items-center gap-1"><MapPin className="w-3 h-3" />{i.placeWhen === 'leave' ? 'Leaving' : 'At'} {i.place}</span>,
       !i.waitingOn && i.people?.length ? <span key="pp" className="inline-flex items-center gap-1"><User className="w-3 h-3" />{i.people.join(', ')}</span> : null,
-      opts.showArea !== false && area && (areaLogo(area.name)
-        ? <span key="a" className="inline-flex items-center gap-1.5"><img src={areaLogo(area.name)!} alt={area.name} title={area.name} className="h-[18px] max-w-[46px] object-contain rounded-[3px] bg-white" />{/^Hemingways /.test(area.name) && area.name.replace(/^Hemingways /, '')}</span>
-        : <span key="a" className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: area.color }} />{area.name}</span>),
+      opts.showArea !== false && area && <span key="a" className="font-bold" style={{ color: area.color }}>{shortName(area)}</span>,
     ].filter(Boolean);
     return (
       <>
@@ -601,17 +609,15 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
             ))}
           </div>
           <div className="mt-2.5 flex gap-2 overflow-x-auto -mx-4 px-4 pb-1">
-            {[['all', 'All'] as const, ...areas.map(a => [a.id, a.name] as const), ['none', 'Other'] as const].map(([v, l]) => {
+            {[['all', 'All'] as const, ...areas.map(a => [a.id, shortName(a)] as const), ['none', 'Other'] as const].map(([v, l]) => {
               const a = areaById[v];
-              const logo = a ? areaLogo(a.name) : null;
+              const color = a?.color || '#1a1a1a';
               const on = listFilter === v;
               return (
-                <button key={v} onClick={() => setListFilter(v)} aria-label={l} title={l} aria-pressed={on}
-                  className={`shrink-0 h-11 rounded-[12px] flex items-center justify-center overflow-hidden ${logo ? 'w-[76px] bg-white' : 'px-3.5 text-[13px] font-medium'} ${on ? 'ring-2 ring-offset-2 ring-offset-cream' : 'border border-black/10'} ${!logo && on ? 'text-white' : !logo ? 'bg-white text-black/60' : ''}`}
-                  style={{ ...(on ? { ['--tw-ring-color' as string]: a?.color || '#1a1a1a' } : {}), ...(!logo && on ? { background: a?.color || '#1a1a1a' } : {}) }}>
-                  {logo && /^Hemingways /.test(l)
-                    ? <span className="flex flex-col items-center leading-none"><img src={logo} alt="" className="max-w-[64px] max-h-[22px] object-contain" /><span className="mt-0.5 text-[10px] font-semibold text-black/60">{l.replace(/^Hemingways /, '')}</span></span>
-                    : logo ? <img src={logo} alt={l} className={`max-w-[68px] max-h-9 object-contain ${on ? '' : 'opacity-80'}`} /> : l}
+                <button key={v} onClick={() => setListFilter(v)} title={a?.name || l} aria-pressed={on}
+                  className={`shrink-0 px-4 py-2 rounded-full text-[14px] font-bold border-2 ${on ? 'text-white' : 'bg-white'}`}
+                  style={on ? { background: color, borderColor: color } : { color, borderColor: `${color}33` }}>
+                  {l}
                 </button>
               );
             })}
@@ -637,7 +643,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
       <div className="w-full max-w-xl mx-auto flex-1 flex flex-col">
         <header className={`px-5 pt-4 pb-5 ${o.dark ? 'text-[#1a1405]' : 'text-white'}`}>
           <div className="flex items-center justify-between">
-            <button onClick={goHome} className="flex items-center gap-0.5 -ml-1.5 text-[15px] opacity-80"><ChevronLeft className="w-5 h-5" /> All cards</button>
+            <button onClick={goHome} className="flex items-center gap-0.5 -ml-1.5 text-[15px] opacity-80"><ChevronLeft className="w-5 h-5" /> Reminders</button>
             {syncLabel && <span className="inline-flex items-center gap-1.5 text-[12px] opacity-60">{online ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}{syncLabel}</span>}
           </div>
           <h1 className={`mt-3 font-serif text-[42px] leading-[1.02] font-bold ${o.dark ? 'text-[#1a1405]' : 'text-white'}`}>{o.title}</h1>
@@ -757,6 +763,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
 
   const settingsBody = () => (
     <>
+      <FilterSettings areas={areas} counts={Object.fromEntries(areas.map(a => [a.id, items.filter(i => i.area === a.id && isOpen(i)).length]))} />
       <button onClick={exportAll} className="mt-5 w-full py-3 rounded-2xl bg-white border border-black/10 text-[15px] text-black/60 flex items-center justify-center gap-2"><Download className="w-4 h-4" /> Export everything (JSON + CSV)</button>
       <Notifications />
       <Connections />
@@ -1310,5 +1317,59 @@ function TodayRow({ item, children, onStart, onEnd }: { item: Item; children: Re
         <GripVertical className="w-5 h-5" />
       </button>
     </Reorder.Item>
+  );
+}
+
+// Settings: the named filters on the Reminders list (stored as inbox_areas). Claude also files new captures into them by name.
+function FilterSettings({ areas, counts }: { areas: Area[]; counts: Record<string, number> }) {
+  const [name, setName] = useState('');
+  const [color, setColor] = useState('#57534E');
+  const update = (a: Area, changes: Partial<Area>) => updateDoc(doc(db, 'inbox_areas', a.id), changes).catch(() => toast.error('Could not save'));
+  const add = async () => {
+    const n = name.trim();
+    if (!n) return;
+    await setDoc(doc(collection(db, 'inbox_areas')), { name: n, short: n, color, aliases: '', order: Math.max(0, ...areas.map(a => a.order ?? 0)) + 1 })
+      .then(() => { setName(''); toast.success(`Added ${n}`); }).catch(() => toast.error('Could not add it'));
+  };
+  const move = (k: number, dir: -1 | 1) => {
+    const other = areas[k + dir];
+    if (!other) return;
+    const a = areas[k];
+    const batch = writeBatch(db);
+    batch.update(doc(db, 'inbox_areas', a.id), { order: other.order ?? k + dir });
+    batch.update(doc(db, 'inbox_areas', other.id), { order: a.order ?? k });
+    batch.commit().catch(() => toast.error('Could not reorder'));
+  };
+  const remove = (a: Area) => {
+    const n = counts[a.id] || 0;
+    if (!window.confirm(`Remove the ${shortName(a)} filter?${n ? ` Its ${n} open item${n === 1 ? '' : 's'} will move to Other.` : ''}`)) return;
+    deleteDoc(doc(db, 'inbox_areas', a.id)).catch(() => toast.error('Could not remove it'));
+  };
+  return (
+    <section className="mt-5">
+      <h3 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-black/45">Filters</h3>
+      <div className="mt-2 rounded-2xl bg-white border border-black/10 divide-y divide-black/[0.07]">
+        {areas.map((a, k) => (
+          <div key={a.id} className="flex items-center gap-2 px-3 py-2.5">
+            <input type="color" value={a.color} onChange={e => update(a, { color: e.target.value })} aria-label="Colour"
+              className="w-8 h-8 shrink-0 rounded-full overflow-hidden border-0 p-0 bg-transparent" />
+            <input defaultValue={shortName(a)} onBlur={e => { const v = e.target.value.trim(); if (v && v !== shortName(a)) update(a, { short: v }); }}
+              aria-label="Filter name" className="w-24 shrink-0 px-2 py-1.5 rounded-lg bg-black/[0.04] text-[15px] font-bold" style={{ color: a.color }} />
+            <span className="min-w-0 flex-1 truncate text-[12px] text-black/40">{a.short && a.short !== a.name ? a.name : ''}</span>
+            <button onClick={() => move(k, -1)} disabled={!k} aria-label="Move up" className="p-1 text-black/35 disabled:opacity-20"><ChevronLeft className="w-4 h-4 rotate-90" /></button>
+            <button onClick={() => move(k, 1)} disabled={k === areas.length - 1} aria-label="Move down" className="p-1 text-black/35 disabled:opacity-20"><ChevronRight className="w-4 h-4 rotate-90" /></button>
+            <button onClick={() => remove(a)} aria-label="Remove" className="p-1 text-black/30"><Trash2 className="w-4 h-4" /></button>
+          </div>
+        ))}
+        <div className="flex items-center gap-2 px-3 py-2.5">
+          <input type="color" value={color} onChange={e => setColor(e.target.value)} aria-label="Colour for the new filter"
+            className="w-8 h-8 shrink-0 rounded-full overflow-hidden border-0 p-0 bg-transparent" />
+          <input value={name} onChange={e => setName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') add(); }} placeholder="New filter name"
+            className="min-w-0 flex-1 px-2 py-1.5 rounded-lg bg-black/[0.04] text-[15px]" />
+          <button onClick={add} disabled={!name.trim()} className="px-3 py-1.5 rounded-lg bg-ink text-white text-[14px] font-medium disabled:opacity-30">Add</button>
+        </div>
+      </div>
+      <p className="mt-1.5 text-[12px] text-black/40">Claude files new reminders into these by name.</p>
+    </section>
   );
 }
