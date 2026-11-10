@@ -1,4 +1,4 @@
-import { Inbox, CalendarCheck, StickyNote, HeartHandshake } from 'lucide-react';
+import { Inbox, StickyNote, HeartHandshake } from 'lucide-react';
 
 // Shane's sticky bottom menu, shared by the Reminders & Notes app (/inbox) and the Circle tab, so each is one tap from the others.
 export type OwnerTab = 'inbox' | 'today' | 'notes' | 'circle';
@@ -8,7 +8,6 @@ export const OWNER_TAB_BAR_HEIGHT = 58;
 
 const TABS: [OwnerTab, string, typeof Inbox][] = [
   ['inbox', 'Reminders', Inbox],
-  ['today', 'Today', CalendarCheck],
   ['notes', 'Notes', StickyNote],
   ['circle', 'Circle', HeartHandshake],
 ];
@@ -18,7 +17,7 @@ export default function OwnerTabBar({ active, onSelect, className = '', docked =
   return (
     <nav className={`${docked ? '' : 'fixed bottom-0 inset-x-0 z-40 '}bg-[#0E0D0C]/95 backdrop-blur-xl border-t border-white/10 font-sans ${className}`}
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <div className="max-w-xl mx-auto grid grid-cols-4" style={{ height: OWNER_TAB_BAR_HEIGHT }}>
+      <div className="max-w-xl mx-auto grid grid-cols-3" style={{ height: OWNER_TAB_BAR_HEIGHT }}>
         {TABS.map(([id, label, Icon]) => {
           const on = id === active;
           return (

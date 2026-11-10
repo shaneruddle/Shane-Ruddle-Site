@@ -88,11 +88,13 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
   const [outbox, setOutbox] = useState<Pending[]>(readOutbox);
   const [online, setOnline] = useState(navigator.onLine);
   // A tapped notification opens /inbox?tab=today or /inbox?item=<id>.
-  const [screen, setScreen] = useState<Screen>(() => { const t = new URLSearchParams(window.location.search).get('tab'); return { view: t === 'today' || t === 'notes' ? t : 'home' }; });
+  const [screen, setScreen] = useState<Screen>(() => { const t = new URLSearchParams(window.location.search).get('tab'); return { view: t === 'notes' ? t : 'home' }; });
   const [open, setOpen] = useState<Item | null>(null);
   const [note, setNote] = useState<{ id: string; version: number; fresh?: boolean } | null>(null);
   const [notesQuery, setNotesQuery] = useState('');
   const [notesFilter, setNotesFilter] = useState('all');
+  // The one Reminders list: 'all', 'none' (no business) or a business id.
+  const [listFilter, setListFilter] = useState('all');
   const [notesShown, setNotesShown] = useState(60);
   const pull = useRef<number | null>(null);
   const [clock, setClock] = useState(() => ({ day: bkkToday(), time: bkkNowTime() }));
@@ -386,7 +388,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
           </button>
         ) : (
           <span className="mt-0.5 w-6 h-6 shrink-0 rounded-full bg-black/5 flex items-center justify-center">
-            {i.kind === 'idea' ? <Lightbulb className="w-3.5 h-3.5 text-amber-600" /> : <StickyNote className="w-3.5 h-3.5 text-black/45" />}
+            <StickyNote className="w-3.5 h-3.5 text-black/45" />
           </span>
         )}
         <button onClick={() => (i.kind === 'task' ? setOpen(i) : setNote({ id: i.id, version: i.version || 0 }))} className="min-w-0 flex-1 text-left">
@@ -554,88 +556,53 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
   const dateLine = new Date(`${now}T12:00:00+07:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Bangkok' });
   const syncLabel = !online ? `Offline${unsynced.length ? `, ${unsynced.length} on phone` : ''}` : unsynced.length ? `Uploading ${unsynced.length}` : sortingCount ? `Sorting ${sortingCount}` : '';
 
+  // Every open reminder and idea in one list, in Shane's order (drag to reorder, newest on top by default).
+  const allReminders = items.filter(i => isOpen(i) && i.kind !== 'note').sort((a, b) => todaySortKey(b) - todaySortKey(a));
+  const inFilter = (i: Item) => listFilter === 'all' || (listFilter === 'none' ? !areaById[i.area || ''] : i.area === listFilter);
+  const shownReminders = allReminders.filter(inFilter);
+  const filterArea = listFilter !== 'all' && listFilter !== 'none' ? listFilter : null;
+
   const homeView = () => (
-    <div className="min-h-[100dvh] bg-[#0E0D0C] text-white" style={{ paddingTop: 'env(safe-area-inset-top)' }}
+    <div className="min-h-[100dvh] bg-cream text-ink" style={{ paddingTop: 'env(safe-area-inset-top)' }}
       onTouchStart={e => { pull.current = window.scrollY <= 0 ? e.touches[0].clientY : null; }}
       onTouchMove={e => { if (pull.current !== null && e.touches[0].clientY - pull.current > 90) { pull.current = null; go({ view: 'search' }); } }}>
-      <div className="max-w-xl mx-auto px-[18px] pb-60">
+      <div className="max-w-xl mx-auto px-4 pb-60">
         <header className="flex items-center justify-between pt-4">
-          <span className="text-[12px] uppercase tracking-[0.18em] text-white/45 font-semibold">{dateLine}</span>
+          <span className="text-[12px] uppercase tracking-[0.18em] text-black/45 font-semibold">{dateLine}</span>
           <div className="flex items-center gap-3">
-            {syncLabel && <span className={`inline-flex items-center gap-1.5 text-[12px] ${online && !unsynced.length ? 'text-white/40' : 'text-amber-400'}`}>
+            {syncLabel && <span className={`inline-flex items-center gap-1.5 text-[12px] ${online && !unsynced.length ? 'text-black/40' : 'text-amber-600'}`}>
               {online ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}{syncLabel}
             </span>}
-            <button onClick={() => go({ view: 'search' })} aria-label="Search" className="p-1 text-white/60"><Search className="w-5 h-5" /></button>
+            <button onClick={() => go({ view: 'search' })} aria-label="Search" className="p-1 text-black/50"><Search className="w-5 h-5" /></button>
           </div>
         </header>
-        <h1 className="mt-1 mb-4 font-serif text-[40px] leading-tight font-bold text-white">{greeting}, Shane</h1>
+        <h1 className="mt-1 font-serif text-[36px] leading-tight font-bold text-ink">{greeting}, Shane</h1>
+        <p className="mt-0.5 text-[14px] text-black/50">{plural(shownReminders.length, 'reminder')}{overdue.filter(inFilter).length ? <span className="text-danger font-medium"> · {overdue.filter(inFilter).length} overdue</span> : null}</p>
 
-        {/* Today card */}
-        <div role="button" tabIndex={0} onClick={() => go({ view: 'today' })} onKeyDown={e => { if (e.key === 'Enter') go({ view: 'today' }); }}
-          className="rounded-[22px] p-[18px] cursor-pointer text-[#1a1405] bg-[linear-gradient(135deg,#E9C75A,#B8860B)] shadow-[0_10px_30px_rgba(212,175,55,0.22)]">
-          <div className="flex items-baseline justify-between">
-            <span className="text-[13px] font-bold uppercase tracking-[0.12em]">Today</span>
-            <span className="text-[13px] font-semibold">{todayAll.length ? `${todayAll.length} to do` : 'Clear'}{overdue.length ? ` · ${overdue.length} overdue` : ''}</span>
-          </div>
-          {todayAll.length ? (
-            <ul className="mt-2">
-              {todayAll.slice(0, TODAY_CARD_ROWS).map(i => (
-                <li key={i.id} className="flex items-center gap-2.5 py-1.5 text-[15.5px] leading-snug">
-                  {i.kind === 'task' || i.kind === 'idea'
-                    ? <button onClick={e => { e.stopPropagation(); complete(i); }} aria-label="Mark done" className="w-[19px] h-[19px] shrink-0 rounded-full border-2 border-[#1a1405]/45" />
-                    : <Hourglass className="w-4 h-4 shrink-0 opacity-60" />}
-                  <span className={`line-clamp-1 ${overdue.includes(i) ? 'font-semibold' : ''}`}>{i.title}</span>
-                </li>
-              ))}
-            </ul>
-          ) : <p className="mt-2 text-[15px] opacity-75">{upNext.length ? `Nothing due. Next up: ${upNext[0].title}` : 'Nothing due today.'}</p>}
-          {todayAll.length > TODAY_CARD_ROWS && <div className="mt-1 text-[12.5px] font-semibold opacity-70">+{todayAll.length - TODAY_CARD_ROWS} more</div>}
-        </div>
-
-        {/* Small cards */}
-        <div className="grid grid-cols-3 gap-2.5 my-3">
-          {/* Inbox: the number to sort, or (when all sorted) how many were captured this week, so it never reads 0 over a full list. */}
-          {([
-            ['inbox', toSort || recent.length, 'Reminders', toSort ? 'to sort' : recent.length ? 'new this week' : 'all sorted'],
-            ['waiting', waiting.length, 'Waiting on', ''],
-            ['notes', allNotes.length, 'Notes', ''],
-          ] as const).map(([v, n, label, sub]) => (
-            <button key={v} onClick={() => go({ view: v })} className="rounded-[18px] bg-[#1E1C1A] px-3.5 py-3 text-left">
-              <div className={`text-[24px] font-bold leading-none ${v === 'inbox' && toSort ? 'text-gold' : ''}`}>{n}</div>
-              <div className="mt-1.5 text-[12px] text-white/55 leading-tight">{label}{sub && <span className="block text-white/35">{sub}</span>}</div>
-            </button>
-          ))}
-        </div>
-
-        {/* One card per business, stacked like a wallet */}
-        <div className="pt-1">
-          {areas.map((a, k) => {
-            const t = areaTasks(a.id);
-            const n = areaNotes(a.id).length;
-            const last = k === areas.length - 1;
+        {/* Filter by company */}
+        <div className="mt-4 flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 sticky top-0 z-10 bg-cream py-2">
+          {[['all', 'All', allReminders.length] as const, ...areas.map(a => [a.id, a.name, allReminders.filter(i => i.area === a.id).length] as const), ['none', 'No business', allReminders.filter(i => !areaById[i.area || '']).length] as const].map(([v, l, n]) => {
+            const a = areaById[v];
+            const on = listFilter === v;
             return (
-              <button key={a.id} onClick={() => go({ view: 'area', area: a.id })}
-                className={`relative flex flex-col justify-start w-full text-left rounded-[22px] px-[18px] pt-4 ${last ? 'pb-6' : 'h-[96px]'} ${k ? '-mt-[36px]' : ''} shadow-[0_-6px_18px_rgba(0,0,0,0.35)]`}
-                style={{ background: a.color, zIndex: k }}>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-[16px] font-semibold truncate">{a.name}</span>
-                  <span className="shrink-0 text-[12px] px-2.5 py-[3px] rounded-full bg-white/20">
-                    {[t.length && `${t.length} to do`, n && plural(n, 'note')].filter(Boolean).join(' · ') || 'Nothing open'}
-                  </span>
-                </div>
-                {last && t[0] && <div className="mt-1.5 text-[13px] text-white/80 truncate">Next: {t[0].title}</div>}
+              <button key={v} onClick={() => setListFilter(v)}
+                className={`px-3.5 py-1.5 rounded-full text-[13px] whitespace-nowrap inline-flex items-center gap-1.5 ${on ? 'text-white' : 'bg-black/5 text-black/60'}`}
+                style={on ? { background: a?.color || '#1a1a1a' } : undefined}>
+                {a && !on && <span className="w-2 h-2 rounded-full" style={{ background: a.color }} />}{l}{n ? <span className={on ? 'text-white/70' : 'text-black/35'}>{n}</span> : null}
               </button>
             );
           })}
         </div>
 
-        <div className="mt-6 flex gap-2">
-          <button onClick={() => go({ view: 'ideas' })} className="flex-1 py-3 rounded-2xl bg-[#1E1C1A] text-[13px] text-white/70 flex items-center justify-center gap-1.5"><Lightbulb className="w-4 h-4" /> Ideas {ideas.length || ''}</button>
-          <button onClick={() => go({ view: 'done' })} className="flex-1 py-3 rounded-2xl bg-[#1E1C1A] text-[13px] text-white/70 flex items-center justify-center gap-1.5"><Archive className="w-4 h-4" /> Done</button>
-          <button onClick={() => go({ view: 'settings' })} className="flex-1 py-3 rounded-2xl bg-[#1E1C1A] text-[13px] text-white/70 flex items-center justify-center gap-1.5"><Settings className="w-4 h-4" /> Settings</button>
+        {shownReminders.length
+          ? <div className="mt-1"><TodayList items={shownReminders} body={i => rowBody(i, { showArea: listFilter === 'all' || listFilter === 'none' })} onMove={moveOnToday} /></div>
+          : <p className="py-14 text-center text-black/35">Nothing here.</p>}
+
+        <div className="mt-8 flex gap-2">
+          <button onClick={() => go({ view: 'done' })} className="flex-1 py-3 rounded-2xl bg-white border border-black/10 text-[13px] text-black/55 flex items-center justify-center gap-1.5"><Archive className="w-4 h-4" /> Done</button>
+          <button onClick={() => go({ view: 'settings' })} className="flex-1 py-3 rounded-2xl bg-white border border-black/10 text-[13px] text-black/55 flex items-center justify-center gap-1.5"><Settings className="w-4 h-4" /> Settings</button>
         </div>
-        {onExit && <button onClick={onExit} className="mt-4 w-full py-2 text-[12px] text-white/30 flex items-center justify-center gap-1.5"><LogOut className="w-3.5 h-3.5" /> Leave inbox</button>}
-        <p className="mt-2 text-center text-[11px] text-white/25">Pull down to search</p>
+        {onExit && <button onClick={onExit} className="mt-4 w-full py-2 text-[12px] text-black/30 flex items-center justify-center gap-1.5"><LogOut className="w-3.5 h-3.5" /> Leave reminders</button>}
       </div>
     </div>
   );
@@ -793,7 +760,8 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
   const dockFor = view === 'search' || view === 'settings' || view === 'done' ? null
     : view === 'area' && area ? { placeholder: `Add to ${area.name.replace(/^Hemingways /, '')}…`, accent: area.color }
     : view === 'today' ? { placeholder: 'Add to Today…', accent: '#B8860B' }
-    : { placeholder: 'Capture anything…', accent: '#D4AF37' };
+    : view === 'home' && filterArea && areaById[filterArea] ? { placeholder: `Add to ${areaById[filterArea].name.replace(/^Hemingways /, '')}…`, accent: areaById[filterArea].color }
+    : { placeholder: 'Add a reminder…', accent: '#B8860B' };
   const noteItem = note ? items.find(i => i.id === note.id) : undefined;
 
   return (
@@ -804,8 +772,8 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
           can turn position:fixed into "fixed to that parent", which left the bar floating mid-page on iPhone. */}
       {createPortal(
         <div className="fixed bottom-0 inset-x-0 z-40">
-          {dockFor && <CaptureDock key={view + (screen.area || '')} dark={view === 'home'} placeholder={dockFor.placeholder} accent={dockFor.accent}
-            onCapture={raw => capture(raw, view === 'area' ? screen.area : null, view !== 'notes')} />}
+          {dockFor && <CaptureDock key={view + (screen.area || '')} dark={false} placeholder={dockFor.placeholder} accent={dockFor.accent}
+            onCapture={raw => capture(raw, view === 'area' ? screen.area : view === 'home' ? filterArea : null, view !== 'notes')} />}
           <OwnerTabBar docked active={view === 'today' ? 'today' : view === 'notes' ? 'notes' : 'inbox'}
             onSelect={t => t === 'circle' ? onCircle?.() : go({ view: t === 'inbox' ? 'home' : t })} />
         </div>,
