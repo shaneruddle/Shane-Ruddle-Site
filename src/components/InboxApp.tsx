@@ -378,10 +378,11 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
     ].filter(Boolean);
     return (
       <>
-        {i.kind === 'task' ? (
+        {i.kind === 'task' || i.kind === 'idea' ? (
+          // Ideas tick off like tasks; the bulb inside the circle shows it's an idea.
           <button onClick={() => complete(i)} aria-label={done ? 'Mark not done' : 'Mark done'}
-            className={`mt-0.5 w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center ${done ? 'bg-ink border-ink' : 'border-black/25'}`}>
-            {done && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+            className={`mt-0.5 w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center ${done ? 'bg-ink border-ink' : i.kind === 'idea' ? 'border-amber-500/60' : 'border-black/25'}`}>
+            {done ? <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} /> : i.kind === 'idea' && <Lightbulb className="w-3 h-3 text-amber-600" />}
           </button>
         ) : (
           <span className="mt-0.5 w-6 h-6 shrink-0 rounded-full bg-black/5 flex items-center justify-center">
@@ -580,7 +581,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
             <ul className="mt-2">
               {todayAll.slice(0, TODAY_CARD_ROWS).map(i => (
                 <li key={i.id} className="flex items-center gap-2.5 py-1.5 text-[15.5px] leading-snug">
-                  {i.kind === 'task'
+                  {i.kind === 'task' || i.kind === 'idea'
                     ? <button onClick={e => { e.stopPropagation(); complete(i); }} aria-label="Mark done" className="w-[19px] h-[19px] shrink-0 rounded-full border-2 border-[#1a1405]/45" />
                     : <Hourglass className="w-4 h-4 shrink-0 opacity-60" />}
                   <span className={`line-clamp-1 ${overdue.includes(i) ? 'font-semibold' : ''}`}>{i.title}</span>
