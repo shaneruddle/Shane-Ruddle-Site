@@ -324,7 +324,38 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
     updateDoc(doc(db, 'inbox_items', id), { todayRank: rank }).catch(() => toast.error('Could not save the new order'));
   };
 
-  const complete = async (i: Item) => {
+  // Ticking an item shows it done for a few seconds before it leaves the list; tap again in that time to keep it.
+  const [finishing, setFinishing] = useState<Set<string>>(() => new Set());
+  const finishTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const complete = (i: Item) => {
+    if (i.status !== 'done' && !i.repeat) {
+      const t = finishTimers.current.get(i.id);
+      if (t) {
+        clearTimeout(t);
+        finishTimers.current.delete(i.id);
+        setFinishing(s => { const n = new Set(s); n.delete(i.id); return n; });
+        return;
+      }
+      setFinishing(s => new Set(s).add(i.id));
+      finishTimers.current.set(i.id, setTimeout(() => {
+        finishTimers.current.delete(i.id);
+        completeNow(i).finally(() => setFinishing(s => { const n = new Set(s); n.delete(i.id); return n; }));
+      }, 3000));
+      return;
+    }
+    return completeNow(i);
+  };
+  // If the app goes to the background mid-wait, finish them straight away so a tick is never lost.
+  useEffect(() => {
+    const hide = () => {
+      if (document.visibilityState !== 'hidden') return;
+      finishTimers.current.forEach((t, id) => { clearTimeout(t); const it = items.find(x => x.id === id); if (it) completeNow(it); });
+      finishTimers.current.clear();
+    };
+    document.addEventListener('visibilitychange', hide);
+    return () => document.removeEventListener('visibilitychange', hide);
+  });
+  const completeNow = async (i: Item) => {
     if (i.status === 'done') return save(i, { status: statusFor(i.kind, i.waitingOn), completedAt: null }, 'reopened');
     if (i.repeat) {
       const next = nextDue(i.dueDate || clock.day, i.repeat);
@@ -397,7 +428,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
   );
   const rowBody = (i: Item, opts: { showArea?: boolean } = {}) => {
     const area = areaById[i.area || ''];
-    const done = i.status === 'done';
+    const done = i.status === 'done' || finishing.has(i.id);
     const overdue = isOpen(i) && !!i.dueDate && (i.dueDate < now || (i.dueDate === now && !!i.dueTime && i.dueTime < clock.time));
     const followUpDue = i.status === 'waiting' && !!i.followUpDate && i.followUpDate <= now;
     const meta = [
