@@ -1,6 +1,6 @@
 ---
 title: "Pattaya Traffic: When It's Worst and How to Live With It"
-description: "A Pattaya business owner of over 20 years on the city's traffic: why it's got worse, long holiday weekends, the roads to avoid, motorbikes versus cars, and how to make peace with it."
+description: "Pattaya traffic: why it's got worse, long holiday weekends, the roads to avoid, motorbikes versus cars, and how to make peace with it."
 category: Car Rental
 date: 2026-11-02
 ---

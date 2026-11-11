@@ -1,6 +1,6 @@
 ---
 title: "Gesundheit in Pattaya: Krankenhäuser, Kosten und warum Sie eine Versicherung brauchen"
-description: "Ein Einwohner Pattayas seit 20 Jahren über die Krankenhäuser, die seine Familie nutzt, was ein Besuch kostet und warum eine Krankenversicherung unverzichtbar ist, auch bei kurzen Aufenthalten."
+description: "Krankenhäuser in Pattaya: welche meine Familie nutzt, was ein Besuch kostet und warum eine Krankenversicherung unverzichtbar ist, auch bei kurzen Aufenthalten."
 category: Ratgeber
 date: 2026-11-02
 en: healthcare-in-pattaya

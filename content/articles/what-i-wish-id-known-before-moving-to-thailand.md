@@ -1,6 +1,6 @@
 ---
 title: "What I Wish I'd Known Before Moving to Thailand"
-description: "Twenty years after arriving, a Pattaya business owner on what surprised him about Thailand, the real downsides of moving here, what he'd do differently, and his advice."
+description: "What I wish I'd known before moving to Thailand: what surprised me, the real downsides, what I'd do differently, and my advice after 20 years."
 category: My Advice
 date: 2026-10-31
 ---
@@ -29,7 +29,7 @@ How welcoming and accommodating they are, and above all how tolerant. Some visit
 
 I'd do it all again, but there are real downsides, and you should know them before you come:
 
-- **You're only ever here on a visa.** Almost everyone lives on a visa that has to be renewed, and the rules change often. The DTV, for example, can last up to five years, but you're still classed as a tourist, not an immigrant. My [visa finder](/thai-visas) explains the options.
+- **You're only ever here on a visa.** Almost everyone lives on a visa that has to be renewed, and the rules change often. The DTV, for example, can last up to five years, but you're still classed as a tourist, not an immigrant ([how that compares with the UK](/articles/immigrants-in-the-uk-vs-foreigners-in-thailand)). My [visa finder](/thai-visas) explains the options.
 - **Opening a bank account is harder now.** You used to be able to do it as a tourist. Since the crackdown on scam centres, banks have become far stricter. Here's how it works now: [banking in Thailand for foreigners](/articles/banking-in-thailand-for-foreigners).
 - **You can't own land.** Foreign ownership of land is prohibited. You can buy a condo, but with a house you're usually looking at a lease of up to 30 years. More in [buying a house in Pattaya](/articles/buying-a-house-in-pattaya).
 - **You must have health insurance.** The private hospitals are very good, but you pay at the counter, and every policy has a limit. Check yours. More in [healthcare in Pattaya](/articles/healthcare-in-pattaya).

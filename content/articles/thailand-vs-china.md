@@ -1,6 +1,6 @@
 ---
 title: "Thailand vs China: Why I'm Always Glad to Come Home"
-description: "A Pattaya business owner who has visited China twice on how it compares with Thailand: cleaner and more organised, but harder to communicate and eat, plus where to go and the practical tips you need."
+description: "Thailand vs China after two visits: cleaner and more organised, but harder to communicate and eat. Where to go and the practical tips you need."
 category: My Advice
 date: 2026-11-10
 ---
@@ -28,4 +28,4 @@ China is more organised and a lot cleaner. And because it's such a huge country,
 - **Alipay is a must.** Everything runs on it: the metro, taxis, 7-Eleven. You barely need cash. Set it up before you go if you can, and link a couple of cards in case one fails. Each person needs their own account, because you tap your phone to get through the metro gates.
 - **Internet.** We had problems until we bought an eSIM through Trip.com, which worked well and was fast. Sites like YouTube, Facebook and Instagram are blocked in China, so to use them you'll need a VPN or a roaming package from home, which is what I used.
 
-This is part of my series comparing Thailand with other countries: [China](/articles/thailand-vs-china), [Vietnam](/articles/thailand-vs-vietnam), [Dubai](/articles/dubai-is-the-ferrari-thailand-is-the-tuk-tuk) and [Japan](/articles/thailand-vs-japan).
+This is part of my series comparing Thailand with other countries: China, [Vietnam](/articles/thailand-vs-vietnam), [Dubai](/articles/dubai-is-the-ferrari-thailand-is-the-tuk-tuk) and [Japan](/articles/thailand-vs-japan).

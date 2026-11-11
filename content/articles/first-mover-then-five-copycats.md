@@ -1,6 +1,6 @@
 ---
 title: "First Mover, Then Five Copycats: Competition in Pattaya"
-description: "A Pattaya owner of seven businesses on why a busy business attracts copycats fast, how padel went from one venue to five, what happened to Cajun Life Cafe, market dilution, and when to buy the competition."
+description: "Why a busy business in Pattaya attracts copycats fast: how padel went from one venue to five, what happened to Cajun Life Cafe, and when to buy the competition."
 category: My Advice
 date: 2026-11-09
 ---

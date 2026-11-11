@@ -1,6 +1,6 @@
 ---
 title: "Off-Plan vs Resale Condos in Pattaya"
-description: "The owner of two Pattaya property agencies on off-plan versus resale condos: why resale wins for a pure investment, how people make money flipping off-plan contracts, and the risks."
+description: "Off-plan vs resale condos in Pattaya: why resale wins for a pure investment, how people flip off-plan contracts, and the risks. From a property agency owner."
 category: Property
 date: 2026-11-07
 ---

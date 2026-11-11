@@ -1,6 +1,7 @@
 ---
 title: "Customer Service and Online Reviews: What I've Learned Across Seven Businesses"
-description: "A Pattaya owner of seven businesses on getting good Google reviews without pressure, handling bad and unfair reviews, who replies to what, and why response time is everything."
+seoTitle: "Customer Service and Online Reviews: Lessons From 7 Firms"
+description: "How to get good Google reviews without pressure, handle bad and unfair ones, decide who replies, and why response time is everything. From seven businesses."
 category: My Advice
 date: 2026-10-31
 ---

@@ -1,6 +1,6 @@
 ---
 title: "What Happens If You Get Arrested in Pattaya?"
-description: "A Pattaya business owner tells the story of someone he knows who was arrested for drink driving: the night in the cells, the petrol stop, the court day, the passport runaround, and what he'd advise today."
+description: "What happens if you're arrested in Pattaya: a drink-driving story with a night in the cells, the court day, the passport runaround, and my advice today."
 category: My Advice
 date: 2026-11-11
 ---

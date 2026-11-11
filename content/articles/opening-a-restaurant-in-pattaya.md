@@ -1,6 +1,6 @@
 ---
 title: "Opening a Restaurant in Pattaya: What Nobody Tells You"
-description: "A Pattaya restaurant owner on what nobody tells you before opening: how hard it is, why you need a year of cash in reserve, why friends won't save you, staff turnover and location."
+description: "Opening a restaurant in Pattaya: how hard it really is, why you need a year of cash in reserve, why friends won't save you, staff turnover and location."
 category: My Advice
 date: 2026-11-06
 ---

@@ -1,6 +1,6 @@
 ---
 title: "What I'd Do With ฿1 Million in Pattaya"
-description: "A Pattaya owner of seven businesses on what to do with ฿1 million if you want to stay in Pattaya: why he'd invest in skills, not property or a business, and what never to do with it."
+description: "What I'd do with ฿1 million to stay in Pattaya: why I'd invest in skills, not property or a business, and what never to do with it."
 category: My Advice
 date: 2026-11-05
 ---

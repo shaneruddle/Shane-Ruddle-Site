@@ -1,6 +1,6 @@
 ---
 title: "Pattaya's High Season Is Getting Shorter"
-description: "A Pattaya business owner of 20+ years on how high season has shrunk from seven months to about three and a half, why it's happening, and what it means for car rental and restaurants."
+description: "Pattaya's high season has shrunk from seven months to about three and a half. Why it's happening and what it means for car rental and restaurants."
 category: Pattaya News
 date: 2026-11-09
 ---

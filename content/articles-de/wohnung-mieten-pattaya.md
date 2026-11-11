@@ -1,6 +1,6 @@
 ---
 title: "Wohnung mieten in Pattaya: Was ich jedem Mieter sage"
-description: "Sie wollen in Pattaya eine Wohnung mieten? Übliche Mieten, Vertragslaufzeiten, Kaution, wer die Maklergebühr zahlt, Strom und Wasser, und warum das Gebäude wichtiger ist als die Wohnung."
+description: "Wohnung mieten in Pattaya: übliche Mieten, Vertragslaufzeiten, Kaution, wer die Maklergebühr zahlt, Nebenkosten und warum das Gebäude wichtiger ist."
 category: Immobilien
 date: 2026-11-02
 en: renting-a-condo-in-pattaya

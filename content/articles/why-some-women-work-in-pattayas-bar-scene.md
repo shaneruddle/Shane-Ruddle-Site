@@ -1,6 +1,6 @@
 ---
 title: "Why Some Women Work in Pattaya's Bar Scene"
-description: "A Pattaya business owner of 22 years on why some women work in the bar scene: money, family duty back home in Isan, the social side, and what outsiders often get wrong."
+description: "Why some women work in Pattaya's bar scene: money, family duty back home in Isan, the social side, and what outsiders often get wrong."
 category: Pattaya News
 date: 2026-11-09
 ---

@@ -1,6 +1,6 @@
 ---
 title: "Getting a Thai Driving Licence in Pattaya"
-description: "The owner of Pattaya Rent a Car on getting a Thai driving licence as a foreigner: when you need one, doing it yourself or with an agent, what to bring, the tests on the day, renewals and why it's worth having."
+description: "Getting a Thai driving licence as a foreigner: when you need one, doing it yourself or with an agent, what to bring, the tests on the day and renewals."
 category: Car Rental
 date: 2026-11-01
 updated: 2026-11-07

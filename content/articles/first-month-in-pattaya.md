@@ -1,6 +1,6 @@
 ---
 title: "Your First Month in Pattaya: What to Sort Out First"
-description: "A Pattaya business owner of over 20 years on the first month after moving to Pattaya: phone, renting below budget, visa, bank, licence and hospitals, plus the mistakes newcomers make."
+description: "Your first month in Pattaya: phone, renting below budget, visa, bank, licence and hospitals, plus the mistakes newcomers make. From 20 years here."
 category: My Advice
 date: 2026-11-02
 ---
@@ -37,4 +37,4 @@ The bigger mistake is taking the wrong advice. You meet a guy in a bar who's liv
 
 Get your Thai driving licence. It makes life here so much easier, from police checkpoints to using it as ID instead of your passport.
 
-For more, read [what I wish I'd known before moving to Thailand](/articles/what-i-wish-id-known-before-moving-to-thailand), [making friends in Pattaya](/articles/making-friends-in-pattaya) and [is Pattaya expensive?](/articles/is-pattaya-expensive)
+For more, read [what I wish I'd known before moving to Thailand](/articles/what-i-wish-id-known-before-moving-to-thailand), [making friends in Pattaya](/articles/making-friends-in-pattaya) and [is Pattaya expensive?](/articles/is-pattaya-expensive) For malls and markets, read [shopping in Pattaya](/articles/shopping-in-pattaya), and for what to eat, [Thai food for newcomers](/articles/thai-food-for-newcomers).

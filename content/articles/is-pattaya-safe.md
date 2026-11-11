@@ -25,7 +25,7 @@ The roads, whether you're in a car, a truck or on a motorbike.
 
 A lot of people on Thai roads shouldn't be there. Some don't have licences, some don't have the experience, and some aren't even old enough to drive. It's a bit of a Wild West.
 
-If you drive here for long enough, you will have an accident. It will most likely be minor, and it probably won't be your fault, but somebody will run into you. It's just inevitable, so bear that in mind.
+If you drive here for long enough, you will have an accident. It will most likely be minor, and it probably won't be your fault, but somebody will run into you. It's just inevitable, so bear that in mind. And no, [the foreigner doesn't always pay](/articles/does-the-foreigner-always-pay-after-an-accident).
 
 ## My safety tips for first-time visitors
 
@@ -33,4 +33,4 @@ Only rent a motorbike if you're very experienced and ride confidently. If you're
 
 Drive defensively, assume other drivers might do something unexpected, and read [what I tell every Pattaya Rent a Car customer about driving here](/articles/driving-in-pattaya).
 
-If you're bringing children, see [is Pattaya good for families?](/articles/is-pattaya-good-for-families), and for how the city has changed, read [why Pattaya's old reputation is out of date](/articles/pattaya-old-reputation-out-of-date).
+If you're bringing children, see [is Pattaya good for families?](/articles/is-pattaya-good-for-families), and for how the city has changed, read [why Pattaya's old reputation is out of date](/articles/pattaya-old-reputation-out-of-date). For two road-rage stories and why walking away matters, read [is Pattaya safe? Yes, unless you poke the bear](/articles/is-pattaya-safe-unless-you-poke-the-bear).

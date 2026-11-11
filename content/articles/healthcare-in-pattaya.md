@@ -1,5 +1,6 @@
 ---
 title: "Healthcare in Pattaya: Hospitals, Costs and Why You Need Insurance"
+seoTitle: "Healthcare in Pattaya: Hospitals, Costs and Insurance"
 description: "A Pattaya resident of 20 years on the hospitals his family uses, what a visit costs, and why health insurance is essential, even for short stays."
 category: My Advice
 date: 2026-10-30

@@ -1,6 +1,6 @@
 ---
 title: "The Best Business Advice I've Ever Been Given"
-description: "A Pattaya owner of seven businesses on the two pieces of advice that changed him, after his biggest failure and in how he treats staff, and what he'd pass on: persist, and choose your hard."
+description: "The two pieces of business advice that changed me, after my biggest failure and in how I treat staff, and what I'd pass on: persist, and choose your hard."
 category: My Advice
 date: 2026-11-06
 ---

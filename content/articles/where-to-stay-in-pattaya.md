@@ -1,6 +1,6 @@
 ---
 title: "Where to Stay in Pattaya: The Best Areas for Your Holiday"
-description: "A Pattaya business owner of over 20 years on where to stay on holiday: Naklua and Wongamat for families, central Pattaya for nightlife, Jomtien, condos for longer stays, and how to book."
+description: "Where to stay in Pattaya: Naklua and Wongamat for families, central Pattaya for nightlife, Jomtien, condos for longer stays, and how to book."
 category: My Advice
 date: 2026-11-02
 ---
@@ -31,4 +31,4 @@ Book early. In high season prices go up a lot, and some of the best hotels sell 
 
 I always book through Booking.com or Agoda. I like how easy and transparent they are, and the reviews. Read the reviews and comments, and make sure everything you expect is there.
 
-For more, read [the best time to visit Pattaya](/articles/best-time-to-visit-pattaya), [the best beaches around Pattaya](/articles/best-beaches-in-pattaya) and [things to do in Pattaya](/articles/things-to-do-in-pattaya).
+For more, read [the best time to visit Pattaya](/articles/best-time-to-visit-pattaya), [the best beaches around Pattaya](/articles/best-beaches-in-pattaya) and [things to do in Pattaya](/articles/things-to-do-in-pattaya). If you're coming in April, read [Songkran in Pattaya](/articles/songkran-in-pattaya) first.

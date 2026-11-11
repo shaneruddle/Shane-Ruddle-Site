@@ -1,6 +1,6 @@
 ---
 title: "Managing Foreign Staff vs Thai Staff in Pattaya"
-description: "A Pattaya owner of seven businesses on the differences between managing foreign and Thai staff: communication, motivation, feedback, friction, loyalty, and which to hire as a manager."
+description: "Managing foreign vs Thai staff in Pattaya: communication, motivation, feedback, friction and loyalty, and which to hire as a manager."
 category: My Advice
 date: 2026-11-06
 ---

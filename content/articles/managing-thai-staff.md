@@ -1,6 +1,7 @@
 ---
 title: "Managing Thai Staff: What I've Learned Running Seven Businesses"
-description: "A Pattaya owner of seven businesses on managing Thai staff: how to talk to your team, why face matters, how to keep good people, and why building a team takes longer than you think."
+seoTitle: "Managing Thai Staff: Lessons From Seven Businesses"
+description: "Managing Thai staff: how to talk to your team, why face matters, how to keep good people, and why building a team takes longer than you think."
 category: My Advice
 date: 2026-10-31
 ---
@@ -32,4 +33,4 @@ It takes a lot longer than you think to build the team you want. Expect very hig
 
 People will come and go. Eventually a few will fit and stay, and you might not know why they stay either. Maybe they've just moved to a room within walking distance. Then you build on that core team, and that can take a lot longer than you'd expect.
 
-If you're thinking of hiring from abroad, read my advice on [hiring foreign staff in Pattaya](/articles/hiring-foreign-staff-in-pattaya), and for the bigger picture, [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya). And if it's a restaurant you're running, here's [what I've learned running Hemingways](/articles/running-a-restaurant-and-bar-in-pattaya).
+If you're thinking of hiring from abroad, read my advice on [hiring foreign staff in Pattaya](/articles/hiring-foreign-staff-in-pattaya), and for the bigger picture, [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya). And if it's a restaurant you're running, here's [what I've learned running Hemingways](/articles/running-a-restaurant-and-bar-in-pattaya). If you also employ foreigners, read [managing foreign vs Thai staff](/articles/managing-foreign-staff-vs-thai-staff).

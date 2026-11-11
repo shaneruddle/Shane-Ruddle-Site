@@ -1,6 +1,7 @@
 ---
 title: "Setting Up Your Own Business in Pattaya Instead of Getting a Job"
-description: "A Pattaya owner of seven businesses on starting your own business instead of taking a job: what to start, what it costs, and why it's harder than it was 20 years ago."
+seoTitle: "Setting Up a Business in Pattaya Instead of Getting a Job"
+description: "Starting your own business in Pattaya instead of taking a job: what to start, what it costs, and why it's harder than it was 20 years ago."
 category: My Advice
 date: 2026-11-03
 ---
@@ -39,4 +40,4 @@ Honestly, though, the world has changed so much that starting from scratch is ve
 
 If you're set on starting from scratch, keep the risk low. Don't invest too much until you've found your feet. You can always scale up later, or pivot to a different business. Start with only as much money as you can afford to lose, because a lot of people come here and lose it all. If you've only got around ฿1 million, here's [what I'd do with it instead](/articles/what-id-do-with-1-million-baht-in-pattaya).
 
-For the ownership rules and Thai partners, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya). This is part of my series on working in Pattaya: read [finding a job as a foreigner](/articles/finding-a-job-in-pattaya), [teaching English](/articles/teaching-english-in-pattaya), [working in hospitality](/articles/working-in-hospitality-in-pattaya) and [working remotely](/articles/working-remotely-in-pattaya).
+For the ownership rules and Thai partners, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya). This is part of my series on working in Pattaya: read [finding a job as a foreigner](/articles/finding-a-job-in-pattaya), [teaching English](/articles/teaching-english-in-pattaya), [working in hospitality](/articles/working-in-hospitality-in-pattaya) and [working remotely](/articles/working-remotely-in-pattaya). Once you're open, read [marketing a small business in Pattaya](/articles/marketing-a-small-business-in-pattaya).

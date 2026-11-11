@@ -1,6 +1,6 @@
 ---
 title: "The Biggest Mistakes People Make With AI"
-description: "A Pattaya business owner who uses AI every day on the biggest mistakes people make with it: writing it off as a fad, trusting it blindly, believing its flattery, and getting careless with passwords and keys."
+description: "The biggest mistakes people make with AI, from a business owner who uses it daily: calling it a fad, trusting it blindly, believing its flattery, leaking keys."
 category: My Advice
 date: 2026-11-07
 ---

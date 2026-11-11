@@ -1,6 +1,7 @@
 ---
 title: "Getting Around Pattaya Without a Car: Baht Buses, Motorbike Taxis and Bolt"
-description: "A Pattaya business owner of 20 years on getting around the city: motorbike taxis, baht buses and how they really work, Bolt and Grab, and which to choose depending on how long you're staying."
+seoTitle: "Getting Around Pattaya Without a Car: Baht Buses and Bolt"
+description: "Getting around Pattaya: motorbike taxis, baht buses and how they really work, Bolt and Grab, and which to choose depending on how long you're staying."
 category: My Advice
 date: 2026-11-02
 ---

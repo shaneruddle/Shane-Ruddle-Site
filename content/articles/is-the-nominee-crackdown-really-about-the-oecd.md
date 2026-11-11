@@ -1,6 +1,6 @@
 ---
 title: "Is the Nominee Crackdown Really About the OECD?"
-description: "A Pattaya property agency owner on Thailand's bid to join the OECD, why he thinks it's connected to the nominee company crackdown, and the change he expects next. His theory, clearly labelled, not legal advice."
+description: "Is Thailand's nominee company crackdown about joining the OECD? A Pattaya property agency owner's theory, clearly labelled, and the change he expects next."
 category: Property
 date: 2026-11-11
 ---

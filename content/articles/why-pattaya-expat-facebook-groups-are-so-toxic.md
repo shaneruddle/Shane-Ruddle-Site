@@ -1,6 +1,6 @@
 ---
 title: "Why Pattaya's Expat Facebook Groups Are So Toxic"
-description: "A Pattaya owner of seven businesses on why local expat Facebook groups are so negative, why he and his managers don't engage, the \"it's not for you\" problem, and how businesses and newcomers should handle them."
+description: "Why Pattaya expat Facebook groups are so negative, why my managers and I don't engage, the 'it's not for you' problem, and how to handle them."
 category: My Advice
 date: 2026-11-09
 ---

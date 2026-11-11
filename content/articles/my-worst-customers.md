@@ -39,4 +39,4 @@ Part of the problem was that he expected things to work the way they do back hom
 
 ## My advice: be reasonable
 
-If you end up in a dispute over a deposit, wear and tear or anything else, keep a cool head and work with your agency. We've done this a lot longer than you, and we know how these things play out here. I was trying to find an outcome that was reasonable for everyone. In any conflict in Thailand, being reasonable gets you much further than threatening lawyers. More in [renting a condo in Pattaya](/articles/renting-a-condo-in-pattaya).
+If you end up in a dispute over a deposit, wear and tear or anything else, keep a cool head and work with your agency. We've done this a lot longer than you, and we know how these things play out here. I was trying to find an outcome that was reasonable for everyone. In any conflict in Thailand, being reasonable gets you much further than threatening lawyers. More in [renting a condo in Pattaya](/articles/renting-a-condo-in-pattaya). For the other end of the scale, read [why my best customers are other business owners](/articles/why-my-best-customers-are-other-business-owners).

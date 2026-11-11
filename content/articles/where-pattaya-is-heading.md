@@ -1,6 +1,6 @@
 ---
 title: "Where Pattaya Is Heading: My View of the Next 10 Years"
-description: "A Pattaya business owner of 20 years on where the city is heading: steady growth, why he's sceptical of big infrastructure promises, Jomtien as the growth area, a shift to Asian visitors, and whether to invest."
+description: "Where Pattaya is heading: steady growth, why I'm sceptical of big infrastructure promises, Jomtien as the growth area, more Asian visitors, and investing."
 category: Pattaya News
 date: 2026-11-01
 ---
@@ -15,7 +15,7 @@ There could be a big jump if the [U-Tapao Airport expansion](/pattaya-future) en
 
 ## Why am I sceptical about the big projects?
 
-The track record. The U-Tapao plans have been around a long time and it should have been done already. The same goes for the monorail that keeps being talked about, and at one point cruise ships coming into the bay. Lots of projects that would have transformed the city have never happened. Whether it's environmental studies or finance, I don't know the details, but they just haven't come off.
+The track record. The U-Tapao plans have been around a long time and it should have been done already. The same goes for the monorail that keeps being talked about, and at one point cruise ships coming into the bay. Lots of projects that would have transformed the city have never happened. Whether it's environmental studies or finance, I don't know the details, but they just haven't come off. One idea tied to U-Tapao that I don't expect to see is [a casino resort](/articles/casinos-in-pattaya).
 
 The one big project I've seen actually happen in 20 years is the motorway from Bangkok. When I first arrived you had to go along Sukhumvit, and Bangkok was easily two and a half to three hours away. Motorway 7 has roughly halved that.
 
@@ -45,4 +45,4 @@ I would still put money here. I think Pattaya has a lot of growth left in it. Th
 
 If the world goes into another recession or a market crash, the next ten years could look very different. And I know Thailand's official growth figures are low compared with its neighbours. But Pattaya is a bit of an economy within an economy, and I think it's pretty resilient to a lot of that outside noise. That's my view, not financial advice.
 
-For more, read [the Pattaya property market right now](/articles/pattaya-property-market), [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya) and [how my businesses got through COVID](/articles/how-my-businesses-got-through-covid).
+For more, read [the Pattaya property market right now](/articles/pattaya-property-market), [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya) and [how my businesses got through COVID](/articles/how-my-businesses-got-through-covid). On all the new condos, read [is Pattaya overbuilt?](/articles/is-pattaya-overbuilt)

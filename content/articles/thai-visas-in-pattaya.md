@@ -1,6 +1,6 @@
 ---
 title: "Visas in Pattaya: What 20 Years Here Has Taught Me"
-description: "A Pattaya business owner's experience of Thai visas: the business visa, retirement visas, the DTV for remote workers, and the costly mistake of choosing the wrong one."
+description: "My experience of Thai visas in Pattaya: the business visa, retirement visas, the DTV for remote workers, and the costly mistake of choosing the wrong one."
 category: My Advice
 date: 2026-10-30
 ---

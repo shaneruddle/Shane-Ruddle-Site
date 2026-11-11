@@ -1,6 +1,6 @@
 ---
 title: "How to Survive the Tougher Years in Pattaya"
-description: "A Pattaya owner of seven businesses on getting through a harder market: why established businesses will be fine, why newcomers fail faster, playing defence on costs, and the opportunities a downturn creates."
+description: "How to survive a tougher Pattaya market: why established businesses will be fine, why newcomers fail faster, cutting costs and the chances a downturn creates."
 category: My Advice
 date: 2026-11-09
 ---

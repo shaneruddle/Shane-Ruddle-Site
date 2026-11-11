@@ -1,6 +1,6 @@
 ---
 title: "Thailand vs Japan: The Only Country in the Same League"
-description: "A Pattaya business owner who has visited Japan several times on why it's the only country he's been to that's in the same league as Thailand, and why Thailand still edges it for him."
+description: "Thailand vs Japan: why Japan is the only country I've visited in the same league as Thailand, and why Thailand still edges it for me."
 category: My Advice
 date: 2026-11-10
 ---
@@ -29,4 +29,4 @@ I haven't been everywhere, but of all the countries I've visited, Japan is the o
 
 When I was skiing in Niseko, a lot of the people serving us were Australians, many of them presumably on working holiday visas. My impression is that working in Japan can be easier for some foreigners than working in Thailand, where many jobs are reserved for Thais. More in [finding a job in Pattaya](/articles/finding-a-job-in-pattaya) and [working in hospitality in Pattaya](/articles/working-in-hospitality-in-pattaya).
 
-This is part of my series comparing Thailand with other countries: [China](/articles/thailand-vs-china), [Vietnam](/articles/thailand-vs-vietnam), [Dubai](/articles/dubai-is-the-ferrari-thailand-is-the-tuk-tuk) and [Japan](/articles/thailand-vs-japan).
+This is part of my series comparing Thailand with other countries: [China](/articles/thailand-vs-china), [Vietnam](/articles/thailand-vs-vietnam), [Dubai](/articles/dubai-is-the-ferrari-thailand-is-the-tuk-tuk) and Japan.

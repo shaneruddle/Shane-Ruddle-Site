@@ -1,6 +1,6 @@
 ---
 title: "My Biggest Business Failure, and What It Taught Me"
-description: "A Pattaya owner of seven businesses on his one real failure, the golf range that gave birth to Pattaya Rent a Car, how he exited the businesses that didn't work, and his advice on when to keep going and when to let go."
+description: "My biggest business failure: the golf range that gave birth to Pattaya Rent a Car, how I exited what didn't work, and when to keep going or let go."
 category: My Advice
 date: 2026-11-01
 ---
@@ -43,4 +43,4 @@ I think most businesses fail because they run out of money. So if you have real 
 
 Either way, drop the ego and look at the numbers. Try to take out the emotion, the passion and the fact that you started it. Weigh up the emotional cost of keeping a failing business, not just the financial cost. Letting it go is hard, especially when you're taking a big loss, but it frees you to move on to the next business and, hopefully, make that money back.
 
-For more, read [from bar manager to seven businesses](/articles/bar-manager-to-7-businesses), [business partners](/articles/business-partners-in-pattaya) and [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya).
+For more, read [from bar manager to seven businesses](/articles/bar-manager-to-7-businesses), [business partners](/articles/business-partners-in-pattaya) and [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya). For worse deals than mine, read [the worst business deals I've seen in Pattaya](/articles/worst-business-deals-ive-seen-in-pattaya).

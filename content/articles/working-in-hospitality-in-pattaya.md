@@ -1,6 +1,7 @@
 ---
 title: "Working in Hospitality in Pattaya: Jobs, Hiring and How to Get In"
-description: "A Pattaya owner of restaurants and pubs on working in hospitality as a foreigner: the four main roles, what he looks for when hiring a manager, and how to get a foot in the door at hotels and small restaurants."
+seoTitle: "Working in Hospitality in Pattaya: Jobs and How to Get In"
+description: "Working in hospitality in Pattaya as a foreigner: the four main roles, what I look for in a manager, and how to get a foot in the door."
 category: My Advice
 date: 2026-11-03
 ---

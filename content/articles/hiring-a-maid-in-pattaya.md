@@ -1,6 +1,6 @@
 ---
 title: "Hiring a Maid or Housekeeper in Pattaya"
-description: "A Pattaya business owner of 20 years on hiring a maid or housekeeper: how common it is, what it costs, why live-in quarters matter, how to find someone good and work permits for staff from neighbouring countries."
+description: "Hiring a maid in Pattaya: how common it is, what it costs, why live-in quarters matter, how to find someone good and work permits for neighbouring nationals."
 category: My Advice
 date: 2026-11-02
 ---

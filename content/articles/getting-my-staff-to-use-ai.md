@@ -1,6 +1,6 @@
 ---
 title: "Getting My Staff to Use AI: Persistence Beats Resistance"
-description: "A Pattaya owner of seven businesses on the hardest part of bringing in AI and new tech: getting managers and staff on board, why people resist, and why in the end he forces the change."
+description: "The hardest part of bringing AI into seven Pattaya businesses: getting managers and staff on board, why people resist, and why I end up forcing the change."
 category: My Advice
 date: 2026-11-07
 ---

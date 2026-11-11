@@ -1,6 +1,6 @@
 ---
 title: "Bangkok Airport to Pattaya: How to Get There"
-description: "Getting from Suvarnabhumi Airport to Pattaya, from the owner of Pattaya Rent a Car: taxi, Grab and Bolt, airport car hire, and why he'd always take a taxi first."
+description: "Suvarnabhumi Airport to Pattaya from the owner of Pattaya Rent a Car: taxi, Grab and Bolt, airport car hire, and why he'd always take a taxi first."
 category: Car Rental
 date: 2026-10-30
 ---

@@ -1,6 +1,7 @@
 ---
 title: "Staying Fit and Active in Pattaya: Padel, Running and Why I Quit Drinking"
-description: "A 45-year-old Pattaya business owner on staying active: the growing padel scene, running in the heat, why he fell out of love with golf, and what giving up alcohol changed."
+seoTitle: "Staying Fit in Pattaya: Padel, Running and Quitting Drinking"
+description: "Staying fit in Pattaya at 45: the growing padel scene, running in the heat, why I fell out of love with golf, and what giving up alcohol changed."
 category: My Advice
 date: 2026-10-31
 ---

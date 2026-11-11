@@ -53,7 +53,7 @@ One thing that hasn't changed much is safety, and that's a good thing. Pattaya w
 
 Which brings me to the question people always ask. I won't pretend Pattaya's nightlife has disappeared. It hasn't. What has changed is where it is.
 
-Ten or twenty years ago, it was all over town. Drive around and you'd see it everywhere. Today it's concentrated in dedicated areas, mainly Walking Street, Soi Buakhao and a small part of Jomtien.
+Ten or twenty years ago, it was all over town. Drive around and you'd see it everywhere. Today it's concentrated in dedicated areas, mainly Walking Street, Soi Buakhao and a small part of Jomtien. More in [should Pattaya ditch Walking Street?](/articles/should-pattaya-ditch-walking-street)
 
 That's no different from many major cities. Amsterdam, New York and parts of Japan all have their entertainment districts, and Pattaya now works the same way. You can drive around most of the city and never really know there's a big nightlife scene here at all.
 

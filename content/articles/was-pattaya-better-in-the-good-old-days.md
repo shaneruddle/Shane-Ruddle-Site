@@ -1,6 +1,6 @@
 ---
 title: "Was Pattaya Better in the Good Old Days?"
-description: "A Pattaya business owner who arrived 20 years ago on whether the city really was better back then: quieter, older and simpler, but also lawless, and whether he'd go back."
+description: "Was Pattaya better in the good old days? Quieter, older and simpler, but also lawless. A business owner who arrived 20 years ago on whether he'd go back."
 category: Pattaya News
 date: 2026-11-06
 ---
@@ -17,7 +17,7 @@ Back then hardly any foreigners worked here, either. The work was left to Thais,
 
 ## What was worse
 
-It was still chaotic, just in a different way. It wasn't crowds, it was rules being broken everywhere. Drink-driving, for example, was illegal but almost everyone did it. It really was the Wild West.
+It was still chaotic, just in a different way. It wasn't crowds, it was rules being broken everywhere. Drink-driving, for example, was illegal but almost everyone did it. It really was the Wild West. Today it can land you in a cell: [what happens if you get arrested in Pattaya](/articles/what-happens-if-you-get-arrested-in-pattaya).
 
 To be honest, that was part of the appeal for many of us. Life in the West had become all paperwork and bureaucracy, and here you could get things done without the red tape. A lot of people miss that. But it came with real risks. More in [my tips for the road in Pattaya](/articles/my-tips-for-the-road-in-pattaya).
 

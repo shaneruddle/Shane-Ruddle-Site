@@ -1,5 +1,6 @@
 ---
 title: "Leases, Landlords and Paperwork When Buying a Business in Pattaya"
+seoTitle: "Business Leases and Landlords in Pattaya: What to Check"
 description: "A Pattaya owner of seven businesses on short leases, key money, meeting the landlord, and why he always takes over the existing company when he buys."
 category: My Advice
 date: 2026-11-03
@@ -35,4 +36,4 @@ You do take on some liabilities. Debts are less of a worry than people think, be
 
 But that's what you're buying. If I found myself thinking I didn't want to take on the company because I wasn't sure about something, that would be a red flag, and I'd walk away from the deal altogether.
 
-This is part of my series on buying a business in Pattaya: [why buy rather than start](/articles/why-buy-a-business-in-pattaya), [how to value a business](/articles/valuing-a-business-in-pattaya), [leases, landlords and paperwork](/articles/business-leases-and-landlords-in-pattaya) and [taking over: the first few months](/articles/taking-over-a-business-in-pattaya). For the basics, including foreign ownership rules, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya). Found one you like? Run it through my [deal checker](/business-in-pattaya/buying-a-business) before you agree a price.
+This is part of my series on buying a business in Pattaya: [why buy rather than start](/articles/why-buy-a-business-in-pattaya), [how to value a business](/articles/valuing-a-business-in-pattaya), leases, landlords and paperwork and [taking over: the first few months](/articles/taking-over-a-business-in-pattaya). For the basics, including foreign ownership rules, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya). Found one you like? Run it through my [deal checker](/business-in-pattaya/buying-a-business) before you agree a price.

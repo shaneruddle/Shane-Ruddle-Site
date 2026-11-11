@@ -1,6 +1,6 @@
 ---
 title: "Is Pattaya Safe? Yes, Unless You Poke the Bear"
-description: "A Pattaya business owner of 20-plus years on whether Pattaya is safe: two real road-rage stories, why small provocations can lead to big overreactions, and why learning to walk away keeps you out of trouble."
+description: "Is Pattaya safe? Two real road-rage stories, why small provocations lead to big overreactions, and why walking away keeps you out of trouble."
 category: My Advice
 date: 2026-11-11
 ---

@@ -1,6 +1,7 @@
 ---
 title: "Buying or Renting a Car in Thailand: Advice From a Rental Company Owner"
-description: "Should you buy or rent a car in Thailand? The owner of Pattaya Rent a Car on the one-year rule, buying as a foreigner, second-hand pitfalls, insurance, monthly rentals and selling up."
+seoTitle: "Buying vs Renting a Car in Thailand: A Rental Owner's View"
+description: "Buy or rent a car in Thailand? A rental company owner on the one-year rule, buying as a foreigner, second-hand pitfalls, insurance and monthly rentals."
 category: Car Rental
 date: 2026-10-31
 ---

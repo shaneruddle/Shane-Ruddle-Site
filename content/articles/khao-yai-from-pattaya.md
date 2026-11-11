@@ -1,5 +1,6 @@
 ---
 title: "Khao Yai from Pattaya: Jungle Treks, Resorts and Wild Elephants"
+seoTitle: "Khao Yai from Pattaya: Jungle Treks, Resorts and Elephants"
 description: "A Pattaya business owner on Khao Yai: driving there, the national park, guided jungle treks, camping, resorts and wineries, and the best time to go."
 category: My Advice
 date: 2026-11-04
@@ -41,4 +42,4 @@ The cooler months of the high season, roughly January to March. You spend a lot 
 
 If you need a car for the trip, [Pattaya Rent a Car](https://pattayarentacar.com) can help, and before you go, read [driving in Pattaya](/articles/driving-in-pattaya).
 
-This is part of my series on trips from Pattaya: [Koh Chang](/articles/koh-chang-from-pattaya), [Kanchanaburi](/articles/kanchanaburi-from-pattaya), [Bang Saen](/articles/bang-saen-from-pattaya), [Bang Saray](/articles/bang-saray-from-pattaya), [Sukhothai](/articles/sukhothai-from-pattaya), [Khao Yai](/articles/khao-yai-from-pattaya), [Rayong](/articles/rayong-from-pattaya), [Ayutthaya](/articles/ayutthaya-from-pattaya) and [Chiang Mai](/articles/chiang-mai-from-pattaya). For shorter outings, read [the best day trips from Pattaya](/articles/best-day-trips-from-pattaya), or use my [trips from Pattaya planner](/trips-from-pattaya) to compare drive times and costs.
+This is part of my series on trips from Pattaya: [Koh Chang](/articles/koh-chang-from-pattaya), [Kanchanaburi](/articles/kanchanaburi-from-pattaya), [Bang Saen](/articles/bang-saen-from-pattaya), [Bang Saray](/articles/bang-saray-from-pattaya), [Sukhothai](/articles/sukhothai-from-pattaya), Khao Yai, [Rayong](/articles/rayong-from-pattaya), [Ayutthaya](/articles/ayutthaya-from-pattaya) and [Chiang Mai](/articles/chiang-mai-from-pattaya). For shorter outings, read [the best day trips from Pattaya](/articles/best-day-trips-from-pattaya), or use my [trips from Pattaya planner](/trips-from-pattaya) to compare drive times and costs.

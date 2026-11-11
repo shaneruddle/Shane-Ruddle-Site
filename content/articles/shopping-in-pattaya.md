@@ -1,6 +1,6 @@
 ---
 title: "Shopping in Pattaya: An Honest Guide"
-description: "A Pattaya business owner of 20 years on shopping in Pattaya: Central Festival, Terminal 21, Thepprasit night market, haggling, and why Pattaya isn't really a shopping destination."
+description: "Shopping in Pattaya: Central Festival, Terminal 21, Thepprasit night market, haggling, and why Pattaya isn't really a shopping destination."
 category: My Advice
 date: 2026-11-02
 ---

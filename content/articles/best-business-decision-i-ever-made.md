@@ -1,6 +1,6 @@
 ---
 title: "The Best Business Decision I Ever Made"
-description: "The owner of Pattaya Rent a Car on doubling his fleet from 50 to 100 cars after COVID: how he spotted the coming demand spike abroad, why he went in with conviction, and the lesson for other owners."
+description: "Doubling Pattaya Rent a Car's fleet from 50 to 100 cars after COVID: how I spotted the demand spike coming, why I went in hard, and the lesson for owners."
 category: My Advice
 date: 2026-11-10
 ---

@@ -1,5 +1,6 @@
 ---
 title: "Hiring Foreign Staff in Pattaya: Finding Them Is Hard, Keeping Them Is Harder"
+seoTitle: "Hiring Foreign Staff in Pattaya: Finding and Keeping Them"
 description: "After 20+ years running businesses in Pattaya, here's what I look for in foreign staff, why people leave, and how I keep the good ones for years."
 category: My Advice
 date: 2026-10-19

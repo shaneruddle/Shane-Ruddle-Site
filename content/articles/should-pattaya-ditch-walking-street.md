@@ -1,6 +1,6 @@
 ---
 title: "Should Pattaya Ditch Walking Street? No, Zone It"
-description: "A Pattaya business owner of 22 years on why the city shouldn't scrap Walking Street, why it doesn't put off families or property buyers, what really stops Pattaya being family-friendly, and why entertainment should be zoned and out of sight."
+description: "Should Pattaya scrap Walking Street? Why it doesn't put off families or buyers, what really stops Pattaya being family-friendly, and why zoning is the answer."
 category: Pattaya News
 date: 2026-11-09
 ---

@@ -1,6 +1,7 @@
 ---
 title: "How My Mindset in Thailand Has Changed: From Throwaway to Careful"
-description: "A Pattaya business owner on how he went from taking Thailand for granted to treading carefully: a lost temper at immigration, the risk of deportation, and why money, family and maturity changed how he handles frustration."
+seoTitle: "How My Mindset in Thailand Has Changed"
+description: "From taking Thailand for granted to treading carefully: a lost temper at immigration, the risk of deportation, and what changed how I handle frustration."
 category: My Advice
 date: 2026-11-11
 ---
@@ -41,4 +42,4 @@ She didn't react. She's still my visa agent and still a friend. I'm sure I lost 
 
 ## My advice
 
-If you're new here, learn this early. Being right isn't enough. Keep your cool, especially in a government office, because the consequences of losing it are far bigger than whatever you're upset about. More in [cultural mistakes in Thailand](/articles/cultural-mistakes-in-thailand).
+If you're new here, learn this early. Being right isn't enough. Keep your cool, especially in a government office, because the consequences of losing it are far bigger than whatever you're upset about. More in [cultural mistakes in Thailand](/articles/cultural-mistakes-in-thailand). For how Thailand treats foreigners compared with the UK, read [immigrants in the UK vs foreigners in Thailand](/articles/immigrants-in-the-uk-vs-foreigners-in-thailand).

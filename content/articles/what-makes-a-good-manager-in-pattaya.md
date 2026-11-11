@@ -1,6 +1,6 @@
 ---
 title: "What Makes a Good Manager in Pattaya"
-description: "A Pattaya owner of seven businesses on what separates a good manager from a bad one here: adaptability, earning respect from Thai staff, and keeping a level head."
+description: "What makes a good manager in Pattaya: adaptability, earning respect from Thai staff, and keeping a level head. From an owner of seven businesses."
 category: My Advice
 date: 2026-11-06
 ---

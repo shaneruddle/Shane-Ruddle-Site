@@ -1,6 +1,7 @@
 ---
 title: "Buying a House in Pattaya as a Foreigner: Why I'd Rent Instead"
-description: "Can a foreigner buy a house in Pattaya? The land rules, 30-year leases, company structures and Thai-spouse purchases explained, and why I'd rent a house instead."
+seoTitle: "Can a Foreigner Buy a House in Pattaya? Why I'd Rent"
+description: "Can a foreigner buy a house in Pattaya? Land rules, 30-year leases, company structures and Thai-spouse purchases explained, and why I'd rent instead."
 category: Property
 date: 2026-10-29
 ---
@@ -13,7 +14,7 @@ No. Foreign ownership of land is prohibited. There are a few ways people try to 
 
 **Owning the house but not the land.** You can own a house in your own name, but not the land it's built on. That means whoever owns the land could, at any time, take it back and lock you out of your house.
 
-**Buying through a company.** In the past, people bought land through a company. It can still be done with a genuinely trading company, but as a foreigner you can legally own only 49% of it, so you only ever hold a minority share of the land or property. The Thai shareholders have to be genuine, too: using nominees is illegal. If you go this way, have a Thai lawyer set it up properly.
+**Buying through a company.** In the past, people bought land through a company. It can still be done with a genuinely trading company, but as a foreigner you can legally own only 49% of it, so you only ever hold a minority share of the land or property. The Thai shareholders have to be genuine, too: using nominees is illegal. If you go this way, have a Thai lawyer set it up properly. More in [nominee companies in Thailand](/articles/nominee-companies-in-thailand).
 
 ## How does a 30-year lease work?
 
@@ -46,4 +47,4 @@ Getting bad advice, whether from an estate agent or sometimes even a lawyer. The
 
 There are real risks. Get a second opinion, and don't assume that advice is sound just because it comes from a lawyer.
 
-If you'd rather own something outright, a condo is the route the law allows foreigners. I've covered that in [buying a condo in Pattaya as a foreigner](/articles/buying-a-condo-in-pattaya). And if you're looking for a house to rent, [East Coast Real Estate](https://thaiproperty.com) can show you what's available.
+If you'd rather own something outright, a condo is the route the law allows foreigners. I've covered that in [buying a condo in Pattaya as a foreigner](/articles/buying-a-condo-in-pattaya). And if you're looking for a house to rent, [East Coast Real Estate](https://thaiproperty.com) can show you what's available. On whether the rules should change, read [99-year leases and the condo quota](/articles/foreign-ownership-99-year-leases-and-condo-quota).

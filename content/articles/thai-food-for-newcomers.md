@@ -1,6 +1,6 @@
 ---
 title: "Thai Food: What to Try First and What to Watch Out For"
-description: "A Pattaya restaurant owner of over 20 years on Thai food for newcomers: the first dishes to try, ordering without spice, street food on a short holiday, and why Thai is one of the world's great cuisines."
+description: "Thai food for newcomers from a Pattaya restaurant owner: the first dishes to try, ordering without spice, street food on a short holiday, and what to love."
 category: My Advice
 date: 2026-11-03
 ---

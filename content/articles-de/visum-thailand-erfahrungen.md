@@ -1,6 +1,6 @@
 ---
 title: "Visum für Thailand: Was mich 20 Jahre in Pattaya gelehrt haben"
-description: "Die Erfahrungen eines Unternehmers in Pattaya mit thailändischen Visa: Business-Visum, Rentnervisum, das DTV für Remote-Arbeiter und der teure Fehler, das falsche Visum zu wählen."
+description: "Meine Erfahrungen mit thailändischen Visa in Pattaya: Business-Visum, Rentnervisum, das DTV für Remote-Arbeiter und der teure Fehler, das falsche zu wählen."
 category: Ratgeber
 date: 2026-11-02
 en: thai-visas-in-pattaya

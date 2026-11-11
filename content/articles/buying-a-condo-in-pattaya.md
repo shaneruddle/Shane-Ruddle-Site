@@ -1,6 +1,7 @@
 ---
 title: "Buying a Condo in Pattaya as a Foreigner: What I Tell Every Buyer"
-description: "Can foreigners own a condo in Thailand? Yes. Here's how the 49% rule really works, the buying steps, the fees, off-plan vs resale, and how to buy smart in Pattaya."
+seoTitle: "Buying a Condo in Pattaya as a Foreigner (2026 Guide)"
+description: "Can foreigners own a condo in Thailand? Yes. How the 49% rule works, the buying steps and fees, off-plan vs resale, and how to buy smart in Pattaya."
 category: Property
 date: 2026-10-29
 ---
@@ -43,13 +44,13 @@ The downside is that you're buying a promise, not a finished building. My advice
 
 ## What's the biggest mistake foreign buyers make?
 
-Using freelance agents. I still don't understand it. People meet someone on Facebook and trust them with a purchase worth millions of baht in a foreign country. There's no licensing for estate agents in Thailand, so with a freelancer, the accountability starts and finishes with that one person and their integrity. They often don't have an office and aren't attached to an agency with a track record.
+Using freelance agents. I still don't understand it. People meet someone on Facebook and trust them with a purchase worth millions of baht in a foreign country. There's no licensing for estate agents in Thailand, so with a freelancer, the accountability starts and finishes with that one person and their integrity. They often don't have an office and aren't attached to an agency with a track record. More in [the biggest mistakes property buyers make](/articles/biggest-mistakes-property-buyers-make-in-pattaya).
 
 Go to a reputable agency that's been around for years. That's easy for me to say, because I own two of them. But I honestly believe that if I didn't, I'd still give a new buyer exactly the same advice.
 
 ## Is it worth renting out your condo?
 
-Short term, I don't think so. Preparing the condo, doing the inventory, handling check-ins and check-outs: it's a lot of hassle. More and more buildings are restricting short-term rentals anyway. And every new guest is another chance of a bad tenant.
+Short term, I don't think so. Preparing the condo, doing the inventory, handling check-ins and check-outs: it's a lot of hassle. More and more buildings are restricting short-term rentals anyway. And every new guest is another chance of a bad tenant. It's also [why our agencies don't do short-term rentals](/articles/why-our-agencies-dont-do-short-term-rentals).
 
 Long term is different. If you've bought as an investment, one good tenant with an agency managing it for you is a relatively passive income. Expect a yearly return of around 5 to 8%, which is roughly in line with property worldwide. I've written a separate guide to [renting out your condo](/articles/renting-out-your-condo-in-pattaya).
 
@@ -67,4 +68,4 @@ But here's the thing. The people I've met over the years who made money from pro
 
 Foreign ownership here is straightforward if you know the rules. Bring your money in properly, understand the fees, choose a reputable developer or a solid resale, and work with an agency that's accountable. Most of all, pick the building as carefully as the unit. That's where the money is made.
 
-If you're thinking of buying, [East Coast Real Estate](https://thaiproperty.com) and [Alan Bolton Property Consultants](https://pattaya-property.net) can help you find the right building and the right unit.
+If you're thinking of buying, [East Coast Real Estate](https://thaiproperty.com) and [Alan Bolton Property Consultants](https://pattaya-property.net) can help you find the right building and the right unit. If you're weighing a new build against an existing unit, read [off-plan vs resale condos](/articles/off-plan-vs-resale-condos-in-pattaya).

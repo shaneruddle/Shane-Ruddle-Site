@@ -1,6 +1,6 @@
 ---
 title: "Dubai Is the Ferrari, Thailand Is the Tuk-Tuk"
-description: "A Pattaya business owner on a family trip to Dubai: safe, spectacular and brilliant for kids, but expensive and, to him, lacking the depth that makes Thailand home."
+description: "Dubai vs Thailand after a family trip: safe, spectacular and brilliant for kids, but expensive and lacking the depth that makes Thailand home."
 category: My Advice
 date: 2026-11-10
 ---
@@ -29,4 +29,4 @@ Our hotel was five-star, but in my view it didn't compare with a five-star hotel
 
 If you live and work in Dubai, there's no personal income tax, so you may have more to spend. But coming from Thailand, you'll find it expensive. To be honest, you'll find most places expensive compared with Thailand.
 
-This is part of my series comparing Thailand with other countries: [China](/articles/thailand-vs-china), [Vietnam](/articles/thailand-vs-vietnam), [Dubai](/articles/dubai-is-the-ferrari-thailand-is-the-tuk-tuk) and [Japan](/articles/thailand-vs-japan).
+This is part of my series comparing Thailand with other countries: [China](/articles/thailand-vs-china), [Vietnam](/articles/thailand-vs-vietnam), Dubai and [Japan](/articles/thailand-vs-japan).

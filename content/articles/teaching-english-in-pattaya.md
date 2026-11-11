@@ -1,6 +1,6 @@
 ---
 title: "Teaching English in Pattaya: Is It Worth It?"
-description: "A Pattaya owner of seven businesses on teaching English and working in schools: the demand, pay from Thai schools to international schools, qualifications, the lifestyle, and why you must work legally."
+description: "Teaching English in Pattaya: demand, pay from Thai schools to international schools, qualifications, the lifestyle, and why you must work legally."
 category: My Advice
 date: 2026-11-03
 ---

@@ -1,6 +1,6 @@
 ---
 title: "Why Some Expats Turn Bitter About Thailand"
-description: "A Pattaya business owner who admits he once turned bitter about Thailand on why it happens, what changed his mindset, and the warning signs to watch for in yourself."
+description: "Why some expats turn bitter about Thailand, from someone who once did: why it happens, what changed my mindset, and the warning signs to watch for."
 category: My Advice
 date: 2026-11-09
 ---
@@ -33,4 +33,4 @@ We had one just recently at one of my venues. A group of four came in, and one o
 
 ## Don't let it get to you
 
-If you recognise yourself in any of this, stop looking outward. Take responsibility, remember why you came, and change the way you think about the things you can't change. More in [living in Pattaya](/articles/living-in-pattaya) and [why Pattaya's expat Facebook groups are so toxic](/articles/why-pattaya-expat-facebook-groups-are-so-toxic).
+If you recognise yourself in any of this, stop looking outward. Take responsibility, remember why you came, and change the way you think about the things you can't change. More in [living in Pattaya](/articles/living-in-pattaya) and [why Pattaya's expat Facebook groups are so toxic](/articles/why-pattaya-expat-facebook-groups-are-so-toxic). For my own turnaround, read [how my mindset in Thailand has changed](/articles/how-my-mindset-in-thailand-has-changed), and for the opposite of bitter, [what I admire about some expats](/articles/what-i-admire-about-some-expats).

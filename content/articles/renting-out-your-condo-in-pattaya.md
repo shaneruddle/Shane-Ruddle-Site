@@ -1,6 +1,6 @@
 ---
 title: "Renting Out Your Condo in Pattaya: Advice for Landlords"
-description: "The owner of two Pattaya real estate agencies on renting out a condo: what tenants want, furnishing, short vs long lets, finding good tenants, realistic yields, deposits and managing from abroad."
+description: "Renting out a condo in Pattaya: what tenants want, furnishing, short vs long lets, finding good tenants, realistic yields, deposits and managing from abroad."
 category: Property
 date: 2026-10-31
 ---
@@ -63,4 +63,4 @@ Work with reputable agencies: ones with history, a proper office, experience and
 
 We all charge the same, one month's rent as commission on a 12-month contract. So to you as the owner, it costs the same whether you use Alan Bolton, which has been in business for 45 years, or a brand-new company. So why wouldn't you use a more reputable one?
 
-Read my guides to [buying a condo in Pattaya](/articles/buying-a-condo-in-pattaya), [renting a condo in Pattaya](/articles/renting-a-condo-in-pattaya) from the tenant's side, and [the Pattaya property market right now](/articles/pattaya-property-market). To list your condo, contact [Alan Bolton Property Consultants](https://pattaya-property.net) or [East Coast Real Estate](https://thaiproperty.com).
+Read my guides to [buying a condo in Pattaya](/articles/buying-a-condo-in-pattaya), [renting a condo in Pattaya](/articles/renting-a-condo-in-pattaya) from the tenant's side, and [the Pattaya property market right now](/articles/pattaya-property-market). To list your condo, contact [Alan Bolton Property Consultants](https://pattaya-property.net) or [East Coast Real Estate](https://thaiproperty.com). For lets under six months, read [why our agencies don't do short-term rentals](/articles/why-our-agencies-dont-do-short-term-rentals).

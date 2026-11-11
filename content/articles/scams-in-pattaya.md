@@ -1,6 +1,6 @@
 ---
 title: "Scams in Pattaya: What's Real and What Isn't"
-description: "A Pattaya business owner of 20 years on scams: why most aren't really scams, the jet ski story from a rental owner's side, and the ones that actually cost people money."
+description: "Scams in Pattaya: why most aren't really scams, the jet ski story from a rental owner's side, and the ones that actually cost people money."
 category: My Advice
 date: 2026-11-05
 ---
@@ -25,7 +25,7 @@ The fix is simple: take photos and a video before you set off, whether it's a je
 
 ## Property: use an agent with an office
 
-Most property problems come from buyers being uninformed and using a freelance agent with no accountability. Often the agent doesn't know what they're doing either. They give advice they believe is right, it turns out not to be, and you're left holding the bag.
+Most property problems come from buyers being uninformed and using a freelance agent with no accountability. Often the agent doesn't know what they're doing either. They give advice they believe is right, it turns out not to be, and you're left holding the bag. More in [the biggest mistakes property buyers make in Pattaya](/articles/biggest-mistakes-property-buyers-make-in-pattaya).
 
 I own two agencies, so I'm biased, but my number one tip is to make sure the agent has an office. If they don't, stay well clear. You wouldn't see a dentist in a coffee shop, or buy insurance from someone at their home. Even though walk-in customers are rarer these days, a proper business still has a real presence. Then check them online: a website, a Facebook page, how many followers they have. Look for social proof. More in [buying a condo in Pattaya](/articles/buying-a-condo-in-pattaya).
 

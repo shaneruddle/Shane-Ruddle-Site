@@ -1,6 +1,6 @@
 ---
 title: "How AI Will Change Small Businesses in Pattaya"
-description: "A Pattaya owner of seven businesses on how AI is changing small businesses: what it takes over first, why it means hiring less rather than firing, and where a complete beginner should start."
+description: "How AI is changing small businesses in Pattaya: what it takes over first, why it means hiring less rather than firing, and where a beginner should start."
 category: My Advice
 date: 2026-11-07
 ---
@@ -25,4 +25,4 @@ If you think AI is too complicated or not relevant to your business, think back 
 
 Start simple. Just chat with ChatGPT or Claude, try their voice mode, and use them to search for things. The point at first isn't to automate anything. It's to understand what AI can do and how quickly things are changing.
 
-Next in this series: [the biggest mistakes people make with AI](/articles/biggest-mistakes-people-make-with-ai) and [AI for property agents](/articles/ai-for-property-agents-in-pattaya).
+Next in this series: [the biggest mistakes people make with AI](/articles/biggest-mistakes-people-make-with-ai) and [AI for property agents](/articles/ai-for-property-agents-in-pattaya). And for the people side, [getting my staff to use AI](/articles/getting-my-staff-to-use-ai).

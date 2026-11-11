@@ -1,6 +1,6 @@
 ---
 title: "Alcohol Rules in Thailand: A Restaurant Owner's View"
-description: "A Pattaya restaurant and bar owner on Thailand's alcohol rules: the end of the afternoon sales ban, holiday and election-day bans, how they really affect business, and why people mind less than they used to."
+description: "Thailand's alcohol rules from a Pattaya bar owner: the end of the afternoon sales ban, holiday and election-day bans, and how they really affect business."
 category: Pattaya News
 date: 2026-11-07
 ---
@@ -29,4 +29,4 @@ Before COVID, people used to get really upset about these bans. You'd see plenty
 
 ## Different drinking cultures
 
-Part of the tension is that drinking habits differ. In the UK, drinking is just a way of life. People often aren't drinking to get drunk; it's habit, something we've always done. I'm not sure drinking is seen the same way here, and the rules probably reflect that. More in [cultural mistakes in Thailand](/articles/cultural-mistakes-in-thailand).
+Part of the tension is that drinking habits differ. In the UK, drinking is just a way of life. People often aren't drinking to get drunk; it's habit, something we've always done. I'm not sure drinking is seen the same way here, and the rules probably reflect that. More in [cultural mistakes in Thailand](/articles/cultural-mistakes-in-thailand). For another rule change that hit Pattaya fast, read [cannabis in Pattaya: from boom to bust](/articles/cannabis-in-pattaya).

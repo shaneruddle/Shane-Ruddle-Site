@@ -1,6 +1,6 @@
 ---
 title: "Auswandern nach Thailand: Die Nachteile und was ich gern vorher gewusst hätte"
-description: "Die Nachteile beim Auswandern nach Thailand, ehrlich von einem Unternehmer nach 20 Jahren in Pattaya: Visum, Bankkonto, Grundbesitz, Versicherung, und was ich anders machen würde."
+description: "Die Nachteile beim Auswandern nach Thailand, ehrlich nach 20 Jahren in Pattaya: Visum, Bankkonto, Grundbesitz, Versicherung und was ich anders machen würde."
 category: Ratgeber
 date: 2026-11-02
 en: what-i-wish-id-known-before-moving-to-thailand

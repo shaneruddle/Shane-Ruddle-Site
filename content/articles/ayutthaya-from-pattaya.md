@@ -1,6 +1,6 @@
 ---
 title: "Ayutthaya from Pattaya: The First Stop on a Road Trip North"
-description: "A Pattaya business owner who has visited Ayutthaya twice on road trips north: why it's best as a one-night stop on the way to Sukhothai and Chiang Mai, and what to see in the historical park."
+description: "Ayutthaya from Pattaya: why it works best as a one-night stop on a road trip to Sukhothai and Chiang Mai, and what to see in the historical park."
 category: My Advice
 date: 2026-11-08
 ---
@@ -23,4 +23,4 @@ Further north, [Sukhothai](/articles/sukhothai-from-pattaya) is a great next sto
 
 From there, you can carry on to [Chiang Mai](/articles/chiang-mai-from-pattaya). Doing it as one road trip, with a night or two at each stop, is far better than trying to do any of them on their own from Pattaya.
 
-This is part of my series on trips from Pattaya: [Koh Chang](/articles/koh-chang-from-pattaya), [Kanchanaburi](/articles/kanchanaburi-from-pattaya), [Bang Saen](/articles/bang-saen-from-pattaya), [Bang Saray](/articles/bang-saray-from-pattaya), [Sukhothai](/articles/sukhothai-from-pattaya), [Khao Yai](/articles/khao-yai-from-pattaya), [Rayong](/articles/rayong-from-pattaya), [Ayutthaya](/articles/ayutthaya-from-pattaya) and [Chiang Mai](/articles/chiang-mai-from-pattaya). For shorter outings, read [the best day trips from Pattaya](/articles/best-day-trips-from-pattaya).
+This is part of my series on trips from Pattaya: [Koh Chang](/articles/koh-chang-from-pattaya), [Kanchanaburi](/articles/kanchanaburi-from-pattaya), [Bang Saen](/articles/bang-saen-from-pattaya), [Bang Saray](/articles/bang-saray-from-pattaya), [Sukhothai](/articles/sukhothai-from-pattaya), [Khao Yai](/articles/khao-yai-from-pattaya), [Rayong](/articles/rayong-from-pattaya), Ayutthaya and [Chiang Mai](/articles/chiang-mai-from-pattaya). For shorter outings, read [the best day trips from Pattaya](/articles/best-day-trips-from-pattaya).

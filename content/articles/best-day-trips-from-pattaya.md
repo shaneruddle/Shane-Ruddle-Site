@@ -1,6 +1,6 @@
 ---
 title: "The Best Day Trips From Pattaya"
-description: "A Pattaya local of 20 years on the best day trips from the city: Bang Saray, Koh Samet, Koh Si Chang, Khao Chamao waterfall and the Buddha mountain, what to skip, what to bring and why a rental car makes it easier."
+description: "The best day trips from Pattaya after 20 years here: Bang Saray, Koh Samet, Koh Si Chang, Khao Chamao waterfall and the Buddha mountain, plus what to skip."
 category: My Advice
 date: 2026-11-01
 ---

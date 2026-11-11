@@ -1,6 +1,6 @@
 ---
 title: "How I Handle an Unfair One-Star Review"
-description: "A Pattaya owner of seven businesses on a recent one-star review at Pattaya Rent a Car that left out the key facts, how he replied, and why owners shouldn't take unfair reviews to heart."
+description: "An unfair one-star review at Pattaya Rent a Car that left out the key facts, how I replied, and why owners shouldn't take unfair reviews to heart."
 category: My Advice
 date: 2026-11-10
 ---

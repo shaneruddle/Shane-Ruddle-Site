@@ -1,6 +1,6 @@
 ---
 title: "Making Friends as an Expat in Pattaya"
-description: "A Pattaya business owner of over 20 years on making friends as an expat: why it's easy if you get out there, how golf and football built his circle, the pitfalls of a transient city and a drinking culture, and how to find your people."
+description: "Making friends in Pattaya as an expat: why it's easy if you get out there, how golf and football built my circle, and the pitfalls of a transient city."
 category: My Advice
 date: 2026-11-02
 ---
@@ -35,4 +35,4 @@ Be open to making friends, and put yourself in as many circles as possible. Get 
 
 When you get there, be open. The best thing is that we all have something in common: we all live in Thailand. Everyone has a story to tell and a story to listen to, so you'll always find common ground.
 
-For more, read [staying fit in Pattaya](/articles/staying-fit-in-pattaya), [retiring in Pattaya](/articles/retiring-in-pattaya) and [Pattaya for digital nomads](/articles/pattaya-for-digital-nomads).
+For more, read [staying fit in Pattaya](/articles/staying-fit-in-pattaya), [retiring in Pattaya](/articles/retiring-in-pattaya) and [Pattaya for digital nomads](/articles/pattaya-for-digital-nomads). For the people worth finding, read [what I admire about some expats](/articles/what-i-admire-about-some-expats), and for where not to look, [why Pattaya expat Facebook groups are so toxic](/articles/why-pattaya-expat-facebook-groups-are-so-toxic).

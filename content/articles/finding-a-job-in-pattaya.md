@@ -1,6 +1,6 @@
 ---
 title: "Finding a Job in Pattaya as a Foreigner"
-description: "A Pattaya owner of seven businesses on finding work as a foreigner: why you need to be here, the jobs foreigners actually do, why networking beats applying, work permits and visas, and realistic pay."
+description: "Finding a job in Pattaya as a foreigner: why you need to be here, the jobs foreigners actually do, why networking beats applying, work permits and pay."
 category: My Advice
 date: 2026-11-03
 ---

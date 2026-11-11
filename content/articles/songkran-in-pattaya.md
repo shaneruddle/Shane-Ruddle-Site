@@ -1,6 +1,7 @@
 ---
 title: "Songkran in Pattaya: What a Local Business Owner Wants You to Know"
-description: "A Pattaya business owner of 20 years on Songkran: why it lasts a week here, the big day on 19 April, why his restaurants and car rental close, staying safe on the roads, and how to enjoy it."
+seoTitle: "Songkran in Pattaya: What a Local Business Owner Says"
+description: "Songkran in Pattaya: why it lasts a week here, the big day on 19 April, why many businesses close, staying safe on the roads and how to enjoy it."
 category: My Advice
 date: 2026-11-02
 ---

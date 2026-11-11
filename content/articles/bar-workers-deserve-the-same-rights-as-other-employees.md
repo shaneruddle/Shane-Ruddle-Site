@@ -1,6 +1,6 @@
 ---
 title: "Bar Workers Deserve the Same Rights as Other Employees"
-description: "A Pattaya business owner on why women in the bar scene fall outside Thai labour protection, why the industry should be recognised, and why safety at work matters most."
+description: "Why women in Pattaya's bar scene fall outside Thai labour protection, why the industry should be recognised, and why safety at work matters most."
 category: Pattaya News
 date: 2026-11-09
 ---

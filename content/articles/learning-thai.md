@@ -1,6 +1,6 @@
 ---
 title: "Learning Thai: My Honest Experience After 22 Years"
-description: "A Pattaya business owner of 22 years on learning Thai: where he's at, why the tones are so hard, why he gave up and regrets it, and what a newcomer should learn first."
+description: "Learning Thai after 22 years in Pattaya: why the tones are so hard, why I gave up and regret it, and what a newcomer should learn first."
 category: My Advice
 date: 2026-11-01
 ---

@@ -1,6 +1,6 @@
 ---
 title: "A Day in My Life Running Seven Businesses in Pattaya"
-description: "What a typical day looks like for a Pattaya owner of seven businesses: early starts, breakfast at Hemingways, messages not calls, AI systems, and no fixed finishing time."
+description: "A typical day running seven Pattaya businesses: early starts, breakfast at Hemingways, messages not calls, AI systems and no fixed finishing time."
 category: My Advice
 date: 2026-11-06
 ---
@@ -35,4 +35,4 @@ My day isn't structured. I try not to get pulled into things, but sometimes I'm 
 
 Every day is different, and I meet a lot of new and often interesting people. I love the flexibility: if my kids have a football match, I can just go. I don't have to ask anyone's permission.
 
-I also like that the work I do now is non-critical. The businesses run without me day to day. What I add is the cherry on top: not strictly needed, but it makes things better.
+I also like that the work I do now is non-critical. The businesses run without me day to day. What I add is the cherry on top: not strictly needed, but it makes things better. More in [do I ever switch off?](/articles/do-i-ever-switch-off)

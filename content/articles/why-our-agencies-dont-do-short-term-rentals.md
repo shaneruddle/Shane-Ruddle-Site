@@ -1,6 +1,6 @@
 ---
 title: "Why Our Agencies Don't Do Short-Term Rentals"
-description: "The owner of two Pattaya property agencies on why Alan Bolton and East Coast Real Estate don't handle rentals under six months: the work, the commission, what landlords want, and where to look instead."
+description: "Why Alan Bolton and East Coast Real Estate don't handle rentals under six months: the work, the commission, what landlords want, and where to look instead."
 category: Property
 date: 2026-11-10
 ---

@@ -53,7 +53,7 @@ East Coast Real Estate came from paying attention. At a meeting of Pattaya agenc
 
 That East Coast story sums up the biggest lesson of all. If you want to do business in Pattaya, you have to be here, and you have to network. Almost every good business I picked up came through someone I knew, or something I happened to hear in the right room. That doesn't happen from abroad.
 
-I've also come to see other business owners less as competitors and more as people in the same boat. We share ideas, wins and losses, and in the end we're all here to serve the visitors who come to this city. The ones who come together tend to do better than the ones who go it alone.
+I've also come to see other business owners less as competitors and more as people in the same boat. We share ideas, wins and losses, and in the end we're all here to serve the visitors who come to this city. The ones who come together tend to do better than the ones who go it alone. They're often [my best customers](/articles/why-my-best-customers-are-other-business-owners), too.
 
 None of that makes it easy. I have a bit more cash behind me now, but I face many of the same problems I did 15 or 20 years ago: staff, landlords and everything in between. Doing business here is also becoming more formal, with more compliance, much like the West. That's a natural part of a country developing, but it means newcomers need to do things properly from day one.
 

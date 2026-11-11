@@ -1,6 +1,7 @@
 ---
 title: "Where to Watch the Football in Pattaya: Tips From a Sports Bar Owner"
-description: "The owner of three Hemingways sports bars on watching the Premier League in Pattaya: what makes a good sports bar, late kick-offs, how multi-screen bars work, and when to book a table."
+seoTitle: "Where to Watch Football in Pattaya: Sports Bar Owner's Tips"
+description: "Where to watch the Premier League in Pattaya: what makes a good sports bar, late kick-offs, multi-screen bars and when to book. From the owner of Hemingways."
 category: My Advice
 date: 2026-11-01
 ---

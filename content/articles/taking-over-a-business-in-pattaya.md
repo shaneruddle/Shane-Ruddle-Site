@@ -1,6 +1,6 @@
 ---
 title: "Taking Over a Business in Pattaya: The First Few Months"
-description: "Hold back part of the price, change nothing for three months and keep the staff on side. A Pattaya owner of seven businesses on how he handles a takeover, and the mistakes he sees others make."
+description: "Taking over a business in Pattaya: hold back part of the price, change nothing for three months, keep the staff on side, and avoid the common mistakes."
 category: My Advice
 date: 2026-11-03
 ---
@@ -45,4 +45,4 @@ The businesses advertised on Facebook or through agents usually aren't the best 
 
 If you're new and those opportunities aren't coming your way, get to know other business owners. Friends you play padel with are great for other reasons, but if you want to buy a business here, the people who hear about the quiet sales are other owners. And if you're the one thinking of selling, [here's how I buy businesses quietly](/business-in-pattaya/sell-your-business).
 
-This is part of my series on buying a business in Pattaya: [why buy rather than start](/articles/why-buy-a-business-in-pattaya), [how to value a business](/articles/valuing-a-business-in-pattaya), [leases, landlords and paperwork](/articles/business-leases-and-landlords-in-pattaya) and [taking over: the first few months](/articles/taking-over-a-business-in-pattaya). For the basics, including foreign ownership rules, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya).
+This is part of my series on buying a business in Pattaya: [why buy rather than start](/articles/why-buy-a-business-in-pattaya), [how to value a business](/articles/valuing-a-business-in-pattaya), [leases, landlords and paperwork](/articles/business-leases-and-landlords-in-pattaya) and taking over: the first few months. For the basics, including foreign ownership rules, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya).

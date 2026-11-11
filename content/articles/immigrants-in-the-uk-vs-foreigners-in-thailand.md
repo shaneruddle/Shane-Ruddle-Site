@@ -1,6 +1,6 @@
 ---
 title: "Immigrants in the UK vs Foreigners in Thailand"
-description: "A Briton who has lived in Thailand for 22 years compares how the UK and Thailand treat legal immigrants, why Thailand protects its own, and why he thinks the right answer is somewhere in between."
+description: "A Briton 22 years in Thailand compares how the UK and Thailand treat legal immigrants, why Thailand protects its own, and why the answer is in between."
 category: My Advice
 date: 2026-11-09
 ---

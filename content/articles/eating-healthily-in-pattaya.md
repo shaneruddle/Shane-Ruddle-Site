@@ -1,6 +1,7 @@
 ---
 title: "Eating Healthily in Pattaya: Tips From a Health Food Restaurant Owner"
-description: "The owner of Cajun Life Cafe on eating healthily in Pattaya: why it's easy now, why Thai food isn't as healthy as people think, how Cajun started, what gym-goers order and where to find healthy food."
+seoTitle: "Eating Healthily in Pattaya: Tips From a Cafe Owner"
+description: "Eating healthily in Pattaya from the owner of Cajun Life Cafe: why it's easy now, why Thai food isn't as healthy as you think, and where to find good food."
 category: My Advice
 date: 2026-11-02
 ---

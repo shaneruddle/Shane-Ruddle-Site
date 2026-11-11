@@ -1,6 +1,6 @@
 ---
 title: "The Customer Isn't Always Right"
-description: "A Pattaya restaurant and bar owner on why the customer isn't always right, the regular he finally asked not to come back, and why protecting your staff comes first."
+description: "Why the customer isn't always right: the regular I finally asked not to come back, and why protecting your staff comes first. From a Pattaya bar owner."
 category: My Advice
 date: 2026-11-07
 ---
@@ -27,4 +27,4 @@ I don't think the saying was ever meant literally, but plenty of business owners
 
 ## Protect your staff
 
-Your staff run the business. A company is just a collection of people, and they're the most important ones in it. If you always side with the customer over your staff, especially when the customer is wrong, you won't have staff for long. More in [what makes a good manager in Pattaya](/articles/what-makes-a-good-manager-in-pattaya).
+Your staff run the business. A company is just a collection of people, and they're the most important ones in it. If you always side with the customer over your staff, especially when the customer is wrong, you won't have staff for long. More in [what makes a good manager in Pattaya](/articles/what-makes-a-good-manager-in-pattaya). Also read [when people find out I'm the owner after a bad experience](/articles/when-people-find-out-im-the-owner-after-a-bad-experience).

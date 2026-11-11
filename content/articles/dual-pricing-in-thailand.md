@@ -1,6 +1,6 @@
 ---
 title: "Dual Pricing in Thailand: Right Idea, Wrong Execution"
-description: "A Pattaya business owner on dual pricing for foreigners in Thailand: why the idea behind it is normal around the world, why the execution is a PR own goal, and the simple fix."
+description: "Dual pricing for foreigners in Thailand: why the idea is normal around the world, why the execution is a PR own goal, and the simple fix."
 category: Pattaya News
 date: 2026-11-07
 ---

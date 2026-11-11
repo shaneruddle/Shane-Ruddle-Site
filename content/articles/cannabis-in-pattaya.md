@@ -1,6 +1,6 @@
 ---
 title: "Cannabis in Pattaya: From Boom to Bust"
-description: "A Pattaya business owner on what happened when Thailand legalised cannabis: dozens of shops, a younger crowd, smoke outside restaurants, and why the crackdown was just enforcing the original intention."
+description: "What happened when Thailand legalised cannabis, seen from Pattaya: dozens of shops, smoke outside restaurants, and why the crackdown enforced the original aim."
 category: Pattaya News
 date: 2026-11-07
 ---

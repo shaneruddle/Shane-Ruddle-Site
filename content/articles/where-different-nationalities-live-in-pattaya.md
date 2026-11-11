@@ -1,6 +1,6 @@
 ---
 title: "Where Different Nationalities Live in Pattaya"
-description: "A Pattaya business owner of 20 years on the areas where different communities tend to live and spend time, from British and Russian to Indian, Chinese, Scandinavian, German and American."
+description: "Where different nationalities live in Pattaya: the areas British, Russian, Indian, Chinese, Scandinavian, German and American communities favour."
 category: My Advice
 date: 2026-11-06
 ---

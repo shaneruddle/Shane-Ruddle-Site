@@ -1,6 +1,6 @@
 ---
 title: "Why I Don't Eat in My Own Restaurants"
-description: "A Pattaya restaurant owner on why he'd rather eat in other people's restaurants: avoiding complaints over dinner, being unable to switch off, what he learns elsewhere, and how customer feedback slips do the quality checking instead."
+description: "Why I'd rather eat in other people's restaurants: avoiding complaints over dinner, what I learn elsewhere, and how feedback slips do the quality checks."
 category: My Advice
 date: 2026-11-10
 ---

@@ -1,6 +1,7 @@
 ---
 title: "The Pattaya Property Market Right Now: An Agency Owner's View"
-description: "The owner of two Pattaya real estate agencies on today's buyer's market: the split between high-end and mass-market condos, who's buying, how to find the best deals, and his outlook."
+seoTitle: "Pattaya Property Market 2026: An Agency Owner's View"
+description: "The Pattaya property market now: a buyer's market split between high-end and mass-market condos, who's buying, where the deals are, and the outlook."
 category: Property
 date: 2026-10-31
 ---
@@ -29,7 +30,7 @@ To find the really good deals:
 - **Stay in touch,** so they know you're still looking.
 - **Be ready to move fast.** You can buy very quickly here. You can view a property and put a deposit down within a few hours.
 
-Right now there's a lot of that going on. Some owners are nervous about laws now being enforced, particularly the crackdown on nominee ownership, and others have the jitters about the global economy. If you position yourself correctly, it's definitely a buyer's market.
+Right now there's a lot of that going on. Some owners are nervous about laws now being enforced, particularly the crackdown on nominee ownership, and others have the jitters about the global economy. If you position yourself correctly, it's definitely a buyer's market. More in [nominee companies in Thailand](/articles/nominee-companies-in-thailand).
 
 ## Where is the market heading?
 
@@ -37,4 +38,4 @@ I think the next couple of years will be uncertain, and a lot of people are hold
 
 Long term, though, I think Pattaya has an awful lot of growth in it. (More in [where Pattaya is heading](/articles/where-pattaya-is-heading).) There's still a lot of development going on, plenty of empty plots still to be developed, and derelict or underused buildings now being knocked down and redeveloped.
 
-If you're buying, read my guide to [buying a condo in Pattaya](/articles/buying-a-condo-in-pattaya). If you're selling, read [selling a condo in Pattaya](/articles/selling-a-condo-in-pattaya), and if you're letting, [renting out your condo](/articles/renting-out-your-condo-in-pattaya). To register what you're looking for, contact [Alan Bolton Property Consultants](https://pattaya-property.net) or [East Coast Real Estate](https://thaiproperty.com).
+If you're buying, read my guide to [buying a condo in Pattaya](/articles/buying-a-condo-in-pattaya). If you're selling, read [selling a condo in Pattaya](/articles/selling-a-condo-in-pattaya), and if you're letting, [renting out your condo](/articles/renting-out-your-condo-in-pattaya). To register what you're looking for, contact [Alan Bolton Property Consultants](https://pattaya-property.net) or [East Coast Real Estate](https://thaiproperty.com). And if you're worried about all the new building, read [is Pattaya overbuilt?](/articles/is-pattaya-overbuilt)

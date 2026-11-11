@@ -1,6 +1,6 @@
 ---
 title: "Nominee Companies in Thailand: Should You Panic?"
-description: "A Pattaya property agency owner on what nominee companies are, why foreigners used them to buy land, the 2026 crackdown, and his honest view on whether to sit tight, sell or rent instead. Not legal advice."
+description: "Nominee companies in Thailand: what they are, why foreigners used them for land, the 2026 crackdown, and whether to sit tight, sell or rent. Not legal advice."
 category: Property
 date: 2026-11-11
 ---

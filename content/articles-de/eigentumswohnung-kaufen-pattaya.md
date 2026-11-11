@@ -1,6 +1,6 @@
 ---
 title: "Eigentumswohnung in Pattaya kaufen als Ausländer: Was ich jedem Käufer sage"
-description: "Dürfen Ausländer in Thailand eine Eigentumswohnung besitzen? Ja. So funktioniert die 49-Prozent-Regel wirklich, dazu die Schritte, die Gebühren, Neubau oder Bestand und wie man in Pattaya klug kauft."
+description: "Dürfen Ausländer in Thailand eine Eigentumswohnung besitzen? Ja. Die 49-Prozent-Regel, Schritte, Gebühren, Neubau oder Bestand und klug kaufen in Pattaya."
 category: Immobilien
 date: 2026-11-02
 en: buying-a-condo-in-pattaya

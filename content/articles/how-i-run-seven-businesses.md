@@ -1,6 +1,6 @@
 ---
 title: "How I Run Seven Businesses at Once"
-description: "A Pattaya owner of seven businesses on how he actually runs them: one manager per business, hiring through people he knows, checking everything from his phone, and why AI replaced the team he tried to build."
+description: "How I run seven Pattaya businesses: one manager per business, hiring through people I know, checking everything by phone, and why AI replaced a head office."
 category: My Advice
 date: 2026-10-31
 ---

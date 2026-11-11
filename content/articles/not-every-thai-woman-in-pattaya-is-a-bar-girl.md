@@ -1,6 +1,6 @@
 ---
 title: "No, Not Every Thai Woman in Pattaya Is a Bar Girl"
-description: "A Pattaya business owner of 22 years on the outdated stereotype that most Thai women in Pattaya work in the bar scene: where it came from, why it's wrong today, and how visitors should behave."
+description: "The outdated stereotype that most Thai women in Pattaya work in bars: where it came from, why it's wrong today, and how visitors should behave."
 category: My Advice
 date: 2026-11-09
 ---
@@ -37,4 +37,4 @@ It also lingers because some Westerners who first came here 20-odd years ago sti
 
 Don't assume anyone works in that industry unless they make it very obvious. Don't get overfriendly. Treat everyone, and women especially, with respect. That goes for people who do work in the bar scene too. If you've treated someone with respect and got it wrong, you can always back out politely. More in [cultural mistakes in Thailand](/articles/cultural-mistakes-in-thailand) and [nightlife in Pattaya](/articles/nightlife-in-pattaya).
 
-For the other side of the story, read [why some women work in Pattaya's bar scene](/articles/why-some-women-work-in-pattayas-bar-scene).
+For the other side of the story, read [why some women work in Pattaya's bar scene](/articles/why-some-women-work-in-pattayas-bar-scene). And on couples, read [no, they didn't all meet in a bar](/articles/they-didnt-all-meet-in-a-bar).

@@ -1,6 +1,6 @@
 ---
 title: "How I Use AI to Run My Businesses"
-description: "A Pattaya owner of seven businesses on how he went from no-code tools to building his own systems with AI: the booking system that changed everything, the 80/20 rule, an expensive security lesson, and why your knowledge should live outside any one AI company."
+description: "How I use AI across seven businesses: from no-code tools to my own booking system, the 80/20 rule, an expensive security lesson, and owning your knowledge."
 category: My Advice
 date: 2026-10-31
 ---
@@ -15,7 +15,7 @@ Then I saw a post online about how easy it had become to build a website with AI
 
 ## When did it click?
 
-When I rebuilt the Pattaya Rent a Car booking system. We'd always tracked our bookings timeline in Google Sheets. The new system gives the team a live view of every car and booking, but it does much more than that, because everything is connected, from the website the customer sees to the back end. A lot of manual work the staff used to do simply isn't needed any more.
+When I rebuilt the Pattaya Rent a Car booking system. We'd always tracked our bookings timeline in Google Sheets. The new system gives the team a live view of every car and booking, but it does much more than that, because everything is connected, from the website the customer sees to the back end. A lot of manual work the staff used to do simply isn't needed any more. Getting the team to use it was another story: [getting my staff to use AI](/articles/getting-my-staff-to-use-ai).
 
 It was faster, cheaper and could do far more than the old version.
 

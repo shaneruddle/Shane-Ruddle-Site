@@ -1,6 +1,6 @@
 ---
 title: "Working Remotely in Pattaya: Visas, Where to Work and Tax"
-description: "A Pattaya business owner on working remotely or freelancing from Pattaya: who does it, the DTV visa, where people work, local clients, tax and the real downsides."
+description: "Working remotely from Pattaya: who does it, the DTV visa, where people work, local clients, tax and the real downsides."
 category: My Advice
 date: 2026-11-03
 ---

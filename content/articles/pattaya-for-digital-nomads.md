@@ -1,6 +1,6 @@
 ---
 title: "Pattaya for Digital Nomads and Remote Workers"
-description: "A Pattaya business owner of 20 years on whether Pattaya suits remote workers: internet, cost of living, how it compares with Bangkok and Chiang Mai, where nomads base themselves, and making friends."
+description: "Is Pattaya good for digital nomads? Internet, cost of living, how it compares with Bangkok and Chiang Mai, where nomads base themselves, and making friends."
 category: My Advice
 date: 2026-11-01
 updated: 2026-11-07

@@ -1,6 +1,6 @@
 ---
 title: "The Biggest Mistakes Property Buyers Make in Pattaya"
-description: "The owner of two Pattaya property agencies on the biggest mistakes buyers make: buying through a freelancer with no office, lowballing and waiting for the market, and how to spot a reputable agency."
+description: "The biggest mistakes Pattaya property buyers make: using a freelancer with no office, lowballing, waiting for the market, and how to spot a reputable agency."
 category: Property
 date: 2026-11-08
 ---

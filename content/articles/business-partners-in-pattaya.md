@@ -1,6 +1,7 @@
 ---
 title: "Business Partners: What I've Learned From Partnerships in Pattaya"
-description: "A Pattaya owner of seven businesses on business partnerships: why he took on partners, why he'd now rather go it alone, what makes a partnership work, agreements and exit clauses, and why 50-50 is a mistake."
+seoTitle: "Business Partners in Pattaya: What I've Learned"
+description: "Business partners in Pattaya: why I took them on, why I'd now go it alone, what makes a partnership work, exit clauses, and why 50-50 is a mistake."
 category: My Advice
 date: 2026-11-01
 ---

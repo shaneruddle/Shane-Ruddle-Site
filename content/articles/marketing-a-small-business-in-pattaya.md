@@ -1,6 +1,6 @@
 ---
 title: "Marketing a Small Business in Pattaya: What's Worked for Me"
-description: "A Pattaya owner of seven businesses on marketing a small business: why he starts with Facebook ads, what's worked for car rental and property, how much to spend, the importance of testing, and using influencers who are a genuine fit."
+description: "Marketing a small business in Pattaya: why I start with Facebook ads, what's worked for car rental and property, budgets, testing and choosing influencers."
 category: My Advice
 date: 2026-11-01
 ---

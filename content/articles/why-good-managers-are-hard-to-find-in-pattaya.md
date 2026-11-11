@@ -1,6 +1,6 @@
 ---
 title: "Why Good Managers Are Hard to Find in Pattaya"
-description: "A Pattaya owner of seven businesses on why good managers are hard to find here: work ethic, the lifestyle that draws people to Pattaya, the work permit catch-22 and CVs with no effort."
+description: "Why good managers are hard to find in Pattaya: work ethic, the lifestyle that draws people here, the work permit catch-22 and low-effort CVs."
 category: My Advice
 date: 2026-11-06
 ---

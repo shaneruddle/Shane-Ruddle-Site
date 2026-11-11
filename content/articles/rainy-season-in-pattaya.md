@@ -1,6 +1,6 @@
 ---
 title: "The Rainy Season in Pattaya: What It's Really Like"
-description: "A Pattaya business owner of 20 years on the rainy season: when it rains, how bad the flooding gets, who should still visit, how it affects his businesses and what to bring."
+description: "Rainy season in Pattaya: when it rains, how bad the flooding gets, who should still visit, how it affects local businesses and what to bring."
 category: My Advice
 date: 2026-11-01
 updated: 2026-11-07

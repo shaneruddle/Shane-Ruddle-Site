@@ -1,6 +1,6 @@
 ---
 title: "Banking and Money in Thailand: A Foreigner's Guide"
-description: "A Pattaya business owner of 20 years on banking in Thailand as a foreigner: opening an account after the crackdown, which bank to try, sending money from home, transfer limits, QR payments and why you should still carry cash."
+description: "Banking in Thailand as a foreigner: opening an account after the crackdown, which bank to try, sending money from home, transfer limits and QR payments."
 category: My Advice
 date: 2026-11-01
 updated: 2026-11-07

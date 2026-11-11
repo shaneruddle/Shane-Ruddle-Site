@@ -1,6 +1,6 @@
 ---
 title: "Wie es wirklich ist, in Pattaya zu leben"
-description: "Nach über 20 Jahren hier meine ehrliche Sicht aufs Leben in Pattaya: das Tempo, das Wetter, die Menschen, die Kosten, die Gesundheitsversorgung und die Fehler von Neuankömmlingen."
+description: "Leben in Pattaya nach über 20 Jahren: das Tempo, das Wetter, die Menschen, die Kosten, die Gesundheitsversorgung und die Fehler von Neuankömmlingen."
 category: Ratgeber
 date: 2026-11-02
 en: living-in-pattaya

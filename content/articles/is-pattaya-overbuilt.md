@@ -1,6 +1,6 @@
 ---
 title: "Is Pattaya Overbuilt? Why the Dark Windows Are Misleading"
-description: "The owner of two Pattaya property agencies on whether the city has too many condos: why the dark windows at night are misleading, why he doesn't think it's overbuilt, and what would change his mind."
+description: "Is Pattaya overbuilt? A property agency owner on why the dark condo windows at night mislead, why he doesn't think it is, and what would change his mind."
 category: Property
 date: 2026-11-07
 ---

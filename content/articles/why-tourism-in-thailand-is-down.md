@@ -1,6 +1,7 @@
 ---
 title: "Why Tourism in Thailand Is Down: A Pattaya Business Owner's View"
-description: "A Pattaya business owner on why tourism in Thailand has dipped: flights, costs, the strong baht, visa confusion, the tourist tax, competition from neighbours, and what Thailand and local businesses should do about it."
+seoTitle: "Why Tourism in Thailand Is Down: A Pattaya Owner's View"
+description: "Why tourism in Thailand is down: flights, costs, the strong baht, visa confusion, the tourist tax, cheaper neighbours, and what businesses should do."
 category: Pattaya News
 date: 2026-11-07
 ---
@@ -25,7 +26,7 @@ I know how small things can tip a decision. I had tickets to four World Cup game
 
 Now picture a family of four round the dinner table with half a dozen holiday options. One of them is Thailand, and someone says, "We don't know how long they'll let us stay, and it doesn't feel like we'd be very welcome." They'll just go somewhere else. More in [visas in Pattaya](/articles/thai-visas-in-pattaya).
 
-The timing, execution and messaging are often terrible. I don't say that lightly. Sometimes it feels like a bad joke. Right now there's talk of a ฿300 fee on arrival, and of a charge on departure too. For me the amount is small in the grand scheme of things, but think about the timing. Tourism is down, Thailand is falling behind its neighbours, the world is in turmoil, and this is when they choose to talk about extra charges. It doesn't look good when you're trying to attract people.
+The timing, execution and messaging are often terrible. I don't say that lightly. Sometimes it feels like a bad joke. Right now there's talk of a ฿300 fee on arrival, and of a charge on departure too. For me the amount is small in the grand scheme of things, but think about the timing. Tourism is down, Thailand is falling behind its neighbours, the world is in turmoil, and this is when they choose to talk about extra charges. It doesn't look good when you're trying to attract people. More in [why I think business in Pattaya is getting harder](/articles/why-i-think-business-in-pattaya-is-getting-harder).
 
 The messages are mixed, too. One minute the government says it doesn't want mass tourism, it wants "quality" tourists who spend more. A few months later it's celebrating headline arrival numbers. It feels like the left hand doesn't know what the right hand is doing. There doesn't seem to be a long-term strategy, and if there is one, it keeps changing.
 
@@ -47,4 +48,4 @@ I'd also run campaigns on safety, because Thailand is extremely safe, certainly 
 
 Ups and downs are normal, even in a good year. Ride out the lows, aim to break even, make the most of the high season, and save some of that money for the next quiet spell.
 
-Years ago I bumped into another business owner who was also very quiet. He told me he quite enjoyed it, because it gave him time to do all the jobs in his business he never usually had time for. That's always stuck with me. Don't waste the quiet times. Use them. More in [how my businesses got through COVID](/articles/how-my-businesses-got-through-covid).
+Years ago I bumped into another business owner who was also very quiet. He told me he quite enjoyed it, because it gave him time to do all the jobs in his business he never usually had time for. That's always stuck with me. Don't waste the quiet times. Use them. More in [how my businesses got through COVID](/articles/how-my-businesses-got-through-covid). One fix that keeps being floated is a casino resort; here's [why I don't think it will happen](/articles/casinos-in-pattaya).

@@ -1,5 +1,6 @@
 ---
 title: "Hiring and Firing in Pattaya: My Best Hire and the Ones I Regret"
+seoTitle: "Hiring and Firing in Pattaya: My Best Hire and Regrets"
 description: "A Pattaya owner of seven businesses on one of his best hires, two he regrets, how he handles firing, and his one rule: hire slow, fire fast."
 category: My Advice
 date: 2026-11-05

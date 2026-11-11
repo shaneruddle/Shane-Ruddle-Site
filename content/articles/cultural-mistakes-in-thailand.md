@@ -1,6 +1,6 @@
 ---
 title: "The Cultural Mistakes Foreigners Make in Thailand"
-description: "After 20 years in Pattaya, a business owner on the cultural mistakes foreigners make in Thailand: losing your temper, indirect communication, what Thais will forgive, and his one piece of advice for fitting in."
+description: "The cultural mistakes foreigners make in Thailand after 20 years watching: losing your temper, indirect communication, what Thais forgive, and my one tip."
 category: My Advice
 date: 2026-10-31
 updated: 2026-11-07
@@ -10,7 +10,7 @@ The biggest cultural mistake foreigners make in Thailand is losing their temper:
 
 ## What's the most common mistake?
 
-Losing your temper. Someone is unhappy with the service, they get frustrated and irritated, and it comes out as anger. It doesn't get you anywhere here. In the West, kicking off might get you the result you want. Here it gets you the opposite.
+Losing your temper. Someone is unhappy with the service, they get frustrated and irritated, and it comes out as anger. It doesn't get you anywhere here. In the West, kicking off might get you the result you want. Here it gets you the opposite. I learned that the hard way: [how my mindset in Thailand has changed](/articles/how-my-mindset-in-thailand-has-changed).
 
 The Thai approach is sabai sabai: easygoing, and taking things at a slower pace.
 

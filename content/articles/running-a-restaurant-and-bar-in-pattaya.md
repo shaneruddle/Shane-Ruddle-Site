@@ -1,6 +1,6 @@
 ---
 title: "Running a Restaurant and Bar in Pattaya: What I've Learned"
-description: "The owner of three Hemingways restaurant and bars on how he got started, the hardest part of the job, what keeps a venue going, and his one piece of advice before you open."
+description: "Running a restaurant and bar in Pattaya, from the owner of three Hemingways: how I started, the hardest part, what keeps a venue going, and one piece of advice."
 category: My Advice
 date: 2026-10-31
 ---
@@ -39,4 +39,4 @@ Don't go it alone. Team up with somebody who's already doing it, or has done it 
 
 For the wider picture, read my advice on [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya), how I went [from bar manager to seven businesses](/articles/bar-manager-to-7-businesses), and [where a restaurant owner eats in Pattaya](/articles/where-a-restaurant-owner-eats-in-pattaya).
 
-Want to work in the trade rather than own a business? Read [working in hospitality in Pattaya](/articles/working-in-hospitality-in-pattaya).
+Want to work in the trade rather than own a business? Read [working in hospitality in Pattaya](/articles/working-in-hospitality-in-pattaya). For the drinking-hours side, read [alcohol rules in Thailand](/articles/alcohol-rules-in-thailand).

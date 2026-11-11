@@ -1,6 +1,7 @@
 ---
 title: "Working as a Property Agent in Pattaya: What It's Really Like"
-description: "The owner of two Pattaya real estate agencies on working in property: what makes a good agent, a typical day, salary and commission, why new agents quit, and how the best ones succeed."
+seoTitle: "Working as a Property Agent in Pattaya: The Reality"
+description: "Working as a property agent in Pattaya: what makes a good agent, a typical day, salary and commission, why new agents quit, and how the best succeed."
 category: Property
 date: 2026-11-01
 ---

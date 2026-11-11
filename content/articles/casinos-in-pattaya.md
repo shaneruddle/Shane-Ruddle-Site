@@ -1,6 +1,6 @@
 ---
 title: "Casinos in Pattaya: Good Idea, Never Going to Happen"
-description: "A Pattaya business owner on legalising casinos in Thailand: why a Singapore-style resort near U-Tapao would be good for Pattaya, the risks, and why he doesn't think it will ever happen."
+description: "Should Thailand legalise casinos? Why a Singapore-style resort near U-Tapao would be good for Pattaya, the risks, and why I doubt it will ever happen."
 category: Pattaya News
 date: 2026-11-07
 ---
@@ -29,4 +29,4 @@ That's why I think it would have to follow the Singapore model, which is built a
 
 ## Why I don't think it will happen
 
-In the 20-odd years I've been here, the idea has been floated so many times and it has never got very far. Thailand is a democracy, and a law like this has to get through a lot of opposition. The current tourism slump might give the parties in favour a chance to push it ahead, but I have no reason to believe it will ever actually happen.
+In the 20-odd years I've been here, the idea has been floated so many times and it has never got very far. Thailand is a democracy, and a law like this has to get through a lot of opposition. The current tourism slump might give the parties in favour a chance to push it ahead, but I have no reason to believe it will ever actually happen. Thailand's last big loosening of the rules went less smoothly: read [cannabis in Pattaya: from boom to bust](/articles/cannabis-in-pattaya).

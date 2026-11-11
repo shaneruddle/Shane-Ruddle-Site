@@ -23,4 +23,4 @@ I also admire foreigners who support their partner's Thai family because they wa
 
 Anyone who learns Thai properly has my respect. It's tonal and very hard. Most long-term expats, me included, speak some Thai, but in 20 years I've only met about a dozen friends and colleagues I'd call fluent.
 
-One of them is my business partner Chris, who's French. He speaks the best Thai of all my friends and partners. When he gets going, I haven't a clue what he's saying, and you have to admire that. More in [learning Thai](/articles/learning-thai).
+One of them is my business partner Chris, who's French. He speaks the best Thai of all my friends and partners. When he gets going, I haven't a clue what he's saying, and you have to admire that. More in [learning Thai](/articles/learning-thai). For the opposite, read [why some expats turn bitter about Thailand](/articles/why-some-expats-turn-bitter-about-thailand).

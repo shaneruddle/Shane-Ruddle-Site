@@ -1,6 +1,6 @@
 ---
 title: "Where a Restaurant Owner Eats in Pattaya"
-description: "A Pattaya restaurant owner's own favourite places to eat, from Italian on Thappraya Road to steak in Pratumnak, plus the three things he checks to judge any restaurant."
+description: "Where a Pattaya restaurant owner eats: from Italian on Thappraya Road to steak in Pratumnak, plus the three things I check to judge any restaurant."
 category: My Advice
 date: 2026-10-30
 ---

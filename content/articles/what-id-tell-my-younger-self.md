@@ -1,6 +1,6 @@
 ---
 title: "What I'd Tell My Younger Self Arriving in Pattaya"
-description: "A Pattaya owner of seven businesses on what he'd tell himself arriving 20 years ago: go easy on the partying, look after your health, take money seriously early, and know there's no safety net."
+description: "What I'd tell myself arriving in Pattaya 20 years ago: go easy on the partying, look after your health, take money seriously, there's no safety net."
 category: My Advice
 date: 2026-11-06
 ---
@@ -31,4 +31,4 @@ Coming here was one of the best decisions I've ever made, even though I never re
 
 I often tell people that if they love a month or two here as tourists, living here is even better. As a tourist everything is new, but you don't really know your way around or how things work. Living here has its downsides, but on the whole it just keeps getting better.
 
-For the rest of my story, read [from bar manager to seven businesses](/articles/bar-manager-to-7-businesses) and [what I wish I'd known before moving to Thailand](/articles/what-i-wish-id-known-before-moving-to-thailand).
+For the rest of my story, read [from bar manager to seven businesses](/articles/bar-manager-to-7-businesses) and [what I wish I'd known before moving to Thailand](/articles/what-i-wish-id-known-before-moving-to-thailand). And for the advice others gave me, read [the best business advice I've been given](/articles/best-business-advice-ive-been-given).

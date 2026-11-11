@@ -1,6 +1,6 @@
 ---
 title: "Does the Foreigner Always Pay After an Accident in Thailand?"
-description: "The owner of Pattaya Rent a Car on the myth that foreigners always get blamed after road accidents, the real \"bigger vehicle pays\" rule, a real example, and exactly what to do if you crash."
+description: "Does the foreigner always pay after an accident in Thailand? A rental owner on the real 'bigger vehicle pays' rule, a true example and what to do if you crash."
 category: Car Rental
 date: 2026-11-10
 ---

@@ -25,7 +25,7 @@ For a long time we hovered around 40 to 50 cars. Steady, solid, dependable. Then
 
 [COVID was brutal for Pattaya](/articles/how-my-businesses-got-through-covid). Tourism stopped overnight, and a lot of rental companies didn't make it.
 
-We did, largely because we had money set aside. When demand came back, it came back very quickly, and many of our competitors simply weren't there anymore. Because we had cash on the sidelines, we could deploy it straight away and buy cars when others couldn't. The fleet grew past a hundred.
+We did, largely because we had money set aside. When demand came back, it came back very quickly, and many of our competitors simply weren't there anymore. Because we had cash on the sidelines, we could deploy it straight away and buy cars when others couldn't. The fleet grew past a hundred. I explain that call in [the best business decision I ever made](/articles/best-business-decision-i-ever-made).
 
 Since then we've scaled back a little as the city has been quieter, and today we sit at nearly a hundred cars. The fleet has always flexed with demand, and I think that discipline is part of why we're still here.
 

@@ -1,6 +1,6 @@
 ---
 title: "Dogs in Pattaya: Street Dogs, Rabies and Owning a Pet"
-description: "A Pattaya business owner of over 20 years on dogs in Pattaya: how much of a problem street dogs really are, what to do if one comes at you, rabies, and what to know before getting a pet here."
+description: "Dogs in Pattaya: how big a problem street dogs really are, what to do if one comes at you, rabies, and what to know before getting a pet here."
 category: My Advice
 date: 2026-11-02
 ---

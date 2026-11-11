@@ -63,4 +63,4 @@ Do your research, and go in with your eyes open. Pattaya has its pitfalls, like 
 
 For more on day-to-day life here, read [what it's really like living in Pattaya](/articles/living-in-pattaya). And if you're looking for a family home to rent in East Pattaya, [East Coast Real Estate](https://thaiproperty.com) can help.
 
-Want more stories like this? [Join my newsletter](/newsletter).
+Want more stories like this? [Join my newsletter](/newsletter). For help at home, read [hiring a maid or housekeeper](/articles/hiring-a-maid-in-pattaya).

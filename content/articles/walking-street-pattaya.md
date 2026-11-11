@@ -1,6 +1,7 @@
 ---
 title: "Walking Street Pattaya: How It's Changed and Is It Worth Visiting?"
-description: "A Pattaya business owner of over 20 years on Walking Street: how the crowd and the offer have changed, why it's worth a visit even if bars aren't your thing, and how safe it really is."
+seoTitle: "Walking Street Pattaya: Is It Still Worth Visiting?"
+description: "Walking Street Pattaya after 20 years: how the crowd and the offer have changed, why it's worth a visit even if bars aren't your thing, and how safe it is."
 category: My Advice
 date: 2026-11-02
 ---
@@ -27,4 +28,4 @@ There's a big security presence: tourist police, regular police, security guards
 
 Go and see it at least once, even if bars aren't your thing. Have dinner, listen to some live music and walk the length of it.
 
-For more, read [a night out in Pattaya beyond Walking Street](/articles/nightlife-in-pattaya), [things to do in Pattaya](/articles/things-to-do-in-pattaya) and [why Pattaya's old reputation is out of date](/articles/pattaya-old-reputation-out-of-date).
+For more, read [a night out in Pattaya beyond Walking Street](/articles/nightlife-in-pattaya), [things to do in Pattaya](/articles/things-to-do-in-pattaya) and [why Pattaya's old reputation is out of date](/articles/pattaya-old-reputation-out-of-date). And on whether the city should scrap it: [should Pattaya ditch Walking Street?](/articles/should-pattaya-ditch-walking-street)

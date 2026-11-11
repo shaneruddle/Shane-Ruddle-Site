@@ -1,6 +1,6 @@
 ---
 title: "When People Find Out I'm the Owner After a Bad Experience"
-description: "A Pattaya owner of seven businesses on the awkward moment someone realises he owns the place where they had a bad experience, why it happens most weeks, and why owners should take a lot of feedback with a pinch of salt."
+description: "When someone realises I own the place where they had a bad experience: why it happens most weeks, and why owners should take feedback with a pinch of salt."
 category: My Advice
 date: 2026-11-11
 ---

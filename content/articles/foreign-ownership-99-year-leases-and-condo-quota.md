@@ -1,6 +1,7 @@
 ---
 title: "Foreign Ownership in Thailand: No to 99-Year Leases, Yes to Condos"
-description: "A Pattaya property agency owner's view on letting foreigners own more in Thailand: why he's against 99-year land leases but would open up the condo quota on new buildings."
+seoTitle: "99-Year Leases and the Condo Quota in Thailand: My View"
+description: "Should Thailand let foreigners own more? A Pattaya agency owner on why he's against 99-year land leases but would open the condo quota on new buildings."
 category: Property
 date: 2026-11-07
 ---
@@ -33,4 +34,4 @@ That's the main argument against, and I don't really buy it. In a 100% foreign b
 
 One expensive building doesn't push up prices everywhere else. There are condos at the very top end in Pattaya selling for several times the price per square metre of an ordinary building, and that hasn't dragged up the price of every other building. The economics just don't work that way.
 
-Others would argue that more foreign money would still push up land and building costs across the board, and that housing affordability for locals should come first. It's a fair concern, even if I think the condo market works differently. More in [the Pattaya property market](/articles/pattaya-property-market).
+Others would argue that more foreign money would still push up land and building costs across the board, and that housing affordability for locals should come first. It's a fair concern, even if I think the condo market works differently. More in [the Pattaya property market](/articles/pattaya-property-market). For why the rules are tightening now, read [is the nominee crackdown really about the OECD?](/articles/is-the-nominee-crackdown-really-about-the-oecd)

@@ -1,6 +1,6 @@
 ---
 title: "Bankkonto und Geld in Thailand: Ein Ratgeber für Ausländer"
-description: "Ein Unternehmer in Pattaya über Bankgeschäfte als Ausländer: Kontoeröffnung nach dem Durchgreifen der Banken, welche Bank man probieren sollte, Geld aus der Heimat, Überweisungslimits, QR-Zahlungen und warum Bargeld trotzdem wichtig ist."
+description: "Bankkonto in Thailand als Ausländer: Kontoeröffnung nach dem Durchgreifen der Banken, welche Bank, Geld aus der Heimat, Limits, QR-Zahlungen und Bargeld."
 category: Ratgeber
 date: 2026-11-02
 en: banking-in-thailand-for-foreigners

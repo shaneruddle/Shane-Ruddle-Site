@@ -1,6 +1,6 @@
 ---
 title: "Do Most Retirees Leave Pattaya Within Two Years?"
-description: "A Pattaya business owner of 20 years busts the myth that most retirees leave within two years: why they stay, why money moves them further out rather than home, and the real reason some go back."
+description: "Do most retirees leave Pattaya within two years? No. Why they stay, why money moves them further out rather than home, and the real reason some go back."
 category: My Advice
 date: 2026-11-06
 ---

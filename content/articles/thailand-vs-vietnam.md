@@ -1,6 +1,6 @@
 ---
 title: "Thailand vs Vietnam: A Nice Visit, but Not Home"
-description: "A Pattaya business owner who has been to Vietnam six times on why, for him, it doesn't compare with Thailand: Nha Trang versus Pattaya, infrastructure, hospitality, and who Vietnam might suit."
+description: "Thailand vs Vietnam after six trips: Nha Trang versus Pattaya, infrastructure and hospitality, why it doesn't compare for me, and who Vietnam might suit."
 category: My Advice
 date: 2026-11-10
 ---
@@ -27,4 +27,4 @@ I'd recommend Vietnam to anyone for a holiday. It's inexpensive and a nice count
 
 It depends on your stage of life. If you're young, you could get in early and see the benefits as it develops over the next 20 years. I'm 45, so I'd be 65 by then. And Thailand already has the things that matter if you live here, like international schools and international hospitals. More in [international schools in Pattaya](/articles/international-schools-in-pattaya) and [healthcare in Pattaya](/articles/healthcare-in-pattaya).
 
-This is part of my series comparing Thailand with other countries: [China](/articles/thailand-vs-china), [Vietnam](/articles/thailand-vs-vietnam), [Dubai](/articles/dubai-is-the-ferrari-thailand-is-the-tuk-tuk) and [Japan](/articles/thailand-vs-japan).
+This is part of my series comparing Thailand with other countries: [China](/articles/thailand-vs-china), Vietnam, [Dubai](/articles/dubai-is-the-ferrari-thailand-is-the-tuk-tuk) and [Japan](/articles/thailand-vs-japan).

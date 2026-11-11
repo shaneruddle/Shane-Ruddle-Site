@@ -1,6 +1,7 @@
 ---
 title: "Do I Ever Switch Off? The Double-Edged Sword of Running Seven Businesses"
-description: "A Pattaya owner of seven businesses on why he never fully switches off, how travel still recharges him, and why the phone that keeps him working is also what lets him get away."
+seoTitle: "Do I Ever Switch Off? Running Seven Businesses"
+description: "Why I never fully switch off running seven Pattaya businesses, how travel still recharges me, and why the phone that keeps me working lets me get away."
 category: My Advice
 date: 2026-11-07
 ---

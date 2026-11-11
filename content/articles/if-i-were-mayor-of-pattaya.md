@@ -41,6 +41,6 @@ Pattaya is good at attracting tourists. I'd put more emphasis on traditional Tha
 
 ## 7. Dual pricing
 
-This one isn't really a mayor's decision, but it's my biggest bugbear. I understand that taxpayers might pay a bit less, but I don't see it in most other countries I visit, like Vietnam, Japan, Singapore or Dubai. If they have it, it isn't obvious. Here it's carved into wooden signs at national parks, in English, and the foreigner price can be ten times the Thai price. It puts a negative spin on people's trips. I'd scrap it.
+This one isn't really a mayor's decision, but it's my biggest bugbear. I understand that taxpayers might pay a bit less, but I don't see it in most other countries I visit, like Vietnam, Japan, Singapore or Dubai. If they have it, it isn't obvious. Here it's carved into wooden signs at national parks, in English, and the foreigner price can be ten times the Thai price. It puts a negative spin on people's trips. I'd scrap it. More in [dual pricing in Thailand](/articles/dual-pricing-in-thailand).
 
 For more on where the city is going, read [where Pattaya is heading](/articles/where-pattaya-is-heading), see my [Pattaya future timeline](/pattaya-future), and [why Pattaya's old reputation is out of date](/articles/pattaya-old-reputation-out-of-date).

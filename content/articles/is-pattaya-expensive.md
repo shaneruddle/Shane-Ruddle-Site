@@ -1,6 +1,6 @@
 ---
 title: "Is Pattaya Expensive? What It Really Costs to Live Here"
-description: "Is Pattaya expensive? Real monthly costs for a single person and a family, from rent and eating out to school fees, and what's cheaper or dearer than people expect."
+description: "Is Pattaya expensive? Real monthly costs for a single person and a family, from rent and eating out to school fees, and what's cheaper or dearer than expected."
 category: My Advice
 date: 2026-10-29
 ---
@@ -37,4 +37,4 @@ Getting around is cheap, and eating out is cheap ([here's where I eat](/articles
 
 Manage your finances and keep an eye on your expenses. And [take care in relationships](/articles/relationships-in-pattaya): choosing the wrong partner can end up costing you a lot of money.
 
-If you're working out your budget and want to see what your rent would get you in each area, read [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya), or [East Coast Real Estate](https://thaiproperty.com) can show you what's available.
+If you're working out your budget and want to see what your rent would get you in each area, read [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya), or [East Coast Real Estate](https://thaiproperty.com) can show you what's available. If you're budgeting for help at home, read [hiring a maid in Pattaya](/articles/hiring-a-maid-in-pattaya), and if you'll run a car, [the running costs of a car in Thailand](/articles/running-costs-of-a-car-in-thailand).

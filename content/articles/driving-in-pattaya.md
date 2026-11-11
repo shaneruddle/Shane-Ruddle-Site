@@ -1,5 +1,6 @@
 ---
 title: "Driving in Pattaya: What a Car Rental Owner Tells Every Customer"
+seoTitle: "Driving in Pattaya: What a Car Rental Owner Tells Customers"
 description: "Driving and renting a car in Pattaya: how the roads differ from the West, which licence you need, the real risks, and what to do if you have an accident."
 category: Car Rental
 date: 2026-10-30

@@ -49,4 +49,4 @@ There's still a communication gap from the cultural difference. Thais tend to be
 
 The mistake I see most is people getting carried away. Someone younger shows an interest and it's all lust at the start. When that fizzles out, the problems begin. So take it slow, be adaptable and be open.
 
-For more, read [cultural mistakes in Thailand](/articles/cultural-mistakes-in-thailand), [making friends in Pattaya](/articles/making-friends-in-pattaya) and [visas in Pattaya](/articles/thai-visas-in-pattaya).
+For more, read [cultural mistakes in Thailand](/articles/cultural-mistakes-in-thailand), [making friends in Pattaya](/articles/making-friends-in-pattaya) and [visas in Pattaya](/articles/thai-visas-in-pattaya). On the stereotypes, read [no, they didn't all meet in a bar](/articles/they-didnt-all-meet-in-a-bar) and [not every Thai woman in Pattaya is a bar girl](/articles/not-every-thai-woman-in-pattaya-is-a-bar-girl).

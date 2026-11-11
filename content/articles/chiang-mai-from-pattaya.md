@@ -1,6 +1,6 @@
 ---
 title: "Chiang Mai from Pattaya: The End of the Road Trip"
-description: "A Pattaya business owner who has been to Chiang Mai half a dozen times on why it's the perfect contrast to Pattaya: cooler, calmer and more Thai, with mountain treks, New Year away from the crowds, and the White Temple just up the road."
+description: "Chiang Mai from Pattaya: cooler, calmer and more Thai, with mountain treks, a quieter New Year and the White Temple up the road. Tips from six visits."
 category: My Advice
 date: 2026-11-09
 ---
@@ -29,4 +29,4 @@ It's noticeably cooler than Pattaya, so the cool season around New Year is a gre
 
 If you've come as far as Chiang Mai, carry on to Chiang Rai, about three hours further north, and see the White Temple, Wat Rong Khun. If you're in that part of the country, it's a must.
 
-This is part of my series on trips from Pattaya: [Koh Chang](/articles/koh-chang-from-pattaya), [Kanchanaburi](/articles/kanchanaburi-from-pattaya), [Bang Saen](/articles/bang-saen-from-pattaya), [Bang Saray](/articles/bang-saray-from-pattaya), [Sukhothai](/articles/sukhothai-from-pattaya), [Khao Yai](/articles/khao-yai-from-pattaya), [Rayong](/articles/rayong-from-pattaya), [Ayutthaya](/articles/ayutthaya-from-pattaya) and [Chiang Mai](/articles/chiang-mai-from-pattaya). For shorter outings, read [the best day trips from Pattaya](/articles/best-day-trips-from-pattaya).
+This is part of my series on trips from Pattaya: [Koh Chang](/articles/koh-chang-from-pattaya), [Kanchanaburi](/articles/kanchanaburi-from-pattaya), [Bang Saen](/articles/bang-saen-from-pattaya), [Bang Saray](/articles/bang-saray-from-pattaya), [Sukhothai](/articles/sukhothai-from-pattaya), [Khao Yai](/articles/khao-yai-from-pattaya), [Rayong](/articles/rayong-from-pattaya), [Ayutthaya](/articles/ayutthaya-from-pattaya) and Chiang Mai. For shorter outings, read [the best day trips from Pattaya](/articles/best-day-trips-from-pattaya).

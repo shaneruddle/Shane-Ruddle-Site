@@ -1,6 +1,6 @@
 ---
 title: "Why My Best Customers Are Other Business Owners"
-description: "A Pattaya owner of seven businesses on a pattern he's noticed across car rental, restaurants and property: his favourite customers are almost always business owners themselves, and why that might be."
+description: "Across car rental, restaurants and property, my favourite customers are almost always business owners themselves. Why that might be."
 category: My Advice
 date: 2026-11-10
 ---

@@ -1,6 +1,6 @@
 ---
 title: "Why I Think Business in Pattaya Is Getting Harder"
-description: "A Pattaya owner of seven businesses on the next few years: falling tourism as a headwind, why AI worries him for Thai workers, why he isn't hiring, and why he'd buy rather than start a business right now."
+description: "Why business in Pattaya is getting harder: falling tourism, AI and Thai jobs, why I'm not hiring, and why I'd buy rather than start a business now."
 category: My Advice
 date: 2026-11-09
 ---

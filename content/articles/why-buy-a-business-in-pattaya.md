@@ -1,6 +1,6 @@
 ---
 title: "Why I'd Buy a Business in Pattaya Rather Than Start One"
-description: "Starting from scratch takes years and you never know if the market's there. A Pattaya owner of seven businesses on why he'd rather buy one that's already trading."
+description: "Starting from scratch takes years and you never know if the market's there. Why I'd rather buy a Pattaya business that's already trading."
 category: My Advice
 date: 2026-11-03
 ---
@@ -31,4 +31,4 @@ The reason is habit. If you've been going somewhere regularly, the habit stays e
 
 Buying doesn't remove the risk. More businesses fail than succeed anywhere in the world, and here you're also dealing with a different country and a different culture. But you're starting with customers, staff and a business that works, and that's a much better place to start from than nothing.
 
-This is part of my series on buying a business in Pattaya: [why buy rather than start](/articles/why-buy-a-business-in-pattaya), [how to value a business](/articles/valuing-a-business-in-pattaya), [leases, landlords and paperwork](/articles/business-leases-and-landlords-in-pattaya) and [taking over: the first few months](/articles/taking-over-a-business-in-pattaya). For the basics, including foreign ownership rules, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya).
+This is part of my series on buying a business in Pattaya: why buy rather than start, [how to value a business](/articles/valuing-a-business-in-pattaya), [leases, landlords and paperwork](/articles/business-leases-and-landlords-in-pattaya) and [taking over: the first few months](/articles/taking-over-a-business-in-pattaya). For the basics, including foreign ownership rules, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya).

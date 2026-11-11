@@ -1,6 +1,7 @@
 ---
 title: "Starting or Buying a Business in Pattaya: You'd Better Be Serious"
-description: "Thinking of starting or buying a business in Pattaya? What I've learned running seven: start vs buy, due diligence, Thai partners, work permits, and which businesses work."
+seoTitle: "Starting or Buying a Business in Pattaya: Read This First"
+description: "Starting or buying a business in Pattaya? What running seven taught me: start vs buy, due diligence, Thai partners, work permits and which businesses work."
 category: My Advice
 date: 2026-10-29
 ---
@@ -25,7 +26,7 @@ The normal things first: check the finances, and ask why the seller really wants
 
 For most businesses, yes. A foreigner usually can't hold the majority, so a Thai partner holds 51%.
 
-In the past, many people used what was effectively a nominee: a Thai name on the paperwork who never put in money or played any real part. That has changed. These days you need a genuine Thai partner who invests in the business.
+In the past, many people used what was effectively a nominee: a Thai name on the paperwork who never put in money or played any real part. That has changed. These days you need a genuine Thai partner who invests in the business. More in [nominee companies in Thailand](/articles/nominee-companies-in-thailand) and [is the nominee crackdown really about the OECD?](/articles/is-the-nominee-crackdown-really-about-the-oecd)
 
 Your partner doesn't have to be wealthy. If you have someone you trust who is capable of being your partner but doesn't have the money, it can be done properly. The key is that it's real, not a piece of paper. If you lend them the money, it should be a genuine loan that they actually repay, partly through their own work in the business, and they should share in the profits and the decisions as a real partner.
 

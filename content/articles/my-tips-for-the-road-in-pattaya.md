@@ -1,6 +1,6 @@
 ---
 title: "My Tips for Being on the Road in Pattaya"
-description: "A Pattaya car rental owner's personal tips for driving and riding here: slow down, stay alert, keep your head on a swivel, don't trust zebra crossings, wear a helmet, and what to do after an accident."
+description: "A car rental owner's tips for driving and riding in Pattaya: slow down, stay alert, don't trust zebra crossings, wear a helmet, and what to do after a crash."
 category: Car Rental
 date: 2026-11-06
 ---
@@ -27,7 +27,7 @@ And don't make assumptions. You might have used a one-way street ten times, but 
 
 I don't drive much late at night any more. After 10 or 11pm it really is the Wild West. Many traffic lights switch to flashing amber, which means they're effectively off, and junctions become a free-for-all. I think it's meant to keep traffic flowing when the roads are quiet, but it brings its own dangers.
 
-Drink-driving is much better than it used to be, but late at night I'd argue a lot of people on the road have been drinking. Be doubly careful.
+Drink-driving is much better than it used to be, but late at night I'd argue a lot of people on the road have been drinking. Be doubly careful. Here's [what happens if you get arrested](/articles/what-happens-if-you-get-arrested-in-pattaya) for it.
 
 ## 5. Don't trust zebra crossings
 
@@ -53,4 +53,4 @@ There are police boxes on many junctions. You rarely see officers directing traf
 
 The first priority is medical help. The good thing about everything happening out in the street is that you're rarely waiting alone. Motorbike taxi drivers and passers-by will stop to help, and the volunteer rescue crews, like the Sawang Boriboon foundation, are usually first on the scene. If you call the police or an ambulance, they come quickly.
 
-For a minor accident, people often agree something at the roadside and go on their way. If it's more serious, wait for the police and medical help. If it's a rental car, read [what to do after an accident in a rental car](/articles/driving-in-pattaya) and [renting a car in Pattaya](/articles/renting-a-car-in-pattaya).
+For a minor accident, people often agree something at the roadside and go on their way. If it's more serious, wait for the police and medical help. If it's a rental car, read [what to do after an accident in a rental car](/articles/driving-in-pattaya) and [renting a car in Pattaya](/articles/renting-a-car-in-pattaya). If you're worried about getting the blame, read [does the foreigner always pay after an accident?](/articles/does-the-foreigner-always-pay-after-an-accident)

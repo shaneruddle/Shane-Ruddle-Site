@@ -1,6 +1,6 @@
 ---
 title: "How to Value a Business in Pattaya"
-description: "A Pattaya owner of seven businesses on what a restaurant and bar here should really make, how he checks the numbers, and the multiple he uses to work out a fair price."
+description: "How to value a business in Pattaya: what a restaurant and bar should really make, how I check the numbers, and the multiple I use for a fair price."
 category: My Advice
 date: 2026-11-03
 ---
@@ -25,4 +25,4 @@ I work on a multiple of two to four times annual profit. Where a business sits i
 
 The longer a business has been going, the bigger its customer base usually is and the more it has proved it can last. A place that's been trading for many years is worth closer to four times profit. A newer one, with less of a track record, is worth closer to two.
 
-This is part of my series on buying a business in Pattaya: [why buy rather than start](/articles/why-buy-a-business-in-pattaya), [how to value a business](/articles/valuing-a-business-in-pattaya), [leases, landlords and paperwork](/articles/business-leases-and-landlords-in-pattaya) and [taking over: the first few months](/articles/taking-over-a-business-in-pattaya). For the basics, including foreign ownership rules, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya).
+This is part of my series on buying a business in Pattaya: [why buy rather than start](/articles/why-buy-a-business-in-pattaya), how to value a business, [leases, landlords and paperwork](/articles/business-leases-and-landlords-in-pattaya) and [taking over: the first few months](/articles/taking-over-a-business-in-pattaya). For the basics, including foreign ownership rules, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya).

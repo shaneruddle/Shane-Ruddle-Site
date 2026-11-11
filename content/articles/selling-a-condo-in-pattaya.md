@@ -1,6 +1,6 @@
 ---
 title: "Selling a Condo in Pattaya: Advice From an Agency Owner"
-description: "The owner of two Pattaya real estate agencies on selling a condo: why overpricing kills sales, how to get a realistic valuation, exclusive vs multiple agencies, paperwork, and negotiating offers."
+description: "Selling a condo in Pattaya: why overpricing kills sales, getting a realistic valuation, exclusive vs multiple agencies, paperwork and negotiating offers."
 category: Property
 date: 2026-10-31
 ---

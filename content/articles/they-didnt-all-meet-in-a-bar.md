@@ -1,6 +1,6 @@
 ---
 title: "No, They Didn't All Meet in a Bar"
-description: "A Pattaya business owner of 22 years on the assumption that a Western man with a Thai partner must have met her in a bar: where it comes from, how couples really meet today, and why it says more about the person assuming."
+description: "The assumption that a Western man with a Thai partner met her in a bar: where it comes from, how couples really meet today, and what it says about the assumer."
 category: My Advice
 date: 2026-11-09
 ---
@@ -25,4 +25,4 @@ That's fading. Mixed couples are common everywhere now, right up to the most suc
 
 The assumption says a lot more about the person making it than about the couple. Keep an open mind, and take people as you find them.
 
-And even if a couple did meet in the bar scene, so what? If the relationship works, let it be. More in [why some women work in Pattaya's bar scene](/articles/why-some-women-work-in-pattayas-bar-scene).
+And even if a couple did meet in the bar scene, so what? If the relationship works, let it be. More in [why some women work in Pattaya's bar scene](/articles/why-some-women-work-in-pattayas-bar-scene). On the work itself, read [why bar workers deserve the same rights as other employees](/articles/bar-workers-deserve-the-same-rights-as-other-employees).

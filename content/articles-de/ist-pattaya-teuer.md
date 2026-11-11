@@ -1,6 +1,6 @@
 ---
 title: "Ist Pattaya teuer? Was das Leben hier wirklich kostet"
-description: "Ist Pattaya teuer? Echte monatliche Kosten für Alleinstehende und Familien, von Miete und Essen gehen bis zu Schulgebühren, und was billiger oder teurer ist als erwartet."
+description: "Ist Pattaya teuer? Echte monatliche Kosten für Alleinstehende und Familien, von Miete und Essen bis Schulgebühren, und was billiger oder teurer ist als gedacht."
 category: Ratgeber
 date: 2026-11-02
 en: is-pattaya-expensive

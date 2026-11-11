@@ -1,6 +1,6 @@
 ---
 title: "Why the Owner Isn't the Best Person to Fix Your Problem"
-description: "A Pattaya business owner on why friends and customers often want him to sort out problems personally, why he's usually the least informed person to do it, and why going through the proper channels gets a better result."
+description: "Why the owner is usually the least informed person to fix your problem, and why going through the proper channels gets a better result."
 category: My Advice
 date: 2026-11-10
 ---
@@ -51,4 +51,4 @@ By all means tell me if something has gone wrong, especially if it's something I
 
 But if you want it fixed, speak to the staff first. If that doesn't work, ask for the manager. The manager isn't always on site, but the staff are, and that's what they're there for. If it really needs the owner, the manager will look into it first and then come to me with the full picture. That's how it should work, and it gets you a better result.
 
-There aren't many situations where an owner genuinely needs to step in. Going through the proper channels isn't me passing you off. It's the best way to get your problem solved properly. More in [the customer isn't always right](/articles/the-customer-isnt-always-right), [how I handle an unfair one-star review](/articles/how-i-handle-an-unfair-one-star-review) and [why I don't eat in my own restaurants](/articles/why-i-dont-eat-in-my-own-restaurants).
+There aren't many situations where an owner genuinely needs to step in. Going through the proper channels isn't me passing you off. It's the best way to get your problem solved properly. More in [the customer isn't always right](/articles/the-customer-isnt-always-right), [how I handle an unfair one-star review](/articles/how-i-handle-an-unfair-one-star-review) and [why I don't eat in my own restaurants](/articles/why-i-dont-eat-in-my-own-restaurants). See also [when people find out I'm the owner after a bad experience](/articles/when-people-find-out-im-the-owner-after-a-bad-experience).
