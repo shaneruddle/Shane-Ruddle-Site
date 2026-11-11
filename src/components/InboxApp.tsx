@@ -865,11 +865,11 @@ export default function InboxApp({ onExit, onCircle, onPhotos }: { onExit?: () =
 
       {tagging && createPortal(
         <div className="fixed inset-0 z-50 flex items-end bg-black/30 select-none [-webkit-touch-callout:none]" onClick={() => setTagging(null)} onContextMenu={e => e.preventDefault()}>
-          <div className="w-full max-w-xl mx-auto rounded-t-[24px] bg-cream px-4 pt-3" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 18px)' }} onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-xl mx-auto rounded-t-[24px] bg-cream px-4 pt-3 flex flex-col min-h-[70dvh] max-h-[88dvh]" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 18px)' }} onClick={e => e.stopPropagation()}>
             <div className="mx-auto w-10 h-1.5 rounded-full bg-black/15" />
             <div className="mt-3 text-[13px] text-black/45">Tag</div>
-            <div className="text-[16px] font-semibold text-ink line-clamp-2">{tagging.title || 'Untitled'}</div>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="shrink-0 text-[16px] font-semibold text-ink line-clamp-2">{tagging.title || 'Untitled'}</div>
+            <div className="mt-3 -mx-4 px-4 pb-2 flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-wrap content-start gap-2">
               {[...areas.map(a => [a.id, shortName(a), a.color] as const), ['', 'None', '#57534E'] as const].map(([id, l, c]) => {
                 const on = (tagging.area || '') === id;
                 return (
