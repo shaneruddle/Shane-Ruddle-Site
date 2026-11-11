@@ -180,6 +180,16 @@ service cloud.firestore {
       allow read, write: if isShane();
     }
 
+    // Site enquiries (Ask Shane questions, CVs), written by the backend only. Shane reads them, marks them
+    // read/archived and keeps drafts in the portal's Enquiries tab. Replies are sent by the backend.
+    match /contact_messages/{msgId} {
+      allow read, update: if isShane();
+    }
+
+    match /cv_submissions/{cvId} {
+      allow read, update: if isShane();
+    }
+
     match /circle_events/{eventId} {
       allow read, write: if isShane();
     }

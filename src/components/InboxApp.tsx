@@ -15,6 +15,8 @@ import {
   computeAlertAt, searchText, statusFor, isOnTodayList, todaySortKey, STATUS_LABEL, DEFAULT_AREAS, type Item, type Kind, type Status, type AiSuggestion,
 } from '../../server/inboxShared';
 import { Connections } from './InboxConnect';
+import { useEnquiries } from './EnquiriesAdmin';
+import { Mail as MailIcon } from 'lucide-react';
 import { Notifications } from './InboxNotify';
 import { NoteEditor, plainPreview, type NoteEditorHandle } from './NoteEditor';
 
@@ -85,7 +87,7 @@ const TODAY_CARD_ROWS = 6;
 const isOpen = (i: Item) => i.status !== 'done' && i.status !== 'archived';
 const isTaskOpen = (i: Item) => i.kind === 'task' && isOpen(i);
 
-export default function InboxApp({ onExit, onCircle, onPhotos }: { onExit?: () => void; onCircle?: () => void; onPhotos?: () => void }) {
+export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { onExit?: () => void; onCircle?: () => void; onPhotos?: () => void; onEnquiries?: () => void }) {
   const [items, setItems] = useState<Item[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [ready, setReady] = useState({ items: false, areas: false });
@@ -645,6 +647,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos }: { onExit?: () =
               {online ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}{syncLabel}
             </span>}
             <button onClick={() => go({ view: 'search' })} aria-label="Search" className="p-1 text-black/50"><Search className="w-5 h-5" /></button>
+            {onEnquiries && <EnquiriesButton onClick={onEnquiries} />}
             {onPhotos && <button onClick={onPhotos} aria-label="Photos" className="p-1 text-black/50"><Images className="w-5 h-5" /></button>}
             {onCircle && <button onClick={onCircle} aria-label="Circle" className="p-1 text-black/50"><HeartHandshake className="w-5 h-5" /></button>}
           </div>
@@ -1443,5 +1446,17 @@ function FilterSettings({ areas, counts }: { areas: Area[]; counts: Record<strin
       </div>
       <p className="mt-1.5 text-[12px] text-black/40">Claude files new reminders into these by name.</p>
     </section>
+  );
+}
+
+// Envelope in the top bar, with a gold count of site enquiries not yet opened.
+function EnquiriesButton({ onClick }: { onClick: () => void }) {
+  const { all } = useEnquiries();
+  const unread = all.filter(e => !e.readAt && !e.replies?.length && e.status !== 'archived' && e.status !== 'replied').length;
+  return (
+    <button onClick={onClick} aria-label={unread ? `Enquiries, ${unread} new` : 'Enquiries'} className="relative p-1 text-black/50">
+      <MailIcon className="w-5 h-5" />
+      {unread > 0 && <span className="absolute -top-0.5 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-gold-deep text-white text-[10px] font-bold leading-4 text-center">{unread}</span>}
+    </button>
   );
 }

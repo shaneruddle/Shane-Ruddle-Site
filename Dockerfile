@@ -12,6 +12,8 @@ RUN npm install --omit=dev
 COPY dist ./dist
 COPY server.ts ./server.ts
 COPY server ./server
+# Articles, used as context when Claude drafts replies to enquiries
+COPY content ./content
 COPY public ./public
 
 # Install tsx to run TypeScript server directly

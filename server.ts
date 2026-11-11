@@ -13,6 +13,7 @@ import { registerCircleRoutes } from "./server/circle";
 import { registerInboxRoutes } from "./server/inbox";
 import { registerInboxMcpRoutes } from "./server/inboxMcp";
 import { registerInboxPushRoutes } from "./server/inboxPush";
+import { registerEnquiryRoutes } from "./server/enquiries";
 
 dotenv.config();
 
@@ -476,6 +477,14 @@ Reply with JSON only, no other text: {"approve": true or false, "reason": "a few
       res.status(502).json({ error: "Could not start publishing." });
     }
   });
+
+  // ---- Enquiries tab: Claude drafts replies to site questions and CVs, Shane sends them (server/enquiries.ts) ----
+  const hasInsightsToken = (req: express.Request) => {
+    const expected = process.env.INSIGHTS_TOKEN || "";
+    const given = String(req.header("x-insights-token") || "");
+    return expected.length > 0 && given.length === expected.length && crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected));
+  };
+  registerEnquiryRoutes(app, { getDb: getCommentsDb, escapeHtml, oneLine, requireOwner, hasInsightsToken });
 
   // ---- Read-only Search Console + GA4 data for Claude ----
   // Calls are made as the dedicated site-insights service account, which is added as a Viewer/restricted user in Search Console and GA4. Callers must send

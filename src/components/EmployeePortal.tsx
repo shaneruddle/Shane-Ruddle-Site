@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth, handleFirestoreError, OperationType, UserProfile, Discount, UsageLog } from '../firebase';
 import { collection, onSnapshot, query, where, doc, setDoc, addDoc, serverTimestamp, getDoc, Timestamp, getDocs } from 'firebase/firestore';
-import { Tag, History, QrCode, ArrowLeft, Loader2, CheckCircle, Sparkles, Ticket, LogOut, Settings, User, Upload, Users, MessageCircle, Images, Activity, HeartHandshake, ListChecks, X, ArrowUpRight } from 'lucide-react';
+import { Tag, History, QrCode, ArrowLeft, Loader2, CheckCircle, Sparkles, Ticket, LogOut, Settings, User, Upload, Users, MessageCircle, Images, Activity, HeartHandshake, ListChecks, X, ArrowUpRight, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { updateDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
@@ -11,6 +11,7 @@ import CommentsAdmin from './CommentsAdmin';
 import PhotosAdmin from './PhotosAdmin';
 import ActivityAdmin from './ActivityAdmin';
 import CircleAdmin from './CircleAdmin';
+import EnquiriesAdmin from './EnquiriesAdmin';
 import InboxApp from './InboxApp';
 import { ConnectScreen } from './InboxConnect';
 
@@ -30,8 +31,8 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
   const canModerateComments = userProfile.roles?.includes('admin') || userProfile.role === 'admin' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
   // Matches isOwner() in storage.rules, which guards photo uploads.
   const canManagePhotos = userProfile.uid === 'u7ElWXIkdjVTNTp76LcyXnnq3AM2' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
-  const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'circle' | 'inbox'>(
-    !canManagePhotos ? 'offers' : initialTab === 'circle' ? 'circle' : new URLSearchParams(window.location.search).get('tab') === 'photos' ? 'photos' : 'offers');
+  const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'circle' | 'inbox' | 'enquiries'>(
+    !canManagePhotos ? 'offers' : initialTab === 'circle' ? 'circle' : new URLSearchParams(window.location.search).get('tab') === 'photos' ? 'photos' : new URLSearchParams(window.location.search).get('tab') === 'enquiries' ? 'enquiries' : 'offers');
   // Shane's bottom menu swaps between the Inbox app and the Circle tab in place, no page reload.
   const [inboxOpen, setInboxOpen] = useState(initialTab === 'inbox');
   const ownerGo = (tab: OwnerTab) => {
@@ -52,6 +53,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
     ...(canManagePhotos ? [['photos', 'Photos', Images] as [typeof activeTab, string, typeof Ticket]] : []),
     ...(canModerateComments ? [['activity', 'Activity', Activity] as [typeof activeTab, string, typeof Ticket]] : []),
     // Shane only (matches isShane() in firestore.rules), never other admins.
+    ...(canManagePhotos ? [['enquiries', 'Enquiries', Mail] as [typeof activeTab, string, typeof Ticket]] : []),
     ...(canManagePhotos ? [['circle', 'Circle', HeartHandshake] as [typeof activeTab, string, typeof Ticket]] : []),
     ...(canManagePhotos ? [['inbox', 'Reminders', ListChecks] as [typeof activeTab, string, typeof Ticket]] : []),
   ];
@@ -211,7 +213,8 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
   // /inbox opens Shane's private Inbox as its own full-screen app (home-screen icon), outside the portal chrome.
   if (inboxOpen && canManagePhotos) {
     return window.location.pathname === '/inbox/connect' ? <ConnectScreen /> : <InboxApp onExit={() => { window.location.href = '/portal'; }} onCircle={() => ownerGo('circle')}
-      onPhotos={() => { window.history.replaceState(null, '', '/portal?tab=photos'); setInboxOpen(false); setActiveTab('photos'); window.scrollTo(0, 0); }} />;
+      onPhotos={() => { window.history.replaceState(null, '', '/portal?tab=photos'); setInboxOpen(false); setActiveTab('photos'); window.scrollTo(0, 0); }}
+      onEnquiries={() => { window.history.replaceState(null, '', '/portal?tab=enquiries'); setInboxOpen(false); setActiveTab('enquiries'); window.scrollTo(0, 0); }} />;
   }
 
   // Circle is a full-screen app styled like Reminders, with a way back to Reminders.
@@ -487,6 +490,8 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
           <ActivityAdmin />
         ) : activeTab === 'circle' && canManagePhotos ? (
           <CircleAdmin />
+        ) : activeTab === 'enquiries' && canManagePhotos ? (
+          <EnquiriesAdmin />
         ) : activeTab === 'inbox' && canManagePhotos ? (
           <div className="max-w-xl mx-auto p-8 rounded-2xl bg-white border border-black/10 text-center">
             <h2 className="text-2xl font-serif">Your <span className="italic">Reminders &amp; Notes</span></h2>
