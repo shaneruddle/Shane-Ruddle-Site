@@ -30,7 +30,8 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
   const canModerateComments = userProfile.roles?.includes('admin') || userProfile.role === 'admin' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
   // Matches isOwner() in storage.rules, which guards photo uploads.
   const canManagePhotos = userProfile.uid === 'u7ElWXIkdjVTNTp76LcyXnnq3AM2' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
-  const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'circle' | 'inbox'>(initialTab === 'circle' && canManagePhotos ? 'circle' : 'offers');
+  const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'circle' | 'inbox'>(
+    !canManagePhotos ? 'offers' : initialTab === 'circle' ? 'circle' : new URLSearchParams(window.location.search).get('tab') === 'photos' ? 'photos' : 'offers');
   // Shane's bottom menu swaps between the Inbox app and the Circle tab in place, no page reload.
   const [inboxOpen, setInboxOpen] = useState(initialTab === 'inbox');
   const ownerGo = (tab: OwnerTab) => {
@@ -209,7 +210,8 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
 
   // /inbox opens Shane's private Inbox as its own full-screen app (home-screen icon), outside the portal chrome.
   if (inboxOpen && canManagePhotos) {
-    return window.location.pathname === '/inbox/connect' ? <ConnectScreen /> : <InboxApp onExit={() => { window.location.href = '/portal'; }} onCircle={() => ownerGo('circle')} />;
+    return window.location.pathname === '/inbox/connect' ? <ConnectScreen /> : <InboxApp onExit={() => { window.location.href = '/portal'; }} onCircle={() => ownerGo('circle')}
+      onPhotos={() => { window.history.replaceState(null, '', '/portal?tab=photos'); setInboxOpen(false); setActiveTab('photos'); window.scrollTo(0, 0); }} />;
   }
 
   // Circle is a full-screen app styled like Reminders, with a way back to Reminders.

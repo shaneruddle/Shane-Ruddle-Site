@@ -7,7 +7,7 @@ import {
 } from 'firebase/firestore';
 import {
   Loader2, Sun, Hourglass, Plus, Pin, Settings, Mic, ListChecks, SlidersHorizontal, Search, ArrowUp, Check, Lightbulb, StickyNote, Flag, Repeat as RepeatIcon,
-  MapPin, GripVertical, Bell, CalendarDays, User, ChevronLeft, ChevronRight, X, Sparkles, Scissors, RotateCcw, Archive, Trash2, CloudOff, Cloud, Download, LogOut, History, Folder, HeartHandshake,
+  MapPin, GripVertical, Bell, CalendarDays, User, ChevronLeft, ChevronRight, X, Sparkles, Scissors, RotateCcw, Archive, Trash2, CloudOff, Cloud, Download, LogOut, History, Folder, HeartHandshake, Images,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { bkkToday, bkkNowTime, addDays, nextDue, repeatLabel, type Repeat, type RepeatFreq } from '../../server/reminderDates';
@@ -85,7 +85,7 @@ const TODAY_CARD_ROWS = 6;
 const isOpen = (i: Item) => i.status !== 'done' && i.status !== 'archived';
 const isTaskOpen = (i: Item) => i.kind === 'task' && isOpen(i);
 
-export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; onCircle?: () => void }) {
+export default function InboxApp({ onExit, onCircle, onPhotos }: { onExit?: () => void; onCircle?: () => void; onPhotos?: () => void }) {
   const [items, setItems] = useState<Item[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [ready, setReady] = useState({ items: false, areas: false });
@@ -645,6 +645,7 @@ export default function InboxApp({ onExit, onCircle }: { onExit?: () => void; on
               {online ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}{syncLabel}
             </span>}
             <button onClick={() => go({ view: 'search' })} aria-label="Search" className="p-1 text-black/50"><Search className="w-5 h-5" /></button>
+            {onPhotos && <button onClick={onPhotos} aria-label="Photos" className="p-1 text-black/50"><Images className="w-5 h-5" /></button>}
             {onCircle && <button onClick={onCircle} aria-label="Circle" className="p-1 text-black/50"><HeartHandshake className="w-5 h-5" /></button>}
           </div>
         </header>
