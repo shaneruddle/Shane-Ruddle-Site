@@ -212,6 +212,11 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
     return window.location.pathname === '/inbox/connect' ? <ConnectScreen /> : <InboxApp onExit={() => { window.location.href = '/portal'; }} onCircle={() => ownerGo('circle')} />;
   }
 
+  // Circle is a full-screen app styled like Reminders, with a way back to Reminders.
+  if (activeTab === 'circle' && canManagePhotos) {
+    return <CircleAdmin onBack={() => ownerGo('inbox')} />;
+  }
+
   return (
     <div className="min-h-screen bg-cream">
       <PortalHeader active="portal" name={userProfile.name || userProfile.email} onNavigate={onNavigate} onBack={onBack} onMenu={() => setDrawerOpen(true)} section={activeLabel} />
@@ -479,11 +484,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
         ) : activeTab === 'activity' && canModerateComments ? (
           <ActivityAdmin />
         ) : activeTab === 'circle' && canManagePhotos ? (
-          <>
-            <CircleAdmin />
-            <div className="h-24 md:hidden" />
-            <button onClick={() => ownerGo('inbox')} className="md:hidden fixed left-4 z-40 px-4 py-2.5 rounded-full bg-[#0E0D0C] text-white text-[14px] font-medium shadow-lg" style={{ bottom: 'calc(env(safe-area-inset-bottom) + 14px)' }}>‹ Reminders</button>
-          </>
+          <CircleAdmin />
         ) : activeTab === 'inbox' && canManagePhotos ? (
           <div className="max-w-xl mx-auto p-8 rounded-2xl bg-white border border-black/10 text-center">
             <h2 className="text-2xl font-serif">Your <span className="italic">Reminders &amp; Notes</span></h2>

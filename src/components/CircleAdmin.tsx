@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { db, storage } from '../firebase';
 import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp, arrayUnion, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getBlob, deleteObject } from 'firebase/storage';
-import { Loader2, Plus, Search, X, Camera, Trash2, Check, Clock, ExternalLink, UserRound, Sparkles, MapPin, Trophy, Target, Flame } from 'lucide-react';
+import { Loader2, Plus, Search, X, Camera, Trash2, Check, Clock, ExternalLink, UserRound, MapPin, Flame, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Shane's private Circle. Data lives in circle_people / circle_events, which firestore.rules lock to Shane alone
@@ -67,8 +67,7 @@ const prettyDate = (iso?: string) =>
 
 const emptyForm = (): Partial<Person> => ({ name: '', business: '', whereMet: '', metOn: today(), introducedBy: '', whereSeen: '', notes: '' });
 
-const inputClass = 'w-full px-4 py-2.5 rounded-xl bg-black/5 text-sm border-0 focus:ring-2 focus:ring-gold-deep/30';
-const pillClass = (on: boolean) => `px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-[0.12em] whitespace-nowrap transition-colors ${on ? 'bg-ink text-white' : 'bg-black/5 text-black/50 hover:text-ink'}`;
+const inputClass = 'w-full px-4 py-2.5 rounded-xl bg-white border border-black/10 text-[15px] focus:ring-2 focus:ring-black/10';
 
 // Loads a private photo as a blob URL (Storage rules check Shane's login on every read).
 function PrivatePhoto({ path, name }: { path?: string; name: string }) {
@@ -82,9 +81,9 @@ function PrivatePhoto({ path, name }: { path?: string; name: string }) {
       .catch(() => {});
     return () => { cancelled = true; if (objectUrl) URL.revokeObjectURL(objectUrl); };
   }, [path]);
-  if (url) return <img src={url} alt={name} className="w-14 h-14 rounded-full object-cover shrink-0" />;
+  if (url) return <img src={url} alt={name} className="w-10 h-10 rounded-full object-cover shrink-0" />;
   const initials = name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
-  return <div className="w-14 h-14 rounded-full bg-gold/20 text-gold-deep flex items-center justify-center font-serif text-lg shrink-0">{initials || <UserRound className="w-5 h-5" />}</div>;
+  return <div className="w-10 h-10 rounded-full bg-black/[0.06] text-black/50 flex items-center justify-center text-[13px] font-semibold shrink-0">{initials || <UserRound className="w-5 h-5" />}</div>;
 }
 
 const PLAYBOOK: { title: string; points: string[] }[] = [
@@ -123,7 +122,7 @@ const PLAYBOOK: { title: string; points: string[] }[] = [
   },
 ];
 
-export default function CircleAdmin() {
+export default function CircleAdmin({ onBack }: { onBack?: () => void }) {
   const [people, setPeople] = useState<Person[]>([]);
   const [events, setEvents] = useState<CircleEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -274,109 +273,103 @@ export default function CircleAdmin() {
     setView('people');
   };
 
+  // Same look as Reminders: cream page, big serif title, segmented filter, plain divided rows.
+  const shell = (body: React.ReactNode) => (
+    <div className="min-h-[100dvh] bg-cream text-ink font-sans" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <div className="max-w-xl mx-auto px-4 pb-24">{body}</div>
+    </div>
+  );
+
   if (loading) {
-    return (
+    return shell(
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="w-8 h-8 animate-spin text-gold-deep" />
+        <Loader2 className="w-7 h-7 animate-spin text-black/30" />
       </div>
     );
   }
 
-  const personCard = (p: Person) => (
-    <div key={p.id} className="p-5 bg-white border border-black/10 rounded-2xl flex gap-4">
+  const rowClass = 'flex items-start gap-3 py-3.5 border-b border-black/[0.07] last:border-0';
+  const linkBtn = 'text-[13px] font-semibold text-black/50 hover:text-ink';
+  const groupTitle = 'font-sans text-[20px] font-bold tracking-normal normal-case text-ink';
+
+  const personRow = (p: Person) => (
+    <li key={p.id} className={rowClass}>
       <PrivatePhoto path={p.photoPath} name={p.name} />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <button onClick={() => { setEditing(p); setPhoto(null); }} className="text-left font-serif text-lg text-ink hover:text-gold-deep">{p.name}</button>
-            {p.business && <div className="text-sm text-black/55">{[p.role, p.business].filter(Boolean).join(', ')}</div>}
-          </div>
+      <button onClick={() => { setEditing(p); setPhoto(null); }} className="min-w-0 flex-1 text-left">
+        <div className="text-[16px] leading-snug text-ink">{p.name}</div>
+        {(p.business || p.role) && <div className="text-[13px] text-black/50 mt-0.5">{[p.role, p.business].filter(Boolean).join(', ')}</div>}
+        {p.notes && <div className="text-[13px] text-black/45 mt-0.5 line-clamp-2">{p.notes}</div>}
+        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[12px] text-black/45">
+          {(p.whereMet || p.metOn) && <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3" />{p.whereMet || 'Met'}{p.metOn ? `, ${prettyDate(p.metOn)}` : ''}</span>}
+          {p.introducedBy && <span className="inline-flex items-center gap-1"><UserRound className="w-3 h-3" />via {p.introducedBy}</span>}
+          {p.whereSeen && <span>Usually at {p.whereSeen}</span>}
         </div>
-        <div className="mt-2 text-xs text-black/50 space-y-0.5">
-          {(p.whereMet || p.metOn) && <div>Met {p.whereMet ? `at ${p.whereMet}` : ''}{p.metOn ? `, ${prettyDate(p.metOn)}` : ''}</div>}
-          {p.introducedBy && <div>Introduced by {p.introducedBy}</div>}
-          {p.whereSeen && <div>Usually at {p.whereSeen}</div>}
-        </div>
-        {p.notes && <p className="mt-2 text-sm text-black/70 whitespace-pre-wrap">{p.notes}</p>}
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button onClick={() => caughtUp(p)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/5 text-xs text-ink hover:bg-black/10"><Check className="w-3.5 h-3.5" /> Caught up today</button>
-          <button onClick={() => { setEditing(p); setPhoto(null); }} className="px-3 py-1.5 rounded-full text-xs text-black/50 hover:text-ink">Edit</button>
-        </div>
-      </div>
-    </div>
+      </button>
+      <button onClick={() => caughtUp(p)} aria-label={`Caught up with ${p.name} today`} title="Caught up today"
+        className={`mt-0.5 w-7 h-7 shrink-0 rounded-full border-2 flex items-center justify-center ${p.lastSeenOn === now ? 'bg-ink border-ink' : 'border-black/20'}`}>
+        <Check className={`w-3.5 h-3.5 ${p.lastSeenOn === now ? 'text-white' : 'text-black/30'}`} strokeWidth={3} />
+      </button>
+    </li>
   );
 
-  return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-serif">Your <span className="italic">Circle</span></h2>
-        <p className="text-sm text-black/45 mt-1">Private to your login only. Other admins and managers can't open this.</p>
-      </div>
+  const metLine = `week ${score.week}/${targets.week} · month ${score.month}/${targets.month} · year ${score.year}/${targets.year}`;
 
-      <section className="mb-8 p-5 sm:p-6 rounded-2xl bg-ink text-white">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold"><Trophy className="w-4 h-4" /> Scoreboard: new people met</h3>
-          {!editTargets && (
-            <button onClick={() => setEditTargets(targets)} className="flex items-center gap-1.5 text-xs text-white/55 hover:text-white"><Target className="w-3.5 h-3.5" /> Set targets</button>
-          )}
-        </div>
-        {editTargets ? (
-          <div>
-            <div className="grid grid-cols-3 gap-3">
-              {(['week', 'month', 'year'] as (keyof Targets)[]).map(k => (
-                <label key={k} className="text-[10px] uppercase tracking-[0.2em] text-white/50">Per {k}
-                  <input type="number" min={0} value={editTargets[k]} onChange={e => setEditTargets({ ...editTargets, [k]: Number(e.target.value) })}
-                    className="mt-1 w-full px-3 py-2 rounded-xl bg-white/10 text-white text-lg font-serif border-0 focus:ring-2 focus:ring-gold/50" />
-                </label>
-              ))}
-            </div>
-            <div className="flex gap-2 mt-4">
-              <button onClick={saveTargets} className="px-4 py-2 rounded-full bg-gold text-ink text-xs font-semibold uppercase tracking-[0.12em]">Save targets</button>
-              <button onClick={() => setEditTargets(null)} className="px-4 py-2 rounded-full text-xs text-white/55 hover:text-white">Cancel</button>
-            </div>
+  return shell(
+    <>
+      <header className="flex items-center justify-between pt-4">
+        {onBack
+          ? <button onClick={onBack} className="flex items-center gap-0.5 -ml-1.5 text-[15px] text-black/55"><ChevronLeft className="w-5 h-5" /> Reminders</button>
+          : <span className="text-[12px] uppercase tracking-[0.18em] text-black/45 font-semibold">Private to you</span>}
+        <button onClick={() => { setView('people'); setEditing(emptyForm()); setPhoto(null); }} aria-label="Add someone" className="p-1 text-black/50"><Plus className="w-6 h-6" /></button>
+      </header>
+      <h1 className="mt-1 font-serif text-[36px] leading-tight font-bold text-ink">Circle</h1>
+      <p className="mt-0.5 text-[14px] text-black/50">
+        {contacts.length} {contacts.length === 1 ? 'person' : 'people'}
+        {score.streak > 0 && <> · <Flame className="inline w-3.5 h-3.5 -mt-0.5 text-amber-600" /> {score.streak} week{score.streak === 1 ? '' : 's'} on target</>}
+        {score.catchUpsMonth > 0 && <> · {score.catchUpsMonth} catch-up{score.catchUpsMonth === 1 ? '' : 's'} this month</>}
+      </p>
+      {editTargets ? (
+        <div className="mt-3 p-4 rounded-2xl bg-white border border-black/10">
+          <div className="text-[13px] font-semibold text-black/55 mb-2">New people to meet</div>
+          <div className="grid grid-cols-3 gap-2">
+            {(['week', 'month', 'year'] as (keyof Targets)[]).map(k => (
+              <label key={k} className="text-[12px] text-black/45">Per {k}
+                <input type="number" min={0} value={editTargets[k]} onChange={e => setEditTargets({ ...editTargets, [k]: Number(e.target.value) })} className={`${inputClass} mt-1`} />
+              </label>
+            ))}
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-3 gap-3 sm:gap-5">
-              {([
-                ['This week', score.week, targets.week],
-                ['This month', score.month, targets.month],
-                ['This year', score.year, targets.year],
-              ] as [string, number, number][]).map(([label, value, goal]) => (
-                <div key={label}>
-                  <div className="text-3xl sm:text-4xl font-serif">{value}<span className="text-base text-white/40"> / {goal}</span></div>
-                  <div className="h-1.5 rounded-full bg-white/10 mt-2 overflow-hidden">
-                    <div className={`h-full rounded-full ${goal > 0 && value >= goal ? 'bg-emerald-400' : 'bg-gold'}`} style={{ width: `${goal > 0 ? Math.min(100, (value / goal) * 100) : 0}%` }} />
-                  </div>
-                  <div className="text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] font-semibold text-white/45 mt-2">{label}</div>
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-x-6 gap-y-1 mt-5 pt-4 border-t border-white/10 text-sm text-white/65">
-              <span className="flex items-center gap-1.5"><Flame className="w-4 h-4 text-gold" /> {score.streak} week{score.streak === 1 ? '' : 's'} in a row on target</span>
-              <span>{score.catchUpsMonth} catch-up{score.catchUpsMonth === 1 ? '' : 's'} this month</span>
-              <span>{contacts.length} people in total</span>
-            </div>
-          </>
-        )}
-      </section>
+          <div className="flex gap-4 mt-3">
+            <button onClick={saveTargets} className="px-4 py-1.5 rounded-full bg-ink text-white text-[13px] font-semibold">Save</button>
+            <button onClick={() => setEditTargets(null)} className={linkBtn}>Cancel</button>
+          </div>
+        </div>
+      ) : (
+        <button onClick={() => setEditTargets(targets)} className="mt-0.5 text-left text-[14px] text-black/50">
+          New people met: {metLine}
+        </button>
+      )}
 
-      <div className="flex flex-wrap items-center gap-2 mb-6">
-        {([['people', 'People'], ['suggested', 'Worth meeting'], ['events', "What's on"], ['playbook', 'Playbook']] as [View, string][]).map(([key, label]) => (
-          <button key={key} onClick={() => setView(key)} className={pillClass(view === key)}>{label}</button>
-        ))}
-        {view === 'people' && (
-          <button onClick={() => { setEditing(emptyForm()); setPhoto(null); }} className="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-full bg-gold-deep text-white text-xs font-semibold uppercase tracking-[0.12em] hover:opacity-90">
-            <Plus className="w-3.5 h-3.5" /> Add someone
-          </button>
+      <div className="sticky top-0 z-10 bg-cream -mx-4 px-4 pt-3 pb-1.5">
+        <div className="flex rounded-[10px] bg-black/[0.06] p-0.5">
+          {([['people', 'People'], ['suggested', 'To meet'], ['events', "What's on"], ['playbook', 'Tips']] as [View, string][]).map(([key, label]) => (
+            <button key={key} onClick={() => setView(key)}
+              className={`flex-1 py-1 rounded-[8px] text-[13px] font-semibold ${view === key ? 'bg-white text-ink shadow-sm' : 'text-black/50'}`}>{label}</button>
+          ))}
+        </div>
+        {view === 'people' && contacts.length > 0 && (
+          <div className="relative mt-2">
+            <Search className="w-4 h-4 text-black/30 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search names, places, notes"
+              className="w-full pl-9 pr-3 py-1.5 rounded-[10px] bg-black/[0.06] text-[14px] border-0 focus:ring-2 focus:ring-black/10" />
+          </div>
         )}
       </div>
 
       {editing && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={() => !saving && setEditing(null)}>
-          <div className="bg-cream w-full sm:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-6" onClick={e => e.stopPropagation()}>
+          <div className="bg-cream w-full sm:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-6 font-sans" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-xl font-serif">{editing.id ? editing.name : 'Someone new'}</h3>
+              <h3 className="font-serif text-[28px] leading-tight font-bold">{editing.id ? editing.name : 'Someone new'}</h3>
               <button onClick={() => setEditing(null)} className="p-2 text-black/40 hover:text-ink" aria-label="Close"><X className="w-5 h-5" /></button>
             </div>
             <div className="space-y-3">
@@ -415,106 +408,84 @@ export default function CircleAdmin() {
       )}
 
       {view === 'people' && (
-        <div className="space-y-8">
+        <>
+          {contacts.length === 0
+            ? <p className="py-14 text-center text-black/35">No one yet. Tap + after you meet someone.</p>
+            : <ul className="mt-1">{contacts.filter(matches).sort((a, b) => a.name.localeCompare(b.name)).map(personRow)}</ul>}
           {connectors.length > 0 && (
-            <section className="p-5 rounded-2xl bg-ink text-white">
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold mb-2">Your best connectors</h3>
-              <p className="text-sm text-white/70">{connectors.map(([name, n]) => `${name} (${n} intros)`).join(' · ')}</p>
-              <p className="text-xs text-white/45 mt-2">They keep introducing you to people. Look after them.</p>
-            </section>
+            <p className="mt-6 text-[13px] text-black/45">Best connectors: {connectors.map(([name, n]) => `${name} (${n} intros)`).join(', ')}. Look after them.</p>
           )}
-          <section>
-            {contacts.length > 0 && <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-black/40 mb-3">Everyone ({contacts.length})</h3>}
-            <div className="relative mb-4">
-              <Search className="w-4 h-4 text-black/30 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search names, places, notes" className="w-full pl-9 pr-3 py-2 rounded-full bg-black/5 text-sm border-0 focus:ring-2 focus:ring-gold-deep/30" />
-            </div>
-            {contacts.length === 0 ? (
-              <div className="p-10 text-center bg-white border border-dashed border-black/15 rounded-2xl text-sm text-black/50">
-                No one yet. Tap <span className="font-semibold">Add someone</span> after you meet a person, or see who's worth meeting.
-              </div>
-            ) : (
-              <div className="grid gap-3">{contacts.filter(matches).sort((a, b) => a.name.localeCompare(b.name)).map(personCard)}</div>
-            )}
-          </section>
-        </div>
+        </>
       )}
 
       {view === 'suggested' && (
-        <div>
-          <p className="text-sm text-black/55 mb-5">Owners who have run a business in Pattaya for 3+ years, found from public sources only (press, clubs, business pages). Tick them off as you go.</p>
+        <>
+          <p className="mt-2 text-[13px] text-black/45">Owners running a Pattaya business for 3+ years, from public sources only.</p>
           {suggested.length === 0 ? (
-            <div className="p-10 text-center bg-white border border-dashed border-black/15 rounded-2xl text-sm text-black/50">No suggestions right now. A new batch is added each month.</div>
+            <p className="py-14 text-center text-black/35">No suggestions right now.</p>
           ) : (
-            <div className="grid gap-3">
+            <ul className="mt-1">
               {suggested.map(p => (
-                <div key={p.id} className={`p-5 bg-white border border-black/10 rounded-2xl ${p.status !== 'suggested' ? 'opacity-60' : ''}`}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="font-serif text-lg text-ink">{p.name}</div>
-                      <div className="text-sm text-black/55">{[p.role, p.business].filter(Boolean).join(', ')}{p.sinceYear ? ` · since ${p.sinceYear}` : ''}</div>
+                <li key={p.id} className={`${rowClass} ${p.status !== 'suggested' ? 'opacity-55' : ''}`}>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[16px] leading-snug text-ink">{p.name}{p.status !== 'suggested' && <span className="ml-2 text-[12px] text-black/40">{p.status === 'later' ? 'Later' : 'Skipped'}</span>}</div>
+                    <div className="text-[13px] text-black/50 mt-0.5">{[p.role, p.business].filter(Boolean).join(', ')}{p.sinceYear ? ` · since ${p.sinceYear}` : ''}</div>
+                    {p.whyMeet && <div className="text-[13px] text-black/60 mt-1">{p.whyMeet}</div>}
+                    {p.wayIn && <div className="text-[13px] text-black/45 mt-0.5"><MapPin className="inline w-3 h-3 -mt-0.5 mr-1" />{p.wayIn}</div>}
+                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                      <button onClick={() => met(p)} className="text-[13px] font-semibold text-ink">Met them</button>
+                      {p.status !== 'later' && <button onClick={() => update(p, { status: 'later' })} className={linkBtn}>Later</button>}
+                      {p.status !== 'skipped' && <button onClick={() => update(p, { status: 'skipped' })} className={linkBtn}>Not for me</button>}
+                      {p.status !== 'suggested' && <button onClick={() => update(p, { status: 'suggested' })} className={linkBtn}>Move back</button>}
+                      {p.sourceUrl && <a href={p.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[12px] text-black/35">{p.sourceLabel || 'Source'} <ExternalLink className="w-3 h-3" /></a>}
                     </div>
-                    {p.status !== 'suggested' && <span className="text-[11px] px-2.5 py-1 rounded-full bg-black/5 text-black/45">{p.status === 'later' ? 'Later' : 'Skipped'}</span>}
                   </div>
-                  {p.whyMeet && <p className="mt-3 text-sm text-black/70"><Sparkles className="inline w-3.5 h-3.5 text-gold-deep mr-1" />{p.whyMeet}</p>}
-                  {p.wayIn && <p className="mt-1.5 text-sm text-black/70"><MapPin className="inline w-3.5 h-3.5 text-gold-deep mr-1" />{p.wayIn}</p>}
-                  {p.sourceUrl && (
-                    <a href={p.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-black/40 hover:text-ink">
-                      {p.sourceLabel || 'Source'} <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <button onClick={() => met(p)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-ink text-white text-xs"><Check className="w-3.5 h-3.5" /> Met them</button>
-                    {p.status !== 'later' && <button onClick={() => update(p, { status: 'later' })} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/5 text-xs text-ink"><Clock className="w-3.5 h-3.5" /> Later</button>}
-                    {p.status !== 'skipped' && <button onClick={() => update(p, { status: 'skipped' })} className="px-3 py-1.5 rounded-full text-xs text-black/45 hover:text-ink">Not for me</button>}
-                    {p.status !== 'suggested' && <button onClick={() => update(p, { status: 'suggested' })} className="px-3 py-1.5 rounded-full text-xs text-black/45 hover:text-ink">Move back</button>}
-                  </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
-          <button onClick={() => setShowSkipped(s => !s)} className="mt-4 text-xs text-black/40 hover:text-ink">{showSkipped ? 'Hide' : 'Show'} skipped</button>
-        </div>
+          <button onClick={() => setShowSkipped(s => !s)} className={`mt-4 ${linkBtn}`}>{showSkipped ? 'Hide' : 'Show'} skipped</button>
+        </>
       )}
 
       {view === 'events' && (
-        <div>
-          <p className="text-sm text-black/55 mb-5">Regular things where settled residents and business owners go. Turn up to the same one a few weeks running.</p>
+        <>
+          <p className="mt-2 text-[13px] text-black/45">Regular things settled residents go to. Turn up to the same one a few weeks running.</p>
           {events.length === 0 ? (
-            <div className="p-10 text-center bg-white border border-dashed border-black/15 rounded-2xl text-sm text-black/50">No events loaded yet.</div>
+            <p className="py-14 text-center text-black/35">No events loaded yet.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <ul className="mt-1">
               {events.slice().sort((a, b) => a.title.localeCompare(b.title)).map(e => {
                 const known = peopleAt(e);
                 return (
-                  <div key={e.id} className="p-5 bg-white border border-black/10 rounded-2xl">
-                    <div className="font-serif text-lg text-ink">{e.title}</div>
-                    {e.when && <div className="text-sm text-gold-deep mt-0.5">{e.when}</div>}
-                    {e.where && <div className="text-xs text-black/50 mt-1">{e.where}</div>}
-                    {e.crowd && <p className="text-sm text-black/70 mt-3">{e.crowd}</p>}
-                    {e.tip && <p className="text-xs text-black/55 mt-2 italic">{e.tip}</p>}
-                    {known.length > 0 && <p className="text-xs text-emerald-700 mt-2">You know: {known.map(p => p.name).join(', ')}</p>}
-                    {e.url && <a href={e.url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs text-black/40 hover:text-ink">Check dates <ExternalLink className="w-3 h-3" /></a>}
-                  </div>
+                  <li key={e.id} className={rowClass}>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[16px] leading-snug text-ink">{e.title}</div>
+                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[12px] text-black/50">
+                        {e.when && <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" />{e.when}</span>}
+                        {e.where && <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3" />{e.where}</span>}
+                      </div>
+                      {e.crowd && <div className="text-[13px] text-black/60 mt-1">{e.crowd}</div>}
+                      {e.tip && <div className="text-[13px] text-black/45 mt-0.5">{e.tip}</div>}
+                      {known.length > 0 && <div className="text-[12px] font-semibold text-emerald-700 mt-1">You know {known.map(p => p.name).join(', ')}</div>}
+                      {e.url && <a href={e.url} target="_blank" rel="noopener noreferrer" className="mt-1.5 inline-flex items-center gap-1 text-[12px] text-black/35">Check dates <ExternalLink className="w-3 h-3" /></a>}
+                    </div>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           )}
-        </div>
+        </>
       )}
 
-      {view === 'playbook' && (
-        <div className="grid gap-4">
-          {PLAYBOOK.map(s => (
-            <section key={s.title} className="p-6 bg-white border border-black/10 rounded-2xl">
-              <h3 className="font-serif text-xl mb-3">{s.title}</h3>
-              <ul className="space-y-2">
-                {s.points.map(pt => <li key={pt} className="text-sm text-black/70 pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-gold-deep">{pt}</li>)}
-              </ul>
-            </section>
-          ))}
-        </div>
-      )}
-    </div>
+      {view === 'playbook' && PLAYBOOK.map(s => (
+        <section key={s.title} className="mt-5">
+          <h3 className={groupTitle}>{s.title}</h3>
+          <ul className="mt-1">
+            {s.points.map(pt => <li key={pt} className={`${rowClass} text-[15px] leading-snug text-black/75`}>{pt}</li>)}
+          </ul>
+        </section>
+      ))}
+    </>
   );
 }
