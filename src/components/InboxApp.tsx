@@ -118,6 +118,8 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
   const [listFilter, setListFilter] = useState('all');
   // One-touch filter for what kind of thing to show: everything, reminders (tasks + ideas) or notes.
   const [kindFilter, setKindFilter] = useState<'all' | 'reminders' | 'notes'>('all');
+  const [overdueOnly, setOverdueOnly] = useState(false);
+  const dockBottom = useVisualBottom();
   const [notesShown, setNotesShown] = useState(60);
   const pull = useRef<number | null>(null);
   const [clock, setClock] = useState(() => ({ day: bkkToday(), time: bkkNowTime() }));
@@ -631,7 +633,10 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
   const allReminders = items.filter(i => isOpen(i)).sort((a, b) => todaySortKey(b) - todaySortKey(a));
   const inFilter = (i: Item) => (listFilter === 'all' || (listFilter === 'none' ? !areaById[i.area || ''] : i.area === listFilter))
     && (kindFilter === 'all' || (kindFilter === 'notes' ? i.kind === 'note' : i.kind !== 'note'));
-  const shownReminders = allReminders.filter(inFilter);
+  // Same rule as the red date on a row: past its day, or today and past its time.
+  const isOverdue = (i: Item) => !!i.dueDate && (i.dueDate < now || (i.dueDate === now && !!i.dueTime && i.dueTime < clock.time));
+  const overdueCount = allReminders.filter(i => inFilter(i) && isOverdue(i)).length;
+  const shownReminders = allReminders.filter(i => inFilter(i) && (!overdueOnly || isOverdue(i)));
   const filterArea = listFilter !== 'all' && listFilter !== 'none' ? listFilter : null;
 
   const homeView = () => (
@@ -653,7 +658,9 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
           </div>
         </header>
         <h1 className="mt-1 font-serif text-[36px] leading-tight font-bold text-ink">{greeting}, Shane</h1>
-        <p className="mt-0.5 text-[14px] text-black/50 flex items-center gap-1 flex-wrap">{plural(shownReminders.filter(i => i.kind !== 'note').length, 'reminder')}{shownReminders.some(i => i.kind === 'note') ? `, ${plural(shownReminders.filter(i => i.kind === 'note').length, 'note')}` : ''}{overdue.filter(inFilter).length ? <span className="text-danger font-medium"> · {overdue.filter(inFilter).length} overdue</span> : null}
+        <p className="mt-0.5 text-[14px] text-black/50 flex items-center gap-1 flex-wrap">{plural(shownReminders.filter(i => i.kind !== 'note').length, 'reminder')}{shownReminders.some(i => i.kind === 'note') ? `, ${plural(shownReminders.filter(i => i.kind === 'note').length, 'note')}` : ''}{overdueCount || overdueOnly ? <button onClick={() => setOverdueOnly(v => !v)} aria-pressed={overdueOnly}
+            className={`ml-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[13px] font-semibold border ${overdueOnly ? 'bg-danger text-white border-danger' : 'text-danger border-danger/30 bg-white'}`}>
+            {overdueCount} overdue{overdueOnly && <X className="w-3.5 h-3.5" />}</button> : null}
           <button onClick={() => newNote(filterArea)} className="ml-auto inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-black/10 text-[13px] text-black/60"><Plus className="w-3.5 h-3.5" /> Note</button></p>
 
         {/* One-touch filters: what kind, then which company (logos) */}
@@ -682,7 +689,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
 
         {shownReminders.length
           ? <div className="mt-1"><TodayList items={shownReminders} body={i => rowBody(i, { showArea: listFilter === 'all' || listFilter === 'none' })} onMove={moveOnToday} /></div>
-          : <p className="py-14 text-center text-black/35">Nothing here.</p>}
+          : <p className="py-14 text-center text-black/35">{overdueOnly ? 'Nothing overdue.' : 'Nothing here.'}</p>}
 
         <div className="mt-8 flex gap-2">
           <button onClick={() => go({ view: 'done' })} className="flex-1 py-3 rounded-2xl bg-white border border-black/10 text-[13px] text-black/55 flex items-center justify-center gap-1.5"><Archive className="w-4 h-4" /> Done</button>
@@ -858,7 +865,8 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
       {/* Capture bar + bottom menu, pinned together. Mounted on <body> so no animated (transformed) parent
           can turn position:fixed into "fixed to that parent", which left the bar floating mid-page on iPhone. */}
       {createPortal(
-        <div className="fixed bottom-0 inset-x-0 z-40 pt-2 bg-gradient-to-b from-cream/0 via-cream to-cream after:absolute after:inset-x-0 after:top-full after:h-[320px] after:bg-cream">
+        <div style={dockBottom === null ? undefined : { top: 0, bottom: 'auto', transform: `translateY(calc(${dockBottom}px - 100%))` }}
+          className="fixed bottom-0 inset-x-0 z-40 pt-2 bg-gradient-to-b from-cream/0 via-cream to-cream after:absolute after:inset-x-0 after:top-full after:h-[320px] after:bg-cream">
           {dockFor && <CaptureDock key={view + (screen.area || '')} dark={false} placeholder={dockFor.placeholder} accent={dockFor.accent}
             onCapture={raw => capture(raw, view === 'area' ? screen.area : view === 'home' ? filterArea : null, view !== 'notes')} />}
           <div style={{ height: 'calc(env(safe-area-inset-bottom) + 6px)' }} />
@@ -920,6 +928,44 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
       )}
     </div>
   );
+}
+
+// The bottom edge of what's actually on screen, in px from the top of the page's fixed frame.
+// iPhone (iOS 26) can leave position:fixed;bottom:0 stuck at the keyboard's height after the keyboard closes,
+// so the capture bar floated mid-list. Anchoring to the visual viewport keeps it on the real bottom edge,
+// and a tiny scroll nudge after the keyboard goes makes Safari redo its layout.
+function useVisualBottom(): number | null {
+  const [bottom, setBottom] = useState<number | null>(null);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    let raf = 0;
+    const measure = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => setBottom(Math.round(vv.offsetTop + vv.height))); };
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const afterKeyboard = (e: FocusEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (!t || !/^(INPUT|TEXTAREA)$/.test(t.tagName) && !t.isContentEditable) return;
+      for (const ms of [100, 350, 700]) timers.push(setTimeout(() => { window.scrollTo(window.scrollX, window.scrollY); measure(); }, ms));
+    };
+    measure();
+    vv.addEventListener('resize', measure);
+    vv.addEventListener('scroll', measure);
+    window.addEventListener('resize', measure);
+    window.addEventListener('orientationchange', measure);
+    document.addEventListener('focusout', afterKeyboard);
+    document.addEventListener('visibilitychange', measure);
+    return () => {
+      cancelAnimationFrame(raf);
+      timers.forEach(clearTimeout);
+      vv.removeEventListener('resize', measure);
+      vv.removeEventListener('scroll', measure);
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('orientationchange', measure);
+      document.removeEventListener('focusout', afterKeyboard);
+      document.removeEventListener('visibilitychange', measure);
+    };
+  }, []);
+  return bottom;
 }
 
 // ---- capture dock: pinned to the bottom, within thumb reach, with a mic ----
