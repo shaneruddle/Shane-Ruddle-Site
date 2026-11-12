@@ -540,6 +540,13 @@ export default function App() {
     }
   }, [ownerRedirectPending, userProfile, authLoading, view]);
 
+  // Remember this is Shane's device wherever he signs in, so the next open goes straight to the fast Reminders page.
+  useEffect(() => {
+    if (userProfile && (userProfile.uid === SHANE_UID || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com')) {
+      try { localStorage.setItem(OWNER_HOME_KEY, '1'); } catch { /* ignore */ }
+    }
+  }, [userProfile]);
+
   // Real-time companies listener - removed to save quota, using initial fetch only
   useEffect(() => {
     // Initial fetch handled by fetchData above

@@ -17,6 +17,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Shane Ruddle" />
+  <script>
+    // Shane, signed in on this device, opens straight into Reminders without loading the homepage first.
+    try { if (location.pathname === '/' && !location.search && localStorage.getItem('sr_owner_dashboard')) location.replace('/inbox'); } catch (e) {}
+  </script>
   </head>
   <body>
     <div id="root"></div>

@@ -14,7 +14,7 @@ import {
   browserLocalPersistence,
   setPersistence
 } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp, Timestamp, deleteDoc } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp, Timestamp, deleteDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -31,7 +31,12 @@ export const auth = getAuth(app);
 // Ensure persistence is set correctly for cross-origin iframe contexts
 setPersistence(auth, browserLocalPersistence).catch(err => console.error("Error setting persistence:", err));
 
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+// On Shane's own devices, keep a copy of his data on the phone so Reminders shows instantly on open and
+// then catches up with the server. Everyone else (shared staff devices) keeps the in-memory cache only.
+const ownerDevice = (() => { try { return !!localStorage.getItem('sr_owner_dashboard'); } catch { return false; } })();
+export const db = ownerDevice
+  ? initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
+  : getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
 export const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`);
 export const googleProvider = new GoogleAuthProvider();

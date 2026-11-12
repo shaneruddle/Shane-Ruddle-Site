@@ -39,6 +39,11 @@ export default defineConfig(({mode}) => {
   build: {
     rollupOptions: {
       external: ['@google/genai'],
+      // inbox.html is the fast-start page for Shane's Reminders app (/inbox).
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        inbox: path.resolve(__dirname, 'inbox.html'),
+      },
     },
   },
   server: {
