@@ -121,7 +121,6 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
   const [overdueOnly, setOverdueOnly] = useState(false);
   const dockBottom = useVisualBottom();
   const [notesShown, setNotesShown] = useState(60);
-  const pull = useRef<number | null>(null);
   const [clock, setClock] = useState(() => ({ day: bkkToday(), time: bkkNowTime() }));
   const flushing = useRef(false);
   const sorting = useRef(new Set<string>());
@@ -641,9 +640,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
 
   const homeView = () => (
     // No text selection anywhere on the list: on iPhone a long press (to tag) would otherwise start selecting text.
-    <div className="min-h-[100dvh] bg-cream text-ink select-none [-webkit-touch-callout:none]" style={{ paddingTop: 'env(safe-area-inset-top)' }}
-      onTouchStart={e => { pull.current = window.scrollY <= 0 ? e.touches[0].clientY : null; }}
-      onTouchMove={e => { if (pull.current !== null && e.touches[0].clientY - pull.current > 90) { pull.current = null; go({ view: 'search' }); } }}>
+    <div className="min-h-[100dvh] bg-cream text-ink select-none [-webkit-touch-callout:none]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="max-w-xl mx-auto px-4 pb-60">
         <header className="flex items-center justify-between pt-4">
           <span className="text-[12px] uppercase tracking-[0.18em] text-black/45 font-semibold">{dateLine}</span>
