@@ -65,6 +65,8 @@ const dayLabel = (d: string, now: string) => {
   const sameYear = d.slice(0, 4) === now.slice(0, 4);
   return new Date(`${d}T12:00:00+07:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', ...(sameYear ? {} : { year: 'numeric' }), timeZone: 'Asia/Bangkok' });
 };
+// Absolute date for text that stays put, e.g. "Fri 14 Nov, 3pm".
+const fullDate = (d: string, t?: string | null) => [new Date(`${d}T12:00:00+07:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Bangkok' }), timeLabel(t)].filter(Boolean).join(', ');
 const whenLabel = (d?: string | null, t?: string | null, now = bkkToday()) => (d ? [dayLabel(d, now), timeLabel(t)].filter(Boolean).join(', ') : '');
 const ago = (ms?: number) => {
   if (!ms) return '';
@@ -112,6 +114,15 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
     onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
   });
   const [note, setNote] = useState<{ id: string; version: number; fresh?: boolean } | null>(null);
+  // After a convert, open it in its new form once the phone's copy has caught up (otherwise the editor starts stale).
+  const [reopen, setReopen] = useState<{ id: string; kind: Kind } | null>(null);
+  useEffect(() => {
+    if (!reopen) return;
+    const it = items.find(i => i.id === reopen.id);
+    if (!it || it.kind !== reopen.kind) return;
+    setReopen(null);
+    if (it.kind === 'task') setOpen(it); else setNote({ id: it.id, version: it.version || 0 });
+  }, [reopen, items]);
   const [notesQuery, setNotesQuery] = useState('');
   const [notesFilter, setNotesFilter] = useState('all');
   // The one Reminders list: 'all', 'none' (no business) or a business id.
@@ -396,6 +407,36 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
     batch.update(doc(db, 'inbox_items', i.id), { status: 'archived', ai: { state: 'done', applied: [] }, version: increment(1), updatedAt: serverTimestamp(), updatedBy: 'shane' });
     batch.set(doc(collection(db, 'inbox_history')), { itemId: i.id, by: 'shane', action: `split into ${parts.length}`, changes: {}, at: serverTimestamp() });
     await batch.commit().then(() => toast.success(`Split into ${parts.length}`)).catch(() => toast.error('Could not split'));
+  };
+
+  // Turn a reminder into a note, or a note/idea into a reminder. Keeps the title, text, business and flag.
+  // A note can't nag, so a reminder's dates are written into the note's text instead. Not awaited and no version
+  // check: it shows straight away from the phone's copy (even offline) and syncs when it can.
+  const convert = (i: Item, to: 'note' | 'task', edits: Partial<Item> = {}) => {
+    const cur = { ...i, ...edits };
+    const before: Partial<Item> = { kind: i.kind, status: i.status, title: cur.title, body: cur.body || '', dueDate: i.dueDate ?? null, dueTime: i.dueTime ?? null, remindDate: i.remindDate ?? null, remindTime: i.remindTime ?? null, repeat: i.repeat ?? null, waitingOn: i.waitingOn ?? null, followUpDate: i.followUpDate ?? null, onToday: i.onToday ?? null, todayRank: i.todayRank ?? null };
+    let changes: Partial<Item>;
+    if (to === 'note') {
+      const dates = [
+        cur.dueDate && `Was due ${fullDate(cur.dueDate, cur.dueTime)}${cur.repeat ? ` (${repeatLabel(cur.repeat).toLowerCase()})` : ''}`,
+        cur.remindDate && `Reminder was ${fullDate(cur.remindDate, cur.remindTime)}`,
+        cur.waitingOn && `Waiting on ${cur.waitingOn}`,
+      ].filter(Boolean).join('\n');
+      const body = (cur.body || '').trim();
+      changes = {
+        ...edits, kind: 'note', status: 'filed', body: [body, dates].filter(Boolean).join('\n\n'),
+        dueDate: null, dueTime: null, remindDate: null, remindTime: null, repeat: null, waitingOn: null, waitingSince: null, followUpDate: null,
+      };
+    } else {
+      const title = (cur.title || '').trim() || plainPreview((cur.body || '').trim().split('\n')[0]).slice(0, 80) || 'Untitled';
+      changes = { ...edits, title, kind: 'task', status: 'next', onToday: true, todayRank: Date.now() };
+    }
+    // Shane has decided what it is, so the AI shouldn't sort it back.
+    if (i.ai?.state === 'pending') changes.ai = { state: 'done', applied: [], at: Date.now() };
+    save(i, changes, to === 'note' ? 'made into a note' : 'made into a reminder');
+    toast.success(to === 'note' ? 'Now a note' : 'Now a reminder', {
+      action: { label: 'Undo', onClick: () => { save({ ...i, ...changes } as Item, before, 'undo convert'); setOpen(null); setNote(null); setReopen(null); } },
+    });
   };
 
   const exportAll = () => {
@@ -887,6 +928,10 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
                 );
               })}
             </div>
+            <button onClick={() => { const it = tagging; setTagging(null); convert(it, it.kind === 'task' ? 'note' : 'task'); }}
+              className="mt-4 w-full py-3 rounded-2xl bg-white text-[15px] font-semibold text-ink flex items-center justify-center gap-2 border border-black/[0.06]">
+              {tagging.kind === 'task' ? <><StickyNote className="w-4 h-4 text-black/50" /> Make it a note</> : <><Bell className="w-4 h-4 text-gold-deep" /> Make it a reminder</>}
+            </button>
           </div>
         </div>,
         document.body,
@@ -899,6 +944,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
           onDetails={() => { setOpen(noteItem); setNote(null); }}
           onArchive={() => { save(noteItem, { status: noteItem.status === 'archived' ? statusFor(noteItem.kind, noteItem.waitingOn) : 'archived' }, noteItem.status === 'archived' ? 'restored' : 'archived'); setNote(null); }}
           onDiscard={() => { deleteDoc(doc(db, 'inbox_items', noteItem.id)).catch(() => {}); setNote(null); }}
+          onMakeReminder={edits => { convert(noteItem, 'task', edits); setNote(null); setReopen({ id: noteItem.id, kind: 'task' }); }}
         />
       )}
 
@@ -914,6 +960,12 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
           onComplete={i => { complete(i); setOpen(null); }}
           onSplit={(i, parts) => { split(i, parts); setOpen(null); }}
           onResort={i => sort(i.id, true)}
+          onConvert={(to, edits) => {
+            const cur = items.find(i => i.id === open.id) || open;
+            convert(cur, to, edits);
+            setOpen(null);
+            setReopen({ id: cur.id, kind: to });
+          }}
           onArchive={i => { save(i, { status: i.status === 'archived' ? statusFor(i.kind, i.waitingOn) : 'archived' }, i.status === 'archived' ? 'restored' : 'archived'); setOpen(null); }}
           onDelete={async i => {
             if (!confirm('Delete this for good? Archive keeps it searchable.')) return;
@@ -1079,9 +1131,10 @@ function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw
 // Saves a moment after you stop typing, and again on close. Only refuses if the same text was changed elsewhere.
 const CHECK = /^(?:- \[[ x]\]|☐|☑) ?/;
 
-function NotePage({ item, fresh, areas, onClose, onSave, onDetails, onArchive, onDiscard }: {
+function NotePage({ item, fresh, areas, onClose, onSave, onDetails, onArchive, onDiscard, onMakeReminder }: {
   item: Item; fresh: boolean; areas: Area[]; onClose: () => void;
   onSave: (changes: Partial<Item>, base: Partial<Item>) => Promise<boolean>; onDetails: () => void; onArchive: () => void; onDiscard: () => void;
+  onMakeReminder: (edits: Partial<Item>) => void;
 }) {
   const [title, setTitle] = useState(item.title || '');
   const [body, setBody] = useState(item.body || '');
@@ -1162,10 +1215,11 @@ function NotePage({ item, fresh, areas, onClose, onSave, onDetails, onArchive, o
       </div>
 
       <div className={`fixed bottom-0 inset-x-0 bg-[#F3EFE6] border-t border-black/[0.06] ${typing ? 'hidden' : ''}`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <div className="max-w-xl mx-auto grid grid-cols-4 text-[12px] font-semibold text-gold-deep">
+        <div className="max-w-xl mx-auto grid grid-cols-5 text-[12px] font-semibold text-gold-deep">
           <button onClick={addChecklist} className="py-3 flex flex-col items-center gap-1"><ListChecks className="w-5 h-5" /> Checklist</button>
           <button onClick={() => setPinned(p => !p)} className="py-3 flex flex-col items-center gap-1"><Pin className={`w-5 h-5 ${pinned ? 'fill-gold/50' : ''}`} /> {pinned ? 'Unpin' : 'Pin'}</button>
           <button onClick={async () => { if (title.trim() || body.trim()) await flush(); onDetails(); }} className="py-3 flex flex-col items-center gap-1"><SlidersHorizontal className="w-5 h-5" /> Details</button>
+          <button onClick={() => { if (!title.trim() && !body.trim()) return; onMakeReminder({ title: title.trim(), body, pinned, area: area || null }); }} className="py-3 flex flex-col items-center gap-1"><Bell className="w-5 h-5" /> Reminder</button>
           <button onClick={async () => { if (title.trim() || body.trim()) await flush(); onArchive(); }} className="py-3 flex flex-col items-center gap-1"><Archive className="w-5 h-5" /> {item.status === 'archived' ? 'Restore' : 'Archive'}</button>
         </div>
       </div>
@@ -1261,8 +1315,8 @@ function SearchView({ items, areaName, row }: { items: Item[]; areaName: (id?: s
 }
 
 // ---- item detail ----
-function ItemSheet({ item, openedVersion, areas, now, onClose, onSave, onComplete, onSplit, onResort, onArchive, onDelete }: {
-  item: Item; openedVersion: number; areas: Area[]; now: string; onClose: () => void;
+function ItemSheet({ item, openedVersion, areas, now, onClose, onSave, onComplete, onSplit, onResort, onArchive, onDelete, onConvert }: {
+  item: Item; openedVersion: number; areas: Area[]; now: string; onClose: () => void; onConvert: (to: 'note' | 'task', edits: Partial<Item>) => void;
   onSave: (item: Item, changes: Partial<Item>, version: number) => void; onComplete: (i: Item) => void; onSplit: (i: Item, parts: AiSuggestion[]) => void;
   onResort: (i: Item) => void; onArchive: (i: Item) => void; onDelete: (i: Item) => void;
 }) {
@@ -1386,6 +1440,15 @@ function ItemSheet({ item, openedVersion, areas, now, onClose, onSave, onComplet
           <button onClick={() => set({ flagged: !f.flagged })} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><Flag className={`w-4 h-4 ${f.flagged ? 'text-orange-500 fill-orange-500' : ''}`} /> {f.flagged ? 'Flagged' : 'Flag'}</button>
           {item.kind === 'task' && <button onClick={() => set(isOnTodayList(f) ? { onToday: false } : { onToday: true, todayRank: Date.now() })} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><Sun className={`w-4 h-4 ${isOnTodayList(f) ? 'text-amber-500' : ''}`} /> {isOnTodayList(f) ? 'On Today list' : 'Add to Today'}</button>}
           <button onClick={() => onArchive(item)} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><Archive className="w-4 h-4" /> {item.status === 'archived' ? 'Restore' : 'Archive'}</button>
+          <button onClick={() => {
+            const edits: Partial<Item> = {};
+            for (const k of ['title', 'body', 'area', 'people', 'flagged', 'dueDate', 'dueTime', 'remindDate', 'remindTime', 'repeat', 'waitingOn'] as const) {
+              if (JSON.stringify(f[k] ?? null) !== JSON.stringify(item[k] ?? null)) (edits as Record<string, unknown>)[k] = f[k] ?? null;
+            }
+            onConvert(item.kind === 'task' ? 'note' : 'task', edits);
+          }} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5">
+            {item.kind === 'task' ? <><StickyNote className="w-4 h-4" /> Make it a note</> : <><Bell className="w-4 h-4" /> Make it a reminder</>}
+          </button>
           {item.raw && <button onClick={() => { onResort(item); toast('Sorting again…'); onClose(); }} className="py-3 rounded-2xl bg-white text-[15px] flex items-center justify-center gap-1.5"><RotateCcw className="w-4 h-4" /> Sort again</button>}
         </div>
 
