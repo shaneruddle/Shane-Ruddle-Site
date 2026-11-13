@@ -23,6 +23,35 @@ interface AuthProps {
   onAutoOpened?: () => void;
 }
 
+// Never leave the sign-in buttons spinning forever. On the iPhone home-screen app the Google window can be
+// closed without the app hearing about it, so once the app is back on screen we give it a few seconds and
+// then stop waiting. Anything still pending after 60s also stops.
+function withStallGuard<T>(task: Promise<T>): Promise<T> {
+  let cleanup = () => {};
+  const stalled = new Promise<never>((_, reject) => {
+    const fail = () => reject(Object.assign(new Error('Sign-in stalled'), { code: 'auth/stalled' }));
+    let backTimer = 0;
+    let hidden = document.visibilityState === 'hidden';
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') { hidden = true; clearTimeout(backTimer); return; }
+      if (hidden) backTimer = window.setTimeout(fail, 8000);
+    };
+    const onBlur = () => { hidden = true; clearTimeout(backTimer); };
+    const onFocus = () => { if (hidden) { clearTimeout(backTimer); backTimer = window.setTimeout(fail, 8000); } };
+    const hardTimer = window.setTimeout(fail, 60000);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('blur', onBlur);
+    window.addEventListener('focus', onFocus);
+    cleanup = () => {
+      clearTimeout(backTimer); clearTimeout(hardTimer);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('blur', onBlur);
+      window.removeEventListener('focus', onFocus);
+    };
+  });
+  return Promise.race([task, stalled]).finally(() => cleanup());
+}
+
 declare global {
   interface Window {
     recaptchaVerifier: RecaptchaVerifier;
@@ -110,7 +139,7 @@ export default function Auth({ user, loading, autoOpen, onAutoOpened }: AuthProp
     setAuthError(null);
     console.log('Google Login clicked');
     try {
-      await signInWithPopup(auth, googleProvider);
+      await withStallGuard(signInWithPopup(auth, googleProvider));
       setShowModal(false);
     } catch (error: any) {
       console.error('Google Login full error:', error);
@@ -124,6 +153,8 @@ export default function Auth({ user, loading, autoOpen, onAutoOpened }: AuthProp
         setAuthError('Sign-in popup blocked. Please enable popups for this site or try a different browser.');
       } else if (errorCode === 'auth/internal-error') {
         setAuthError('A technical problem occurred during login. This usually happens if cookies are disabled or if your browser is blocking authentication. Try opening this app in a new tab.');
+      } else if (errorCode === 'auth/stalled') {
+        setAuthError("Google sign-in didn't come back. Please try again, or sign in with your email and password.");
       } else if (errorCode === 'auth/unauthorized-domain') {
         setAuthError('This domain is not authorized for Google Login. Please contact the administrator.');
       } else {
@@ -172,7 +203,7 @@ export default function Auth({ user, loading, autoOpen, onAutoOpened }: AuthProp
 
     try {
       if (mode === 'login') {
-        await signInWithEmailAndPassword(auth, email, password);
+        await withStallGuard(signInWithEmailAndPassword(auth, email, password));
       } else if (mode === 'register') {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         if (displayName) {
@@ -197,6 +228,7 @@ export default function Auth({ user, loading, autoOpen, onAutoOpened }: AuthProp
       if (error.code === 'auth/user-not-found') message = "No account found with this email.";
       if (error.code === 'auth/wrong-password') message = "Incorrect password.";
       if (error.code === 'auth/email-already-in-use') message = "An account already exists with this email.";
+      if (error.code === 'auth/stalled') message = "Sign-in is taking too long. Close the app fully and open it again, then try once more.";
       setAuthError(message);
     } finally {
       setIsSubmitting(false);

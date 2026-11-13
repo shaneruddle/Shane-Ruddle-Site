@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { 
-  getAuth, 
+  initializeAuth,
+  browserPopupRedirectResolver,
   GoogleAuthProvider, 
   signInWithPopup, 
   signOut, 
@@ -11,10 +12,9 @@ import {
   sendPasswordResetEmail,
   RecaptchaVerifier,
   signInWithPhoneNumber,
-  browserLocalPersistence,
-  setPersistence
+  browserLocalPersistence
 } from 'firebase/auth';
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp, Timestamp, deleteDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, onSnapshot, addDoc, serverTimestamp, Timestamp, deleteDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -27,16 +27,18 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-// Ensure persistence is set correctly for cross-origin iframe contexts
-setPersistence(auth, browserLocalPersistence).catch(err => console.error("Error setting persistence:", err));
+// Keep the sign-in in localStorage only. The default setup also opens IndexedDB first, and when Safari's
+// IndexedDB gets stuck (seen in the iPhone home-screen app) every sign-in call waits on it forever, so the
+// Sign in and Google buttons just spin. Sessions were already stored in localStorage (setPersistence), so
+// nobody is signed out by this.
+export const auth = initializeAuth(app, {
+  persistence: browserLocalPersistence,
+  popupRedirectResolver: browserPopupRedirectResolver,
+});
 
-// On Shane's own devices, keep a copy of his data on the phone so Reminders shows instantly on open and
-// then catches up with the server. Everyone else (shared staff devices) keeps the in-memory cache only.
-const ownerDevice = (() => { try { return !!localStorage.getItem('sr_owner_dashboard'); } catch { return false; } })();
-export const db = ownerDevice
-  ? initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
-  : getFirestore(app, firebaseConfig.firestoreDatabaseId);
+// In-memory cache only. The on-phone (IndexedDB) cache added for fast Reminders opening could jam Safari's
+// IndexedDB in the home-screen app, which also froze sign-in.
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
 export const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`);
 export const googleProvider = new GoogleAuthProvider();
