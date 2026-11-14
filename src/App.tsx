@@ -374,7 +374,8 @@ const startsOnPortal = initialRoute.view === 'portal';
 // account has loaded on this device, so the homepage doesn't flash first on later visits.
 const OWNER_HOME_KEY = 'sr_owner_dashboard';
 const SHANE_UID = 'u7ElWXIkdjVTNTp76LcyXnnq3AM2';
-const startsOnHome = window.location.pathname === '/';
+// /?home (the Reminders menu's Homepage link) shows the public homepage instead of sending Shane back to Reminders.
+const startsOnHome = window.location.pathname === '/' && !window.location.search;
 const ownerHomeHint = (() => { try { return startsOnHome && !!localStorage.getItem(OWNER_HOME_KEY); } catch { return false; } })();
 // Home-screen shortcuts for Shane's private areas: /portal?tab=circle and the Inbox app at /inbox. Swap in that
 // manifest and icon so "Add to Home Screen" saves an icon that opens straight to it. Both only open for Shane's account.

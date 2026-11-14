@@ -8,6 +8,7 @@ import {
 import {
   Loader2, Sun, Hourglass, Plus, Pin, Settings, Mic, ListChecks, SlidersHorizontal, Search, ArrowUp, Check, Lightbulb, StickyNote, Flag, Repeat as RepeatIcon,
   MapPin, GripVertical, Bell, CalendarDays, User, ChevronLeft, ChevronRight, X, Sparkles, Scissors, RotateCcw, Archive, Trash2, CloudOff, Cloud, Download, LogOut, History, Folder, HeartHandshake, Images,
+  Menu, LayoutDashboard, MessageCircle, Activity, Globe, BookOpen, MessageCircleQuestion, Building2, ArrowUpRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { bkkToday, bkkNowTime, addDays, nextDue, repeatLabel, type Repeat, type RepeatFreq } from '../../server/reminderDates';
@@ -89,7 +90,8 @@ const TODAY_CARD_ROWS = 6;
 const isOpen = (i: Item) => i.status !== 'done' && i.status !== 'archived';
 const isTaskOpen = (i: Item) => i.kind === 'task' && isOpen(i);
 
-export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { onExit?: () => void; onCircle?: () => void; onPhotos?: () => void; onEnquiries?: () => void }) {
+export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPortalTab }: { onExit?: () => void; onCircle?: () => void; onPhotos?: () => void; onEnquiries?: () => void; onPortalTab?: (tab: PortalTab) => void }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [items, setItems] = useState<Item[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [ready, setReady] = useState({ items: false, areas: false });
@@ -683,18 +685,20 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries }: { 
     // No text selection anywhere on the list: on iPhone a long press (to tag) would otherwise start selecting text.
     <div className="min-h-[100dvh] bg-cream text-ink select-none [-webkit-touch-callout:none]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="max-w-xl mx-auto px-4 pb-60">
-        <header className="flex items-center justify-between pt-4">
-          <span className="text-[12px] uppercase tracking-[0.18em] text-black/45 font-semibold">{dateLine}</span>
+        <header className="flex items-center justify-between gap-2 pt-4">
+          <div className="flex items-center gap-2 min-w-0">
+            {onEnquiries ? <MenuButton onClick={() => setMenuOpen(true)} />
+              : <button onClick={() => setMenuOpen(true)} aria-label="Menu" className="p-1 -ml-1 text-ink"><Menu className="w-[22px] h-[22px]" /></button>}
+            <span className="text-[12px] uppercase tracking-[0.18em] text-black/45 font-semibold truncate">{dateLine}</span>
+          </div>
           <div className="flex items-center gap-3">
             {syncLabel && <span className={`inline-flex items-center gap-1.5 text-[12px] ${online && !unsynced.length ? 'text-black/40' : 'text-amber-600'}`}>
               {online ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}{syncLabel}
             </span>}
-            <button onClick={() => go({ view: 'search' })} aria-label="Search" className="p-1 text-black/50"><Search className="w-5 h-5" /></button>
-            {onEnquiries && <EnquiriesButton onClick={onEnquiries} />}
-            {onPhotos && <button onClick={onPhotos} aria-label="Photos" className="p-1 text-black/50"><Images className="w-5 h-5" /></button>}
-            {onCircle && <button onClick={onCircle} aria-label="Circle" className="p-1 text-black/50"><HeartHandshake className="w-5 h-5" /></button>}
           </div>
         </header>
+        <HomeMenu open={menuOpen} onClose={() => setMenuOpen(false)} onCircle={onCircle} onPhotos={onPhotos} onEnquiries={onEnquiries} onPortalTab={onPortalTab}
+          onSettings={() => go({ view: 'settings' })} onSearch={() => go({ view: 'search' })} />
         <h1 className="mt-1 font-serif text-[36px] leading-tight font-bold text-ink">{greeting}, Shane</h1>
         <p className="mt-0.5 text-[14px] text-black/50 flex items-center gap-1 flex-wrap">{plural(shownReminders.filter(i => i.kind !== 'note').length, 'reminder')}{shownReminders.some(i => i.kind === 'note') ? `, ${plural(shownReminders.filter(i => i.kind === 'note').length, 'note')}` : ''}{overdueCount || overdueOnly ? <button onClick={() => setOverdueOnly(v => !v)} aria-pressed={overdueOnly}
             className={`ml-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[13px] font-semibold border ${overdueOnly ? 'bg-danger text-white border-danger' : 'text-danger border-danger/30 bg-white'}`}>
@@ -1555,14 +1559,119 @@ function FilterSettings({ areas, counts }: { areas: Area[]; counts: Record<strin
   );
 }
 
-// Envelope in the top bar, with a gold count of site enquiries not yet opened.
-function EnquiriesButton({ onClick }: { onClick: () => void }) {
+// Site enquiries not yet opened.
+function useUnreadEnquiries() {
   const { all } = useEnquiries();
-  const unread = all.filter(e => !e.readAt && !e.replies?.length && e.status !== 'archived' && e.status !== 'replied').length;
+  return all.filter(e => !e.readAt && !e.replies?.length && e.status !== 'archived' && e.status !== 'replied').length;
+}
+
+// Burger in the top bar, with a gold count of new enquiries (they used to have their own envelope icon there).
+function MenuButton({ onClick }: { onClick: () => void }) {
+  const unread = useUnreadEnquiries();
   return (
-    <button onClick={onClick} aria-label={unread ? `Enquiries, ${unread} new` : 'Enquiries'} className="relative p-1 text-black/50">
-      <MailIcon className="w-5 h-5" />
-      {unread > 0 && <span className="absolute -top-0.5 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-gold-deep text-white text-[10px] font-bold leading-4 text-center">{unread}</span>}
+    <button onClick={onClick} aria-label={unread ? `Menu, ${unread} new enquiries` : 'Menu'} className="relative p-1 -ml-1 text-ink">
+      <Menu className="w-[22px] h-[22px]" />
+      {unread > 0 && <span className="absolute -top-0.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-gold-deep text-white text-[10px] font-bold leading-4 text-center">{unread}</span>}
     </button>
+  );
+}
+
+function UnreadCount() {
+  const unread = useUnreadEnquiries();
+  return unread > 0 ? <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-gold-deep text-white text-[11px] font-bold leading-5 text-center">{unread}</span> : null;
+}
+
+// Portal sections the Reminders menu can open (Shane's dashboard).
+export type PortalTab = 'offers' | 'profile' | 'comments' | 'activity';
+
+// Slide-in menu from the burger on the Reminders home, which is Shane's landing page: his apps, the dashboard,
+// the public website and his business sites. Plain CSS slide (no animation library) to keep the fast page light.
+function HomeMenu({ open, onClose, onCircle, onPhotos, onEnquiries, onPortalTab, onSettings, onSearch }: {
+  open: boolean; onClose: () => void; onCircle?: () => void; onPhotos?: () => void; onEnquiries?: () => void;
+  onPortalTab?: (tab: PortalTab) => void; onSettings: () => void; onSearch: () => void;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
+  }, [open, onClose]);
+  const pick = (fn?: () => void) => () => { onClose(); fn?.(); };
+  const link = (href: string) => () => { window.location.href = href; };
+  type Row = [string, typeof Menu, (() => void) | undefined, boolean?];
+  const groups: [string, Row[]][] = [
+    ['', [
+      ['Reminders', ListChecks, onClose, true],
+      ['Circle', HeartHandshake, onCircle],
+      ['Enquiries', MailIcon, onEnquiries],
+      ['Photos', Images, onPhotos],
+      ['Search & ask', Search, onSearch],
+    ]],
+    ['Dashboard', [
+      ['Dashboard', LayoutDashboard, onPortalTab && (() => onPortalTab('offers'))],
+      ['Comments', MessageCircle, onPortalTab && (() => onPortalTab('comments'))],
+      ['Activity', Activity, onPortalTab && (() => onPortalTab('activity'))],
+      ['Profile', User, onPortalTab && (() => onPortalTab('profile'))],
+      ['Reminder settings', Settings, onSettings],
+    ]],
+    ['Website', [
+      // ?home stops the homepage sending Shane straight back to Reminders.
+      ['Homepage', Globe, link('/?home')],
+      ['Articles', BookOpen, link('/articles')],
+      ['Questions', MessageCircleQuestion, link('/questions')],
+      ['Businesses', Building2, link('/businesses')],
+    ]],
+  ];
+  const sites: [string, string][] = [
+    ['Hemingways Jomtien', 'https://www.hemingwaysjomtien.com'], ['Hemingways Pattaya', 'https://www.hemingwayspattaya.com'],
+    ['Hemingways Lakeside', 'https://www.hemingwayslakeside.com'], ['Cajun Life Cafe', 'https://www.cajunlifecafe.com'],
+    ['Pattaya Rent a Car', 'https://www.pattayarentacar.com'], ['Alan Bolton Property', 'https://www.pattaya-property.net'],
+    ['East Coast Real Estate', 'https://www.thaiproperty.com'],
+  ];
+  return createPortal(
+    <div className={`fixed inset-0 z-[70] font-sans select-none ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
+      <div onClick={onClose} className={`absolute inset-0 bg-black/35 transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0'}`} />
+      <aside aria-label="Menu" className={`absolute inset-y-0 left-0 w-[82%] max-w-[320px] bg-cream text-ink shadow-2xl flex flex-col transition-transform duration-[250ms] ease-out ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        <div className="flex items-center justify-between px-5 pt-4 pb-3">
+          <div>
+            <div className="font-serif text-[24px] font-bold leading-tight">Shane Ruddle</div>
+            <div className="text-[12px] uppercase tracking-[0.18em] text-black/40 font-semibold">shaneruddle.com</div>
+          </div>
+          <button onClick={onClose} aria-label="Close menu" className="p-1.5 -mr-1.5 text-black/45"><X className="w-5 h-5" /></button>
+        </div>
+        <nav className="flex-1 overflow-y-auto px-3 pb-3">
+          {groups.map(([title, rows]) => (
+            <div key={title || 'apps'} className={title ? 'mt-4' : 'mt-1'}>
+              {title && <div className="px-3 pb-1 text-[11px] uppercase tracking-[0.16em] text-black/40 font-semibold">{title}</div>}
+              {rows.filter(r => r[2]).map(([label, Icon, fn, current]) => (
+                <button key={label} onClick={pick(fn)} aria-current={current ? 'page' : undefined}
+                  className={`w-full flex items-center gap-3 px-3 h-11 rounded-xl text-[16px] text-left ${current ? 'bg-white shadow-sm font-semibold' : 'text-ink/80 active:bg-black/[0.05]'}`}>
+                  <Icon className={`w-[18px] h-[18px] ${current ? 'text-gold-deep' : 'text-black/45'}`} /> {label}
+                  {label === 'Enquiries' && open && <UnreadCount />}
+                </button>
+              ))}
+            </div>
+          ))}
+          <div className="mt-4">
+            <div className="px-3 pb-1 text-[11px] uppercase tracking-[0.16em] text-black/40 font-semibold">My businesses</div>
+            {sites.map(([label, href]) => (
+              <a key={href} href={href} target="_blank" rel="noopener noreferrer" onClick={onClose}
+                className="flex items-center justify-between px-3 h-10 rounded-xl text-[15px] text-ink/75 active:bg-black/[0.05]">
+                {label} <ArrowUpRight className="w-4 h-4 text-black/30" />
+              </a>
+            ))}
+          </div>
+        </nav>
+        <div className="px-3 pt-2 border-t border-black/[0.08]" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+          <button onClick={() => { onClose(); auth.signOut(); }} className="w-full flex items-center gap-3 px-3 h-11 rounded-xl text-[15px] text-black/55 active:bg-black/[0.05]">
+            <LogOut className="w-[18px] h-[18px]" /> Sign out
+          </button>
+        </div>
+      </aside>
+    </div>,
+    document.body,
   );
 }

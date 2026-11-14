@@ -44,7 +44,7 @@ if (window.location.pathname !== '/inbox') {
       if (!isShane) { openFullSite(); return; }
       if (rendered || fullSite) return;
       rendered = true;
-      const InboxApp = (await inboxModule).default as ComponentType<Record<string, (() => void) | undefined>>;
+      const InboxApp = (await inboxModule).default as ComponentType<Record<string, ((tab: string) => void) | undefined>>;
       root.render(
         <StrictMode>
           <InboxApp
@@ -52,6 +52,7 @@ if (window.location.pathname !== '/inbox') {
             onCircle={() => openFullSite('/portal?tab=circle')}
             onPhotos={() => openFullSite('/portal?tab=photos')}
             onEnquiries={() => openFullSite('/portal?tab=enquiries')}
+            onPortalTab={(tab: string) => openFullSite(tab === 'offers' ? '/portal' : `/portal?tab=${tab}`)}
           />
           <Toaster position="top-center" richColors />
         </StrictMode>,

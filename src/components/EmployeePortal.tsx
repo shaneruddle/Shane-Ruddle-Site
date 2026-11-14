@@ -32,7 +32,13 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
   // Matches isOwner() in storage.rules, which guards photo uploads.
   const canManagePhotos = userProfile.uid === 'u7ElWXIkdjVTNTp76LcyXnnq3AM2' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
   const [activeTab, setActiveTab] = useState<'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'circle' | 'inbox' | 'enquiries'>(
-    !canManagePhotos ? 'offers' : initialTab === 'circle' ? 'circle' : new URLSearchParams(window.location.search).get('tab') === 'photos' ? 'photos' : new URLSearchParams(window.location.search).get('tab') === 'enquiries' ? 'enquiries' : 'offers');
+    () => {
+      if (!canManagePhotos) return 'offers';
+      if (initialTab === 'circle') return 'circle';
+      // /portal?tab=photos etc. (the Reminders menu and top-bar buttons open sections this way).
+      const t = new URLSearchParams(window.location.search).get('tab');
+      return t === 'photos' || t === 'enquiries' || t === 'profile' || t === 'comments' || t === 'activity' ? t : 'offers';
+    });
   // Shane's bottom menu swaps between the Inbox app and the Circle tab in place, no page reload.
   const [inboxOpen, setInboxOpen] = useState(initialTab === 'inbox');
   const ownerGo = (tab: OwnerTab) => {
@@ -214,7 +220,8 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
   if (inboxOpen && canManagePhotos) {
     return window.location.pathname === '/inbox/connect' ? <ConnectScreen /> : <InboxApp onExit={() => { window.location.href = '/portal'; }} onCircle={() => ownerGo('circle')}
       onPhotos={() => { window.history.replaceState(null, '', '/portal?tab=photos'); setInboxOpen(false); setActiveTab('photos'); window.scrollTo(0, 0); }}
-      onEnquiries={() => { window.history.replaceState(null, '', '/portal?tab=enquiries'); setInboxOpen(false); setActiveTab('enquiries'); window.scrollTo(0, 0); }} />;
+      onEnquiries={() => { window.history.replaceState(null, '', '/portal?tab=enquiries'); setInboxOpen(false); setActiveTab('enquiries'); window.scrollTo(0, 0); }}
+      onPortalTab={(tab) => { window.history.replaceState(null, '', tab === 'offers' ? '/portal' : `/portal?tab=${tab}`); setInboxOpen(false); setActiveTab(tab); window.scrollTo(0, 0); }} />;
   }
 
   // Circle is a full-screen app styled like Reminders, with a way back to Reminders.
