@@ -26,6 +26,7 @@ import SellBusinessPage from "../components/SellBusinessPage";
 import WorkPage from "../components/WorkPage";
 import PricesPage from "../components/PricesPage";
 import FuturePage from "../components/FuturePage";
+import PartnerPage from "../components/PartnerPage";
 import TripsPage from "../components/TripsPage";
 import { fallbackData } from "../types";
 import DeSite from "../components/de/DeSite";
@@ -44,6 +45,7 @@ export { SELL_PATH, SELL_META, SELL_FAQS } from "../lib/sellBusiness";
 export { WORK_PATH, WORK_META, WORK_FAQS } from "../lib/work";
 export { PRICES_PATH, PRICES_META, PRICES_FAQS } from "../lib/prices";
 export { FUTURE_PATH, FUTURE_META, FUTURE_FAQS } from "../lib/future";
+export { PARTNER_PATH, PARTNER_META } from "../lib/partner";
 export { TRIPS_PATH, TRIPS_META, TRIPS_FAQS } from "../lib/trips";
 export { SCHOOLS, SCHOOLS_META, SCHOOLS_FAQS, SCHOOLS_PATH, faqsForSchool } from "../lib/schools";
 export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema, fitTitle, fitDescription } from "../seo";
@@ -216,6 +218,11 @@ export function renderCountry(path: string): string {
 /** /trips-from-pattaya (the trip finder, map and trip cards). */
 export function renderTrips(): string {
   return renderToString(<Shell><TripsPage /></Shell>);
+}
+
+/** /partner (business partner landing page for the Facebook ad; noindex, not in the sitemap). */
+export function renderPartner(): string {
+  return renderToString(<Shell><PartnerPage /></Shell>);
 }
 
 /** /pattaya-future (the development timeline and new-build projects). */

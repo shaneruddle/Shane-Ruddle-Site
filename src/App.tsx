@@ -68,6 +68,7 @@ const SellBusinessPage = lazy(() => import("./components/SellBusinessPage"));
 const WorkPage = lazy(() => import("./components/WorkPage"));
 const PricesPage = lazy(() => import("./components/PricesPage"));
 const FuturePage = lazy(() => import("./components/FuturePage"));
+const PartnerPage = lazy(() => import("./components/PartnerPage"));
 const TripsPage = lazy(() => import("./components/TripsPage"));
 const DeSite = lazy(() => import("./components/de/DeSite"));
 const GermanBanner = lazy(() => import("./components/de/GermanBanner"));
@@ -248,7 +249,7 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
 
 // URL routing. Each view has a real path so pages can be linked, shared and indexed.
 // Firebase Hosting rewrites every path to index.html, so the app resolves the view here.
-type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'schools' | 'move' | 'country' | 'questions' | 'business' | 'work' | 'prices' | 'future' | 'trips' | 'de' | 'privacy-policy' | 'terms-of-service';
+type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'schools' | 'move' | 'country' | 'questions' | 'business' | 'work' | 'prices' | 'future' | 'partner' | 'trips' | 'de' | 'privacy-policy' | 'terms-of-service';
 
 const VIEW_PATHS: Record<View, string> = {
   'home': '/',
@@ -271,6 +272,7 @@ const VIEW_PATHS: Record<View, string> = {
   'work': '/work-in-pattaya',
   'prices': '/pattaya-prices',
   'future': '/pattaya-future',
+  'partner': '/partner',
   'trips': '/trips-from-pattaya',
   'de': '/de',
   'privacy-policy': '/privacy',
@@ -1277,6 +1279,13 @@ export default function App() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.25 }}>
                       <FuturePage />
+                    </motion.div>
+                  ) : view === 'partner' ? (
+                    <motion.div key="partner" initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <PartnerPage />
                     </motion.div>
                   ) : view === 'trips' ? (
                     <motion.div key="trips" initial={{ opacity: 0 }}

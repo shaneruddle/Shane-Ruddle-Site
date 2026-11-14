@@ -597,6 +597,13 @@ write(ssr.FUTURE_PATH, page({
 }));
 urls.push({ loc: ssr.FUTURE_PATH });
 
+// ---- Business partner landing page (Facebook ad). Kept out of search: noindex, not in the sitemap. ----
+write(ssr.PARTNER_PATH, page({
+  urlPath: ssr.PARTNER_PATH,
+  ...ssr.PARTNER_META,
+  body: ssr.renderPartner(),
+}).replace("</head>", '  <meta name="robots" content="noindex" />\n  </head>'));
+
 // ---- Buying a business (chapter of the business check) ----
 write(ssr.BUYING_PATH, page({
   urlPath: ssr.BUYING_PATH,
