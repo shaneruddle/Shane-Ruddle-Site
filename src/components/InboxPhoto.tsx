@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ref, uploadString, getBlob, deleteObject } from 'firebase/storage';
+import { ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '../firebase';
 
 // Photo reminders in Reminders (/inbox). The photo is resized on the phone (1600px, like the Photos library,
 // which also strips the camera's GPS data), kept in the outbox until it uploads, then stored privately under
-// inbox-photos/ (Shane only, read with getBlob so no shareable link exists). A tiny thumbnail lives on the item
+// inbox-photos/ (rules: Shane only; shown via its private download link, as getBlob needs bucket CORS, which isn't set). A tiny thumbnail lives on the item
 // itself, so the list shows it instantly and offline.
 
 export interface PhotoDraft { full: string; thumb: string; w: number; h: number }
@@ -45,11 +45,10 @@ export function PhotoView({ photo, className = '' }: { photo: ItemPhoto; classNa
   const [zoom, setZoom] = useState(false);
   useEffect(() => {
     let cancelled = false;
-    let objectUrl = '';
-    getBlob(ref(storage, photo.path))
-      .then(b => { if (!cancelled) { objectUrl = URL.createObjectURL(b); setUrl(objectUrl); } })
-      .catch(() => {});
-    return () => { cancelled = true; if (objectUrl) URL.revokeObjectURL(objectUrl); };
+    getDownloadURL(ref(storage, photo.path))
+      .then(u => { if (!cancelled) setUrl(u); })
+      .catch(err => console.error('Photo failed to load:', err?.code || err));
+    return () => { cancelled = true; };
   }, [photo.path]);
   const src = url || photo.thumb;
   return (
