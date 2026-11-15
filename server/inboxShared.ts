@@ -52,6 +52,7 @@ export interface Item {
   appleCreatedAt?: number | null; // when it was created in Apple Reminders (imported items)
   todayRank?: number | null; // Today list order, highest first; set by dragging or adding to the list
   links?: string[];
+  photo?: { path: string; thumb: string; w?: number; h?: number } | null; // photo reminder: private file in Storage + tiny inline thumbnail
   ai?: { state: 'pending' | 'done' | 'failed' | 'off'; error?: string; split?: AiSuggestion[]; applied?: string[]; at?: number };
   version?: number;
   createdBy?: Actor;

@@ -8,7 +8,7 @@ import {
 import {
   Loader2, Sun, Hourglass, Plus, Pin, Settings, Mic, ListChecks, SlidersHorizontal, Search, ArrowUp, Check, Lightbulb, StickyNote, Flag, Repeat as RepeatIcon,
   MapPin, GripVertical, Bell, CalendarDays, User, ChevronLeft, ChevronRight, X, Sparkles, Scissors, RotateCcw, Archive, Trash2, CloudOff, Cloud, Download, LogOut, History, Folder, HeartHandshake, Images,
-  Menu, LayoutDashboard, MessageCircle, Activity, Globe, BookOpen, MessageCircleQuestion, Building2, ArrowUpRight,
+  Camera, Menu, LayoutDashboard, MessageCircle, Activity, Globe, BookOpen, MessageCircleQuestion, Building2, ArrowUpRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { bkkToday, bkkNowTime, addDays, nextDue, repeatLabel, type Repeat, type RepeatFreq } from '../../server/reminderDates';
@@ -20,6 +20,7 @@ import { useEnquiries } from './EnquiriesAdmin';
 import { Mail as MailIcon } from 'lucide-react';
 import { Notifications } from './InboxNotify';
 import { NoteEditor, plainPreview, type NoteEditorHandle } from './NoteEditor';
+import { preparePhoto, uploadPhoto, deletePhoto, photoPath, PhotoView, type PhotoDraft } from './InboxPhoto';
 import { PlacesSettings, placeMatches, useNearbyPlace, useSavedPlaces, type SavedPlace } from './InboxPlaces';
 
 // Shane's private Inbox at /inbox: one place for quick captures, notes, ideas and tasks.
@@ -29,7 +30,7 @@ import { PlacesSettings, placeMatches, useNearbyPlace, useSavedPlaces, type Save
 // (/api/inbox/process); if that fails the capture stays exactly as written.
 
 interface Area { id: string; name: string; color: string; aliases?: string; order?: number; short?: string }
-interface Pending { id: string; raw: string; area?: string | null; at: number; today?: boolean }
+interface Pending { id: string; raw: string; area?: string | null; at: number; today?: boolean; photo?: PhotoDraft }
 interface HistoryEntry { id: string; by: string; action: string; changes?: Record<string, unknown>; at?: { toMillis(): number } }
 
 // The home screen is a deck of cards: Today, Needs a look, Waiting on, Notes, then one per business.
@@ -264,12 +265,15 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
       for (const p of readOutbox()) {
         const ref = doc(db, 'inbox_items', p.id);
         try {
+          if (p.photo) await uploadPhoto(p.id, p.photo.full); // the photo first, so the reminder never points at a missing file
           await runTransaction(db, async tx => {
             const snap = await tx.get(ref);
             if (snap.exists()) return; // already saved by an earlier try
-            const item: Partial<Item> = { title: p.raw.slice(0, 200), raw: p.raw, kind: 'task', status: 'inbox', area: p.area || null, ...(p.today ? { onToday: true, todayRank: p.at } : {}) };
+            const photo = p.photo ? { path: photoPath(p.id), thumb: p.photo.thumb, w: p.photo.w, h: p.photo.h } : null;
+            const item: Partial<Item> = { title: p.raw.slice(0, 200) || 'Photo', raw: p.raw, kind: 'task', status: 'inbox', area: p.area || null, ...(p.today ? { onToday: true, todayRank: p.at } : {}), ...(photo ? { photo } : {}) };
             tx.set(ref, {
-              ...item, body: p.raw.length > 200 ? p.raw : '', search: searchText(item, areaName(p.area)), ai: { state: 'pending' },
+              // A photo with no words has nothing for Claude to sort.
+              ...item, body: p.raw.length > 200 ? p.raw : '', search: searchText(item, areaName(p.area)), ai: { state: p.raw ? 'pending' : 'off' },
               version: 1, createdBy: 'shane', updatedBy: 'shane', capturedAt: p.at, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
             });
             tx.set(doc(collection(db, 'inbox_history')), { itemId: p.id, by: 'shane', action: 'captured', changes: { raw: p.raw }, at: serverTimestamp() });
@@ -277,7 +281,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
           const rest = readOutbox().filter(x => x.id !== p.id);
           writeOutbox(rest);
           setOutbox(rest);
-          sort(p.id);
+          if (p.raw) sort(p.id);
         } catch {
           break; // offline or server busy: keep it on the phone and try again later
         }
@@ -294,11 +298,11 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
     return () => { clearInterval(t); window.removeEventListener('online', flush); };
   }, [flush]);
 
-  const capture = (raw: string, area?: string | null, today = false) => {
+  const capture = (raw: string, area?: string | null, today = false, photo?: PhotoDraft) => {
     const text = raw.trim();
-    if (!text) return;
-    const next = [...readOutbox(), { id: doc(collection(db, 'inbox_items')).id, raw: text, area: area || null, at: Date.now(), ...(today ? { today: true } : {}) }];
-    writeOutbox(next);
+    if (!text && !photo) return;
+    const next = [...readOutbox(), { id: doc(collection(db, 'inbox_items')).id, raw: text, area: area || null, at: Date.now(), ...(today ? { today: true } : {}), ...(photo ? { photo } : {}) }];
+    try { writeOutbox(next); } catch { toast.error('No room on this phone to hold the photo. Try again with signal.'); return; }
     setOutbox(next);
     flush();
   };
@@ -484,6 +488,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
   const row = (i: Item, opts: { showArea?: boolean } = {}) => (
     <li key={i.id} className="flex items-start gap-3 py-3.5 border-b border-black/[0.07] last:border-0">{rowBody(i, opts)}</li>
   );
+  const openItem = (i: Item) => { if (i.kind === 'task') setOpen(i); else setNote({ id: i.id, version: i.version || 0 }); };
   const rowBody = (i: Item, opts: { showArea?: boolean } = {}) => {
     const area = areaById[i.area || ''];
     const done = i.status === 'done' || finishing.has(i.id);
@@ -511,7 +516,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
             <StickyNote className="w-3.5 h-3.5 text-black/45" />
           </span>
         )}
-        <button {...longPress(i)} onClick={() => { if (press.current.fired) { press.current.fired = false; return; } if (i.kind === 'task') setOpen(i); else setNote({ id: i.id, version: i.version || 0 }); }} className="min-w-0 flex-1 text-left select-none [-webkit-touch-callout:none]">
+        <button {...longPress(i)} onClick={() => { if (press.current.fired) { press.current.fired = false; return; } openItem(i); }} className="min-w-0 flex-1 text-left select-none [-webkit-touch-callout:none]">
           <div className={`text-[16px] leading-snug ${done ? 'text-black/35 line-through' : 'text-ink'}`}>{i.title}</div>
           {i.body && i.kind !== 'task' && <div className="text-[13px] text-black/45 mt-0.5 line-clamp-2">{plainPreview(i.body)}</div>}
           {meta.length > 0 && <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[12px] text-black/50">{meta}</div>}
@@ -521,6 +526,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
             <div className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gold/15 text-[12px] text-gold-deep font-medium"><Scissors className="w-3 h-3" /> Looks like {i.ai.split.length} things. Tap to split</div>
           )}
         </button>
+        {i.photo?.thumb && <button onClick={() => openItem(i)} aria-label="Open photo" className="shrink-0"><img src={i.photo.thumb} alt="" className={`w-12 h-12 rounded-lg object-cover ${done ? 'opacity-40' : ''}`} /></button>}
         {i.flagged && <Flag className="w-4 h-4 mt-1 text-orange-500 fill-orange-500 shrink-0" />}
       </>
     );
@@ -816,7 +822,8 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
             <ul>{unsynced.map(p => (
               <li key={p.id} className="flex items-start gap-3 py-3.5 border-b border-black/[0.07] last:border-0">
                 <CloudOff className="w-5 h-5 mt-0.5 text-black/30 shrink-0" />
-                <div className="text-[16px] text-ink">{p.raw}<div className="text-[12px] text-black/45 mt-0.5">Will upload when you're back online</div></div>
+                {p.photo && <img src={p.photo.thumb} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />}
+                <div className="text-[16px] text-ink">{p.raw || 'Photo'}<div className="text-[12px] text-black/45 mt-0.5">Will upload when you're back online</div></div>
               </li>
             ))}</ul>
           </section>
@@ -926,7 +933,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
         <div style={dockBottom === null ? undefined : { top: 0, bottom: 'auto', transform: `translateY(calc(${dockBottom}px - 100%))` }}
           className="fixed bottom-0 inset-x-0 z-40 pt-2 bg-gradient-to-b from-cream/0 via-cream to-cream after:absolute after:inset-x-0 after:top-full after:h-[320px] after:bg-cream">
           {dockFor && <CaptureDock key={view + (screen.area || '')} dark={false} placeholder={dockFor.placeholder} accent={dockFor.accent}
-            onCapture={raw => capture(raw, view === 'area' ? screen.area : view === 'home' ? filterArea : null, view !== 'notes')} />}
+            onCapture={(raw, photo) => capture(raw, view === 'area' ? screen.area : view === 'home' ? filterArea : null, view !== 'notes', photo)} />}
           <div style={{ height: 'calc(env(safe-area-inset-bottom) + 6px)' }} />
         </div>,
         document.body,
@@ -991,6 +998,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
           onDelete={async i => {
             if (!confirm('Delete this for good? Archive keeps it searchable.')) return;
             await deleteDoc(doc(db, 'inbox_items', i.id)).catch(() => toast.error('Could not delete'));
+            if (i.photo?.path) deletePhoto(i.photo.path);
             await setDoc(doc(collection(db, 'inbox_history')), { itemId: i.id, by: 'shane', action: 'deleted', changes: { title: i.title }, at: serverTimestamp() }).catch(() => {});
             setOpen(null);
           }}
@@ -1043,8 +1051,19 @@ type SpeechRec = { lang: string; interimResults: boolean; continuous: boolean; s
 const SpeechCtor = (): (new () => SpeechRec) | undefined => (window as unknown as { SpeechRecognition?: new () => SpeechRec; webkitSpeechRecognition?: new () => SpeechRec }).SpeechRecognition
   || (window as unknown as { webkitSpeechRecognition?: new () => SpeechRec }).webkitSpeechRecognition;
 
-function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw: string) => void; placeholder: string; accent: string; dark: boolean }) {
+function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw: string, photo?: PhotoDraft) => void; placeholder: string; accent: string; dark: boolean }) {
   const [text, setText] = useState('');
+  // Camera: snap a photo, then add words (typed or said) or just save it.
+  const [photo, setPhoto] = useState<PhotoDraft | null>(null);
+  const [preparing, setPreparing] = useState(false);
+  const photoRef = useRef<PhotoDraft | null>(null);
+  photoRef.current = photo;
+  const fileRef = useRef<HTMLInputElement>(null);
+  const pickPhoto = async (file?: File) => {
+    if (!file) return;
+    setPreparing(true);
+    try { setPhoto(await preparePhoto(file)); } catch { toast.error('Could not use that photo'); } finally { setPreparing(false); }
+  };
   const [listening, setListening] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
@@ -1064,13 +1083,16 @@ function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw
   const save = (raw: string) => {
     clearTimeout(autoSave.current);
     setAutoSaving(false);
-    if (!raw.trim()) return;
-    onCapture(raw);
+    const pic = photoRef.current;
+    if (!raw.trim() && !pic) return;
+    onCapture(raw, pic || undefined);
     setText('');
     latest.current = '';
+    setPhoto(null);
+    photoRef.current = null;
   };
   const submit = () => {
-    if (!text.trim()) return;
+    if (!text.trim() && !photo) return;
     if (rec.current) { rec.current.onend = null; rec.current.stop(); rec.current = null; setListening(false); }
     save(text);
   };
@@ -1123,7 +1145,15 @@ function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw
           </button>
         </div>
       )}
-      <div className={`max-w-xl mx-auto flex items-end gap-2 rounded-[28px] p-1.5 pl-[18px] ${dark ? 'bg-white/10 border border-white/15 backdrop-blur-xl' : 'bg-white border border-black/10 shadow-[0_6px_20px_rgba(0,0,0,0.08)]'}`}>
+      <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden"
+        onChange={e => { pickPhoto(e.target.files?.[0]); e.target.value = ''; }} />
+      <div className={`max-w-xl mx-auto flex items-end gap-2 rounded-[28px] p-1.5 ${photo || preparing ? 'pl-1.5' : 'pl-[18px]'} ${dark ? 'bg-white/10 border border-white/15 backdrop-blur-xl' : 'bg-white border border-black/10 shadow-[0_6px_20px_rgba(0,0,0,0.08)]'}`}>
+        {(photo || preparing) && (
+          <div className="relative w-[46px] h-[46px] shrink-0 rounded-[20px] overflow-hidden bg-black/5 flex items-center justify-center">
+            {photo ? <img src={photo.thumb} alt="" className="w-full h-full object-cover" /> : <Loader2 className="w-4 h-4 animate-spin text-black/40" />}
+            {photo && <button onClick={() => setPhoto(null)} aria-label="Remove photo" className="absolute top-0.5 right-0.5 w-[18px] h-[18px] rounded-full bg-black/60 flex items-center justify-center"><X className="w-3 h-3 text-white" strokeWidth={3} /></button>}
+          </div>
+        )}
         <textarea
           ref={ref}
           value={text}
@@ -1131,10 +1161,13 @@ function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw
           onChange={e => setText(e.target.value)}
           onInput={onInput}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } else { clearTimeout(autoSave.current); setAutoSaving(false); } }}
-          placeholder={listening ? 'Listening… stop talking to save' : placeholder}
+          placeholder={listening ? 'Listening… stop talking to save' : photo ? 'Add words…' : placeholder}
           enterKeyHint="send"
           className={`flex-1 resize-none bg-transparent border-0 outline-none focus:outline-none p-0 py-[11px] text-[17px] leading-snug focus:ring-0 ${dark ? 'text-white placeholder:text-white/45' : 'text-ink placeholder:text-black/35'}`}
         />
+        {!text.trim() && !listening && (photo
+          ? <button onClick={submit} aria-label="Save photo" className={`w-[46px] h-[46px] shrink-0 rounded-full flex items-center justify-center ${dark ? 'bg-white/15' : 'bg-black/[0.06]'}`}><ArrowUp className={`w-5 h-5 ${dark ? 'text-white' : 'text-ink'}`} strokeWidth={2.6} /></button>
+          : <button onClick={() => fileRef.current?.click()} disabled={preparing} aria-label="Take a photo" className="w-[46px] h-[46px] shrink-0 rounded-full flex items-center justify-center"><Camera className={`w-[22px] h-[22px] ${dark ? 'text-white/70' : 'text-black/45'}`} strokeWidth={2} /></button>)}
         <button onClick={text.trim() && !listening ? submit : mic} aria-label={text.trim() && !listening ? 'Save' : listening ? 'Stop listening' : 'Talk'}
           className={`w-[46px] h-[46px] shrink-0 rounded-full flex items-center justify-center ${listening ? 'bg-danger animate-pulse' : ''}`}
           style={listening ? undefined : { background: accent }}>
@@ -1228,6 +1261,7 @@ function NotePage({ item, fresh, areas, onClose, onSave, onDetails, onArchive, o
           {pinned && <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[12.5px] font-semibold bg-gold/15 text-gold-deep"><Pin className="w-3 h-3" /> Pinned</span>}
           {item.kind === 'idea' && <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[12.5px] font-semibold bg-amber-100 text-amber-700"><Lightbulb className="w-3 h-3" /> Idea</span>}
         </div>
+        {item.photo && <PhotoView photo={item.photo} className="mt-3 rounded-2xl" />}
         <textarea ref={titleRef} value={title} rows={1} onChange={e => setTitle(e.target.value.replace(/\n/g, ' '))} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); editor.current?.focusEnd(); } }} placeholder="Title"
           className="mt-3 w-full resize-none overflow-hidden bg-transparent border-0 p-0 font-serif text-[34px] leading-[1.1] font-bold outline-none focus:outline-none focus:ring-0 placeholder:text-black/20" />
         {editedLabel && <div className="mt-1 mb-4 text-[12.5px] text-black/40">Edited {editedLabel}</div>}
@@ -1388,6 +1422,7 @@ function ItemSheet({ item, openedVersion, places, areas, now, onClose, onSave, o
           </div>
         )}
 
+        {item.photo && <PhotoView photo={item.photo} className="mb-3 rounded-2xl" />}
         <div className="rounded-2xl bg-white p-1">
           <textarea value={f.title || ''} onChange={e => set({ title: e.target.value })} rows={Math.min(5, Math.max(1, Math.ceil((f.title || '').length / 30)))} className="w-full px-3 py-3 bg-transparent border-0 text-[18px] font-medium leading-snug focus:ring-0 resize-none" />
           <div className="mx-3 border-t border-black/[0.07]" />
