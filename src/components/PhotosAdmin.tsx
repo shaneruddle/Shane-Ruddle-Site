@@ -72,6 +72,48 @@ async function resizeImage(file: File) {
 }
 
 // Admin photo library: upload, describe and delete photos, then choose where each one appears on the site.
+const NEW_LOCATION = '__new__';
+
+/** Dropdown of places already used on other photos, plus "+ New location" to type one in. */
+function LocationPicker({ value, options, onSave }: { value: string; options: string[]; onSave: (v: string) => void }) {
+  const [adding, setAdding] = useState(false);
+  const box = 'flex items-center gap-2 text-sm text-black/70 bg-black/[0.03] rounded-lg px-2 focus-within:ring-1 focus-within:ring-gold-deep';
+  if (adding) {
+    const done = (v: string) => { setAdding(false); if (v) onSave(v); };
+    return (
+      <label className={box}>
+        <MapPin className="w-4 h-4 text-black/40 shrink-0" />
+        <input
+          autoFocus
+          placeholder="New location, e.g. Dongtan Beach, Jomtien"
+          onBlur={(e) => done(e.target.value.trim())}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur();
+            if (e.key === 'Escape') setAdding(false);
+          }}
+          className="flex-1 bg-transparent outline-none py-2"
+          aria-label="New location"
+        />
+      </label>
+    );
+  }
+  return (
+    <label className={box}>
+      <MapPin className="w-4 h-4 text-black/40 shrink-0" />
+      <select
+        value={value}
+        onChange={(e) => (e.target.value === NEW_LOCATION ? setAdding(true) : onSave(e.target.value))}
+        className={`flex-1 bg-transparent outline-none py-2 ${value ? '' : 'text-black/40'}`}
+        aria-label="Where the photo was taken"
+      >
+        <option value="">Where was it taken?</option>
+        {options.map(o => <option key={o} value={o}>{o}</option>)}
+        <option value={NEW_LOCATION}>+ New location…</option>
+      </select>
+    </label>
+  );
+}
+
 export default function PhotosAdmin() {
   const [photos, setPhotos] = useState<SitePhoto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,6 +126,7 @@ export default function PhotosAdmin() {
   const [slotsUpdatedAt, setSlotsUpdatedAt] = useState<number>(0);
   const [publish, setPublish] = useState<PublishStatus | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const locations = [...new Set(photos.map(p => (p.location || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const [filter, setFilter] = useState<'all' | 'no-alt' | 'unused'>('all');
 
   useEffect(() => {
@@ -385,16 +428,7 @@ export default function PhotosAdmin() {
                     className="text-sm text-black/70 bg-black/[0.03] rounded-lg p-2 outline-none focus:ring-1 focus:ring-gold-deep resize-none"
                     aria-label="Photo description"
                   />
-                  <label className="flex items-center gap-2 text-sm text-black/70 bg-black/[0.03] rounded-lg px-2 focus-within:ring-1 focus-within:ring-gold-deep">
-                    <MapPin className="w-4 h-4 text-black/40 shrink-0" />
-                    <input
-                      defaultValue={p.location || ''}
-                      onBlur={(e) => saveField(p, 'location', e.target.value.trim())}
-                      placeholder="Where was it taken? e.g. Dongtan Beach, Jomtien"
-                      className="flex-1 bg-transparent outline-none py-2"
-                      aria-label="Where the photo was taken"
-                    />
-                  </label>
+                  <LocationPicker value={p.location || ''} options={locations} onSave={(v) => saveField(p, 'location', v)} />
                   <div className="flex flex-wrap gap-2 text-xs font-semibold">
                     {!p.alt && <span className="px-2 py-1 rounded-full bg-amber-100 text-amber-800">No description yet</span>}
                     <span className={`px-2 py-1 rounded-full ${usageCount(p.id) ? 'bg-green-50 text-green-700' : 'bg-black/5 text-black/45'}`}>
