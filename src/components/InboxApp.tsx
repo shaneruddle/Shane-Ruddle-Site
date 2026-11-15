@@ -1053,7 +1053,7 @@ const SpeechCtor = (): (new () => SpeechRec) | undefined => (window as unknown a
 
 function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw: string, photo?: PhotoDraft) => void; placeholder: string; accent: string; dark: boolean }) {
   const [text, setText] = useState('');
-  // Camera: snap a photo, then add words (typed or said) or just save it.
+  // Camera: take a photo or pick one from the camera roll (iPhone offers both), then add words (typed or said) or just save it.
   const [photo, setPhoto] = useState<PhotoDraft | null>(null);
   const [preparing, setPreparing] = useState(false);
   const photoRef = useRef<PhotoDraft | null>(null);
@@ -1145,7 +1145,7 @@ function CaptureDock({ onCapture, placeholder, accent, dark }: { onCapture: (raw
           </button>
         </div>
       )}
-      <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden"
+      <input ref={fileRef} type="file" accept="image/*" className="hidden"
         onChange={e => { pickPhoto(e.target.files?.[0]); e.target.value = ''; }} />
       <div className={`max-w-xl mx-auto flex items-end gap-2 rounded-[28px] p-1.5 ${photo || preparing ? 'pl-1.5' : 'pl-[18px]'} ${dark ? 'bg-white/10 border border-white/15 backdrop-blur-xl' : 'bg-white border border-black/10 shadow-[0_6px_20px_rgba(0,0,0,0.08)]'}`}>
         {(photo || preparing) && (
