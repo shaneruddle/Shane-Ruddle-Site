@@ -57,12 +57,13 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
   // Every section, from the phone menu or the desktop sidebar. Reminders opens in place, no reload.
   const goTab = (key: NavKey) => {
     if (key === 'inbox' || key === 'circle') { ownerGo(key); return; }
+    if (key === 'search' || key === 'settings') { window.history.replaceState(null, '', `/inbox?tab=${key}`); setInboxOpen(true); window.scrollTo(0, 0); return; }
     window.history.replaceState(null, '', key === 'offers' ? '/portal' : `/portal?tab=${key}`);
     setActiveTab(key); window.scrollTo(0, 0);
   };
   // Phones get the section list as a slide-out drawer instead of a sideways-scrolling tab row.
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const activeLabel = portalTabs.find(([key]) => key === activeTab)?.[1] || 'Dashboard';
+  const activeLabel = portalTabs.flatMap(g => g.rows).find(r => r.key === activeTab)?.label || 'Dashboard';
   const [personalProfile, setPersonalProfile] = useState<Partial<UserProfile>>(userProfile);
   const [savingProfile, setSavingProfile] = useState(false);
 
@@ -226,7 +227,7 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
         onWebsite={onBack} name={userProfile.name} company={userProfile.company} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 md:grid md:grid-cols-[200px_minmax(0,1fr)] md:gap-10 lg:gap-14">
         <aside className="hidden md:block">
-          <div className="sticky top-24">
+          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pb-6">
             <PortalSidebar items={portalTabs} active={activeTab} onSelect={goTab} />
           </div>
         </aside>

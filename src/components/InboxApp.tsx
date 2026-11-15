@@ -94,12 +94,13 @@ const isTaskOpen = (i: Item) => i.kind === 'task' && isOpen(i);
 export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPortalTab }: { onExit?: () => void; onCircle?: () => void; onPhotos?: () => void; onEnquiries?: () => void; onPortalTab?: (tab: PortalTab) => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
-  // The portal menu, same as every other dashboard page. Reminders keeps Search and Settings under its own row.
+  // The portal menu, same as every other dashboard page.
   const onNav = (key: NavKey) => {
     if (key === 'circle') onCircle?.();
     else if (key === 'photos') onPhotos?.();
     else if (key === 'enquiries') onEnquiries?.();
     else if (key === 'inbox') go({ view: 'home' });
+    else if (key === 'search' || key === 'settings') go({ view: key });
     else onPortalTab?.(key);
   };
   // ?home stops the homepage sending Shane straight back to Reminders.
@@ -112,7 +113,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
   const [outbox, setOutbox] = useState<Pending[]>(readOutbox);
   const [online, setOnline] = useState(navigator.onLine);
   // A tapped notification opens /inbox?tab=today or /inbox?item=<id>.
-  const [screen, setScreen] = useState<Screen>(() => { const t = new URLSearchParams(window.location.search).get('tab'); return { view: t === 'notes' ? t : 'home' }; });
+  const [screen, setScreen] = useState<Screen>(() => { const t = new URLSearchParams(window.location.search).get('tab'); return { view: t === 'notes' || t === 'search' || t === 'settings' ? t : 'home' }; });
   const [open, setOpen] = useState<Item | null>(null);
   // Long-press a row to tag it with a filter (Lakeside, Personal…).
   const [tagging, setTagging] = useState<Item | null>(null);
@@ -583,7 +584,6 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
 
   const go = (s: Screen) => { setScreen(s); window.scrollTo(0, 0); };
   const goHome = () => go({ view: 'home' });
-  const menuSub: [string, typeof Search, () => void][] = [['Search & ask', Search, () => go({ view: 'search' })], ['Reminder settings', Settings, () => go({ view: 'settings' })]];
 
   // A blank note, saved straight away (no AI sorting) and opened as a page. Empty ones are removed on close.
   const newNote = async (area?: string | null) => {
@@ -722,7 +722,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
             </span>}
           </div>
         </header>
-        <PortalDrawer open={menuOpen} onClose={closeMenu} items={SHANE_NAV} active="inbox" onSelect={onNav} onWebsite={toWebsite} sub={menuSub} />
+        <PortalDrawer open={menuOpen} onClose={closeMenu} items={SHANE_NAV} active="inbox" onSelect={onNav} onWebsite={toWebsite} />
         <h1 className="mt-1 font-serif text-[36px] leading-tight font-bold text-ink">{greeting}, Shane</h1>
         <p className="mt-0.5 text-[14px] text-black/50 flex items-center gap-1 flex-wrap">{plural(shownReminders.filter(i => i.kind !== 'note').length, 'reminder')}{shownReminders.some(i => i.kind === 'note') ? `, ${plural(shownReminders.filter(i => i.kind === 'note').length, 'note')}` : ''}{overdueCount || overdueOnly ? <button onClick={() => setOverdueOnly(v => !v)} aria-pressed={overdueOnly}
             className={`ml-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[13px] font-semibold border ${overdueOnly ? 'bg-danger text-white border-danger' : 'text-danger border-danger/30 bg-white'}`}>
@@ -934,7 +934,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
   const noteItem = note ? items.find(i => i.id === note.id) : undefined;
 
   return (
-    <PortalFrame items={SHANE_NAV} active="inbox" onSelect={onNav} onWebsite={toWebsite} sub={menuSub}>
+    <PortalFrame items={SHANE_NAV} active="inbox" onSelect={onNav} onWebsite={toWebsite}>
     <div className="min-h-[100dvh] bg-cream text-ink">
       {page}
 

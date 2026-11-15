@@ -1,34 +1,49 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { doc, getDoc } from 'firebase/firestore';
-import { Ticket, User, MessageCircle, Images, Activity, Mail, HeartHandshake, ListChecks, X, ArrowUpRight, LogOut } from 'lucide-react';
+import { Ticket, User, MessageCircle, Images, Activity, Mail, HeartHandshake, ListChecks, X, ArrowUpRight, LogOut, Search, Settings, LayoutDashboard, Globe, BookOpen, MessageCircleQuestion, Building2 } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { useEnquiries } from './EnquiriesAdmin';
 import PortalHeader from './PortalHeader';
 
-// The staff dashboard's section menu, shared by every portal page (Offers, Profile, Comments, Photos, Activity,
-// Enquiries, Circle, Reminders) so the phone slide-in and the desktop sidebar are the same everywhere.
-// No animation library here: Reminders loads this on its fast page.
+// The staff dashboard's menu, shared by every portal page (Reminders, Circle, Enquiries, Photos, Offers, Profile,
+// Comments, Activity) so the phone slide-in and the desktop sidebar are the same everywhere. Styled like the
+// Reminders menu. No animation library here: Reminders loads this on its fast page.
 
-export type NavKey = 'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'enquiries' | 'circle' | 'inbox';
-export type NavItem = [NavKey, string, typeof Ticket];
+export type NavKey = 'offers' | 'profile' | 'comments' | 'photos' | 'activity' | 'enquiries' | 'circle' | 'inbox' | 'search' | 'settings';
+type Row = { key?: NavKey; label: string; Icon: typeof Ticket; href?: string };
+export type NavGroup = { title: string; rows: Row[] };
 
-export function navItems({ canModerate, isShane }: { canModerate: boolean; isShane: boolean }): NavItem[] {
-  return [
-    ['offers', 'Offers', Ticket],
-    ['profile', 'Profile', User],
-    ...(canModerate ? [['comments', 'Comments', MessageCircle] as NavItem] : []),
-    ...(isShane ? [['photos', 'Photos', Images] as NavItem] : []),
-    ...(canModerate ? [['activity', 'Activity', Activity] as NavItem] : []),
-    // Shane only (matches isShane() in firestore.rules), never other admins.
-    ...(isShane ? [['enquiries', 'Enquiries', Mail] as NavItem] : []),
-    ...(isShane ? [['circle', 'Circle', HeartHandshake] as NavItem] : []),
-    ...(isShane ? [['inbox', 'Reminders', ListChecks] as NavItem] : []),
-  ];
+export function navItems({ canModerate, isShane }: { canModerate: boolean; isShane: boolean }): NavGroup[] {
+  const r = (key: NavKey, label: string, Icon: typeof Ticket): Row => ({ key, label, Icon });
+  const groups: NavGroup[] = [];
+  // Shane's own apps (matches isShane() in firestore.rules), never other admins.
+  if (isShane) groups.push({ title: '', rows: [r('inbox', 'Reminders', ListChecks), r('circle', 'Circle', HeartHandshake), r('enquiries', 'Enquiries', Mail), r('photos', 'Photos', Images), r('search', 'Search & ask', Search)] });
+  groups.push({ title: 'Dashboard', rows: [
+    r('offers', isShane ? 'Dashboard' : 'Offers', isShane ? LayoutDashboard : Ticket),
+    ...(canModerate ? [r('comments', 'Comments', MessageCircle), r('activity', 'Activity', Activity)] : []),
+    r('profile', 'Profile', User),
+    ...(isShane ? [r('settings', 'Reminder settings', Settings)] : []),
+  ] });
+  groups.push({ title: 'Website', rows: [
+    // ?home stops the homepage sending Shane straight back to Reminders.
+    { label: 'Homepage', Icon: Globe, href: '/?home' },
+    { label: 'Articles', Icon: BookOpen, href: '/articles' },
+    { label: 'Questions', Icon: MessageCircleQuestion, href: '/questions' },
+    { label: 'Businesses', Icon: Building2, href: '/businesses' },
+  ] });
+  return groups;
 }
 
 // Shane's menu (Circle and Reminders are his alone, so they always get the full list).
 export const SHANE_NAV = navItems({ canModerate: true, isShane: true });
+
+const SITES: [string, string][] = [
+  ['Hemingways Jomtien', 'https://www.hemingwaysjomtien.com'], ['Hemingways Pattaya', 'https://www.hemingwayspattaya.com'],
+  ['Hemingways Lakeside', 'https://www.hemingwayslakeside.com'], ['Cajun Life Cafe', 'https://www.cajunlifecafe.com'],
+  ['Pattaya Rent a Car', 'https://www.pattayarentacar.com'], ['Alan Bolton Property', 'https://www.pattaya-property.net'],
+  ['East Coast Real Estate', 'https://www.thaiproperty.com'],
+];
 
 // Site enquiries not yet opened.
 export function useUnreadEnquiries() {
@@ -53,14 +68,52 @@ function useMenuProfile(name?: string, company?: string) {
   return p;
 }
 
+// The groups and rows, used by both the phone slide-in and the desktop sidebar.
+function MenuList({ items, active, onSelect, onPicked, showCount, sites }: {
+  items: NavGroup[]; active: NavKey; onSelect: (key: NavKey) => void; onPicked?: () => void; showCount: boolean; sites: boolean;
+}) {
+  const hasEnquiries = items.some(g => g.rows.some(r => r.key === 'enquiries'));
+  return (
+    <>
+      {items.map(({ title, rows }) => (
+        <div key={title || 'apps'} className={title ? 'mt-4' : 'mt-1'}>
+          {title && <div className="px-3 pb-1 text-[11px] uppercase tracking-[0.16em] text-black/40 font-semibold">{title}</div>}
+          {rows.map(({ key, label, Icon, href }) => {
+            const current = !!key && key === active;
+            const cls = `w-full flex items-center gap-3 px-3 h-11 rounded-xl text-[16px] md:text-[15px] text-left ${current ? 'bg-white shadow-sm font-semibold' : 'text-ink/80 hover:bg-black/[0.04] active:bg-black/[0.05]'}`;
+            const inner = <><Icon className={`w-[18px] h-[18px] ${current ? 'text-gold-deep' : 'text-black/45'}`} /> {label}
+              {key === 'enquiries' && hasEnquiries && showCount && <UnreadCount />}</>;
+            return href
+              ? <a key={label} href={href} onClick={onPicked} className={cls}>{inner}</a>
+              : <button key={label} type="button" aria-current={current ? 'page' : undefined} className={cls}
+                  onClick={() => { onPicked?.(); if (key && !current) onSelect(key); }}>{inner}</button>;
+          })}
+        </div>
+      ))}
+      {sites && (
+        <div className="mt-4">
+          <div className="px-3 pb-1 text-[11px] uppercase tracking-[0.16em] text-black/40 font-semibold">My businesses</div>
+          {SITES.map(([label, href]) => (
+            <a key={href} href={href} target="_blank" rel="noopener noreferrer" onClick={onPicked}
+              className="flex items-center justify-between px-3 h-10 rounded-xl text-[15px] md:text-[14px] text-ink/75 hover:bg-black/[0.04] active:bg-black/[0.05]">
+              {label} <ArrowUpRight className="w-4 h-4 text-black/30" />
+            </a>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+const isShaneMenu = (items: NavGroup[]) => items.some(g => g.rows.some(r => r.key === 'inbox'));
+
 // Phone slide-in menu.
-export function PortalDrawer({ open, onClose, items, active, onSelect, onWebsite, name, company, sub }: {
-  open: boolean; onClose: () => void; items: NavItem[]; active: NavKey; onSelect: (key: NavKey) => void;
-  onWebsite: () => void; name?: string; company?: string;
-  /** Extra rows shown under the current section (Reminders' Search and Settings). */
-  sub?: [string, typeof Ticket, () => void][];
+export function PortalDrawer({ open, onClose, items, active, onSelect, name, company }: {
+  open: boolean; onClose: () => void; items: NavGroup[]; active: NavKey; onSelect: (key: NavKey) => void;
+  name?: string; company?: string; onWebsite?: () => void;
 }) {
   const who = useMenuProfile(name, company);
+  const shane = isShaneMenu(items);
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -69,45 +122,24 @@ export function PortalDrawer({ open, onClose, items, active, onSelect, onWebsite
     window.addEventListener('keydown', onKey);
     return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
   }, [open, onClose]);
-  const showEnquiryCount = items.some(([k]) => k === 'enquiries');
   return createPortal(
     <div className={`md:hidden fixed inset-0 z-[70] font-sans select-none ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
-      <div onClick={onClose} className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0'}`} />
-      <aside aria-label="Staff menu" className={`absolute inset-y-0 left-0 w-[80%] max-w-[300px] bg-ink text-white flex flex-col shadow-2xl transition-transform duration-[220ms] ease-out ${open ? 'translate-x-0' : '-translate-x-full'}`}
+      <div onClick={onClose} className={`absolute inset-0 bg-black/35 transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0'}`} />
+      <aside aria-label="Menu" className={`absolute inset-y-0 left-0 w-[82%] max-w-[320px] bg-cream text-ink shadow-2xl flex flex-col transition-transform duration-[250ms] ease-out ${open ? 'translate-x-0' : '-translate-x-full'}`}
         style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-        <div className="h-14 px-4 flex items-center justify-between border-b border-white/10">
+        <div className="flex items-center justify-between px-5 pt-4 pb-3">
           <div className="min-w-0">
-            <div className="text-[15px] font-semibold truncate">{who.name || 'Staff'}</div>
-            {who.company && <div className="text-[12px] text-white/50 truncate">{who.company}</div>}
+            <div className="font-serif text-[24px] font-bold leading-tight truncate">{who.name || 'Staff'}</div>
+            <div className="text-[12px] uppercase tracking-[0.18em] text-black/40 font-semibold truncate">{shane ? 'shaneruddle.com' : who.company || 'shaneruddle.com'}</div>
           </div>
-          <button type="button" onClick={onClose} className="w-9 h-9 -mr-2 inline-flex items-center justify-center rounded-full text-white/70 hover:bg-white/5" aria-label="Close menu">
-            <X className="w-5 h-5" />
-          </button>
+          <button type="button" onClick={onClose} aria-label="Close menu" className="p-1.5 -mr-1.5 text-black/45"><X className="w-5 h-5" /></button>
         </div>
-        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {items.map(([key, label, Icon]) => (
-            <div key={key}>
-              <button type="button" onClick={() => { onClose(); if (key !== active) onSelect(key); }}
-                aria-current={active === key ? 'page' : undefined}
-                className={`w-full flex items-center gap-3 px-4 h-12 rounded-[12px] text-[15px] transition-colors ${active === key ? 'bg-white/10 text-white font-medium' : 'text-white/65 hover:bg-white/5'}`}>
-                <Icon className={`w-[18px] h-[18px] ${active === key ? 'text-gold' : ''}`} /> {label}
-                {key === 'enquiries' && showEnquiryCount && open && <UnreadCount />}
-              </button>
-              {active === key && sub?.map(([l, SubIcon, fn]) => (
-                <button key={l} type="button" onClick={() => { onClose(); fn(); }}
-                  className="w-full flex items-center gap-3 pl-11 pr-4 h-10 rounded-[12px] text-[14px] text-white/55 hover:bg-white/5">
-                  <SubIcon className="w-4 h-4" /> {l}
-                </button>
-              ))}
-            </div>
-          ))}
+        <nav className="flex-1 overflow-y-auto px-3 pb-3">
+          <MenuList items={items} active={active} onSelect={onSelect} onPicked={onClose} showCount={open} sites={shane} />
         </nav>
-        <div className="p-3 border-t border-white/10 space-y-1" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-          <button type="button" onClick={() => { onClose(); onWebsite(); }} className="w-full flex items-center gap-3 px-4 h-11 rounded-[12px] text-[14px] text-white/65 hover:bg-white/5">
-            <ArrowUpRight className="w-4 h-4" /> Back to website
-          </button>
-          <button type="button" onClick={() => { onClose(); auth.signOut(); }} className="w-full flex items-center gap-3 px-4 h-11 rounded-[12px] text-[14px] text-white/65 hover:bg-white/5">
-            <LogOut className="w-4 h-4" /> Sign out
+        <div className="px-3 pt-2 border-t border-black/[0.08]" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+          <button type="button" onClick={() => { onClose(); auth.signOut(); }} className="w-full flex items-center gap-3 px-3 h-11 rounded-xl text-[15px] text-black/55 active:bg-black/[0.05]">
+            <LogOut className="w-[18px] h-[18px]" /> Sign out
           </button>
         </div>
       </aside>
@@ -116,38 +148,19 @@ export function PortalDrawer({ open, onClose, items, active, onSelect, onWebsite
   );
 }
 
-// Desktop sidebar (same sections, same order as the phone menu).
-export function PortalSidebar({ items, active, onSelect, sub }: {
-  items: NavItem[]; active: NavKey; onSelect: (key: NavKey) => void; sub?: [string, typeof Ticket, () => void][];
-}) {
-  const showEnquiryCount = items.some(([k]) => k === 'enquiries');
+// Desktop sidebar (same groups, same order as the phone menu).
+export function PortalSidebar({ items, active, onSelect }: { items: NavGroup[]; active: NavKey; onSelect: (key: NavKey) => void }) {
   return (
-    <nav className="flex flex-col gap-1 font-sans">
-      {items.map(([key, label, Icon]) => (
-        <div key={key} className="flex flex-col gap-1">
-          <button type="button" onClick={() => { if (key !== active) onSelect(key); }}
-            aria-current={active === key ? 'page' : undefined}
-            className={`shrink-0 flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors rounded-full ${active === key ? 'bg-ink text-white' : 'text-black/50 hover:text-ink hover:bg-black/5'}`}>
-            <Icon className="w-4 h-4" /> {label}
-            {key === 'enquiries' && showEnquiryCount && <UnreadCount />}
-          </button>
-          {active === key && sub?.map(([l, SubIcon, fn]) => (
-            <button key={l} type="button" onClick={fn}
-              className="flex items-center gap-3 pl-11 pr-4 py-2 text-[13px] text-black/50 hover:text-ink rounded-full hover:bg-black/5">
-              <SubIcon className="w-3.5 h-3.5" /> {l}
-            </button>
-          ))}
-        </div>
-      ))}
+    <nav className="font-sans -mx-3">
+      <MenuList items={items} active={active} onSelect={onSelect} showCount sites={isShaneMenu(items)} />
     </nav>
   );
 }
 
 // Desktop frame for the full-screen apps (Reminders, Circle): the portal's top bar and sidebar around the page.
 // On phones it renders the page alone; the page's own burger opens PortalDrawer.
-export function PortalFrame({ items, active, onSelect, onWebsite, sub, children }: {
-  items: NavItem[]; active: NavKey; onSelect: (key: NavKey) => void; onWebsite: () => void;
-  sub?: [string, typeof Ticket, () => void][]; children: ReactNode;
+export function PortalFrame({ items, active, onSelect, onWebsite, children }: {
+  items: NavGroup[]; active: NavKey; onSelect: (key: NavKey) => void; onWebsite: () => void; children: ReactNode;
 }) {
   return (
     <div className="min-h-[100dvh] bg-cream">
@@ -155,8 +168,8 @@ export function PortalFrame({ items, active, onSelect, onWebsite, sub, children 
         <PortalHeader active="portal" onNavigate={() => onSelect('offers')} onBack={onWebsite} />
       </div>
       {/* Lines up with the dashboard's sidebar (200px column inside the centred 80rem page). */}
-      <aside className="hidden md:block fixed top-14 bottom-0 left-[max(0px,calc((100vw-80rem)/2))] w-[248px] px-6 py-12 overflow-y-auto bg-cream z-20">
-        <PortalSidebar items={items} active={active} onSelect={onSelect} sub={sub} />
+      <aside className="hidden md:block fixed top-14 bottom-0 left-[max(0px,calc((100vw-80rem)/2))] w-[248px] px-6 py-8 overflow-y-auto bg-cream z-20">
+        <PortalSidebar items={items} active={active} onSelect={onSelect} />
       </aside>
       <div className="md:pl-[calc(max(0px,calc((100vw-80rem)/2))+248px)]">{children}</div>
     </div>
