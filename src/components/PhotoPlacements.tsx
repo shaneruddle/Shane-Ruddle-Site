@@ -18,7 +18,7 @@ const ARTICLES = FILE_ARTICLES.map(a => ({ slug: a.slug, title: a.title, heading
 function PhotoPicker({ photos, data, onPick, onClose }: { photos: SitePhoto[]; data: PhotoSlotsData; onPick: (p: SitePhoto) => void; onClose: () => void }) {
   const [q, setQ] = useState('');
   const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-  const shown = photos.filter(p => words.every(w => `${p.name} ${p.alt}`.toLowerCase().includes(w)));
+  const shown = photos.filter(p => words.every(w => `${p.name} ${p.alt} ${p.location || ''}`.toLowerCase().includes(w)));
   return (
     <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[85vh] overflow-y-auto p-6 md:p-8" onClick={e => e.stopPropagation()}>
@@ -35,7 +35,7 @@ function PhotoPicker({ photos, data, onPick, onClose }: { photos: SitePhoto[]; d
               <input
                 value={q}
                 onChange={e => setQ(e.target.value)}
-                placeholder="Search names and descriptions"
+                placeholder="Search names, descriptions and places"
                 className="flex-1 min-w-0 bg-transparent outline-none text-sm"
                 aria-label="Search photos"
               />

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { db, storage, auth } from '../firebase';
 import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { ImagePlus, Trash2, Loader2, Images, Copy, Rocket, CheckCircle } from 'lucide-react';
+import { ImagePlus, Trash2, Loader2, Images, Copy, Rocket, CheckCircle, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import PhotoPlacements from './PhotoPlacements';
 import { PhotoSlotsData, photoUsage } from '../lib/photoSlots';
@@ -11,6 +11,8 @@ export interface SitePhoto {
   id: string;
   name: string;
   alt: string;
+  /** Where the photo was taken, e.g. "Dongtan Beach, Jomtien". Helps match photos to pages. */
+  location?: string;
   url: string;
   path: string;
   /** Small copy for the dashboard grids. Photos uploaded before thumbnails existed don't have one. */
@@ -210,12 +212,12 @@ export default function PhotosAdmin() {
     if (ok) toast.success(`${ok} photo${ok === 1 ? '' : 's'} uploaded`);
   };
 
-  const saveField = async (p: SitePhoto, field: 'name' | 'alt', value: string) => {
+  const saveField = async (p: SitePhoto, field: 'name' | 'alt' | 'location', value: string) => {
     if ((p[field] || '') === value) return;
     try {
       await updateDoc(doc(db, 'site_photos', p.id), { [field]: value });
       if (field === 'alt') await syncSlots(p.id, { alt: value });
-      toast.success(field === 'alt' ? 'Description saved' : 'Name saved');
+      toast.success(field === 'alt' ? 'Description saved' : field === 'location' ? 'Location saved' : 'Name saved');
     } catch (err) {
       console.error('Error saving photo:', err instanceof Error ? err.message : err);
       toast.error('Could not save');
@@ -383,6 +385,16 @@ export default function PhotosAdmin() {
                     className="text-sm text-black/70 bg-black/[0.03] rounded-lg p-2 outline-none focus:ring-1 focus:ring-gold-deep resize-none"
                     aria-label="Photo description"
                   />
+                  <label className="flex items-center gap-2 text-sm text-black/70 bg-black/[0.03] rounded-lg px-2 focus-within:ring-1 focus-within:ring-gold-deep">
+                    <MapPin className="w-4 h-4 text-black/40 shrink-0" />
+                    <input
+                      defaultValue={p.location || ''}
+                      onBlur={(e) => saveField(p, 'location', e.target.value.trim())}
+                      placeholder="Where was it taken? e.g. Dongtan Beach, Jomtien"
+                      className="flex-1 bg-transparent outline-none py-2"
+                      aria-label="Where the photo was taken"
+                    />
+                  </label>
                   <div className="flex flex-wrap gap-2 text-xs font-semibold">
                     {!p.alt && <span className="px-2 py-1 rounded-full bg-amber-100 text-amber-800">No description yet</span>}
                     <span className={`px-2 py-1 rounded-full ${usageCount(p.id) ? 'bg-green-50 text-green-700' : 'bg-black/5 text-black/45'}`}>
