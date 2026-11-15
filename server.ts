@@ -235,7 +235,7 @@ async function startServer() {
     const body = [note, context].filter(Boolean).join("\n\n---\n");
     getCommentsDb()
       .collection("cv_submissions")
-      .add({ name, email, phone: phone || null, role: role || null, location: location || null, years: years || null, note: note || null, context: context || null, shareOk, fileName, fileBytes: bytes, createdAt: FieldValue.serverTimestamp() })
+      .add({ name, email, phone: phone || null, role: role || null, location: location || null, years: years || null, note: note || null, context: context || null, page: page || null, shareOk, fileName, fileBytes: bytes, createdAt: FieldValue.serverTimestamp() })
       .catch((err) => console.error("Could not save CV record:", err instanceof Error ? err.message : err));
     try {
       await sendNotification({

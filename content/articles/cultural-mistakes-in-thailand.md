@@ -1,5 +1,6 @@
 ---
 title: "The Cultural Mistakes Foreigners Make in Thailand"
+seoTitle: "Cultural Mistakes in Thailand: What Foreigners Get Wrong (2026)"
 description: "The cultural mistakes foreigners make in Thailand after 20 years watching: losing your temper, indirect communication, what Thais forgive, and my one tip."
 category: My Advice
 date: 2026-10-31
@@ -7,6 +8,8 @@ updated: 2026-11-07
 ---
 
 The biggest cultural mistake foreigners make in Thailand is losing their temper: here it gets you the opposite of what you want. The etiquette rules matter less in Pattaya than people think, and honest mistakes are almost always forgiven, but leave the royal family alone. After 20 years in Thailand, I've seen a lot of foreigners get things wrong, and I've made my share of mistakes too. Here's what I think matters most.
+
+> **What I'd do:** Never lose your temper: raise problems calmly, with some sympathy, and you'll get much further. Don't stress about the etiquette rules, since honest mistakes are forgiven, leave the royal family out of conversation, and learn some Thai.
 
 ## What's the most common mistake?
 

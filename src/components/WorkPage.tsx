@@ -543,6 +543,7 @@ function CvSection({ answers, result }: { answers: WorkAnswers; result: WorkResu
       trackEvent("generate_lead", { form: "cv", form_location: "work_page", role: role || "none", score: result?.score ?? null, share_ok: shareOk });
       setSent(true);
     } catch (err) {
+      trackEvent("form_error", { form: "cv", form_location: "work_page", message: err instanceof Error ? err.message.slice(0, 90) : "unknown" });
       setError(err instanceof Error ? err.message : "Sorry, that didn't send. Please try again.");
     } finally {
       setSending(false);

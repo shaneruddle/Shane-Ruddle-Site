@@ -7,6 +7,8 @@ date: 2026-11-02
 
 Having help at home is more within reach here than in the West. Here's what to know.
 
+> **What I'd do:** Work out how much help you really need first. A full-time maid costs around ฿12,000 to ฿20,000 a month, and offering live-in quarters is the best way to find someone good who stays. Whoever you hire, get the work permit done properly.
+
 ## Is it common for expats to have a maid?
 
 Not common, but definitely more common than in the West, simply because of the price.

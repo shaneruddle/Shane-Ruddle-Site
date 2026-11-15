@@ -262,6 +262,7 @@ export default function AskShane({
       trackEvent("generate_lead", { form: "ask_shane", form_location: source, topic, language: lang });
       setStep("done");
     } catch (err) {
+      trackEvent("form_error", { form: "ask_shane", form_location: source, message: err instanceof Error ? err.message.slice(0, 90) : "unknown" });
       setError(err instanceof Error ? err.message : t.error);
     } finally {
       setSending(false);

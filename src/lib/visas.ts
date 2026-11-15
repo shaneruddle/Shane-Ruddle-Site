@@ -40,6 +40,8 @@ export interface ThaiVisa {
   /** Covered in Shane's own article. Everything else shows "Check before applying". */
   fromShane: boolean;
   glance: { stay: string; money: string; cost: string; work: string };
+  /** "Costs at a glance" table rows, in baht (same figures as requirements, checked RULES_AS_OF). */
+  costs?: { item: string; thb: number; note?: string }[];
   /** Short line used in the finder result: why this visa fits. */
   fit: string;
   intro: string[];
@@ -63,7 +65,7 @@ export const VISAS: ThaiVisa[] = [
     name: "Retirement visa",
     official: "Non-Immigrant O (retirement), O-A and O-X",
     tagline: "For anyone 50 or over who can show the money",
-    metaTitle: "Thailand Retirement Visa 2026: ฿800,000 Rule, O vs O-A",
+    metaTitle: "Retirement Visa in Pattaya, Thailand (2026): ฿800k Rule, O vs O-A",
     description:
       "Thailand retirement visa requirements for 2026: age 50+, ฿800,000 in a Thai bank or ฿65,000 a month. Non-O vs O-A vs O-X, and renewing it in Pattaya.",
     fromShane: true,
@@ -73,6 +75,12 @@ export const VISAS: ThaiVisa[] = [
       cost: "฿1,900 for each yearly extension",
       work: "No",
     },
+    costs: [
+      { item: "Money in a Thai bank (or the income below)", thb: 800000, note: "2 months before applying, 3 months after" },
+      { item: "Or monthly income", thb: 65000, note: "a month" },
+      { item: "Never drop the balance below", thb: 400000 },
+      { item: "Yearly extension fee", thb: 1900, note: "each year" },
+    ],
     fit: "you're 50 or over and can show ฿800,000 or ฿65,000 a month",
     intro: [
       "Retirees use a retirement visa. The two most people use are the Non-Immigrant O, which you get and then extend every year here in Pattaya, and the O-A, which you apply for from your home country.",
@@ -139,6 +147,10 @@ export const VISAS: ThaiVisa[] = [
       cost: "About ฿10,000 (set by each embassy)",
       work: "Remote work for clients abroad only",
     },
+    costs: [
+      { item: "Savings to show", thb: 500000, note: "usually held about 3 months" },
+      { item: "Visa fee", thb: 10000, note: "about, set by each embassy" },
+    ],
     fit: "you work online and want long stays without a Thai employer",
     intro: [
       "For people working online there's the DTV, the Destination Thailand Visa. It lasts five years, with stays of up to 180 days per entry, and you need to show around ฿500,000 in savings.",
@@ -201,6 +213,13 @@ export const VISAS: ThaiVisa[] = [
       cost: "From ฿650,000 for 5 years",
       work: "No",
     },
+    costs: [
+      { item: "Bronze, 5 years", thb: 650000, note: "may close to new members end of 2026" },
+      { item: "Gold, 5 years", thb: 900000 },
+      { item: "Platinum, 10 years", thb: 1500000 },
+      { item: "Diamond, 15 years", thb: 2500000 },
+      { item: "Reserve, 20 years", thb: 5000000 },
+    ],
     fit: "you'd rather pay once than deal with yearly paperwork",
     intro: [
       "Thailand Privilege, which used to be called the Elite visa, is a membership you buy. There's no age or savings test, and once you've paid there's very little admin or hassle.",
@@ -386,6 +405,11 @@ export const VISAS: ThaiVisa[] = [
       cost: "฿1,900 for each yearly extension",
       work: "Yes, with a work permit",
     },
+    costs: [
+      { item: "Money in a Thai bank (or the income below)", thb: 400000 },
+      { item: "Or monthly income", thb: 40000, note: "a month" },
+      { item: "Yearly extension fee", thb: 1900, note: "each year" },
+    ],
     fit: "you're married to a Thai, which halves the money you need to show",
     intro: [
       "If you're married to a Thai national you can stay on a Non-Immigrant O based on your marriage, at any age. The money you need to show is half what a retiree needs.",
@@ -446,6 +470,10 @@ export const VISAS: ThaiVisa[] = [
       cost: "School or course fees, plus ฿1,900 per extension",
       work: "No",
     },
+    costs: [
+      { item: "Guardian: money in a Thai bank", thb: 500000, note: "in your name" },
+      { item: "Extension fee", thb: 1900, note: "each time" },
+    ],
     fit: "you're studying here, or bringing your children to school",
     intro: [
       "Students at a Thai university, language school or international school can get an ED visa, sponsored by the school.",
@@ -506,6 +534,10 @@ export const VISAS: ThaiVisa[] = [
       cost: "Free. ฿1,900 to extend",
       work: "No",
     },
+    costs: [
+      { item: "Visa-free entry", thb: 0, note: "30 days" },
+      { item: "One 30-day extension", thb: 1900 },
+    ],
     fit: "you only need a month or two",
     intro: [
       "Most Western passports can arrive without a visa. From 15 September 2026 that stay was cut from 60 days to 30 for most countries (check before applying).",

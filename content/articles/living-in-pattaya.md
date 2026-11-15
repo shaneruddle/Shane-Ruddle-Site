@@ -7,6 +7,8 @@ date: 2026-10-20
 
 Living in Pattaya is slower, sunnier and friendlier than life in the West, and as of 2026 a single person can live comfortably on about ฿50,000 to ฿60,000 a month. I've lived here for over 20 years. If a friend from the UK asked me what it's really like, I'd tell them about the pace of life, the weather and the people, and then about the things nobody mentions until you arrive.
 
+> **What I'd do:** Budget about ฿50,000 to ฿60,000 a month for one person or ฿70,000 to ฿80,000 for a couple, get health insurance before you arrive, and rent on a 12-month lease before you think about buying. Most people overspend in the first few months, so plan for that.
+
 ## What's the best thing about living in Pattaya?
 
 The pace of life. Everything here is slower and more easygoing than in the West, and it doesn't feel like a grind.

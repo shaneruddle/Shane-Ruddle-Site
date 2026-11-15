@@ -3,6 +3,7 @@ import { db, auth } from '../firebase';
 import { collection, onSnapshot, doc, updateDoc, serverTimestamp, Timestamp, query, orderBy, limit } from 'firebase/firestore';
 import { Loader2, Inbox, ArrowLeft, Sparkles, Send, Archive, ArchiveRestore, ExternalLink, FileText, Mail, Phone, AlertTriangle, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
+import LeadsSummary from './LeadsSummary';
 
 // Shane-only Enquiries tab: every Ask Shane question (contact_messages) and CV (cv_submissions) sent through
 // the site. Claude drafts a reply from the site's own articles (server/enquiries.ts); Shane edits and sends it.
@@ -117,6 +118,7 @@ export default function EnquiriesAdmin() {
         <EnquiryDetail key={openId!} e={current} onBack={() => setOpenId(null)} />
       ) : (
         <>
+          <LeadsSummary items={all} />
           <div className="flex flex-wrap items-center gap-2 mb-6">
             {(['open', 'replied', 'archived'] as const).map(key => (
               <button

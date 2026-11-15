@@ -1,12 +1,15 @@
 ---
 title: "Is Pattaya Good for Families, and Is It Safe?"
-seoTitle: "Is Pattaya Good for Families? A Parent's Honest Answer (2026)"
-description: "I've raised my kids in Pattaya. Here's my honest take on safety, the best area for families, international schools and fees, and the downsides in 2026."
+seoTitle: "Is Pattaya Good and Safe for Families? A Parent's Answer (2026)"
+description: "Yes, and it's safe: the roads are the main risk. I've raised my kids in Pattaya. The best areas for families, which school to pick first, fees and the downsides."
 category: My Advice
 date: 2026-10-20
+updated: 2026-11-15
 ---
 
 Yes. In 2026, Pattaya is a great place to raise a family, and in my experience it's very safe, with the roads being the main risk. I've brought up my own kids here, and the city has changed enormously in the 20-plus years I've lived here. When I arrived, I'd have had real reservations: there wasn't much for children to do and only a handful of schools. Today there's plenty of both.
+
+> **What I'd do:** Shortlist the school first, then rent a house in East Pattaya within a 10 to 20 minute school run of it. Budget roughly ฿300,000 to over ฿1 million a year per child in fees, and treat the roads, not crime, as the real risk.
 
 ## Is Pattaya safe for children?
 
@@ -40,6 +43,23 @@ The choice is now excellent, and some of the international schools are exception
 - **Tara Pattana International School,** where my kids go, a little closer to the city centre but still in East Pattaya
 
 Fees depend on the school and your child's year group. As of 2026, expect roughly ฿300,000 a year at the lower end to over ฿1 million at the top. Check each school's current fee schedule directly. I've written a fuller [parent's guide to international schools in Pattaya](/articles/international-schools-in-pattaya).
+
+### Pick the school first, then the area
+
+My advice is to choose the school, then live within an easy school run of it. Most of the big schools are in East Pattaya, so that's where most families end up. Here's every international school around Pattaya with its published 2026/27 fees and the closest areas to live, with school-run times outside rush hour.
+
+| School | Curriculum | Ages | Fees a year (2026/27) | Closest areas to live | From Jomtien |
+|---|---|---|---|---|---|
+| [Tara Pattana International School](/international-schools-pattaya/tara-pattana-international-school) | British | 2 to 18 | ฿264k to ฿606k | East Pattaya (10 min), Central Pattaya (20 min) | 25 min |
+| [Rugby School Thailand](/international-schools-pattaya/rugby-school-thailand) | British (IGCSE, A Level) | 2 to 18 | ฿552k to ฿1.45m | East Pattaya (20 min), Central Pattaya (30 min) | 30 min |
+| [Regents International School Pattaya](/international-schools-pattaya/regents-international-school-pattaya) | British, then IB Diploma | 2 to 18 | ฿436k to ฿829k | East Pattaya (15 min), Central Pattaya (25 min) | 30 min |
+| [Highgate International School Thailand](/international-schools-pattaya/highgate-international-school-thailand) | British | 2 to 18 (growing year by year) | ฿375k to ฿795k | East Pattaya (15 min), Central Pattaya (25 min) | 30 min |
+| [International School Eastern Seaboard (ISE)](/international-schools-pattaya/international-school-eastern-seaboard) | American and IB | 3 to 18 | ฿358k to ฿646k | East Pattaya (25 min), Wongamat & Naklua (30 min) | 40 min |
+| [St Andrews International School Green Valley](/international-schools-pattaya/st-andrews-international-school-green-valley) | British, then IB Diploma (plus a Dutch section) | 2 to 18 | ฿207k to ฿842k | Na Jomtien & Bang Saray (40 min), Jomtien (50 min) | 50 min |
+| [Lovell International School](/international-schools-pattaya/lovell-international-school) | British | 2 to 18 | ฿341k to ฿561k | East Pattaya (10 min), Central Pattaya (20 min) | 25 min |
+| [Hastin International School](/international-schools-pattaya/hastin-international-school) | British (EYFS and primary) | 2 to 14 | Not published | East Pattaya (10 min), Central Pattaya (20 min) | 25 min |
+
+Fees are published tuition from the youngest to the oldest year group, before application, enrolment, bus and uniform costs. School-run times are my estimates; allow more in high season.
 
 ## What are schools here really like?
 

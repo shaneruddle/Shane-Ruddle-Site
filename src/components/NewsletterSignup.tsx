@@ -30,6 +30,7 @@ export default function NewsletterSignup({
       setStatus("done");
       trackEvent("sign_up", { method: "newsletter", form_location: source });
     } catch (err) {
+      trackEvent("form_error", { form: "newsletter", form_location: source, message: err instanceof Error ? err.message.slice(0, 90) : "unknown" });
       setStatus("error");
       setError(err instanceof Error ? err.message : "Could not subscribe right now. Please try again.");
     }

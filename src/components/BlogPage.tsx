@@ -21,6 +21,7 @@ import NewsletterSignup from './NewsletterSignup';
 import ArticleComments from './ArticleComments';
 import ArticleView from './ArticleView';
 import AskShane, { topicForArticle } from './AskShane';
+import { AskFloatButton } from './AskNudge';
 import VisaPromo from './VisaPromo';
 import SchoolsPromo from './SchoolsPromo';
 import MovePlannerPromo, { MOVE_PROMO_ARTICLES } from './MovePlannerPromo';
@@ -232,6 +233,7 @@ export default function BlogPage({ onBack }: BlogPageProps) {
         </div>
 
         <ArticleComments slug={selectedPost.slug || selectedPost.id} />
+        <AskFloatButton source={`article_${selectedPost.slug || selectedPost.id}`} />
       </ArticleView>
     );
   }

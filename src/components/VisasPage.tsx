@@ -18,6 +18,8 @@ import { handleLinkClick } from "../lib/navigation";
 import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
 import AskShane from "./AskShane";
+import { AskFloatButton, AskOffer } from "./AskNudge";
+import { CURRENCIES } from "../lib/costOfLiving";
 import NewsletterSignup from "./NewsletterSignup";
 import EmailMyResult from "./EmailMyResult";
 
@@ -378,6 +380,53 @@ function VisasHub() {
 // ---------------------------------------------------------------------------------------------
 // One visa
 
+const FX = ["GBP", "USD", "EUR"].map((id) => CURRENCIES.find((c) => c.id === id)!);
+const thb = (n: number) => (n === 0 ? "Free" : `฿${n.toLocaleString("en-US")}`);
+const approx = (n: number, perUnit: number, symbol: string) => {
+  if (n === 0) return "–";
+  const v = n / perUnit;
+  const r = v >= 10000 ? Math.round(v / 1000) * 1000 : v >= 1000 ? Math.round(v / 100) * 100 : Math.round(v / 10) * 10;
+  return `${symbol}${r.toLocaleString("en-US")}`;
+};
+
+// A plain table of what the visa costs, in baht with rough £/$/€ alongside: the shape search
+// engines and AI answers lift when someone asks "how much is the … visa".
+function CostTable({ visa }: { visa: ThaiVisa }) {
+  return (
+    <section>
+      <h2 className="font-serif text-3xl md:text-4xl leading-tight mb-2">{visa.name}: costs at a glance</h2>
+      <p className="text-black/55 mb-6">As of {RULES_AS_OF}. Pounds, dollars and euros are rough conversions.</p>
+      <div className="overflow-x-auto bg-white border border-black/[0.08] rounded-[1.25rem]">
+        <table className="w-full text-left text-[15px]">
+          <thead>
+            <tr className="border-b border-black/[0.08] text-[11px] uppercase tracking-[0.16em] text-black/45">
+              <th scope="col" className="px-5 py-4 font-semibold">What</th>
+              <th scope="col" className="px-5 py-4 font-semibold">Thai baht</th>
+              {FX.map((c) => (
+                <th key={c.id} scope="col" className="px-4 py-4 font-semibold hidden sm:table-cell">≈ {c.symbol}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {visa.costs!.map((row) => (
+              <tr key={row.item} className="border-b last:border-0 border-black/[0.06] align-top">
+                <th scope="row" className="px-5 py-4 font-normal text-ink">
+                  {row.item}
+                  {row.note && <span className="block text-sm text-black/50">{row.note}</span>}
+                </th>
+                <td className="px-5 py-4 font-serif text-lg text-gold-deep whitespace-nowrap">{thb(row.thb)}</td>
+                {FX.map((c) => (
+                  <td key={c.id} className="px-4 py-4 text-black/60 whitespace-nowrap hidden sm:table-cell">{approx(row.thb, c.perUnit, c.symbol)}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 function VisaView({ visa }: { visa: ThaiVisa }) {
   const articles = visa.articles.map((s) => ARTICLES.get(s)).filter((a): a is NonNullable<typeof a> => !!a);
   const others = VISAS.filter((v) => v.id !== visa.id);
@@ -430,6 +479,8 @@ function VisaView({ visa }: { visa: ThaiVisa }) {
             )}
           </section>
 
+          {visa.costs && <CostTable visa={visa} />}
+
           <section className="grid md:grid-cols-2 gap-4 md:gap-5">
             <div className="p-7 md:p-8 bg-white border border-black/[0.08] rounded-[1.25rem]">
               <h2 className="font-serif text-2xl mb-5">Who it suits</h2>
@@ -448,6 +499,8 @@ function VisaView({ visa }: { visa: ThaiVisa }) {
               </ul>
             </div>
           </section>
+
+          <AskOffer topic="visa" source={`visa_${visa.id}`} />
 
           <section className="p-8 md:p-12 bg-ink text-white rounded-[2rem] grid lg:grid-cols-2 gap-10 lg:gap-14">
             <div>
@@ -535,6 +588,7 @@ function VisaView({ visa }: { visa: ThaiVisa }) {
           <section id="ask" className="scroll-mt-28 p-8 md:p-12 bg-cream border border-cream-line rounded-[2rem]">
             <AskShane source={`visa_${visa.id}`} initialTopic="visa" context={`Visa page: ${visa.name}`} contextNote={`I'll know you're asking about the ${visa.name}.`} />
           </section>
+          <AskFloatButton source={`visa_${visa.id}`} />
         </div>
       </div>
 

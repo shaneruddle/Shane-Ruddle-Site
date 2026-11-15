@@ -8,6 +8,8 @@ date: 2026-11-02
 
 You don't need a car to get around Pattaya. Here's how each option works, and which I'd use.
 
+> **What I'd do:** On a week's holiday, use Bolt or Grab so you know the price up front, and try a baht bus once (now ฿15 for most trips around town). Staying a month or more and want to explore? Rent a car.
+
 ## Motorbike taxis
 
 If you're on your own, they're the most convenient. There's a rank on most corners, so you won't walk far to find one. They're very cheap, and the riders know their way around.

@@ -7,7 +7,7 @@
 export const WORK_PATH = "/work-in-pattaya";
 
 export const WORK_META = {
-  title: "Jobs in Thailand for Foreigners: Working in Pattaya, Pay and Work Permits | Shane Ruddle",
+  title: "Jobs in Pattaya for Foreigners (2026): Pay and Work Permits",
   description:
     "Jobs foreigners can actually do in Thailand, and what they pay in Pattaya, from an owner who hires. Work permits, the work visa, red flags in an offer, and send me your CV.",
 };

@@ -371,6 +371,14 @@
   .markdown-body h2 { font-size: 2.4rem; }
   .markdown-body h3 { font-size: 1.85rem; }
 }
+.markdown-body blockquote { margin: 0 0 1.6em; padding: 1.1em 1.3em; border-left: 3px solid var(--gold-deep); background: color-mix(in srgb, var(--gold-deep) 7%, white); border-radius: 0 1rem 1rem 0; color: var(--color-ink, #111); font-weight: 400; }
+.markdown-body blockquote p { margin-bottom: 0; }
+.markdown-body table { width: 100%; min-width: 880px; border-collapse: collapse; font-size: 0.9rem; line-height: 1.4; }
+.markdown-body th { text-align: left; font-weight: 600; color: var(--color-ink, #111); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.markdown-body th,
+.markdown-body td { padding: 0.7em 0.8em; border-bottom: 1px solid rgb(0 0 0 / 0.08); vertical-align: top; }
+.markdown-body tbody tr:last-child td { border-bottom: 0; }
+.markdown-body td:first-child { min-width: 11rem; }
 .markdown-body strong { color: var(--color-ink); font-weight: 600; }
 
 /* Inbox note pages: rich text (see NoteEditor.tsx). */

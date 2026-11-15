@@ -7,6 +7,8 @@ date: 2026-10-29
 
 People often ask me whether they should choose Pattaya or Phuket. My short answer: for most people, it's Pattaya. It's cheaper, there's a lot more to do, and it's far easier to get to.
 
+> **What I'd do:** Choose Pattaya unless you're coming purely for the beaches. It's cheaper, it's about an hour and a half from Bangkok's main airport rather than a flight away, and it has the international schools and around 27 golf courses in the province to Phuket's seven.
+
 ## Is Pattaya cheaper than Phuket?
 
 Yes, Pattaya is cheaper. If you want to see what living here costs, I've broken it down in [Is Pattaya Expensive?](/articles/is-pattaya-expensive)

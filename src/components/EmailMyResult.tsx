@@ -48,6 +48,7 @@ export default function EmailMyResult({
       trackEvent("generate_lead", { form: "email_result", form_location: tool, segment });
       trackEvent("sign_up", { method: "email_result", form_location: tool });
     } catch (err) {
+      trackEvent("form_error", { form: "email_result", form_location: tool, message: err instanceof Error ? err.message.slice(0, 90) : "unknown" });
       setStatus("error");
       setError(err instanceof Error ? err.message : "Sorry, that didn't send. Please try again.");
     }

@@ -1,13 +1,15 @@
 ---
 title: "Pattaya's Old Reputation Is 20 Years Out of Date"
 seoTitle: "Pattaya's Reputation in 2026: Is It Still Deserved?"
-description: "Is Pattaya worth visiting now? I arrived at 23, surrounded by retirees. Twenty years on, it's a city of families, schools and beaches. Here's how it changed."
+description: "Is Pattaya's reputation still deserved? Not any more. I arrived at 23, surrounded by retirees; 20 years on it's a city of families, schools and beaches. What changed."
 category: Pattaya News
 date: 2026-10-19
 updated: 2026-11-07
 ---
 
 Pattaya's old reputation is about 20 years out of date. Today it's a city of young couples, families, international schools, shopping centres and cleaner beaches, and the nightlife hasn't gone but is now concentrated in a few areas, mainly Walking Street, Soi Buakhao and a small part of Jomtien. So yes, it's worth visiting now.
+
+> **What I'd do:** Judge Pattaya on what's here now, not on a 20-year-old picture. The nightlife is still there but mostly kept to Walking Street, Soi Buakhao and a small part of Jomtien. The rest is a city of young couples, families, international schools, shopping centres and cleaner beaches.
 
 When I arrived in Pattaya, I was 23. There weren't many other 23-year-olds around.
 

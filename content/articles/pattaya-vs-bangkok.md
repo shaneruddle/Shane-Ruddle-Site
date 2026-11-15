@@ -7,6 +7,8 @@ date: 2026-11-03
 
 If I had to choose, I'd pick Pattaya over Bangkok. Bangkok is hectic, there's a lot of traffic, and we have the beach here. But if you're a working professional, Bangkok might be the better choice. It's a much bigger city, with far more jobs and a lot of international companies. It really depends on what you're looking for.
 
+> **What I'd do:** Pick Pattaya for a family, retirement or your own business, and Bangkok if you want a job working for someone else. Eating out costs about ฿300 to ฿350 a meal here against around ฿450 in Bangkok, but in Pattaya you'll need a car or a motorbike.
+
 ## Which is cheaper?
 
 For everyday living, Pattaya is cheaper. Eating out, you're looking at around ฿450 for a meal in Bangkok against ฿300 to ฿350 here.

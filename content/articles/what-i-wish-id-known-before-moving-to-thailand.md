@@ -7,6 +7,8 @@ date: 2026-10-31
 
 I've been in Thailand for around 20 years now. Looking back, there are a few things I wish I'd known when I first arrived.
 
+> **What I'd do:** If you have a pension or other passive income that covers a reasonable lifestyle, do it and commit fully. Treat it as home from day one, rent before you buy, and know the downsides up front: you can't own land, and visas and banking take paperwork.
+
 ## What did I expect, and what did I find?
 
 I expected somewhere much less developed. I knew I'd experience a different country and a different culture, but I wasn't expecting all the comforts I had back home as well, like the food. I just didn't expect it to be comparable to the West.

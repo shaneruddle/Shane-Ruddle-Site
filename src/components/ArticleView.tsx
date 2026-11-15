@@ -1,10 +1,13 @@
 import { ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { photoByUrl } from "../lib/photoSlots";
 import { guideForArticle } from "../lib/guides";
 import QuestionCard from "./QuestionCard";
 import { QUESTIONS_PATH, questionsForArticle } from "../lib/questions";
 import { handleLinkClick } from "../lib/navigation";
+import { topicForArticle } from "./AskShane";
+import { AskOffer } from "./AskNudge";
 
 export interface ArticleViewProps {
   title: string;
@@ -34,6 +37,9 @@ export default function ArticleView({ title, body, category, createdAt, updatedA
     updatedAt && createdAt && formatArticleDate(updatedAt) !== formatArticleDate(createdAt) && updatedAt > createdAt
       ? `Updated ${formatArticleDate(updatedAt)}`
       : null;
+  // Split after the second section so the "ask me" offer sits part-way down, not only at the end.
+  const sections = body.split(/\n(?=## )/);
+  const [bodyTop, bodyRest] = sections.length >= 4 ? [sections.slice(0, 3).join("\n"), sections.slice(3).join("\n")] : [body, ""];
   const meta = [category, createdAt ? formatArticleDate(createdAt) : null, updated, `${readMinutes} min read`].filter(Boolean).join(" · ");
 
   return (
@@ -57,29 +63,16 @@ export default function ArticleView({ title, body, category, createdAt, updatedA
           <img src={imageUrl} alt={photoByUrl(imageUrl)?.alt || title} width={1600} height={900} decoding="async" className="w-full aspect-[16/9] object-cover rounded-3xl mb-12" referrerPolicy="no-referrer" />
         )}
         <div className="markdown-body text-black/70 font-light leading-relaxed text-lg">
-          <ReactMarkdown
-            components={{
-              // Internal links stay in the app (no full page reload); external ones open in a new tab.
-              a: ({ href, children }) =>
-                href?.startsWith("/") ? (
-                  <a href={href} onClick={handleLinkClick}>{children}</a>
-                ) : (
-                  <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
-                ),
-              img: ({ src, alt, title: caption }) => {
-                const p = photoByUrl(typeof src === "string" ? src : undefined);
-                return (
-                  <span className="block my-10">
-                    <img src={src as string} alt={alt || ""} width={p?.width} height={p?.height} loading="lazy" decoding="async" className="w-full h-auto rounded-2xl" />
-                    {caption && <span className="block mt-3 text-sm text-black/45">{caption}</span>}
-                  </span>
-                );
-              },
-            }}
-          >
-            {body}
-          </ReactMarkdown>
+          <ArticleMarkdown body={bodyTop} />
         </div>
+        {bodyRest && (
+          <>
+            <AskOffer topic={topicForArticle(slug, category)} source={`article_${slug}`} />
+            <div className="markdown-body text-black/70 font-light leading-relaxed text-lg">
+              <ArticleMarkdown body={bodyRest} />
+            </div>
+          </>
+        )}
 
         {asked.length > 0 && (
           <section className="mt-16">
@@ -130,5 +123,39 @@ export default function ArticleView({ title, body, category, createdAt, updatedA
         {children}
       </div>
     </article>
+  );
+}
+
+function ArticleMarkdown({ body }: { body: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        // Internal links stay in the app (no full page reload); external ones open in a new tab.
+        a: ({ href, children }) =>
+          href?.startsWith("/") ? (
+            <a href={href} onClick={handleLinkClick}>{children}</a>
+          ) : (
+            <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+          ),
+        // Wide tables scroll sideways on phones instead of squashing.
+        table: ({ children }) => (
+          <span className="block overflow-x-auto my-8">
+            <table>{children}</table>
+          </span>
+        ),
+        img: ({ src, alt, title: caption }) => {
+          const p = photoByUrl(typeof src === "string" ? src : undefined);
+          return (
+            <span className="block my-10">
+              <img src={src as string} alt={alt || ""} width={p?.width} height={p?.height} loading="lazy" decoding="async" className="w-full h-auto rounded-2xl" />
+              {caption && <span className="block mt-3 text-sm text-black/45">{caption}</span>}
+            </span>
+          );
+        },
+      }}
+    >
+      {body}
+    </ReactMarkdown>
   );
 }

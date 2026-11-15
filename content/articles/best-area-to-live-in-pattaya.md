@@ -7,6 +7,8 @@ date: 2026-10-20
 
 The best area to live in Pattaya depends on your stage of life. In short: Central Pattaya if you're young and want the buzz, Jomtien if you're retired and want the beach, Pratumnak if you want a bit of both, and East Pattaya if you have kids or pets. Whenever someone asks me where they should live, my first question back is about them: are they single or married, do they have children, how old are they, and what do they want out of life here?
 
+> **What I'd do:** Rent before you buy, and pick the area for your stage of life: Central if you're young, Jomtien if you're retired, Pratumnak for a bit of both, East Pattaya with kids or pets. ฿20,000 a month gets you anything from a small studio in Wongamat to a two- or three-bed house in East Pattaya.
+
 I've lived in Pattaya for over 20 years, and our agencies rent and sell property right across the city. Here's how I'd break it down in 2026. If you'd rather click around, try my [interactive Pattaya area map and finder](/areas).
 
 ## Where should a young single person live in Pattaya?

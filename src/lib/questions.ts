@@ -74,7 +74,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["buying-a-condo-in-pattaya"],
     next: TOOLS.ecre("buy_condo"),
-    metaTitle: "Can a Foreigner Buy a Condo in Thailand? Yes, Here's How (2026)",
+    metaTitle: "Buying a Condo in Pattaya as a Foreigner (2026): Yes, Here's How",
   },
   {
     slug: "how-does-the-foreign-quota-work",
@@ -401,7 +401,7 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["thai-visas-in-pattaya", "retiring-in-pattaya"],
     next: { label: "Read the retirement visa guide", href: "/thai-visas/retirement-visa", kind: "visa_page" },
-    metaTitle: "Thai Retirement Visa Requirements From Pattaya (2026)",
+    metaTitle: "What Do I Need for a Thai Retirement Visa? The Short Answer",
   },
   {
     slug: "what-catches-retirees-out-in-pattaya",
