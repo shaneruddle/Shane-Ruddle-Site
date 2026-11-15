@@ -20,6 +20,7 @@ import { useEnquiries } from './EnquiriesAdmin';
 import { Mail as MailIcon } from 'lucide-react';
 import { Notifications } from './InboxNotify';
 import { NoteEditor, plainPreview, type NoteEditorHandle } from './NoteEditor';
+import { PlacesSettings, placeMatches, useNearbyPlace, useSavedPlaces, type SavedPlace } from './InboxPlaces';
 
 // Shane's private Inbox at /inbox: one place for quick captures, notes, ideas and tasks.
 // Data: inbox_items, inbox_history (audit trail), inbox_areas, inbox_settings, all Shane-only in firestore.rules.
@@ -133,6 +134,10 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
   const [kindFilter, setKindFilter] = useState<'all' | 'reminders' | 'notes'>('all');
   const [overdueOnly, setOverdueOnly] = useState(false);
   const dockBottom = useVisualBottom();
+  // Location reminders: one location check on opening, only when a saved place has open reminders on it.
+  const places = useSavedPlaces();
+  const placesInUse = useMemo(() => places.filter(p => items.some(i => isOpen(i) && placeMatches(i.place, p))), [places, items]);
+  const herePlace = useNearbyPlace(placesInUse, placesInUse.length > 0);
   const [notesShown, setNotesShown] = useState(60);
   const [clock, setClock] = useState(() => ({ day: bkkToday(), time: bkkNowTime() }));
   const flushing = useRef(false);
@@ -678,7 +683,10 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
   // Same rule as the red date on a row: past its day, or today and past its time.
   const isOverdue = (i: Item) => !!i.dueDate && (i.dueDate < now || (i.dueDate === now && !!i.dueTime && i.dueTime < clock.time));
   const overdueCount = allReminders.filter(i => inFilter(i) && isOverdue(i)).length;
-  const shownReminders = allReminders.filter(i => inFilter(i) && (!overdueOnly || isOverdue(i)));
+  // Reminders for the saved place you're at go in their own box at the top (whatever filter is on).
+  const atHere = herePlace && !overdueOnly ? allReminders.filter(i => i.kind !== 'note' && placeMatches(i.place, herePlace)) : [];
+  const atHereIds = new Set(atHere.map(i => i.id));
+  const shownReminders = allReminders.filter(i => inFilter(i) && (!overdueOnly || isOverdue(i)) && !atHereIds.has(i.id));
   const filterArea = listFilter !== 'all' && listFilter !== 'none' ? listFilter : null;
 
   const homeView = () => (
@@ -728,6 +736,13 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
             })}
           </div>
         </div>
+
+        {herePlace && atHere.length > 0 && (
+          <section className="mt-2 rounded-2xl bg-white border-[1.5px] border-success/40 px-3 pt-2.5 pb-0.5">
+            <h2 className="flex items-center gap-1.5 text-[13px] font-bold text-success"><MapPin className="w-4 h-4" /> You're at {herePlace.name}</h2>
+            <ul>{atHere.map(i => row(i))}</ul>
+          </section>
+        )}
 
         {shownReminders.length
           ? <div className="mt-1"><TodayList items={shownReminders} body={i => rowBody(i, { showArea: listFilter === 'all' || listFilter === 'none' })} onMove={moveOnToday} /></div>
@@ -868,6 +883,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
 
   const settingsBody = () => (
     <>
+      <PlacesSettings places={places} unsaved={[...new Set(items.filter(i => isOpen(i) && i.place && !places.some(p => placeMatches(i.place, p))).map(i => i.place!.trim()))].slice(0, 8)} />
       <FilterSettings areas={areas} counts={Object.fromEntries(areas.map(a => [a.id, items.filter(i => i.area === a.id && isOpen(i)).length]))} />
       <button onClick={exportAll} className="mt-5 w-full py-3 rounded-2xl bg-white border border-black/10 text-[15px] text-black/60 flex items-center justify-center gap-2"><Download className="w-4 h-4" /> Export everything (JSON + CSV)</button>
       <Notifications />
@@ -957,6 +973,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
           key={open.id}
           item={items.find(i => i.id === open.id) || open}
           openedVersion={open.version || 0}
+          places={places}
           areas={areas}
           now={now}
           onClose={() => setOpen(null)}
@@ -1319,8 +1336,8 @@ function SearchView({ items, areaName, row }: { items: Item[]; areaName: (id?: s
 }
 
 // ---- item detail ----
-function ItemSheet({ item, openedVersion, areas, now, onClose, onSave, onComplete, onSplit, onResort, onArchive, onDelete, onConvert }: {
-  item: Item; openedVersion: number; areas: Area[]; now: string; onClose: () => void; onConvert: (to: 'note' | 'task', edits: Partial<Item>) => void;
+function ItemSheet({ item, openedVersion, places, areas, now, onClose, onSave, onComplete, onSplit, onResort, onArchive, onDelete, onConvert }: {
+  item: Item; openedVersion: number; places: SavedPlace[]; areas: Area[]; now: string; onClose: () => void; onConvert: (to: 'note' | 'task', edits: Partial<Item>) => void;
   onSave: (item: Item, changes: Partial<Item>, version: number) => void; onComplete: (i: Item) => void; onSplit: (i: Item, parts: AiSuggestion[]) => void;
   onResort: (i: Item) => void; onArchive: (i: Item) => void; onDelete: (i: Item) => void;
 }) {
@@ -1432,7 +1449,13 @@ function ItemSheet({ item, openedVersion, areas, now, onClose, onSave, onComplet
               </label>
             )}
             <div className="flex items-center gap-2 text-[15px]"><MapPin className="w-5 h-5 text-success" /> Place</div>
-            <input value={f.place || ''} onChange={e => set({ place: e.target.value || null, placeWhen: f.placeWhen || 'arrive' })} placeholder="e.g. Hemingways Lakeside" className={field} />
+            {places.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">{places.map(p => {
+                const on = placeMatches(f.place, p);
+                return <button key={p.id} onClick={() => set(on ? { place: null, placeWhen: null } : { place: p.name, placeWhen: f.placeWhen || 'arrive' })} className={chip(on)}>{p.name}</button>;
+              })}</div>
+            )}
+            <input value={f.place || ''} onChange={e => set({ place: e.target.value || null, placeWhen: f.placeWhen || 'arrive' })} placeholder={places.length ? 'Or type a place' : 'e.g. Hemingways Lakeside (save places in Settings)'} className={field} />
             {f.place && (
               <div className="flex gap-2">{(['arrive', 'leave'] as const).map(w => <button key={w} onClick={() => set({ placeWhen: w })} className={`flex-1 ${chip((f.placeWhen || 'arrive') === w)}`}>{w === 'arrive' ? 'When I arrive' : 'When I leave'}</button>)}</div>
             )}
