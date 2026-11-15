@@ -7,6 +7,7 @@ import { updateDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 import PortalHeader, { PortalView } from './PortalHeader';
 import { type OwnerTab } from './OwnerTabBar';
+import { navItems, PortalDrawer, PortalSidebar, type NavKey } from './PortalNav';
 import CommentsAdmin from './CommentsAdmin';
 import PhotosAdmin from './PhotosAdmin';
 import ActivityAdmin from './ActivityAdmin';
@@ -52,28 +53,16 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
     }
     window.scrollTo(0, 0);
   };
-  const portalTabs: [typeof activeTab, string, typeof Ticket][] = [
-    ['offers', 'Offers', Ticket],
-    ['profile', 'Profile', User],
-    ...(canModerateComments ? [['comments', 'Comments', MessageCircle] as [typeof activeTab, string, typeof Ticket]] : []),
-    ...(canManagePhotos ? [['photos', 'Photos', Images] as [typeof activeTab, string, typeof Ticket]] : []),
-    ...(canModerateComments ? [['activity', 'Activity', Activity] as [typeof activeTab, string, typeof Ticket]] : []),
-    // Shane only (matches isShane() in firestore.rules), never other admins.
-    ...(canManagePhotos ? [['enquiries', 'Enquiries', Mail] as [typeof activeTab, string, typeof Ticket]] : []),
-    ...(canManagePhotos ? [['circle', 'Circle', HeartHandshake] as [typeof activeTab, string, typeof Ticket]] : []),
-    ...(canManagePhotos ? [['inbox', 'Reminders', ListChecks] as [typeof activeTab, string, typeof Ticket]] : []),
-  ];
+  const portalTabs = navItems({ canModerate: !!canModerateComments, isShane: canManagePhotos });
+  // Every section, from the phone menu or the desktop sidebar. Reminders opens in place, no reload.
+  const goTab = (key: NavKey) => {
+    if (key === 'inbox' || key === 'circle') { ownerGo(key); return; }
+    window.history.replaceState(null, '', key === 'offers' ? '/portal' : `/portal?tab=${key}`);
+    setActiveTab(key); window.scrollTo(0, 0);
+  };
   // Phones get the section list as a slide-out drawer instead of a sideways-scrolling tab row.
   const [drawerOpen, setDrawerOpen] = useState(false);
   const activeLabel = portalTabs.find(([key]) => key === activeTab)?.[1] || 'Dashboard';
-  useEffect(() => {
-    if (!drawerOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setDrawerOpen(false);
-    window.addEventListener('keydown', onKey);
-    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
-  }, [drawerOpen]);
   const [personalProfile, setPersonalProfile] = useState<Partial<UserProfile>>(userProfile);
   const [savingProfile, setSavingProfile] = useState(false);
 
@@ -226,80 +215,20 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
 
   // Circle is a full-screen app styled like Reminders, with a way back to Reminders.
   if (activeTab === 'circle' && canManagePhotos) {
-    return <CircleAdmin onBack={() => ownerGo('inbox')} />;
+    return <CircleAdmin onNav={goTab} />;
   }
 
   return (
     <div className="min-h-screen bg-cream">
       <PortalHeader active="portal" name={userProfile.name || userProfile.email} onNavigate={onNavigate} onBack={onBack} onMenu={() => setDrawerOpen(true)} section={activeLabel} />
 
-      <AnimatePresence>
-        {drawerOpen && (
-          <div className="md:hidden fixed inset-0 z-50 font-sans">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="absolute inset-0 bg-black/40"
-              onClick={() => setDrawerOpen(false)}
-            />
-            <motion.aside
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'tween', duration: 0.22 }}
-              className="absolute inset-y-0 left-0 w-[80%] max-w-[300px] bg-ink text-white flex flex-col shadow-2xl"
-              aria-label="Staff menu"
-            >
-              <div className="h-14 px-4 flex items-center justify-between border-b border-white/10">
-                <div className="min-w-0">
-                  <div className="text-[15px] font-semibold truncate">{userProfile.name || 'Staff'}</div>
-                  {userProfile.company && <div className="text-[12px] text-white/50 truncate">{userProfile.company}</div>}
-                </div>
-                <button type="button" onClick={() => setDrawerOpen(false)} className="w-9 h-9 -mr-2 inline-flex items-center justify-center rounded-full text-white/70 hover:bg-white/5" aria-label="Close menu">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-                {portalTabs.map(([key, label, Icon]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => { if (key === 'inbox') { window.location.href = '/inbox'; return; } setActiveTab(key); setDrawerOpen(false); window.scrollTo(0, 0); }}
-                    aria-current={activeTab === key ? 'page' : undefined}
-                    className={`w-full flex items-center gap-3 px-4 h-12 rounded-[12px] text-[15px] transition-colors ${activeTab === key ? 'bg-white/10 text-white font-medium' : 'text-white/65 hover:bg-white/5'}`}
-                  >
-                    <Icon className={`w-[18px] h-[18px] ${activeTab === key ? 'text-gold' : ''}`} /> {label}
-                  </button>
-                ))}
-              </nav>
-              <div className="p-3 border-t border-white/10 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-1">
-                <button type="button" onClick={() => { setDrawerOpen(false); onBack(); }} className="w-full flex items-center gap-3 px-4 h-11 rounded-[12px] text-[14px] text-white/65 hover:bg-white/5">
-                  <ArrowUpRight className="w-4 h-4" /> Back to website
-                </button>
-                <button type="button" onClick={() => auth.signOut()} className="w-full flex items-center gap-3 px-4 h-11 rounded-[12px] text-[14px] text-white/65 hover:bg-white/5">
-                  <LogOut className="w-4 h-4" /> Sign out
-                </button>
-              </div>
-            </motion.aside>
-          </div>
-        )}
-      </AnimatePresence>
+      <PortalDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} items={portalTabs} active={activeTab} onSelect={goTab}
+        onWebsite={onBack} name={userProfile.name} company={userProfile.company} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 md:grid md:grid-cols-[200px_minmax(0,1fr)] md:gap-10 lg:gap-14">
         <aside className="hidden md:block">
-          <nav className="sticky top-24 flex flex-col gap-1">
-            {portalTabs.map(([key, label, Icon]) => (
-              <button
-                key={key}
-                onClick={() => { if (key === 'inbox') { window.location.href = '/inbox'; return; } setActiveTab(key); }}
-                aria-current={activeTab === key ? 'page' : undefined}
-                className={`shrink-0 flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors rounded-full ${activeTab === key ? 'bg-ink text-white' : 'text-black/50 hover:text-ink hover:bg-black/5'}`}
-              >
-                <Icon className="w-4 h-4" /> {label}
-              </button>
-            ))}
-          </nav>
+          <div className="sticky top-24">
+            <PortalSidebar items={portalTabs} active={activeTab} onSelect={goTab} />
+          </div>
         </aside>
 
         <div className="min-w-0">

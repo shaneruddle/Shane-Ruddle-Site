@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { db, storage } from '../firebase';
 import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp, arrayUnion, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getBlob, deleteObject } from 'firebase/storage';
-import { Loader2, Plus, Search, X, Camera, Trash2, Check, Clock, ExternalLink, UserRound, MapPin, Flame, ChevronLeft } from 'lucide-react';
+import { Loader2, Plus, Search, X, Camera, Trash2, Check, Clock, ExternalLink, UserRound, MapPin, Flame, ChevronLeft, Menu } from 'lucide-react';
+import { PortalDrawer, PortalFrame, SHANE_NAV, type NavKey } from './PortalNav';
 import { toast } from 'sonner';
 
 // Shane's private Circle. Data lives in circle_people / circle_events, which firestore.rules lock to Shane alone
@@ -122,7 +123,11 @@ const PLAYBOOK: { title: string; points: string[] }[] = [
   },
 ];
 
-export default function CircleAdmin({ onBack }: { onBack?: () => void }) {
+export default function CircleAdmin({ onBack, onNav }: { onBack?: () => void; onNav?: (key: NavKey) => void }) {
+  // Same portal menu as every dashboard page (phone slide-in, desktop sidebar).
+  const [menuOpen, setMenuOpen] = useState(false);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const toWebsite = () => { window.location.href = '/?home'; };
   const [people, setPeople] = useState<Person[]>([]);
   const [events, setEvents] = useState<CircleEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -274,11 +279,14 @@ export default function CircleAdmin({ onBack }: { onBack?: () => void }) {
   };
 
   // Same look as Reminders: cream page, big serif title, segmented filter, plain divided rows.
-  const shell = (body: React.ReactNode) => (
+  const page = (body: React.ReactNode) => (
     <div className="min-h-[100dvh] bg-cream text-ink font-sans" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="max-w-xl mx-auto px-4 pb-24">{body}</div>
     </div>
   );
+  const shell = (body: React.ReactNode) => onNav
+    ? <PortalFrame items={SHANE_NAV} active="circle" onSelect={onNav} onWebsite={toWebsite}>{page(body)}</PortalFrame>
+    : page(body);
 
   if (loading) {
     return shell(
@@ -317,7 +325,13 @@ export default function CircleAdmin({ onBack }: { onBack?: () => void }) {
   return shell(
     <>
       <header className="flex items-center justify-between pt-4">
-        {onBack
+        {onNav
+          ? <div className="flex items-center gap-2">
+              <button onClick={() => setMenuOpen(true)} aria-label="Menu" className="md:hidden p-1 -ml-1 text-ink"><Menu className="w-[22px] h-[22px]" /></button>
+              <span className="text-[12px] uppercase tracking-[0.18em] text-black/45 font-semibold">Private to you</span>
+              <PortalDrawer open={menuOpen} onClose={closeMenu} items={SHANE_NAV} active="circle" onSelect={onNav} onWebsite={toWebsite} />
+            </div>
+          : onBack
           ? <button onClick={onBack} className="flex items-center gap-0.5 -ml-1.5 text-[15px] text-black/55"><ChevronLeft className="w-5 h-5" /> Reminders</button>
           : <span className="text-[12px] uppercase tracking-[0.18em] text-black/45 font-semibold">Private to you</span>}
         <button onClick={() => { setView('people'); setEditing(emptyForm()); setPhoto(null); }} aria-label="Add someone" className="p-1 text-black/50"><Plus className="w-6 h-6" /></button>
@@ -349,7 +363,7 @@ export default function CircleAdmin({ onBack }: { onBack?: () => void }) {
         </button>
       )}
 
-      <div className="sticky top-0 z-10 bg-cream -mx-4 px-4 pt-3 pb-1.5">
+      <div className="sticky top-0 md:top-14 z-10 bg-cream -mx-4 px-4 pt-3 pb-1.5">
         <div className="flex rounded-[10px] bg-black/[0.06] p-0.5">
           {([['people', 'People'], ['suggested', 'To meet'], ['events', "What's on"], ['playbook', 'Tips']] as [View, string][]).map(([key, label]) => (
             <button key={key} onClick={() => setView(key)}
