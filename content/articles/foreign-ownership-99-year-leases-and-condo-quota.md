@@ -6,7 +6,7 @@ category: Property
 date: 2026-11-07
 ---
 
-There's a lot of talk at the moment about letting foreigners own more property in Thailand, through 99-year leases or raising the foreign quota in condos from 49% to 75%. Neither has become law yet: the quota is still 49%, and the longest registered lease is still 30 years. I own two property agencies, so this is close to home. My view might surprise people: no to the leases, yes to the condos.
+There's a lot of talk at the moment about letting foreigners own more property in Thailand, through 99-year leases or raising the foreign quota in condos from 49% to 75%. Neither has become law yet: the quota is still 49%, and the longest registered lease is still 30 years (here's [how a 30-year lease works, and why I wouldn't count on the renewal](/questions/is-a-30-year-lease-safe-in-thailand)). I own two property agencies, so this is close to home. My view might surprise people: no to the leases, yes to the condos.
 
 ## Why I'm against 99-year leases
 

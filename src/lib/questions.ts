@@ -46,6 +46,10 @@ export interface ShaneQuestion {
   /** Optional next step: a tool on the site or one of Shane's businesses. */
   next?: QuestionLink;
   metaTitle?: string;
+  /** Optional search snippet; defaults to `short`. */
+  metaDescription?: string;
+  /** Optional longer guide under the answer. Each heading is phrased as a question (also used for FAQ schema). */
+  guide?: { h: string; p: string[] }[];
 }
 
 const TOOLS = {
@@ -117,8 +121,67 @@ export const QUESTIONS: ShaneQuestion[] = [
       "You'll often hear about options to renew for a further 30, or 60, years. I wouldn't count on them. Price it as if you're getting 30 years and nothing more.",
       "The biggest risk with houses is bad advice: years later people find the seller never really owned it, or there was a debt against it. Get a second opinion, even on a lawyer's advice.",
     ],
-    articles: ["buying-a-house-in-pattaya"],
-    metaTitle: "Is a 30-Year Lease Safe in Thailand? 30+30 Leases Explained",
+    guide: [
+      {
+        h: "What do you actually get with a 30-year lease?",
+        p: [
+          "Thai law caps a lease at 30 years. Any lease over three years has to be registered at the Land Office, on the back of the Chanote, or it only counts for three years. Registered, it's one of the best-protected things a foreigner can hold here.",
+          "For the term you can live in it, rent it out and, if the contract allows, transfer it. You normally pay the whole 30 years up front, so in reality you're prepaying three decades of rent.",
+        ],
+      },
+      {
+        h: "Is the “30+30” or “30+30+30” renewal legally binding?",
+        p: [
+          "This is the part sellers lean on, and it's the part I'd ignore. The Land Office will only register 30 years at a time. The renewal is a promise in the contract, not part of the registered lease.",
+          "If the same owner is still there in 30 years and happy to sign, fine. If they've died or sold, enforcing that promise against the new owner or the heirs is uncertain at best, and it would mean court. So treat the renewal as a bonus, never as part of what you're paying for.",
+        ],
+      },
+      {
+        h: "What happens if the owner sells the land or dies?",
+        p: [
+          "A registered lease stays on the title. If the land is sold, the buyer takes it on with your lease attached, and the same goes for the owner's heirs. That's exactly why registering it matters: an unregistered side agreement gives you far less.",
+        ],
+      },
+      {
+        h: "Can a lease be inherited or sold on?",
+        p: [
+          "It can, but only if the contract says so. Make sure it clearly lets you transfer or sublease, and that the lease passes to your heirs if you die. Without that wording you can't take either for granted.",
+          "Selling on is harder than people expect. A lease with 18 years left is worth a lot less than one with 30, and the buyer pool for leasehold houses is small. The clock only runs one way.",
+        ],
+      },
+      {
+        h: "What happens at the end of the 30 years?",
+        p: [
+          "The land, and usually the house on it, goes back to the owner. If you built the house yourself, the contract should say who owns it and what happens to it at the end. Don't leave that to a handshake.",
+        ],
+      },
+      {
+        h: "How much does it cost to register a lease?",
+        p: [
+          "At the Land Office it's a 1% registration fee on the total rent for the whole term, plus 0.1% stamp duty. On a ฿5 million lease that's about ฿55,000. Who pays is up to you and the seller, so agree it in writing first.",
+        ],
+      },
+      {
+        h: "What should you check before you sign?",
+        p: [
+          "That the person leasing it to you really owns it, and that it's a full Chanote title. Check at the Land Office, not from a photocopy.",
+          "That there's no mortgage or other debt registered against the land. If there is, the bank's claim can come before yours.",
+          "That the owner's spouse has signed if they need to, and that the lease is registered on the day you pay. Never pay the full amount against an unregistered contract.",
+          "Use your own lawyer, not the seller's, and get a second opinion. Most of the horror stories I hear started with bad advice.",
+        ],
+      },
+      {
+        h: "Is leasing worth it, or should you rent?",
+        p: [
+          "Work it out as a price per year. Divide what you're paying by 30, then compare it with renting the same house for ฿30,000 to ฿50,000 a month, without locking your money up for three decades. You'll also hear talk of 99-year leases, but as of November 2026 the limit is still 30 years.",
+          "I've always rented, and for a house that's what I'd tell most people. If you want to own something outright, a condo in your own name is the route the law gives foreigners.",
+        ],
+      },
+    ],
+    articles: ["buying-a-house-in-pattaya", "foreign-ownership-99-year-leases-and-condo-quota", "buying-a-condo-in-pattaya", "biggest-mistakes-property-buyers-make-in-pattaya"],
+    next: TOOLS.rentals("lease"),
+    metaTitle: "Is a 30-Year Lease Safe in Thailand? 30+30 Renewals Explained",
+    metaDescription: "A 30-year lease in Thailand is well protected, but the 30+30 renewal often isn't. What you get, what happens at year 30, costs, and checks before you sign.",
   },
   {
     slug: "buying-property-in-thai-spouses-name",
@@ -725,6 +788,6 @@ export const QUESTIONS_META = {
 export function questionMeta(q: ShaneQuestion) {
   return {
     title: `${q.metaTitle ?? q.q} | Shane Ruddle`,
-    description: q.short.length > 158 ? q.short.slice(0, 155).replace(/\s+\S*$/, "") + "…" : q.short,
+    description: q.metaDescription ?? (q.short.length > 158 ? q.short.slice(0, 155).replace(/\s+\S*$/, "") + "…" : q.short),
   };
 }

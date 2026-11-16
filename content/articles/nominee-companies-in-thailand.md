@@ -45,7 +45,7 @@ Actively trading companies appear to be largely left alone at the moment. I assu
 
 **Buying a house:** I'd rent. Until there's more clarity, there isn't a good legal way for a foreigner to own a house and its land outright. My suggestion is to keep your property back home, rent it out, and use that income to rent here. People say rent is wasted money, but it isn't when someone else is paying rent on a home you legally own. More in [renting a condo in Pattaya](/articles/renting-a-condo-in-pattaya).
 
-If you do want to own, the legal routes are a condo in your own name within the foreign quota, or a long lease on a house and its land. More in [buying a condo in Pattaya](/articles/buying-a-condo-in-pattaya).
+If you do want to own, the legal routes are a condo in your own name within the foreign quota, or a long lease on a house and its land ([is a 30-year lease safe?](/questions/is-a-30-year-lease-safe-in-thailand)). More in [buying a condo in Pattaya](/articles/buying-a-condo-in-pattaya).
 
 **Opening a business:** at the very least, find Thai partners you actually know and trust, and set it up properly. There are also legal routes that allow more foreign ownership, such as BOI promotion, a Foreign Business Licence, or the Treaty of Amity for US citizens. More in [setting up a business in Pattaya](/articles/setting-up-a-business-in-pattaya).
 

@@ -66,7 +66,7 @@ function NextStep({ link, source }: { link: QuestionLink; source: string }) {
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9฿ ]+/g, " ");
 
 function matches(q: ShaneQuestion, words: string[]) {
-  const hay = norm(`${q.q} ${q.short} ${q.answer.join(" ")} ${topicById(q.topic).label}`);
+  const hay = norm(`${q.q} ${q.short} ${q.answer.join(" ")} ${(q.guide ?? []).map((g) => `${g.h} ${g.p.join(" ")}`).join(" ")} ${topicById(q.topic).label}`);
   return words.every((w) => hay.includes(w));
 }
 
@@ -277,6 +277,21 @@ function QuestionView({ q }: { q: ShaneQuestion }) {
               Up to date as of {ANSWERS_AS_OF}. Rules in Thailand change often, so check the current position before you act.
             </p>
           </section>
+
+          {q.guide && (
+            <section className="space-y-10 md:space-y-12">
+              {q.guide.map((g) => (
+                <div key={g.h}>
+                  <h2 className="font-serif text-2xl md:text-3xl leading-snug text-ink mb-4">{g.h}</h2>
+                  <div className="space-y-4 text-lg text-black/70 font-light leading-relaxed">
+                    {g.p.map((p) => (
+                      <p key={p}>{p}</p>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </section>
+          )}
 
           {q.next && <NextStep link={q.next} source={source} />}
 

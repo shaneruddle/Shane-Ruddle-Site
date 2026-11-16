@@ -20,7 +20,7 @@ No. Foreign ownership of land is prohibited. There are a few ways people try to 
 
 A lease is actually very well protected in Thailand. You can take one for up to 30 years, and it's registered on the back of the title deed, known here as the Chanote. For those 30 years you have unrestricted use of the property. The lease can be inherited, and it can be transferred.
 
-The catch is that it's only 30 years. You'll often hear about options to renew for a further 30, but I wouldn't count on them.
+The catch is that it's only 30 years. You'll often hear about options to renew for a further 30, but I wouldn't count on them. I've gone through renewals, costs and the checks to make before you sign in [is a 30-year lease safe in Thailand?](/questions/is-a-30-year-lease-safe-in-thailand)
 
 ## Can you buy a house in your Thai spouse's name?
 

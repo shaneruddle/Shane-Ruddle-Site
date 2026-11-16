@@ -425,7 +425,7 @@ for (const q of ssr.QUESTIONS) {
     body: ssr.renderQuestions(urlPath),
     schemas: [
       // Written by the site owner with no user-submitted answers, so FAQPage (not QAPage) per Google's guidance.
-      faqSchema([{ q: q.q, a: [q.short, ...q.answer].join(" ") }]),
+      faqSchema([{ q: q.q, a: [q.short, ...q.answer].join(" ") }, ...(q.guide ?? []).map((g) => ({ q: g.h, a: g.p.join(" ") }))]),
       {
         "@context": "https://schema.org",
         "@type": "WebPage",
