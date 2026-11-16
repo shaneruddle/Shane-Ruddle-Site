@@ -559,6 +559,63 @@ Reply with JSON only, no other text: {"approve": true or false, "reason": "a few
     googleApi(res, `https://analyticsdata.googleapis.com/v1beta/properties/${property}:runReport`, report);
   });
 
+  // ---- Shane's Dashboard: daily site views + Google numbers for the "how the site is doing" card ----
+  // Owner-only (Firebase sign-in). Cached for an hour so opening the Dashboard doesn't hit Google every time.
+  let pulseCache: { at: number; body: unknown } | null = null;
+  const googleJson = async (url: string, body: unknown) => {
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${await googleAccessToken()}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error(`${url.split("/")[2]} ${r.status}: ${(await r.text()).slice(0, 200)}`);
+    return r.json() as Promise<any>;
+  };
+  app.get("/api/insights/site-pulse", async (req, res) => {
+    if (!hasInsightsToken(req) && !(await requireOwner(req, res))) return;
+    if (pulseCache && Date.now() - pulseCache.at < 60 * 60_000) return res.json(pulseCache.body);
+    if (!/^\d+$/.test(GA4_PROPERTY)) return res.status(503).json({ error: "GA4 property ID not configured." });
+    const ga4 = (report: unknown) => googleJson(`https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY}:runReport`, report);
+    const ymd = (daysAgo: number) => new Date(Date.now() + 7 * 3600_000 - daysAgo * 86_400_000).toISOString().slice(0, 10);
+    const rows = (r: any) => (r?.rows || []) as any[];
+    try {
+      const [daily, pages, countries, gscDaily, gscPages] = await Promise.all([
+        ga4({ dateRanges: [{ startDate: "2026-10-19", endDate: "yesterday" }], dimensions: [{ name: "date" }], metrics: [{ name: "activeUsers" }, { name: "screenPageViews" }], limit: 400 }),
+        ga4({ dateRanges: [{ startDate: "7daysAgo", endDate: "yesterday" }], dimensions: [{ name: "pageTitle" }], metrics: [{ name: "screenPageViews" }], orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }], limit: 8 }),
+        ga4({ dateRanges: [{ startDate: "7daysAgo", endDate: "yesterday" }], dimensions: [{ name: "country" }], metrics: [{ name: "activeUsers" }], limit: 100 }),
+        googleJson(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(GSC_SITE)}/searchAnalytics/query`, { startDate: ymd(60), endDate: ymd(0), dimensions: ["date"], rowLimit: 100 }),
+        googleJson(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(GSC_SITE)}/searchAnalytics/query`, { startDate: ymd(30), endDate: ymd(0), dimensions: ["page"], rowLimit: 1000 }),
+      ]);
+      const body = {
+        // Every day from GA4's first day to yesterday (Pattaya), with 0 for days GA4 left out.
+        days: (() => {
+          const got = new Map(rows(daily).map(r => [String(r.dimensionValues[0].value).replace(/^(\d{4})(\d{2})(\d{2})$/, "$1-$2-$3"),
+            { visitors: Number(r.metricValues[0].value), views: Number(r.metricValues[1].value) }]));
+          const out: { date: string; visitors: number; views: number }[] = [];
+          for (let d = "2026-10-19"; d <= ymd(1); d = new Date(Date.parse(`${d}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10)) {
+            out.push({ date: d, ...(got.get(d) || { visitors: 0, views: 0 }) });
+          }
+          return out;
+        })(),
+        // Articles and tools, not the homepage.
+        topPages: rows(pages).filter(r => !/^Shane Ruddle\b/i.test(r.dimensionValues[0].value))
+          .map(r => ({ title: String(r.dimensionValues[0].value).replace(/\s*[|·–—-]\s*Shane Ruddle.*$/i, ""), views: Number(r.metricValues[0].value) })),
+        countries: rows(countries).filter(r => r.dimensionValues[0].value !== "(not set)").length,
+        google: rows(gscDaily).map(r => ({ date: r.keys[0], impressions: r.impressions, clicks: r.clicks })),
+        pagesInGoogle: rows(gscPages).length,
+        // Best-placed article (homepage and About page left out: they rank for Shane's own name).
+        bestRanked: rows(gscPages).filter(r => r.impressions >= 10 && !/shaneruddle\.com\/(about)?$/.test(r.keys[0])).sort((a, b) => a.position - b.position).slice(0, 1)
+          .map(r => ({ page: String(r.keys[0]).replace(/^https?:\/\/(www\.)?shaneruddle\.com/, "") || "/", position: Math.round(r.position * 10) / 10 }))[0] || null,
+        at: new Date().toISOString(),
+      };
+      pulseCache = { at: Date.now(), body };
+      res.json(body);
+    } catch (error) {
+      console.error("Site pulse failed:", error instanceof Error ? error.message : error);
+      res.status(502).json({ error: "Couldn't load site numbers." });
+    }
+  });
+
   // Unknown API routes return a real 404 instead of falling through to the SPA's index.html.
   app.all('/api/*', (_req, res) => { res.status(404).json({ error: 'Not found' }); });
 

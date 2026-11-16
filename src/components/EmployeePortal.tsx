@@ -15,6 +15,7 @@ import CircleAdmin from './CircleAdmin';
 import EnquiriesAdmin from './EnquiriesAdmin';
 import InboxApp from './InboxApp';
 import { ConnectScreen } from './InboxConnect';
+import SitePulse from './SitePulse';
 
 interface EmployeePortalProps {
   userProfile: UserProfile;
@@ -274,6 +275,8 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
             </button>
           </div>
         )}
+
+        {canManagePhotos && activeTab === 'offers' && <SitePulse />}
 
         {loading ? (
           <div className="flex items-center justify-center py-24">
