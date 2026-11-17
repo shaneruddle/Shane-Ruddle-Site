@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { Camera, Check, Loader2, Lock, MapPin, Search, UserPlus, X } from 'lucide-react';
+import { Camera, Check, Image as ImageIcon, Loader2, Lock, MapPin, Search, UserPlus, X } from 'lucide-react';
 import { COMPANIES, shrinkPhoto } from '../lib/staffCheck';
 
 // The cashier's staff list (/staff-check). One shared PIN, remembered on this till's phone or tablet,
@@ -63,6 +63,7 @@ function AddStaff({ pin, venueId, startName, onClose, onAdded }: { pin: string; 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const libraryRef = useRef<HTMLInputElement>(null);
   const set = (k: keyof typeof f, v: string) => setF(x => ({ ...x, [k]: v }));
 
   const pick = async (file?: File) => {
@@ -92,13 +93,23 @@ function AddStaff({ pin, venueId, startName, onClose, onAdded }: { pin: string; 
           <h2 className="text-2xl font-serif text-ink">Add staff member</h2>
           <button type="button" onClick={onClose} className="p-2 text-black/40 hover:text-ink" aria-label="Close"><X className="w-5 h-5" /></button>
         </div>
-        <button type="button" onClick={() => fileRef.current?.click()} className="flex items-center gap-4 mb-5 text-left">
-          {f.photo
-            ? <img src={f.photo} alt="" className="w-20 h-20 rounded-2xl object-cover" />
-            : <span className="w-20 h-20 rounded-2xl bg-ink/5 text-black/40 flex items-center justify-center"><Camera className="w-6 h-6" /></span>}
-          <span className="text-sm font-semibold text-gold-deep">{f.photo ? 'Retake photo' : 'Take their photo'}</span>
-        </button>
+        <div className="flex items-center gap-4 mb-5">
+          <button type="button" onClick={() => fileRef.current?.click()} aria-label="Take photo">
+            {f.photo
+              ? <img src={f.photo} alt="" className="w-20 h-20 rounded-2xl object-cover" />
+              : <span className="w-20 h-20 rounded-2xl bg-ink/5 text-black/40 flex items-center justify-center"><Camera className="w-6 h-6" /></span>}
+          </button>
+          <div className="flex flex-col items-start gap-2">
+            <button type="button" onClick={() => fileRef.current?.click()} className="flex items-center gap-1.5 text-sm font-semibold text-gold-deep">
+              <Camera className="w-4 h-4" /> {f.photo ? 'Retake photo' : 'Take photo'}
+            </button>
+            <button type="button" onClick={() => libraryRef.current?.click()} className="flex items-center gap-1.5 text-sm font-semibold text-gold-deep">
+              <ImageIcon className="w-4 h-4" /> Choose from photos
+            </button>
+          </div>
+        </div>
         <input ref={fileRef} type="file" accept="image/*" capture="user" className="hidden" onChange={e => { pick(e.target.files?.[0]); e.target.value = ''; }} />
+        <input ref={libraryRef} type="file" accept="image/*" className="hidden" onChange={e => { pick(e.target.files?.[0]); e.target.value = ''; }} />
         <div className="space-y-3">
           <input value={f.name} onChange={e => set('name', e.target.value)} placeholder="Full name" className={fieldClass} />
           <input value={f.nickname} onChange={e => set('nickname', e.target.value)} placeholder="Nickname" className={fieldClass} />
