@@ -128,6 +128,7 @@ export interface UserProfile {
   finishWork?: string;
   mobile?: string;
   position?: string;
+  staffDiscount?: string; // shown to cashiers on /staff-check; empty = the venue's discount
   preferredLanguage?: string;
   profileImage?: string;
   tempPass?: string;

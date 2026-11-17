@@ -33,7 +33,7 @@ const OWNER_EMAIL = "shaneruddle@gmail.com";
 const CONFIG = ["staff_check", "config"] as const;
 
 type Config = { pinHash?: string; pinSalt?: string; discounts?: Partial<Record<VenueId, string>> };
-type Person = { id: string; name: string; nickname: string; company: string; position: string; mobileEnd: string; photo: string };
+type Person = { id: string; name: string; nickname: string; company: string; position: string; mobileEnd: string; discount: string; photo: string };
 
 const hashPin = (pin: string, salt: string) => crypto.scryptSync(pin, salt, 32).toString("hex");
 
@@ -70,6 +70,8 @@ export function registerStaffCheckRoutes(app: Express, { getDb, oneLine, sendNot
         company: oneLine(u.company, 60),
         position: oneLine(u.position, 60),
         mobileEnd: digits.length >= 3 ? digits.slice(-3) : "",
+        // Their own discount, set in the portal. Empty means the venue's normal staff discount.
+        discount: oneLine(u.staffDiscount, 80),
         photo: typeof u.profileImage === "string" && u.profileImage.startsWith("data:image/") ? u.profileImage : "",
       });
     }
@@ -140,7 +142,7 @@ export function registerStaffCheckRoutes(app: Express, { getDb, oneLine, sendNot
       const venue = STAFF_CHECK_VENUES.find((v) => v.id === req.body?.venue);
       const person = (await loadStaff()).find((p) => p.id === String(req.body?.id || ""));
       if (!venue || !person) { res.status(400).json({ error: "Pick the venue and the staff member." }); return; }
-      const discount = (await readConfig()).discounts?.[venue.id] || "Staff discount";
+      const discount = person.discount || (await readConfig()).discounts?.[venue.id] || "Staff discount";
       await getDb().collection("usage_logs").add({
         userId: person.id,
         userName: person.name,

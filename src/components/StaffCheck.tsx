@@ -6,7 +6,18 @@ import { COMPANIES, shrinkPhoto } from '../lib/staffCheck';
 // plus which venue the till is at. Staff need nothing: the cashier finds them by name or photo.
 
 type Venue = { id: string; name: string; discount: string };
-type Person = { id: string; name: string; nickname: string; company: string; position: string; mobileEnd: string; hasPhoto: boolean };
+type Person = { id: string; name: string; nickname: string; company: string; position: string; mobileEnd: string; discount: string; hasPhoto: boolean };
+
+// One-tap company filters. Matched loosely because company names were typed in different ways over the years.
+const FILTERS: { label: string; match: RegExp }[] = [
+  { label: 'ABPC', match: /alan bolton|abpc/i },
+  { label: 'ECRE', match: /east coast|ecre/i },
+  { label: 'Cajun', match: /cajun/i },
+  { label: 'Hemingways Lakeside', match: /lakeside/i },
+  { label: 'Hemingways Jomtien', match: /jomtien/i },
+  { label: 'Hemingways Pattaya', match: /hemingways\s*\(?pattaya/i },
+  { label: 'PRAC', match: /rent a car|rent-a-car|prac/i },
+];
 
 const PIN_KEY = 'sr_staff_check_pin';
 const VENUE_KEY = 'sr_staff_check_venue';
@@ -117,6 +128,7 @@ export default function StaffCheck() {
   const [loading, setLoading] = useState(!!pin);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('');
   const [open, setOpen] = useState<Person | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState('');
@@ -144,9 +156,10 @@ export default function StaffCheck() {
 
   const venue = venues.find(v => v.id === venueId);
   const q = search.trim().toLowerCase();
+  const filterMatch = FILTERS.find(f => f.label === filter)?.match;
   const shown = useMemo(
-    () => staff.filter(p => !q || [p.name, p.nickname, p.company, p.position, p.mobileEnd].some(v => v.toLowerCase().includes(q))),
-    [staff, q],
+    () => staff.filter(p => !filterMatch || filterMatch.test(p.company)).filter(p => !q || [p.name, p.nickname, p.company, p.position, p.mobileEnd].some(v => v.toLowerCase().includes(q))),
+    [staff, q, filterMatch],
   );
 
   const chooseVenue = (id: string) => { setVenueId(id); localStorage.setItem(VENUE_KEY, id); };
@@ -223,7 +236,6 @@ export default function StaffCheck() {
             <div>
               <span className="block text-[11px] font-medium uppercase tracking-[0.18em] text-gold-deep">Staff check</span>
               <h1 className="text-2xl sm:text-3xl font-serif text-ink leading-tight">{venue.name}</h1>
-              {venue.discount && <p className="text-sm text-black/60">Staff get <span className="font-semibold text-ink">{venue.discount}</span></p>}
             </div>
             <div className="flex flex-col items-end gap-2 mt-1">
               <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-ink text-white text-xs font-semibold whitespace-nowrap">
@@ -242,6 +254,14 @@ export default function StaffCheck() {
               placeholder="Search name, nickname or last 3 digits"
               className="w-full pl-11 pr-4 py-3 rounded-full bg-white border border-black/10 text-base focus:outline-none focus:ring-2 focus:ring-gold-deep/30"
             />
+          </div>
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            {FILTERS.map(f => (
+              <button key={f.label} onClick={() => setFilter(filter === f.label ? '' : f.label)}
+                className={`px-3 py-1.5 rounded-full text-[13px] whitespace-nowrap border transition-colors ${filter === f.label ? 'bg-ink text-white border-ink' : 'bg-white text-black/60 border-black/10'}`}>
+                {f.label}
+              </button>
+            ))}
           </div>
         </div>
       </header>
@@ -282,10 +302,19 @@ export default function StaffCheck() {
             <h2 className="text-2xl font-serif text-ink">{open.name}</h2>
             {open.nickname && <p className="text-black/55">“{open.nickname}”</p>}
             <p className="text-sm text-black/60 mt-1">{open.company}{open.position && ` · ${open.position}`}</p>
+            {(() => {
+              const d = open.discount || venue.discount;
+              return (
+                <div className="mt-5 py-4 px-5 rounded-2xl bg-white border border-gold-deep/30">
+                  <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-black/40">Their discount</div>
+                  <div className="text-2xl font-serif text-gold-deep mt-1">{d || 'Not set: ask the manager'}</div>
+                </div>
+              );
+            })()}
             {open.mobileEnd && <p className="text-sm text-black/60 mt-3">Ask for their mobile: it ends in <span className="font-semibold text-ink tracking-wider">{open.mobileEnd}</span></p>}
             <button onClick={markUsed} disabled={saving} className="w-full mt-6 py-4 rounded-full bg-ink text-white text-sm font-semibold uppercase tracking-[0.15em] disabled:opacity-60 flex items-center justify-center gap-2">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-              Used{venue.discount ? `: ${venue.discount}` : ''}
+              Discount used
             </button>
           </div>
         </div>
