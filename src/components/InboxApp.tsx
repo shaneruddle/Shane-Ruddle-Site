@@ -145,6 +145,8 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
   // One-touch filter for what kind of thing to show: everything, reminders (tasks + ideas) or notes.
   const [kindFilter, setKindFilter] = useState<'all' | 'reminders' | 'notes'>('all');
   const [overdueOnly, setOverdueOnly] = useState(false);
+  // Search box on the home list: filters reminders, ideas and notes by title and text as you type.
+  const [homeQuery, setHomeQuery] = useState('');
   const dockBottom = useVisualBottom();
   // Location reminders: one location check on opening, only when a saved place has open reminders on it.
   const places = useSavedPlaces();
@@ -701,9 +703,14 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
   const isOverdue = (i: Item) => !!i.dueDate && (i.dueDate < now || (i.dueDate === now && !!i.dueTime && i.dueTime < clock.time));
   const overdueCount = allReminders.filter(i => inFilter(i) && isOverdue(i)).length;
   // Reminders for the saved place you're at go in their own box at the top (whatever filter is on).
-  const atHere = herePlace && !overdueOnly ? allReminders.filter(i => i.kind !== 'note' && placeMatches(i.place, herePlace)) : [];
+  const atHere = herePlace && !overdueOnly && !homeQuery.trim() ? allReminders.filter(i => i.kind !== 'note' && placeMatches(i.place, herePlace)) : [];
   const atHereIds = new Set(atHere.map(i => i.id));
-  const shownReminders = allReminders.filter(i => inFilter(i) && (!overdueOnly || isOverdue(i)) && !atHereIds.has(i.id));
+  const queryWords = homeQuery.toLowerCase().split(/\s+/).filter(Boolean);
+  const matches = (i: Item) => !queryWords.length || queryWords.every(w => ((i as Item & { search?: string }).search || searchText(i, areaName(i.area))).includes(w));
+  const shownReminders = allReminders.filter(i => inFilter(i) && (!overdueOnly || isOverdue(i)) && !atHereIds.has(i.id) && matches(i));
+  // While searching, ticked-off items that match show underneath, newest first.
+  const doneMatches = queryWords.length ? items.filter(i => i.status === 'done' && inFilter(i) && matches(i))
+    .sort((a, b) => (b.updatedAt?.toMillis() || 0) - (a.updatedAt?.toMillis() || 0)).slice(0, 30) : [];
   const filterArea = listFilter !== 'all' && listFilter !== 'none' ? listFilter : null;
 
   const homeView = () => (
@@ -731,6 +738,13 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
 
         {/* One-touch filters: what kind, then which company (logos) */}
         <div className="sticky top-0 md:top-14 z-10 bg-cream -mx-4 px-4 pt-2 pb-1.5">
+          <label className="mb-2 flex items-center gap-2 px-3 rounded-[10px] bg-black/[0.06] text-black/40 focus-within:text-black/60">
+            <Search className="w-4 h-4 shrink-0" />
+            <input type="search" value={homeQuery} onChange={e => setHomeQuery(e.target.value)} placeholder="Search reminders and notes" enterKeyHint="search"
+              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+              className="flex-1 min-w-0 py-2 bg-transparent text-[16px] text-ink placeholder:text-black/40 outline-none [&::-webkit-search-cancel-button]:hidden" />
+            {homeQuery && <button onClick={() => setHomeQuery('')} aria-label="Clear search" className="p-1 -mr-1"><X className="w-4 h-4" /></button>}
+          </label>
           <div className="flex rounded-[10px] bg-black/[0.06] p-0.5">
             {([['all', 'All'], ['reminders', 'Reminders'], ['notes', 'Notes']] as const).map(([v, l]) => (
               <button key={v} onClick={() => setKindFilter(v)}
@@ -762,7 +776,13 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
 
         {shownReminders.length
           ? <div className="mt-1"><TodayList items={shownReminders} body={i => rowBody(i, { showArea: listFilter === 'all' || listFilter === 'none' })} onMove={moveOnToday} /></div>
-          : <p className="py-14 text-center text-black/35">{overdueOnly ? 'Nothing overdue.' : 'Nothing here.'}</p>}
+          : <p className="py-14 text-center text-black/35">{queryWords.length ? 'Nothing matches.' : overdueOnly ? 'Nothing overdue.' : 'Nothing here.'}</p>}
+        {doneMatches.length > 0 && (
+          <section className="mt-6">
+            <h2 className="font-sans text-[12px] uppercase tracking-[0.14em] text-black/40 font-semibold">Done</h2>
+            <ul className="opacity-70">{doneMatches.map(i => row(i, { showArea: listFilter === 'all' || listFilter === 'none' }))}</ul>
+          </section>
+        )}
 
         <div className="mt-8 flex gap-2">
           <button onClick={() => go({ view: 'done' })} className="flex-1 py-3 rounded-2xl bg-white border border-black/10 text-[13px] text-black/55 flex items-center justify-center gap-1.5"><Archive className="w-4 h-4" /> Done</button>
