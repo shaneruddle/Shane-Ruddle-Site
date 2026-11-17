@@ -1,6 +1,8 @@
 import express, { type Express, type Request, type Response } from "express";
 import crypto from "crypto";
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
+import { getApps } from "firebase-admin/app";
+import { getStorage } from "firebase-admin/storage";
 import { bkkToday, bkkNowTime, nextDue, type Repeat, type RepeatFreq } from "./reminderDates";
 import { computeAlertAt, isOnTodayList, todaySortKey, searchText, statusFor, STATUS_LABEL, type Actor, type Item, type Kind, type Status } from "./inboxShared";
 import { areasAndContext, requireOwner, sortItem } from "./inbox";
@@ -295,8 +297,15 @@ export function registerInboxMcpRoutes(app: Express, { getDb }: Deps) {
   });
 }
 
+// A tool can hand back images (a reminder's photo) under this key; JSON leaves it out of the text.
+const IMAGES = Symbol("images");
+type Image = { type: "image"; data: string; mimeType: string };
+
 const toolResult = (out: unknown, isError = false) => ({
-  content: [{ type: "text", text: typeof out === "string" ? out : JSON.stringify(out, null, 1) }],
+  content: [
+    { type: "text", text: typeof out === "string" ? out : JSON.stringify(out, null, 1) },
+    ...((typeof out === "object" && out && (out as { [IMAGES]?: Image[] })[IMAGES]) || []),
+  ],
   ...(typeof out === "object" && out && !isError ? { structuredContent: out } : {}),
   isError,
 });
@@ -355,7 +364,7 @@ const TOOLS = [
   },
   {
     name: "get_item", scope: "inbox:read" as Scope, title: "Open an item",
-    description: "One item in full, with its version (needed to update it) and recent history.",
+    description: "One item in full, with its version (needed to update it) and recent history. If the item has a photo, the photo comes back as an image you can look at.",
     inputSchema: { type: "object", properties: { id: { type: "string" } }, required: ["id"] }, annotations: READ_ONLY,
   },
   {
@@ -421,6 +430,7 @@ const view = (i: Item, areas: Area[], full = false) => {
   add("repeat", i.repeat?.freq);
   add("flagged", i.flagged || null);
   add("on_today_list", isOnTodayList(i) || null);
+  add("has_photo", i.photo?.path ? true : null);
   if (full) {
     add("notes", i.body?.slice(0, 8000));
     add("original_words", i.raw && i.raw !== i.title ? i.raw : null);
@@ -431,6 +441,23 @@ const view = (i: Item, areas: Area[], full = false) => {
     add("notes", i.body ? i.body.replace(/\s+/g, " ").slice(0, 160) : null);
   }
   return out;
+};
+
+// A reminder's photo from private Storage (already resized to 1600px JPEG on the phone), as an MCP image block.
+// The bucket comes from STORAGE_BUCKET (deploy.yml); the two Firebase defaults are tried if it's not set.
+const loadPhoto = async (path: string): Promise<Image | null> => {
+  if (!/^inbox-photos\/[\w-]+\.jpg$/.test(path)) return null;
+  const app = getApps()[0];
+  const buckets = [process.env.STORAGE_BUCKET, "shane-ruddle-site.firebasestorage.app", "shane-ruddle-site.appspot.com"].filter(Boolean) as string[];
+  for (const name of buckets) {
+    try {
+      const [buf] = await getStorage(app).bucket(name).file(path).download();
+      return { type: "image", data: buf.toString("base64"), mimeType: "image/jpeg" };
+    } catch (e) {
+      console.error(`Inbox MCP photo ${path} from ${name}:`, e instanceof Error ? e.message : e);
+    }
+  }
+  return null;
 };
 
 const allItems = async (db: Firestore) => {
@@ -530,10 +557,16 @@ async function runTool(db: Firestore, conn: Conn, name: string, args: Record<str
       const id = line(args.id, 64);
       const snap = id ? await db.collection("inbox_items").doc(id).get() : null;
       if (!snap?.exists) throw new ToolError(`No item with id ${id}.`);
-      const hist = await db.collection("inbox_history").where("itemId", "==", id).orderBy("at", "desc").limit(8).get();
+      const item = { id, ...(snap.data() as Omit<Item, "id">) };
+      const [hist, photo] = await Promise.all([
+        db.collection("inbox_history").where("itemId", "==", id).orderBy("at", "desc").limit(8).get(),
+        item.photo?.path ? loadPhoto(item.photo.path) : null,
+      ]);
       return {
-        ...view({ id, ...(snap.data() as Omit<Item, "id">) }, areas, true),
+        ...view(item, areas, true),
+        ...(item.photo?.path && !photo ? { photo_note: "This item has a photo, but it couldn't be loaded right now." } : {}),
         history: hist.docs.map(h => ({ action: h.get("action"), by: h.get("via") || h.get("by"), at: h.get("at")?.toDate?.().toISOString() })),
+        [IMAGES]: photo ? [photo] : undefined,
       };
     }
     case "list_areas": {
