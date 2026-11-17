@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { db, UserProfile } from '../firebase';
 import { collection, getDocs, limit, orderBy, query, Timestamp } from 'firebase/firestore';
-import { Loader2, Activity, Search, RefreshCw } from 'lucide-react';
+import { Loader2, Activity, Search, RefreshCw, Plus } from 'lucide-react';
+import { StaffCheckSettings, StaffEditSheet } from './StaffCheckAdmin';
 import { toast } from 'sonner';
 
 interface LogEntry {
@@ -66,6 +67,7 @@ export default function ActivityAdmin() {
   const [company, setCompany] = useState('');
   const [type, setType] = useState('');
   const [person, setPerson] = useState('');
+  const [editing, setEditing] = useState<Partial<StaffRow> | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -175,7 +177,12 @@ export default function ActivityAdmin() {
             {key === 'staff' ? 'Staff' : 'Activity feed'}
           </button>
         ))}
-        <button onClick={load} className="ml-auto flex items-center gap-1.5 px-3 py-2 rounded-full text-xs text-black/50 hover:text-ink" title="Refresh">
+        {view === 'staff' && (
+          <button onClick={() => setEditing({ active: true })} className="ml-auto flex items-center gap-1.5 px-3 py-2 rounded-full bg-ink text-white text-xs font-semibold">
+            <Plus className="w-3.5 h-3.5" /> Add staff
+          </button>
+        )}
+        <button onClick={load} className={`${view === 'staff' ? '' : 'ml-auto '}flex items-center gap-1.5 px-3 py-2 rounded-full text-xs text-black/50 hover:text-ink`} title="Refresh">
           <RefreshCw className="w-3.5 h-3.5" /> Refresh
         </button>
       </div>
@@ -202,6 +209,8 @@ export default function ActivityAdmin() {
         )}
       </div>
 
+      {view === 'staff' && <StaffCheckSettings />}
+
       {view === 'staff' ? (
         staffRows.length === 0 ? (
           <Empty text="No staff match." />
@@ -219,10 +228,17 @@ export default function ActivityAdmin() {
               </thead>
               <tbody>
                 {staffRows.map(s => (
-                  <tr key={s.id} className="border-b border-black/5 last:border-0 hover:bg-black/[0.02]">
+                  <tr key={s.id} onClick={() => setEditing(s)} className="border-b border-black/5 last:border-0 hover:bg-black/[0.02] cursor-pointer">
                     <td className="px-5 py-3">
-                      <div className="font-medium text-ink">{displayName(s)}</div>
-                      <div className="text-xs text-black/40">{s.email || s.mobile}</div>
+                      <div className="flex items-center gap-3">
+                        {s.profileImage
+                          ? <img src={s.profileImage} alt="" className="w-9 h-9 rounded-xl object-cover shrink-0" />
+                          : <div className="w-9 h-9 rounded-xl bg-black/5 shrink-0" title="No photo" />}
+                        <div>
+                          <div className="font-medium text-ink">{displayName(s)}</div>
+                          <div className="text-xs text-black/40">{s.email || s.mobile}</div>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-5 py-3 text-black/60">{s.company || '—'}</td>
                     <td className="px-5 py-3" title={formatDateTime(s.last)}>
@@ -230,12 +246,12 @@ export default function ActivityAdmin() {
                     </td>
                     <td className="px-5 py-3">
                       {s.active === false
-                        ? <span className="px-2 py-0.5 rounded-full text-xs bg-red-50 text-red-700">Not activated</span>
+                        ? <span className="px-2 py-0.5 rounded-full text-xs bg-red-50 text-red-700">Not active</span>
                         : <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Active</span>}
                     </td>
                     <td className="px-5 py-3 text-right">
                       {s.actions > 0 ? (
-                        <button onClick={() => showPerson(s.uid)} className="text-gold-deep hover:underline text-xs font-semibold">
+                        <button onClick={e => { e.stopPropagation(); showPerson(s.uid); }} className="text-gold-deep hover:underline text-xs font-semibold">
                           View {s.actions}
                         </button>
                       ) : <span className="text-black/30 text-xs">None</span>}
@@ -279,6 +295,8 @@ export default function ActivityAdmin() {
           )}
         </>
       )}
+
+      {editing && <StaffEditSheet person={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load(); }} />}
     </div>
   );
 }

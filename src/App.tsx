@@ -1466,7 +1466,7 @@ export default function App() {
                             className="flex items-center gap-1.5 text-gold/80 hover:text-gold transition-colors uppercase tracking-widest"
                           >
                             <Ticket className="w-3 h-3" />
-                            Staff discounts
+                            Staff portal
                           </button>
                         )}
                         <a href={VIEW_PATHS['privacy-policy']} onClick={handleLinkClick} className="hover:text-gold transition-colors">

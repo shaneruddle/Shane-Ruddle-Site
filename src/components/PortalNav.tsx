@@ -20,7 +20,7 @@ export function navItems({ canModerate, isShane }: { canModerate: boolean; isSha
   // Shane's own apps (matches isShane() in firestore.rules), never other admins.
   if (isShane) groups.push({ title: '', rows: [r('inbox', 'Reminders', ListChecks), r('circle', 'Circle', HeartHandshake), r('enquiries', 'Enquiries', Mail), r('photos', 'Photos', Images), r('search', 'Search & ask', Search)] });
   groups.push({ title: 'Dashboard', rows: [
-    r('offers', isShane ? 'Dashboard' : 'Offers', isShane ? LayoutDashboard : Ticket),
+    r('offers', 'Dashboard', LayoutDashboard),
     ...(canModerate ? [r('comments', 'Comments', MessageCircle), r('activity', 'Activity', Activity)] : []),
     r('profile', 'Profile', User),
     ...(isShane ? [r('settings', 'Reminder settings', Settings)] : []),

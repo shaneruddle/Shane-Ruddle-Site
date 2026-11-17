@@ -43,6 +43,8 @@ export default defineConfig(({mode}) => {
       input: {
         main: path.resolve(__dirname, 'index.html'),
         inbox: path.resolve(__dirname, 'inbox.html'),
+        // staff-check.html is the cashier's private staff list (/staff-check).
+        staffCheck: path.resolve(__dirname, 'staff-check.html'),
       },
     },
   },

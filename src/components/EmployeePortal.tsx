@@ -23,12 +23,8 @@ interface EmployeePortalProps {
 }
 
 export default function EmployeePortal({ userProfile, onBack, onNavigate, initialTab }: EmployeePortalProps & { onNavigate?: (view: PortalView) => void; initialTab?: 'circle' | 'inbox' }) {
-  const [discounts, setDiscounts] = useState<Discount[]>([]);
-  const [myLogs, setMyLogs] = useState<UsageLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [redeeming, setRedeeming] = useState<string | null>(null);
-  const [selectedDiscount, setSelectedDiscount] = useState<Discount | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
+  // Staff discounts are now checked by the cashier on /staff-check, so the portal no longer loads them.
+  const loading = false;
   // Matches isAdmin() in firestore.rules, which guards comment moderation.
   const canModerateComments = userProfile.roles?.includes('admin') || userProfile.role === 'admin' || userProfile.email?.toLowerCase() === 'shaneruddle@gmail.com';
   // Matches isOwner() in storage.rules, which guards photo uploads.
@@ -73,83 +69,6 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
       setPersonalProfile(userProfile);
     }
   }, [userProfile, savingProfile]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch discounts
-        const discountsQuery = query(collection(db, 'discounts'), where('active', '==', true));
-        const discountsSnap = await getDocs(discountsQuery);
-        const allActiveDiscounts = discountsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Discount));
-        
-        if (userProfile.discountIds && userProfile.discountIds.length > 0) {
-          setDiscounts(allActiveDiscounts.filter(d => userProfile.discountIds?.includes(d.id)));
-        } else {
-          setDiscounts([]);
-        }
-
-        // Fetch logs
-        const logsQuery = query(collection(db, 'usage_logs'), where('userId', '==', userProfile.uid), where('type', '==', 'redemption'));
-        const logsSnap = await getDocs(logsQuery);
-        setMyLogs(logsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as UsageLog)).sort((a, b) => {
-          const timeA = a.timestamp?.toMillis?.() || 0;
-          const timeB = b.timestamp?.toMillis?.() || 0;
-          return timeB - timeA;
-        }));
-      } catch (err) {
-        console.warn("Error fetching portal data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [userProfile]);
-
-  const handleRedeem = async () => {
-    if (!selectedDiscount) return;
-    setRedeeming(selectedDiscount.id);
-    try {
-      const timestamp = Date.now();
-      // 1. Log in Firestore
-      await addDoc(collection(db, 'usage_logs'), {
-        userId: userProfile.uid,
-        userName: userProfile.name || null,
-        userCompany: userProfile.company || null,
-        discountId: selectedDiscount.id,
-        discountName: selectedDiscount.name || null,
-        restaurantId: selectedDiscount.restaurantId || null,
-        type: 'redemption',
-        timestamp: serverTimestamp()
-      });
-
-      // 2. Send Email Notification via our server API
-      try {
-        await fetch('/api/notify-redemption', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            employeeName: userProfile.name,
-            company: userProfile.company || 'My Group of Companies',
-            discountName: selectedDiscount.name,
-            restaurantId: selectedDiscount.restaurantId,
-            timestamp
-          })
-        });
-      } catch (emailErr) {
-        console.error("Failed to send email notification:", emailErr);
-        // We don't block the UI if email fails, as long as Firestore is logged
-      }
-
-      setShowSuccess(true);
-      setSelectedDiscount(null);
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, 'usage_logs');
-    } finally {
-      setRedeeming(null);
-    }
-  };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -240,15 +159,6 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
             <h1 className="text-4xl md:text-5xl font-serif font-normal leading-tight">Welcome, {(userProfile.name || 'Employee').split(' ')[0]}</h1>
             <p className="text-black/55 mt-2">{userProfile.company || 'Shane Ruddle group of companies'}</p>
           </div>
-          <div className="bg-ink text-white rounded-[16px] px-5 py-4 flex items-center gap-4">
-            <div className="p-2.5 bg-white/10 rounded-[12px] text-gold">
-              <QrCode className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-white/55">Your discount code</div>
-              <div className="text-2xl font-serif text-gold whitespace-nowrap">{userProfile.discountCode || 'SR-EMP-001'}</div>
-            </div>
-          </div>
         </div>
 
         {/* Shane's shortcuts: his private Circle and Inbox (notes and reminders), one tap each. */}
@@ -283,145 +193,14 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
             <Loader2 className="w-8 h-8 animate-spin text-gold-deep" />
           </div>
         ) : activeTab === 'offers' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div>
-              <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
-                <Tag className="w-5 h-5 text-gold-deep" /> Available Offers
+          canManagePhotos ? null : (
+            <div className="max-w-xl p-6 rounded-2xl bg-white border border-black/10">
+              <h3 className="text-xl font-serif mb-2 flex items-center gap-2">
+                <Ticket className="w-5 h-5 text-gold-deep" /> Staff discounts
               </h3>
-              <div className="space-y-6">
-                {discounts.length === 0 ? (
-                  <div className="p-12 text-center glass rounded-3xl border-2 border-dashed border-black/5">
-                    <Ticket className="w-12 h-12 text-black/10 mx-auto mb-4" />
-                    <p className="text-sm text-black/40 uppercase tracking-[0.12em] font-bold">No discounts assigned to your profile.</p>
-                    <p className="text-[10px] text-black/20 mt-2">Please contact your administrator to assign discounts to your account.</p>
-                  </div>
-                ) : (
-                  discounts.map((discount) => (
-                    <motion.div 
-                      key={discount.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      onClick={() => setSelectedDiscount(discount)}
-                      className={`glass p-6 rounded-3xl relative overflow-hidden group cursor-pointer border-2 transition-all ${selectedDiscount?.id === discount.id ? 'border-gold shadow-lg' : 'border-transparent hover:border-gold/20'}`}
-                    >
-                      <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <Sparkles className="w-12 h-12" />
-                      </div>
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h4 className="text-lg font-serif mb-1">{discount.name}</h4>
-                          <p className="text-xs text-black/40 mb-4 uppercase tracking-[0.12em] font-bold">{discount.restaurantId}</p>
-                        </div>
-                        <div className="text-3xl font-serif text-gold-deep">{discount.percentage}%</div>
-                      </div>
-                      <p className="text-sm text-black/60 font-light mb-6">{discount.description}</p>
-                      <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.12em] font-bold text-gold-deep">
-                        {selectedDiscount?.id === discount.id ? (
-                          <span className="flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Selected</span>
-                        ) : (
-                          <span>Click to select</span>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))
-                )}
-              </div>
+              <p className="text-sm text-black/60">You don't need to log in for your staff discount any more. Just give your name at the counter: the cashier checks the staff list and may ask for the last 3 digits of your mobile.</p>
             </div>
-
-            <div>
-              <AnimatePresence mode="wait">
-                {selectedDiscount ? (
-                  <motion.div 
-                    key="redemption"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="glass p-8 rounded-[40px] border-2 border-gold/30 shadow-2xl sticky top-24"
-                  >
-                    <div className="text-center mb-8">
-                      <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <QrCode className="w-8 h-8 text-gold-deep" />
-                      </div>
-                      <h3 className="text-2xl font-serif mb-2">Redeem Discount</h3>
-                      <p className="text-sm text-black/40 uppercase tracking-[0.12em] font-bold">Show this screen to the cashier</p>
-                    </div>
-
-                    <div className="bg-black/5 rounded-3xl p-6 mb-8 text-center border border-black/5">
-                      <div className="text-4xl font-serif text-gold-deep mb-2">{selectedDiscount.percentage}% OFF</div>
-                      <div className="text-lg font-serif mb-1">{selectedDiscount.name}</div>
-                      <div className="text-xs uppercase tracking-[0.12em] text-black/40 font-bold">{selectedDiscount.restaurantId}</div>
-                    </div>
-
-                    <div className="space-y-4 mb-8">
-                      <div className="flex justify-between text-xs uppercase tracking-[0.12em] font-bold text-black/40 border-b border-black/5 pb-2">
-                        <span>Employee</span>
-                        <span className="text-black">{userProfile.name}</span>
-                      </div>
-                      <div className="flex justify-between text-xs uppercase tracking-[0.12em] font-bold text-black/40 border-b border-black/5 pb-2">
-                        <span>Company</span>
-                        <span className="text-black">{userProfile.company || 'My Group of Companies'}</span>
-                      </div>
-                      <div className="flex justify-between text-xs uppercase tracking-[0.12em] font-bold text-black/40 border-b border-black/5 pb-2">
-                        <span>Code</span>
-                        <span className="text-gold-deep">{userProfile.discountCode}</span>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-gold/5 rounded-2xl border border-gold/20 mb-8">
-                      <p className="text-[10px] text-center text-gold-dark font-medium leading-relaxed uppercase tracking-wider">
-                        Cashier: Please verify the employee's ID and click the button below to complete redemption.
-                      </p>
-                    </div>
-
-                    <button 
-                      onClick={handleRedeem}
-                      disabled={redeeming !== null}
-                      className="w-full bg-gold text-black py-4 rounded-2xl text-sm font-bold uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all flex items-center justify-center gap-3 shadow-lg shadow-gold/20"
-                    >
-                      {redeeming ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle className="w-5 h-5" /> Cashier Redeem</>}
-                    </button>
-                    
-                    <button 
-                      onClick={() => setSelectedDiscount(null)}
-                      className="w-full mt-4 text-[10px] uppercase tracking-[0.12em] font-bold text-black/20 hover:text-black/60 transition-colors"
-                    >
-                      Cancel Selection
-                    </button>
-                  </motion.div>
-                ) : (
-                  <motion.div 
-                    key="history"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="space-y-6"
-                  >
-                    <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
-                      <History className="w-5 h-5 text-gold-deep" /> Recent Usage
-                    </h3>
-                    <div className="space-y-4">
-                      {myLogs.length === 0 ? (
-                        <div className="p-12 text-center glass rounded-3xl">
-                          <p className="text-black/40 italic">You haven't used any discounts yet.</p>
-                        </div>
-                      ) : (
-                        myLogs.map((log) => (
-                          <div key={log.id} className="flex items-center justify-between p-4 bg-black/2 rounded-2xl border border-black/5">
-                            <div>
-                              <div className="text-sm font-medium">{log.restaurantId}</div>
-                              <div className="text-[10px] text-black/40 uppercase tracking-[0.12em] font-bold">
-                                {log.timestamp?.toDate().toLocaleDateString()}
-                              </div>
-                            </div>
-                            <div className="text-xs font-bold text-gold-deep">REDEEMED</div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
+          )
         ) : activeTab === 'comments' && canModerateComments ? (
           <CommentsAdmin />
         ) : activeTab === 'photos' && canManagePhotos ? (
@@ -531,19 +310,6 @@ export default function EmployeePortal({ userProfile, onBack, onNavigate, initia
         </div>
       </div>
 
-      <AnimatePresence>
-        {showSuccess && (
-          <motion.div 
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] bg-green-500 text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-3"
-          >
-            <CheckCircle className="w-5 h-5" />
-            <span className="text-sm font-bold uppercase tracking-[0.12em]">Discount Redeemed Successfully!</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

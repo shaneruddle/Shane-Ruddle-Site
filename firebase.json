@@ -77,6 +77,10 @@
         "destination": "/inbox.html"
       },
       {
+        "source": "/staff-check",
+        "destination": "/staff-check.html"
+      },
+      {
         "source": "/inbox/**",
         "destination": "/app.html"
       },
@@ -105,6 +109,15 @@
           {
             "key": "Cache-Control",
             "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/staff-check",
+        "headers": [
+          {
+            "key": "X-Robots-Tag",
+            "value": "noindex, nofollow"
           }
         ]
       },
