@@ -234,6 +234,21 @@ export default function StaffCheck() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-5 pb-4">
           <div className="flex items-start justify-between gap-4">
             <div>
+              <a href="/" aria-label="Shane Ruddle — home" className="inline-flex items-center gap-2.5 mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" className="w-8 h-8 shrink-0" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="scGold" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#F9F295" />
+                      <stop offset="45%" stopColor="#D4AF37" />
+                      <stop offset="100%" stopColor="#B8860B" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="60" cy="60" r="57" fill="#0A0A0A" />
+                  <circle cx="60" cy="60" r="53" fill="none" stroke="url(#scGold)" strokeWidth="1.2" />
+                  <text x="60" y="78" textAnchor="middle" fontSize="58" fontWeight="500" letterSpacing="-2" fill="url(#scGold)" fontFamily="system-ui, sans-serif">SR</text>
+                </svg>
+                <span className="font-serif text-base tracking-[0.18em] uppercase text-ink whitespace-nowrap">Shane <span className="font-semibold">Ruddle</span></span>
+              </a>
               <span className="block text-[11px] font-medium uppercase tracking-[0.18em] text-gold-deep">Staff check</span>
               <h1 className="text-2xl sm:text-3xl font-serif text-ink leading-tight">{venue.name}</h1>
             </div>
