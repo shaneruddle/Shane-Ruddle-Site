@@ -114,6 +114,7 @@ export function StaffEditSheet({ person, onClose, onSaved }: { person: Editable;
       mobile: form.mobile?.trim() || '',
       company: form.company,
       position: form.position?.trim() || '',
+      staffDiscount: form.staffDiscount?.trim() || '',
       profileImage: form.profileImage || '',
       active: form.active !== false,
       updatedAt: serverTimestamp(),
@@ -170,6 +171,10 @@ export function StaffEditSheet({ person, onClose, onSaved }: { person: Editable;
               <option value="">Choose…</option>
               {[...COMPANIES, ...(form.company && !COMPANIES.includes(form.company) ? [form.company] : [])].map(c => <option key={c} value={c}>{c}</option>)}
             </select>
+          </label>
+          <label className="block">
+            <span className="block text-[10px] uppercase tracking-[0.2em] font-semibold text-black/40 mb-1">Their discount</span>
+            <input value={form.staffDiscount || ''} onChange={e => set('staffDiscount', e.target.value)} placeholder="Empty = the venue's normal staff discount" className={inputClass} />
           </label>
           <label className="flex items-center gap-3 pt-2">
             <input type="checkbox" checked={form.active !== false} onChange={e => set('active', e.target.checked)} className="w-5 h-5 accent-[#0A0A0A]" />
