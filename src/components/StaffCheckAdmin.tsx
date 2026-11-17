@@ -3,14 +3,10 @@ import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/fi
 import { auth, db, UserProfile } from '../firebase';
 import { Camera, ExternalLink, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { COMPANIES, shrinkPhoto } from '../lib/staffCheck';
 
 // Admin side of the cashier's staff list (/staff-check): the shared PIN, each venue's discount,
 // and editing a staff member's photo, mobile, company and whether they're on the list.
-
-export const COMPANIES = [
-  'Hemingways Jomtien', 'Hemingways Lakeside', 'Hemingways Pattaya', 'Cajun Life Cafe',
-  'Pattaya Rent a Car', 'Alan Bolton Property Consultants', 'East Coast Real Estate',
-];
 
 type Venue = { id: string; name: string; discount: string };
 
@@ -25,23 +21,6 @@ const api = async (method: 'GET' | 'POST', body?: unknown) => {
   if (!res.ok) throw new Error(data.error || 'Something went wrong.');
   return data;
 };
-
-// Shrinks a photo to 480px so the cashier's list loads fast on a phone.
-const shrinkPhoto = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const scale = Math.min(1, 480 / Math.max(img.width, img.height));
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(img.src);
-      resolve(canvas.toDataURL('image/jpeg', 0.82));
-    };
-    img.onerror = () => reject(new Error('Could not read that photo.'));
-    img.src = URL.createObjectURL(file);
-  });
 
 const inputClass = 'w-full px-3 py-2 rounded-xl bg-black/5 text-sm border-0 focus:ring-2 focus:ring-gold-deep/30';
 

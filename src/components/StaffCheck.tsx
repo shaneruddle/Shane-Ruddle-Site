@@ -1,5 +1,6 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { Check, Loader2, Lock, MapPin, Search, X } from 'lucide-react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { Camera, Check, Loader2, Lock, MapPin, Search, UserPlus, X } from 'lucide-react';
+import { COMPANIES, shrinkPhoto } from '../lib/staffCheck';
 
 // The cashier's staff list (/staff-check). One shared PIN, remembered on this till's phone or tablet,
 // plus which venue the till is at. Staff need nothing: the cashier finds them by name or photo.
@@ -43,6 +44,70 @@ function Photo({ person, pin, big = false }: { person: Person; pin: string; big?
   );
 }
 
+const fieldClass = 'w-full px-4 py-3 rounded-xl bg-white border border-black/10 text-base focus:outline-none focus:ring-2 focus:ring-gold-deep/30';
+
+// The cashier adds someone who isn't on the list yet. They go on straight away; Shane gets an email.
+function AddStaff({ pin, venueId, startName, onClose, onAdded }: { pin: string; venueId: string; startName: string; onClose: () => void; onAdded: (name: string) => void }) {
+  const [f, setF] = useState({ name: startName, nickname: '', mobile: '', company: '', position: '', photo: '' });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
+  const set = (k: keyof typeof f, v: string) => setF(x => ({ ...x, [k]: v }));
+
+  const pick = async (file?: File) => {
+    if (!file) return;
+    try { set('photo', await shrinkPhoto(file)); } catch (err) { setError(err instanceof Error ? err.message : 'Could not read that photo.'); }
+  };
+
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!f.name.trim() || !f.company) { setError('Add their name and pick a company.'); return; }
+    setSaving(true);
+    setError('');
+    try {
+      await post('add', { pin, venue: venueId, ...f });
+      onAdded(f.name.trim());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not add them.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-20 bg-black/40 flex items-end sm:items-center justify-center" onClick={onClose}>
+      <form onSubmit={save} className="w-full sm:max-w-md max-h-[92vh] overflow-y-auto bg-cream rounded-t-3xl sm:rounded-3xl p-6 pb-8" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-2xl font-serif text-ink">Add staff member</h2>
+          <button type="button" onClick={onClose} className="p-2 text-black/40 hover:text-ink" aria-label="Close"><X className="w-5 h-5" /></button>
+        </div>
+        <button type="button" onClick={() => fileRef.current?.click()} className="flex items-center gap-4 mb-5 text-left">
+          {f.photo
+            ? <img src={f.photo} alt="" className="w-20 h-20 rounded-2xl object-cover" />
+            : <span className="w-20 h-20 rounded-2xl bg-ink/5 text-black/40 flex items-center justify-center"><Camera className="w-6 h-6" /></span>}
+          <span className="text-sm font-semibold text-gold-deep">{f.photo ? 'Retake photo' : 'Take their photo'}</span>
+        </button>
+        <input ref={fileRef} type="file" accept="image/*" capture="user" className="hidden" onChange={e => { pick(e.target.files?.[0]); e.target.value = ''; }} />
+        <div className="space-y-3">
+          <input value={f.name} onChange={e => set('name', e.target.value)} placeholder="Full name" className={fieldClass} />
+          <input value={f.nickname} onChange={e => set('nickname', e.target.value)} placeholder="Nickname" className={fieldClass} />
+          <input value={f.mobile} onChange={e => set('mobile', e.target.value)} placeholder="Mobile number" inputMode="tel" className={fieldClass} />
+          <select value={f.company} onChange={e => set('company', e.target.value)} className={fieldClass}>
+            <option value="">Which company do they work for?</option>
+            {COMPANIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <input value={f.position} onChange={e => set('position', e.target.value)} placeholder="Position (e.g. waitress, driver)" className={fieldClass} />
+        </div>
+        {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
+        <button type="submit" disabled={saving} className="w-full mt-6 py-4 rounded-full bg-ink text-white text-sm font-semibold uppercase tracking-[0.15em] disabled:opacity-60 flex items-center justify-center gap-2">
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />} Add to staff list
+        </button>
+        <p className="text-xs text-black/40 text-center mt-3">Shane gets an email about every new person.</p>
+      </form>
+    </div>
+  );
+}
+
 export default function StaffCheck() {
   const [pin, setPin] = useState(() => localStorage.getItem(PIN_KEY) || '');
   const [pinInput, setPinInput] = useState('');
@@ -55,6 +120,7 @@ export default function StaffCheck() {
   const [open, setOpen] = useState<Person | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState('');
+  const [adding, setAdding] = useState(false);
 
   const load = async (p: string) => {
     setLoading(true);
@@ -159,9 +225,14 @@ export default function StaffCheck() {
               <h1 className="text-2xl sm:text-3xl font-serif text-ink leading-tight">{venue.name}</h1>
               {venue.discount && <p className="text-sm text-black/60">Staff get <span className="font-semibold text-ink">{venue.discount}</span></p>}
             </div>
-            <button onClick={() => { setVenueId(''); localStorage.removeItem(VENUE_KEY); }} className="flex items-center gap-1 text-xs text-black/45 hover:text-ink mt-1 whitespace-nowrap">
-              <MapPin className="w-3.5 h-3.5" /> Change venue
-            </button>
+            <div className="flex flex-col items-end gap-2 mt-1">
+              <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-ink text-white text-xs font-semibold whitespace-nowrap">
+                <UserPlus className="w-3.5 h-3.5" /> Add staff
+              </button>
+              <button onClick={() => { setVenueId(''); localStorage.removeItem(VENUE_KEY); }} className="flex items-center gap-1 text-xs text-black/45 hover:text-ink whitespace-nowrap">
+                <MapPin className="w-3.5 h-3.5" /> Change venue
+              </button>
+            </div>
           </div>
           <div className="relative mt-4">
             <Search className="w-4 h-4 text-black/30 absolute left-4 top-1/2 -translate-y-1/2" />
@@ -178,7 +249,12 @@ export default function StaffCheck() {
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-5">
         {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
         {shown.length === 0 ? (
-          <p className="text-center text-black/45 py-16">{staff.length ? 'Nobody matches. Not on the list means no staff discount.' : 'No staff on the list yet.'}</p>
+          <div className="text-center py-16">
+            <p className="text-black/45">{staff.length ? 'Nobody matches. Not on the list means no staff discount.' : 'No staff on the list yet.'}</p>
+            <button onClick={() => setAdding(true)} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-deep">
+              <UserPlus className="w-4 h-4" /> New staff member? Add them
+            </button>
+          </div>
         ) : (
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {shown.map(p => (
@@ -215,9 +291,14 @@ export default function StaffCheck() {
         </div>
       )}
 
+      {adding && (
+        <AddStaff pin={pin} venueId={venue.id} startName={/\d/.test(search) ? '' : search.trim()} onClose={() => setAdding(false)}
+          onAdded={name => { setAdding(false); setSearch(''); setSaved(`Added ${name}`); setTimeout(() => setSaved(''), 3000); load(pin); }} />
+      )}
+
       {saved && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-2 text-sm font-semibold">
-          <Check className="w-4 h-4" /> Saved for {saved}
+          <Check className="w-4 h-4" /> {saved.startsWith('Added ') ? saved : `Saved for ${saved}`}
         </div>
       )}
     </div>

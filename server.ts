@@ -28,7 +28,9 @@ async function startServer() {
   app.use(cors());
   // /api/cv carries a base64 CV file, so it gets its own larger body limit; everything else keeps the default.
   const jsonDefault = express.json();
-  app.use((req, res, next) => (req.path === "/api/cv" ? next() : jsonDefault(req, res, next)));
+  // Adding staff from the cashier page carries a photo, so it gets a little more room too.
+  const jsonPhoto = express.json({ limit: "1mb" });
+  app.use((req, res, next) => (req.path === "/api/cv" ? next() : req.path === "/api/staff-check/add" ? jsonPhoto(req, res, next) : jsonDefault(req, res, next)));
 
   // ---- Outgoing email ----
   // Notification emails go to Shane. Sent through Brevo's transactional API when BREVO_API_KEY is set

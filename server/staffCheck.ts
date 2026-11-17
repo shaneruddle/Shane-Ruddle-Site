@@ -8,6 +8,7 @@ import { getAuth } from "firebase-admin/auth";
 // - POST /api/staff-check/list   (PIN) active staff: name, photo flag, company, position, last 3 digits of mobile
 // - POST /api/staff-check/photo  (PIN) one person's photo
 // - POST /api/staff-check/used   (PIN) cashier taps "Used": usage_logs entry + email to Shane
+// - POST /api/staff-check/add    (PIN) cashier adds a new staff member: on the list straight away + email to Shane
 // - GET/POST /api/staff-check/settings (admins) PIN and the discount shown at each venue
 // The PIN is stored hashed in staff_check/config, which the browser can't read (firestore.rules default deny).
 
@@ -166,6 +167,63 @@ export function registerStaffCheckRoutes(app: Express, { getDb, oneLine, sendNot
     } catch (err) {
       console.error("Staff check used failed:", err instanceof Error ? err.message : err);
       res.status(500).json({ error: "Could not save that." });
+    }
+  });
+
+  // Cashiers can add a new staff member with the PIN. They go straight onto the list; Shane gets an email
+  // and a line in Activity so he can switch them off in the portal if they shouldn't be there.
+  app.post("/api/staff-check/add", async (req, res) => {
+    try {
+      if (!(await checkPin(req, res))) return;
+      const b = req.body || {};
+      const name = oneLine(b.name, 80);
+      const company = oneLine(b.company, 60);
+      const venue = STAFF_CHECK_VENUES.find((v) => v.id === b.venue);
+      const photo = typeof b.photo === "string" && /^data:image\/(jpeg|png|webp);base64,/.test(b.photo) && b.photo.length < 400_000 ? b.photo : "";
+      if (!name || !company) { res.status(400).json({ error: "Add a name and pick a company." }); return; }
+      const data = {
+        name,
+        nickname: oneLine(b.nickname, 40),
+        mobile: oneLine(b.mobile, 30),
+        company,
+        position: oneLine(b.position, 60),
+        profileImage: photo,
+        active: true,
+        role: "employee",
+        roles: ["employee"],
+        addedBy: "staff-check",
+        addedAtVenue: venue?.name || "",
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+      const ref = await getDb().collection("users").add(data);
+      await getDb().collection("usage_logs").add({
+        userId: ref.id,
+        userName: name,
+        userCompany: company,
+        type: "employee_update",
+        source: "staff-check",
+        details: `Added to the staff list by the cashier${venue ? ` at ${venue.name}` : ""}`,
+        timestamp: FieldValue.serverTimestamp(),
+      });
+      cache = null;
+      const rows: [string, unknown][] = [
+        ["Name", name], ["Nickname", data.nickname], ["Company", company], ["Position", data.position],
+        ["Mobile", data.mobile], ["Added at", venue?.name || "Unknown venue"], ["Photo", photo ? "Yes" : "No"],
+      ];
+      try {
+        await sendNotification({
+          subject: `New staff added at the till: ${name} (${company})`,
+          html: card("New staff member added", rows) + `<p style="font-family: Georgia, serif;">Not right? Switch them off in the portal: Activity &gt; Staff.</p>`,
+          text: rows.map(([l, v]) => `${l}: ${v ?? ""}`).join("\n") + "\n\nNot right? Switch them off in the portal: Activity > Staff.",
+        });
+      } catch (err) {
+        console.error("Staff check add email failed:", err instanceof Error ? err.message : err);
+      }
+      res.json({ ok: true, id: ref.id });
+    } catch (err) {
+      console.error("Staff check add failed:", err instanceof Error ? err.message : err);
+      res.status(500).json({ error: "Could not add them." });
     }
   });
 
