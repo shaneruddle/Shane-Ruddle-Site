@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { Ticket, User, MessageCircle, Images, Activity, Mail, HeartHandshake, ListChecks, X, ArrowUpRight, LogOut, Search, Settings, LayoutDashboard, Globe, BookOpen, MessageCircleQuestion, Building2 } from 'lucide-react';
 import { auth, db } from '../firebase';
-import { useEnquiries } from './EnquiriesAdmin';
+import { useEnquiries, statusOf } from './EnquiriesAdmin';
 import PortalHeader from './PortalHeader';
 
 // The staff dashboard's menu, shared by every portal page (Reminders, Circle, Enquiries, Photos, Offers, Profile,
@@ -45,10 +45,10 @@ const SITES: [string, string][] = [
   ['East Coast Real Estate', 'https://www.thaiproperty.com'],
 ];
 
-// Site enquiries not yet opened.
+// Site enquiries (or their email replies) not yet opened.
 export function useUnreadEnquiries() {
   const { all } = useEnquiries();
-  return all.filter(e => !e.readAt && !e.replies?.length && e.status !== 'archived' && e.status !== 'replied').length;
+  return all.filter(e => !e.readAt && statusOf(e) === 'open').length;
 }
 
 function UnreadCount() {

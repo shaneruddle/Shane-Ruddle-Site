@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { db, auth } from '../firebase';
-import { collection, onSnapshot, doc, updateDoc, serverTimestamp, Timestamp, query, orderBy, limit } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, serverTimestamp, Timestamp, query, orderBy, limit, where } from 'firebase/firestore';
 import { Loader2, Inbox, ArrowLeft, Sparkles, Send, Archive, ArchiveRestore, ExternalLink, FileText, Mail, Phone, AlertTriangle, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import LeadsSummary from './LeadsSummary';
@@ -10,6 +10,8 @@ import LeadsSummary from './LeadsSummary';
 
 type Kind = 'question' | 'cv';
 interface Reply { subject: string; body: string; to?: string; sentAt?: string }
+// Their email replies, brought in from Gmail by the hourly Gmail helper (server/enquiries.ts).
+interface Incoming { subject: string; body: string; english?: string; receivedAt: string; gmailId: string; gmailUrl?: string }
 interface Draft { subject: string; body: string; english?: string; sources?: string[]; read?: { title: string; url: string }[]; instructions?: string; createdAt?: string }
 interface Enquiry {
   id: string;
@@ -21,6 +23,7 @@ interface Enquiry {
   readAt?: Timestamp;
   draft?: Draft;
   replies?: Reply[];
+  incoming?: Incoming[];
   // questions
   message?: string;
   translation?: string | null;
@@ -45,7 +48,12 @@ const when = (t?: Timestamp) =>
   t ? t.toDate().toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' }) : '';
 const sentWhen = (iso?: string) =>
   iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' }) : '';
-const statusOf = (e: Enquiry): View => (e.status === 'archived' ? 'archived' : e.status === 'replied' || e.replies?.length ? 'replied' : 'open');
+const latest = (dates: (string | undefined)[]) => dates.filter(Boolean).sort().pop() || '';
+const lastIn = (e: Enquiry) => latest((e.incoming || []).map(m => m.receivedAt));
+// They wrote back after Shane's last reply.
+export const hasNewReply = (e: Enquiry) => !!lastIn(e) && lastIn(e) > latest((e.replies || []).map(r => r.sentAt));
+export const statusOf = (e: Enquiry): View =>
+  e.status === 'archived' ? 'archived' : hasNewReply(e) ? 'open' : e.status === 'replied' || e.replies?.length ? 'replied' : 'open';
 const COLLECTION: Record<Kind, string> = { question: 'contact_messages', cv: 'cv_submissions' };
 
 const api = async (path: string, body?: unknown) => {
@@ -98,7 +106,8 @@ export default function EnquiriesAdmin() {
 
   const counts = { open: 0, replied: 0, archived: 0 } as Record<View, number>;
   all.forEach(e => counts[statusOf(e)]++);
-  const shown = all.filter(e => statusOf(e) === view);
+  const activity = (e: Enquiry) => Math.max(e.createdAt?.toMillis() || Date.now(), lastIn(e) ? Date.parse(lastIn(e)) : 0);
+  const shown = all.filter(e => statusOf(e) === view).sort((a, b) => activity(b) - activity(a));
   const current = all.find(e => `${e.kind}:${e.id}` === openId);
 
   if (loading) {
@@ -142,7 +151,8 @@ export default function EnquiriesAdmin() {
             <ul className="bg-white border border-black/10 rounded-2xl divide-y divide-black/5 overflow-hidden">
               {shown.map(e => {
                 const unread = !e.readAt && statusOf(e) === 'open';
-                const text = e.kind === 'cv' ? [e.role, e.note].filter(Boolean).join(' · ') || 'CV attached' : e.translation || e.message || '';
+                const reply = hasNewReply(e) ? [...(e.incoming || [])].sort((a, b) => b.receivedAt.localeCompare(a.receivedAt))[0] : null;
+                const text = reply ? reply.english || reply.body : e.kind === 'cv' ? [e.role, e.note].filter(Boolean).join(' · ') || 'CV attached' : e.translation || e.message || '';
                 return (
                   <li key={`${e.kind}:${e.id}`}>
                     <button onClick={() => setOpenId(`${e.kind}:${e.id}`)} className="w-full text-left px-5 py-4 hover:bg-black/[0.02] transition-colors flex gap-3">
@@ -150,9 +160,10 @@ export default function EnquiriesAdmin() {
                       <span className="min-w-0 flex-1">
                         <span className="flex items-baseline gap-2">
                           <span className={`truncate ${unread ? 'font-semibold text-ink' : 'text-ink/80'}`}>{e.name || e.email}</span>
-                          <span className="ml-auto text-xs text-black/40 shrink-0">{when(e.createdAt)}</span>
+                          <span className="ml-auto text-xs text-black/40 shrink-0">{reply ? sentWhen(reply.receivedAt).replace(/ \d{4},/, ',') : when(e.createdAt)}</span>
                         </span>
                         <span className="flex flex-wrap gap-1.5 mt-1">
+                          {reply && <Badge gold>New reply</Badge>}
                           <Badge>{e.kind === 'cv' ? 'CV' : 'Question'}</Badge>
                           {e.lang === 'de' && <Badge>German</Badge>}
                           {e.topic && <Badge>{TOPIC_LABEL[e.topic] || e.topic}</Badge>}
@@ -166,6 +177,7 @@ export default function EnquiriesAdmin() {
               })}
             </ul>
           )}
+          <GmailHelperLog />
         </>
       )}
     </div>
@@ -295,17 +307,37 @@ function EnquiryDetail({ e, onBack }: { e: Enquiry; onBack: () => void }) {
         )}
       </div>
 
-      {e.replies?.map((r, i) => (
+      {[
+        ...(e.replies || []).map(r => ({ at: r.sentAt || '', mine: true as const, r })),
+        ...(e.incoming || []).map(m => ({ at: m.receivedAt, mine: false as const, m })),
+      ].sort((a, b) => a.at.localeCompare(b.at)).map((x, i) => !('m' in x) ? (
         <div key={i} className="mt-4 p-6 bg-gold/5 border border-gold/20 rounded-2xl">
-          <p className="text-[11px] uppercase tracking-[0.14em] font-semibold text-gold-deep mb-1">You replied {sentWhen(r.sentAt)}</p>
-          <p className="font-semibold text-ink text-sm mb-2">{r.subject}</p>
-          <p className="text-sm text-ink/80 leading-relaxed whitespace-pre-line break-words">{r.body}</p>
+          <p className="text-[11px] uppercase tracking-[0.14em] font-semibold text-gold-deep mb-1">You replied {sentWhen(x.r.sentAt)}</p>
+          <p className="font-semibold text-ink text-sm mb-2">{x.r.subject}</p>
+          <p className="text-sm text-ink/80 leading-relaxed whitespace-pre-line break-words">{x.r.body}</p>
+        </div>
+      ) : (
+        <div key={i} className="mt-4 p-6 bg-white border border-black/10 rounded-2xl">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+            <p className="text-[11px] uppercase tracking-[0.14em] font-semibold text-black/40">{e.name?.split(' ')[0] || 'They'} replied {sentWhen(x.m.receivedAt)}</p>
+            {x.m.gmailUrl && <a href={x.m.gmailUrl} target="_blank" rel="noreferrer" className="text-xs text-gold-deep hover:underline inline-flex items-center gap-1">Open in Gmail <ExternalLink className="w-3 h-3" /></a>}
+          </div>
+          <p className="font-semibold text-ink text-sm mb-2">{x.m.subject}</p>
+          {x.m.english ? (
+            <>
+              <p className="text-[15px] text-ink/85 leading-relaxed whitespace-pre-line break-words">{x.m.english}</p>
+              <p className="mt-4 text-[11px] uppercase tracking-[0.14em] font-semibold text-black/40 mb-1.5">Original</p>
+              <p className="text-sm text-black/50 leading-relaxed whitespace-pre-line break-words">{x.m.body}</p>
+            </>
+          ) : (
+            <p className="text-[15px] text-ink/85 leading-relaxed whitespace-pre-line break-words">{x.m.body}</p>
+          )}
         </div>
       ))}
 
       {status !== 'archived' && (
         <div className="mt-4 p-6 bg-white border border-black/10 rounded-2xl">
-          <h3 className="font-serif text-xl text-ink">{e.replies?.length ? 'Send another reply' : 'Reply'}</h3>
+          <h3 className="font-serif text-xl text-ink">{hasNewReply(e) ? `Reply to ${e.name?.split(' ')[0] || 'them'}` : e.replies?.length ? 'Send another reply' : 'Reply'}</h3>
           <label className="block mt-4 text-[11px] uppercase tracking-[0.14em] font-semibold text-black/40">Tell Claude what to say (optional)</label>
           <textarea
             value={instructions}
@@ -363,7 +395,7 @@ function EnquiryDetail({ e, onBack }: { e: Enquiry; onBack: () => void }) {
               >
                 {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Send to {e.email}
               </button>
-              <p className="mt-2 text-xs text-black/40">Their reply comes back to your Gmail, and you get a copy of what you send.</p>
+              <p className="mt-2 text-xs text-black/40">Their reply comes back to your Gmail, and shows here within the hour. You get a copy of what you send.</p>
             </div>
           )}
         </div>
@@ -377,6 +409,29 @@ function EnquiryDetail({ e, onBack }: { e: Enquiry; onBack: () => void }) {
           {status === 'archived' ? <><ArchiveRestore className="w-4 h-4" /> Move back</> : <><Archive className="w-4 h-4" /> Archive, no reply needed</>}
         </button>
       </div>
+    </div>
+  );
+}
+
+// What the hourly Gmail helper did over the last 7 days, so Shane can judge if it's worth keeping.
+interface HelperRun { checked: number; replies: number; reminders: number; summary: boolean; createdAt?: Timestamp }
+function GmailHelperLog() {
+  const [runs, setRuns] = useState<HelperRun[] | null>(null);
+  useEffect(() => onSnapshot(
+    query(collection(db, 'gmail_helper_runs'), where('createdAt', '>=', Timestamp.fromMillis(Date.now() - 7 * 864e5)), orderBy('createdAt', 'desc')),
+    snap => setRuns(snap.docs.map(d => d.data() as HelperRun)),
+    err => { console.error('Gmail helper log failed:', err.message); setRuns([]); },
+  ), []);
+  if (!runs?.length) return null;
+  const sum = (k: 'replies' | 'reminders') => runs.reduce((n, r) => n + (r[k] || 0), 0);
+  const last = runs[0].createdAt?.toDate().toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' });
+  return (
+    <div className="mt-6 px-5 py-4 rounded-2xl bg-black/[0.03] text-sm text-black/55 flex gap-3">
+      <Mail className="w-4 h-4 shrink-0 mt-0.5" />
+      <p>
+        <span className="font-semibold text-ink/80">Gmail helper, last 7 days:</span> {runs.length} checks, {sum('replies')} {sum('replies') === 1 ? 'reply' : 'replies'} brought in,{' '}
+        {sum('reminders')} {sum('reminders') === 1 ? 'reminder' : 'reminders'} added, {runs.filter(r => r.summary).length} morning summaries. Last check {last}.
+      </p>
     </div>
   );
 }
