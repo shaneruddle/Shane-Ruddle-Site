@@ -375,84 +375,20 @@ export function registerEnquiryRoutes(app: Express, { getDb, escapeHtml, oneLine
     }
   });
 
-  // ---- Gmail helper ----
-  const recent = async (collection: string) =>
-    (await getDb().collection(collection).orderBy("createdAt", "desc").limit(300).get()).docs;
-
-  app.get("/api/enquiries/contacts", async (req, res) => {
+  // ---- Gmail helper (also reachable as tools on Shane's own Claude connector, server/inboxMcp.ts) ----
+  const helperRoute = (fn: (db: Firestore, body: Record<string, unknown>) => Promise<unknown>) => async (req: Request, res: Response) => {
     if (!hasInsightsToken(req)) return res.status(401).json({ error: "Unauthorised" });
     try {
-      const emails = new Set<string>();
-      for (const c of Object.values(COLLECTIONS)) for (const d of await recent(c)) {
-        const email = String(d.get("email") || "").trim().toLowerCase();
-        if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email !== OWNER_EMAIL) emails.add(email);
-      }
-      res.json({ emails: [...emails] });
+      res.json(await fn(getDb(), (req.body || {}) as Record<string, unknown>));
     } catch (error) {
-      console.error("Enquiry contacts failed:", error instanceof Error ? error.message : error);
+      if (error instanceof HelperError) return res.status(400).json({ error: error.message });
+      console.error(`Gmail helper ${req.path} failed:`, error instanceof Error ? error.message : error);
       res.status(500).json({ error: "Failed" });
     }
-  });
-
-  app.post("/api/enquiries/incoming", async (req, res) => {
-    if (!hasInsightsToken(req)) return res.status(401).json({ error: "Unauthorised" });
-    try {
-      const from = oneLine(req.body?.email, 254).toLowerCase();
-      const gmailId = oneLine(req.body?.gmailId, 100);
-      const body = stripQuoted(String(req.body?.body ?? "")).slice(0, 10000);
-      const receivedAt = new Date(String(req.body?.receivedAt || ""));
-      if (!from || !gmailId || !body || isNaN(receivedAt.getTime())) return res.status(400).json({ error: "Need email, gmailId, body and receivedAt." });
-
-      // Their most recent enquiry (question or CV) from this address.
-      let match: { kind: Kind; ref: DocumentReference; e: Enquiry; at: number } | null = null;
-      for (const [kind, c] of Object.entries(COLLECTIONS) as [Kind, string][]) {
-        for (const d of await recent(c)) {
-          if (String(d.get("email") || "").trim().toLowerCase() !== from) continue;
-          const at = d.get("createdAt")?.toMillis?.() || 0;
-          if (!match || at > match.at) match = { kind, ref: d.ref, e: d.data() as Enquiry, at };
-        }
-      }
-      if (!match) return res.json({ matched: false });
-      if ((match.e.incoming || []).some((m) => m.gmailId === gmailId)) return res.json({ matched: true, duplicate: true, kind: match.kind, id: match.ref.id });
-
-      const gmailUrl = oneLine(req.body?.gmailUrl, 500);
-      const english = String(req.body?.english ?? "").trim().slice(0, 10000);
-      const message: Incoming = {
-        subject: oneLine(req.body?.subject, 200) || "(no subject)",
-        body,
-        receivedAt: receivedAt.toISOString(),
-        gmailId,
-        ...(english ? { english } : {}),
-        ...(gmailUrl.startsWith("https://mail.google.com/") ? { gmailUrl } : {}),
-      };
-      // Back to "To answer" and unread, even if it was archived.
-      await match.ref.set({ incoming: FieldValue.arrayUnion(message), status: "new", readAt: FieldValue.delete(), lastIncomingAt: message.receivedAt }, { merge: true });
-      console.log(`Email reply from ${from} added to ${match.kind} ${match.ref.id}`);
-      res.json({ matched: true, kind: match.kind, id: match.ref.id, name: match.e.name || "" });
-    } catch (error) {
-      console.error("Incoming enquiry email failed:", error instanceof Error ? error.message : error);
-      res.status(500).json({ error: "Failed" });
-    }
-  });
-
-  app.post("/api/gmail-helper/runs", async (req, res) => {
-    if (!hasInsightsToken(req)) return res.status(401).json({ error: "Unauthorised" });
-    const n = (v: unknown) => Math.max(0, Math.min(1000, Math.round(Number(v) || 0)));
-    try {
-      await getDb().collection("gmail_helper_runs").add({
-        checked: n(req.body?.checked),
-        replies: n(req.body?.replies),
-        reminders: n(req.body?.reminders),
-        summary: req.body?.summary === true,
-        note: oneLine(req.body?.note, 500),
-        createdAt: FieldValue.serverTimestamp(),
-      });
-      res.json({ ok: true });
-    } catch (error) {
-      console.error("Gmail helper run log failed:", error instanceof Error ? error.message : error);
-      res.status(500).json({ error: "Failed" });
-    }
-  });
+  };
+  app.get("/api/enquiries/contacts", helperRoute((db) => enquiryContacts(db)));
+  app.post("/api/enquiries/incoming", helperRoute(addEnquiryReply));
+  app.post("/api/gmail-helper/runs", helperRoute(logHelperRun));
 
   // Is the reply address a verified, active Brevo sender? The tab shows a warning if not.
   app.get("/api/enquiries/sender", async (req, res) => {
@@ -470,4 +406,63 @@ export function registerEnquiryRoutes(app: Express, { getDb, escapeHtml, oneLine
       res.json({ email, configured: true, verified: null });
     }
   });
+}
+
+// ---------- Gmail helper: an hourly scheduled Claude run reads Shane's Gmail and calls these ----------
+export class HelperError extends Error {}
+const line = (v: unknown, max: number) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, max);
+const recentDocs = async (db: Firestore, collection: string) => (await db.collection(collection).orderBy("createdAt", "desc").limit(300).get()).docs;
+
+// Enquirers' email addresses, so the run only searches Gmail for those.
+export async function enquiryContacts(db: Firestore) {
+  const emails = new Set<string>();
+  for (const c of Object.values(COLLECTIONS)) for (const d of await recentDocs(db, c)) {
+    const email = String(d.get("email") || "").trim().toLowerCase();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email !== OWNER_EMAIL) emails.add(email);
+  }
+  return { emails: [...emails] };
+}
+
+// Adds an enquirer's email reply to their most recent enquiry; it goes back to "To answer" and unread.
+export async function addEnquiryReply(db: Firestore, a: Record<string, unknown>) {
+  const from = line(a.email, 254).toLowerCase();
+  const gmailId = line(a.gmailId ?? a.gmail_id, 100);
+  const body = stripQuoted(String(a.body ?? "")).slice(0, 10000);
+  const receivedAt = new Date(String(a.receivedAt ?? a.received_at ?? ""));
+  if (!from || !gmailId || !body || isNaN(receivedAt.getTime())) throw new HelperError("Need email, gmail id, body and received time.");
+
+  let match: { kind: Kind; ref: DocumentReference; e: Enquiry; at: number } | null = null;
+  for (const [kind, c] of Object.entries(COLLECTIONS) as [Kind, string][]) {
+    for (const d of await recentDocs(db, c)) {
+      if (String(d.get("email") || "").trim().toLowerCase() !== from) continue;
+      const at = d.get("createdAt")?.toMillis?.() || 0;
+      if (!match || at > match.at) match = { kind, ref: d.ref, e: d.data() as Enquiry, at };
+    }
+  }
+  if (!match) return { matched: false };
+  if ((match.e.incoming || []).some((m) => m.gmailId === gmailId)) return { matched: true, duplicate: true, kind: match.kind, id: match.ref.id };
+
+  const gmailUrl = line(a.gmailUrl ?? a.gmail_url, 500);
+  const english = String(a.english ?? "").trim().slice(0, 10000);
+  const message: Incoming = {
+    subject: line(a.subject, 200) || "(no subject)",
+    body,
+    receivedAt: receivedAt.toISOString(),
+    gmailId,
+    ...(english ? { english } : {}),
+    ...(gmailUrl.startsWith("https://mail.google.com/") ? { gmailUrl } : {}),
+  };
+  await match.ref.set({ incoming: FieldValue.arrayUnion(message), status: "new", readAt: FieldValue.delete(), lastIncomingAt: message.receivedAt }, { merge: true });
+  console.log(`Email reply from ${from} added to ${match.kind} ${match.ref.id}`);
+  return { matched: true, kind: match.kind, id: match.ref.id, name: match.e.name || "" };
+}
+
+// What each run did, shown as a 7-day line in the Enquiries tab so Shane can judge if it's worth keeping.
+export async function logHelperRun(db: Firestore, a: Record<string, unknown>) {
+  const n = (v: unknown) => Math.max(0, Math.min(1000, Math.round(Number(v) || 0)));
+  await db.collection("gmail_helper_runs").add({
+    checked: n(a.checked), replies: n(a.replies), reminders: n(a.reminders), summary: a.summary === true,
+    note: line(a.note, 500), createdAt: FieldValue.serverTimestamp(),
+  });
+  return { ok: true };
 }
