@@ -169,7 +169,7 @@ export default function EnquiriesAdmin() {
                           {e.topic && <Badge>{TOPIC_LABEL[e.topic] || e.topic}</Badge>}
                           {e.draft && statusOf(e) === 'open' && <Badge gold>Draft ready</Badge>}
                         </span>
-                        <span className="block mt-1.5 text-sm text-black/55 line-clamp-2 break-words">{text}</span>
+                        <span className="mt-1.5 text-sm text-black/55 line-clamp-2 break-words">{text}</span>
                       </span>
                     </button>
                   </li>
@@ -430,7 +430,7 @@ function GmailHelperLog() {
       <Mail className="w-4 h-4 shrink-0 mt-0.5" />
       <p>
         <span className="font-semibold text-ink/80">Gmail helper, last 7 days:</span> {runs.length} checks, {sum('replies')} {sum('replies') === 1 ? 'reply' : 'replies'} brought in,{' '}
-        {sum('reminders')} {sum('reminders') === 1 ? 'reminder' : 'reminders'} added, {runs.filter(r => r.summary).length} morning summaries. Last check {last}.
+        {sum('reminders')} {sum('reminders') === 1 ? 'reminder' : 'reminders'} added, {runs.filter(r => r.summary).length} {runs.filter(r => r.summary).length === 1 ? 'morning summary' : 'morning summaries'}. Last check {last}.
       </p>
     </div>
   );
