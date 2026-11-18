@@ -190,6 +190,11 @@ service cloud.firestore {
       allow read, update: if isShane();
     }
 
+    // What each hourly Gmail helper run did (server/enquiries.ts). Shane reads; only the backend writes.
+    match /gmail_helper_runs/{runId} {
+      allow read: if isShane();
+    }
+
     // "Email me my result" leads from the site's tools (server/leads.ts). Shane reads them for the
     // leads-by-page summary in the Enquiries tab; only the backend writes.
     match /leads/{leadId} {
