@@ -13,6 +13,7 @@ import { registerCircleRoutes } from "./server/circle";
 import { registerInboxRoutes } from "./server/inbox";
 import { registerInboxMcpRoutes } from "./server/inboxMcp";
 import { registerInboxPushRoutes } from "./server/inboxPush";
+import { registerInboxSiriRoutes } from "./server/inboxSiri";
 import { registerEnquiryRoutes } from "./server/enquiries";
 import { registerStaffCheckRoutes } from "./server/staffCheck";
 
@@ -396,6 +397,7 @@ Reply with JSON only, no other text: {"approve": true or false, "reason": "a few
   registerInboxRoutes(app, { getDb: getCommentsDb });
   registerInboxMcpRoutes(app, { getDb: getCommentsDb });
   registerInboxPushRoutes(app, { getDb: getCommentsDb });
+  registerInboxSiriRoutes(app, { getDb: getCommentsDb });
 
   // ---- Photo publishing ----
   // The portal Photos tab saves photo choices to Firestore; publishing rebuilds the site so they go live.

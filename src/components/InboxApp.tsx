@@ -18,6 +18,7 @@ import {
 import { Connections } from './InboxConnect';
 import { PortalDrawer, PortalFrame, SHANE_NAV, useUnreadEnquiries, type NavKey } from './PortalNav';
 import { Notifications } from './InboxNotify';
+import { SiriSettings } from './InboxSiri';
 import { NoteEditor, plainPreview, type NoteEditorHandle } from './NoteEditor';
 import { preparePhoto, uploadPhoto, deletePhoto, photoPath, PhotoView, type PhotoDraft } from './InboxPhoto';
 import { PlacesSettings, placeMatches, useNearbyPlace, useSavedPlaces, type SavedPlace } from './InboxPlaces';
@@ -924,6 +925,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
       <FilterSettings areas={areas} counts={Object.fromEntries(areas.map(a => [a.id, items.filter(i => i.area === a.id && isOpen(i)).length]))} />
       <button onClick={exportAll} className="mt-5 w-full py-3 rounded-2xl bg-white border border-black/10 text-[15px] text-black/60 flex items-center justify-center gap-2"><Download className="w-4 h-4" /> Export everything (JSON + CSV)</button>
       <Notifications />
+      <SiriSettings />
       <Connections />
     </>
   );
