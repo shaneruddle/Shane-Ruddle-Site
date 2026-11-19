@@ -178,7 +178,7 @@ export interface BlogPost {
   metaDescription?: string;
   keywords?: string;
   body: string;
-  category: 'My Advice' | 'Property' | 'Car Rental' | 'Pattaya News';
+  category: 'My Advice' | 'Property' | 'Car Rental' | 'Golf' | 'Pattaya News';
   imageUrl?: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;

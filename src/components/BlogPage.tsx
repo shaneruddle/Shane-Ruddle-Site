@@ -71,7 +71,7 @@ interface BlogPageProps {
   onBack: () => void;
 }
 
-const CATEGORIES = ['All', 'My Advice', 'Property', 'Car Rental', 'Pattaya News'] as const;
+const CATEGORIES = ['All', 'My Advice', 'Property', 'Car Rental', 'Golf', 'Pattaya News'] as const;
 
 export default function BlogPage({ onBack }: BlogPageProps) {
   const [posts, setPosts] = useState<BlogPost[]>(filePosts);

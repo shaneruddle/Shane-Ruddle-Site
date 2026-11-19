@@ -1,7 +1,7 @@
 ---
 title: "The Day I Shot 64 at Royal Lakeside"
 description: "A Pattaya business owner and former golf pro on the best round of his life: eight under at Royal Lakeside, nine birdies, a bunker save, an unlucky bogey, and a caddy's words he'll never forget."
-category: My Advice
+category: Golf
 date: 2026-11-11
 ---
 

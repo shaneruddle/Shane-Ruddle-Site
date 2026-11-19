@@ -4,7 +4,7 @@
 //   ---
 //   title: What 15 years running a car rental in Pattaya taught me
 //   description: One or two sentences for Google and social previews (max ~155 characters).
-//   category: Car Rental            # My Advice | Property | Car Rental | Pattaya News
+//   category: Car Rental            # My Advice | Property | Car Rental | Golf | Pattaya News
 //   date: 2026-10-19                # publish date, YYYY-MM-DD
 //   updated: 2026-11-07             # optional: last real revision, shown as "Updated" and sent to Google
 //   image: /images/articles/x.webp  # optional

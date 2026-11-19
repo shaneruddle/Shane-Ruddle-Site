@@ -1,7 +1,7 @@
 ---
 title: "Golf in Pattaya: A Former PGA Pro's Honest Guide"
 description: "A former PGA teaching pro on golf in Pattaya: the must-play courses, best-value rounds, real costs, caddie tips, and why low season is the best time to play."
-category: My Advice
+category: Golf
 date: 2026-10-29
 ---
 
