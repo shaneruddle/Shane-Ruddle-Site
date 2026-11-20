@@ -203,9 +203,9 @@ export const VISAS: ThaiVisa[] = [
     name: "Thailand Privilege (Elite)",
     official: "Thailand Privilege Card (formerly Thailand Elite)",
     tagline: "Pay once, skip most of the paperwork, but you can't work",
-    metaTitle: "Thailand Privilege (Elite) Visa 2026: Prices and Who It Suits",
+    metaTitle: "Thailand Elite Visa Cost 2026: Privilege Prices from ฿650k",
     description:
-      "Thailand Privilege (formerly Elite) visa prices for 2026, from ฿650,000 for 5 years, and the costly mistake a friend of mine made with it. From a Pattaya business owner.",
+      "Thailand Elite visa cost in 2026: the Privilege card starts at ฿650,000 for 5 years. The tiers in baht, £, $ and €, and the costly mistake a friend made with it.",
     fromShane: true,
     glance: {
       stay: "5 to 20 years, depending on the package",

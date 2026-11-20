@@ -66,9 +66,13 @@ function hasPerson(s) {
   return s?.["@type"] === "Person" || s?.mainEntity?.["@type"] === "Person";
 }
 
+// Every English page's title and description, for llms.txt.
+const pageIndex = new Map();
+
 function page({ urlPath, title: fullTitle, description: fullDescription, body, ogType = "website", image = DEFAULT_OG_IMAGE, schemas = [], lang = "en" }) {
   const title = ssr.fitTitle(fullTitle);
   const description = ssr.fitDescription(fullDescription);
+  if (lang === "en") pageIndex.set(urlPath, { title: title.replace(/ \| Shane Ruddle$/, ""), description });
   const canonical = SITE_URL + (urlPath === "/" ? "/" : urlPath);
   const alternates = alternatesFor(urlPath);
   const head = [
@@ -774,6 +778,35 @@ ${articles.slice(0, 50).map((a) => `    <item>
 </rss>
 `;
 fs.writeFileSync(path.join(DIST, "rss.xml"), rss);
+
+// ---- llms.txt (plain-text map of the site for AI assistants: https://llmstxt.org) ----
+{
+  const line = (p) => {
+    const m = pageIndex.get(p);
+    return m ? `- [${m.title}](${SITE_URL}${p === "/" ? "/" : p}): ${m.description}` : null;
+  };
+  const under = (prefix) => [...pageIndex.keys()].filter((p) => p.startsWith(prefix + "/")).sort();
+  const sections = [
+    ["Start here", ["/about", "/guides", ...under("/guides"), "/move-to-thailand", "/cost-of-living-calculator"]],
+    ["Thai visas", [ssr.VISAS_PATH, ...under(ssr.VISAS_PATH)]],
+    ["Where to live in Pattaya", ["/areas", ...under("/areas"), ssr.SCHOOLS_PATH, ...under(ssr.SCHOOLS_PATH)]],
+    ["Questions readers asked me", ["/questions", ...under("/questions")]],
+    ["Tools and other guides", [...pageIndex.keys()].filter((p) => p !== "/" && !/^\/(articles|guides|areas|questions|thai-visas|international-schools-pattaya|about|privacy|terms|contact|newsletter|past-ventures|partner)(\/|$)/.test(p) && !["/move-to-thailand", "/cost-of-living-calculator"].includes(p)).sort()],
+    ["Articles", articles.map((a) => `/articles/${a.slug}`)],
+  ];
+  const seen = new Set();
+  const body = sections
+    .map(([name, paths]) => {
+      const lines = paths.filter((p) => !seen.has(p) && (seen.add(p), true)).map(line).filter(Boolean);
+      return lines.length ? `## ${name}\n\n${lines.join("\n")}` : "";
+    })
+    .filter(Boolean)
+    .join("\n\n");
+  fs.writeFileSync(
+    path.join(DIST, "llms.txt"),
+    `# Shane Ruddle\n\n> First-hand guides to living, retiring, working, buying property and running a business in Pattaya, Thailand, from Shane Ruddle, a British business owner who has lived in Pattaya for over 20 years and owns seven businesses there (property, hospitality and car rental). Prices are in Thai baht and checked as of ${ssr.RULES_AS_OF ?? "2026"}. A German edition is at ${SITE_URL}/de.\n\n${body}\n`,
+  );
+}
 
 // ---- sitemap.xml + robots.txt ----
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

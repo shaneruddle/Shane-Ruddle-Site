@@ -1,13 +1,25 @@
 ---
 title: "Pattaya vs Bangkok: Which Is Better to Live In?"
-description: "A Pattaya business owner of over 20 years on choosing between Pattaya and Bangkok: cost, rent, getting around, air and traffic, and who each city really suits."
+description: "Pattaya vs Bangkok: Pattaya is cheaper and better for families, retirees and starting a business. Bangkok wins for jobs and getting around without a car."
 category: My Advice
 date: 2026-11-03
+updated: 2026-11-20
 ---
 
 If I had to choose, I'd pick Pattaya over Bangkok. Bangkok is hectic, there's a lot of traffic, and we have the beach here. But if you're a working professional, Bangkok might be the better choice. It's a much bigger city, with far more jobs and a lot of international companies. It really depends on what you're looking for.
 
 > **What I'd do:** Pick Pattaya for a family, retirement or your own business, and Bangkok if you want a job working for someone else. Eating out costs about ฿300 to ฿350 a meal here against around ฿450 in Bangkok, but in Pattaya you'll need a car or a motorbike.
+
+## Pattaya vs Bangkok at a glance
+
+| | Pattaya | Bangkok |
+|---|---|---|
+| Cost of living | Cheaper | Higher, especially central areas |
+| Meal out | About ฿300 to ฿350 | Around ฿450 |
+| Rent | Generally lower | Oversupply keeps deals around, but central areas cost more |
+| Getting around | You need a car or motorbike | BTS and MRT, no car needed |
+| Air | Better | Worse, but not as bad as its reputation |
+| Best for | Families, retirees, starting a business | Jobs, younger people, nightlife |
 
 ## Which is cheaper?
 

@@ -123,14 +123,14 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     guide: [
       {
-        h: "What do you actually get with a 30-year lease?",
+        h: "What do you actually get with a 30-year leasehold?",
         p: [
-          "Thai law caps a lease at 30 years. Any lease over three years has to be registered at the Land Office, on the back of the Chanote, or it only counts for three years. Registered, it's one of the best-protected things a foreigner can hold here.",
+          "Thai law caps a lease, or leasehold, at 30 years. Any lease over three years has to be registered at the Land Office, on the back of the Chanote, or it only counts for three years. Registered, it's one of the best-protected things a foreigner can hold here.",
           "For the term you can live in it, rent it out and, if the contract allows, transfer it. You normally pay the whole 30 years up front, so in reality you're prepaying three decades of rent.",
         ],
       },
       {
-        h: "Is the “30+30” or “30+30+30” renewal legally binding?",
+        h: "Is the “30+30” or “30+30+30” leasehold renewal legally binding?",
         p: [
           "This is the part sellers lean on, and it's the part I'd ignore. The Land Office will only register 30 years at a time. The renewal is a promise in the contract, not part of the registered lease.",
           "If the same owner is still there in 30 years and happy to sign, fine. If they've died or sold, enforcing that promise against the new owner or the heirs is uncertain at best, and it would mean court. So treat the renewal as a bonus, never as part of what you're paying for.",
@@ -180,8 +180,8 @@ export const QUESTIONS: ShaneQuestion[] = [
     ],
     articles: ["buying-a-house-in-pattaya", "foreign-ownership-99-year-leases-and-condo-quota", "buying-a-condo-in-pattaya", "biggest-mistakes-property-buyers-make-in-pattaya"],
     next: TOOLS.rentals("lease"),
-    metaTitle: "Is a 30-Year Lease Safe in Thailand? 30+30 Renewals Explained",
-    metaDescription: "A 30-year lease in Thailand is well protected, but the 30+30 renewal often isn't. What you get, what happens at year 30, costs, and checks before you sign.",
+    metaTitle: "Thailand 30-Year Leasehold: Is the 30+30 Renewal Safe?",
+    metaDescription: "A Thai leasehold is capped at 30 years. The registered 30 is well protected; the 30+30 renewal often isn't. Year 30, costs and checks before you sign.",
   },
   {
     slug: "buying-property-in-thai-spouses-name",

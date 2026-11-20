@@ -379,6 +379,9 @@
 .markdown-body td { padding: 0.7em 0.8em; border-bottom: 1px solid rgb(0 0 0 / 0.08); vertical-align: top; }
 .markdown-body tbody tr:last-child td { border-bottom: 0; }
 .markdown-body td:first-child { min-width: 11rem; }
+/* Narrow comparison tables (3 columns or fewer) fit the phone screen instead of scrolling. */
+.markdown-body table:not(:has(th:nth-child(4))) { min-width: 0; }
+.markdown-body table:not(:has(th:nth-child(4))) td:first-child { min-width: 0; width: 28%; font-weight: 500; color: var(--color-ink, #111); }
 .markdown-body strong { color: var(--color-ink); font-weight: 600; }
 
 /* Inbox note pages: rich text (see NoteEditor.tsx). */

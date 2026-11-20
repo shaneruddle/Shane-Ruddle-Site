@@ -8,6 +8,7 @@ import { QUESTIONS_PATH, questionsForArticle } from "../lib/questions";
 import { handleLinkClick } from "../lib/navigation";
 import { topicForArticle } from "./AskShane";
 import { AskOffer } from "./AskNudge";
+import { relatedFor } from "../lib/relatedArticles";
 
 export interface ArticleViewProps {
   title: string;
@@ -33,6 +34,7 @@ export default function ArticleView({ title, body, category, createdAt, updatedA
   const readMinutes = Math.max(1, Math.ceil(body.split(/\s+/).length / 200));
   const guide = guideForArticle(slug);
   const asked = slug ? questionsForArticle(slug).slice(0, 4) : [];
+  const more = relatedFor(slug);
   const updated =
     updatedAt && createdAt && formatArticleDate(updatedAt) !== formatArticleDate(createdAt) && updatedAt > createdAt
       ? `Updated ${formatArticleDate(updatedAt)}`
@@ -103,6 +105,46 @@ export default function ArticleView({ title, body, category, createdAt, updatedA
             </span>
             <span aria-hidden className="text-gold text-3xl transition-transform group-hover:translate-x-1">→</span>
           </a>
+        )}
+
+        {more && (more.related.length > 0 || more.newer || more.older) && (
+          <nav aria-label="Keep reading" className="mt-16">
+            {more.related.length > 0 && (
+              <>
+                <h2 className="font-serif text-2xl md:text-3xl mb-5">Keep reading</h2>
+                <ul className="grid sm:grid-cols-3 gap-4">
+                  {more.related.map((r) => (
+                    <li key={r.slug}>
+                      <a
+                        href={`/articles/${r.slug}`}
+                        onClick={handleLinkClick}
+                        className="group block h-full p-5 rounded-2xl border border-black/10 hover:border-gold-deep transition-colors"
+                      >
+                        <span className="block font-serif text-lg leading-snug text-ink group-hover:text-gold-deep transition-colors">{r.title}</span>
+                        <span className="block mt-2 text-sm text-black/55 font-light leading-relaxed line-clamp-3">{r.description}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {(more.newer || more.older) && (
+              <div className="mt-6 grid sm:grid-cols-2 gap-4 text-sm">
+                {more.older ? (
+                  <a href={`/articles/${more.older.slug}`} onClick={handleLinkClick} className="group block">
+                    <span className="block text-[11px] uppercase tracking-widest text-black/40">← Previous article</span>
+                    <span className="block mt-1 text-ink group-hover:text-gold-deep transition-colors">{more.older.title}</span>
+                  </a>
+                ) : <span />}
+                {more.newer && (
+                  <a href={`/articles/${more.newer.slug}`} onClick={handleLinkClick} className="group block sm:text-right">
+                    <span className="block text-[11px] uppercase tracking-widest text-black/40">Next article →</span>
+                    <span className="block mt-1 text-ink group-hover:text-gold-deep transition-colors">{more.newer.title}</span>
+                  </a>
+                )}
+              </div>
+            )}
+          </nav>
         )}
 
         <aside className="mt-20 p-8 md:p-10 bg-[#F8F8F8] rounded-[2rem] flex flex-col sm:flex-row items-start gap-6">

@@ -35,7 +35,7 @@ export { FILE_ARTICLES } from "../lib/fileArticles";
 export { GUIDES, GUIDES_META } from "../lib/guides";
 export { CALCULATOR_FAQS, CALCULATOR_PATH } from "../lib/costOfLiving";
 export { AREAS, AREAS_META, AREAS_FAQS } from "../lib/areas";
-export { VISAS, VISAS_META, VISAS_FAQS, VISAS_PATH, RULES_CHECKED } from "../lib/visas";
+export { VISAS, VISAS_META, VISAS_FAQS, VISAS_PATH, RULES_CHECKED, RULES_AS_OF } from "../lib/visas";
 export { MOVE_PATH, MOVE_META, MOVE_FAQS } from "../lib/movePlan";
 export { COUNTRIES, countryPath } from "../lib/countries";
 export { QUESTIONS, QUESTIONS_META, QUESTIONS_PATH, ANSWERS_AS_OF, questionMeta } from "../lib/questions";

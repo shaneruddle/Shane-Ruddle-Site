@@ -1,6 +1,7 @@
 ---
 title: "Cannabis in Pattaya: From Boom to Bust"
-description: "What happened when Thailand legalised cannabis, seen from Pattaya: dozens of shops, smoke outside restaurants, and why the crackdown enforced the original aim."
+seoTitle: "Is Weed Legal in Pattaya? The Cannabis Rules Now (2026)"
+description: "Is weed legal in Pattaya? Not for fun any more: since 2025 you need a prescription to buy cannabis, and smoking in public can cost up to ฿25,000."
 category: Pattaya News
 date: 2026-11-07
 ---
