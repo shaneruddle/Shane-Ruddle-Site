@@ -40,4 +40,4 @@ In practice, that means giving proper notice, handing over properly, and having 
 
 In a small place like Pattaya, every job is also a reference for the next one. Treat it that way, and if something does go wrong, be honest about it. Being upfront won't always get you the job, but being caught hiding something almost certainly won't.
 
-See also: [finding a job in Pattaya](/articles/finding-a-job-in-pattaya) and [in Pattaya, you never know when you'll meet again](/articles/in-pattaya-you-never-know-when-youll-meet-again).
+See also: [finding a job in Pattaya](/articles/finding-a-job-in-pattaya) and [in Pattaya, you never know when you'll meet again](/articles/in-pattaya-you-never-know-when-youll-meet-again). If you're looking for work, see [working in Pattaya](/work-in-pattaya).

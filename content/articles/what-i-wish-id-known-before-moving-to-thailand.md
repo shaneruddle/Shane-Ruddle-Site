@@ -49,3 +49,5 @@ It depends on your finances, of course. If you have a passive income from home, 
 That's not to knock the West, and it isn't true of everywhere or everyone. But for me, the way of life here is so good compared with the rat race back home.
 
 If you're planning the move, start with [living in Pattaya](/articles/living-in-pattaya), [Is Pattaya Expensive?](/articles/is-pattaya-expensive) and [visas in Pattaya](/articles/thai-visas-in-pattaya). And for how my own story unfolded, read [from bar manager to seven businesses](/articles/bar-manager-to-7-businesses).
+
+And before you trust anyone's advice, mine included, read [who should you take Thailand advice from?](/articles/who-should-you-take-thailand-advice-from)

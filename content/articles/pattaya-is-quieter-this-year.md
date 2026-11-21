@@ -41,3 +41,7 @@ But most people don't read the article. They see the headline. Collectively, and
 The city can fairly argue that events do work. They bring in big crowds and spending, and they keep Pattaya in the news for the right reasons. And the government would say these policies protect Thailand's long-term interests, even if the short-term headlines aren't pretty.
 
 I'd just like to see the good reasons explained as loudly as the rules themselves. More in [where Pattaya is heading](/articles/where-pattaya-is-heading) and [Pattaya's high season is getting shorter](/articles/pattayas-high-season-is-getting-shorter).
+
+For the national picture, read [Thailand's tourism numbers aren't the whole story. Safety is.](/articles/thailands-tourism-numbers-arent-the-whole-story-safety-is)
+
+For what's being built and what's coming, see [Pattaya's future timeline](/pattaya-future).

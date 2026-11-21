@@ -34,3 +34,5 @@ The mistake I see most agents make is being reactive. They join us and think: gr
 She flips that. Her attitude is: here's the platform, here are the foundations, here's a reputable company behind me, and here's what I'm supposed to do. Then she cracks on.
 
 That applies to anyone in any business, not just property. The company can give you the tools, but nobody can do the work for you. Take control of it. Be proactive over reactive. Be more like her. More in [working as a property agent in Pattaya](/articles/working-as-a-property-agent-in-pattaya) and [what makes a good manager in Pattaya](/articles/what-makes-a-good-manager-in-pattaya).
+
+For the buyer's side of the relationship, read [don't blame the agent when the seller says no](/articles/dont-blame-the-agent-when-the-seller-says-no), and for what happens when agencies share a deal, [the co-broke that left a bitter taste](/articles/the-co-broke-that-left-a-bitter-taste).

@@ -26,3 +26,5 @@ Falling prices. If condo prices started coming down, I'd worry. From what I see 
 When one group of buyers fades, another seems to appear. After the war in Ukraine began, many Russians moved money out of Russia and parked it in Pattaya condos. That has eased off over the last couple of years, but new buyers keep arriving from other parts of the world, often people looking for somewhere stable away from conflict at home.
 
 And even when buyers visit less than they planned, they rarely sell. Owning a place in another country sits well with people, even if it stays empty eleven months of the year.
+
+For the best-known unfinished building in town, read [what the Waterfront condo teaches off-plan buyers](/articles/what-the-waterfront-condo-teaches-off-plan-buyers).

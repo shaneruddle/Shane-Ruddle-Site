@@ -42,3 +42,5 @@ As a ballpark, budget around ฿20,000 a month. Across East Coast Real Estate an
 For what each neighbourhood is like, see [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya) or my [area finder](/areas), and for the rest of your monthly budget, [Is Pattaya Expensive?](/articles/is-pattaya-expensive) If you're thinking of buying instead, read [buying a condo in Pattaya as a foreigner](/articles/buying-a-condo-in-pattaya).
 
 When you're ready to look, [East Coast Real Estate](https://thaiproperty.com) can show you what's available.
+
+Before you sign, read [what living with condo neighbours is really like](/articles/living-with-condo-neighbours-in-pattaya) and [why renting direct can leave you with nowhere to go](/articles/renting-direct-in-pattaya).

@@ -34,3 +34,5 @@ My third tip: picture yourself a month after selling at a loss. Will you be happ
 ## Be realistic
 
 Selling a business in Pattaya is rarely about getting what it's worth to you. It's about finding the one buyer who wants it and making a deal you can live with. More in [why the restaurant business is the toughest I've been in](/articles/why-the-restaurant-business-is-the-toughest).
+
+For two harder cases, read [why it's so hard to sell a business that isn't making money](/articles/why-its-hard-to-sell-a-business-that-isnt-making-money) and [when you sell a business, you don't own what happens next](/articles/when-you-sell-a-business-you-dont-own-what-happens-next).

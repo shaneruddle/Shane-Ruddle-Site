@@ -66,4 +66,6 @@ Hiring help at home? Read [hiring a maid in Pattaya](/articles/hiring-a-maid-in-
 
 Looking for work yourself? Read [finding a job in Pattaya as a foreigner](/articles/finding-a-job-in-pattaya).
 
+And on why I hire locally on experience, read [in Pattaya, nobody really notices](/articles/in-pattaya-nobody-really-notices).
+
 Want more stories like this? [Join my newsletter](/newsletter).

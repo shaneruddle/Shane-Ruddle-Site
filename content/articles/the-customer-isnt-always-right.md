@@ -28,3 +28,5 @@ I don't think the saying was ever meant literally, but plenty of business owners
 ## Protect your staff
 
 Your staff run the business. A company is just a collection of people, and they're the most important ones in it. If you always side with the customer over your staff, especially when the customer is wrong, you won't have staff for long. More in [what makes a good manager in Pattaya](/articles/what-makes-a-good-manager-in-pattaya). Also read [when people find out I'm the owner after a bad experience](/articles/when-people-find-out-im-the-owner-after-a-bad-experience).
+
+For a recent example, read [some customers aren't worth keeping](/articles/some-customers-arent-worth-keeping).

@@ -38,3 +38,5 @@ The one we used to love was the Centara in Naklua, which also has Lost World, a 
 For shopping, read [shopping in Pattaya](/articles/shopping-in-pattaya), and for the famous strip, [Walking Street Pattaya](/articles/walking-street-pattaya).
 
 To get around, read [what I tell every Pattaya Rent a Car customer about driving here](/articles/driving-in-pattaya). For timing your trip, see [the best time to visit Pattaya](/articles/best-time-to-visit-pattaya), and for families, [is Pattaya good for families?](/articles/is-pattaya-good-for-families)
+
+If you just want to put your feet up for half an hour, read about [the massage chairs popping up across Pattaya](/articles/are-massage-chairs-a-risk-to-thailands-masseuses).

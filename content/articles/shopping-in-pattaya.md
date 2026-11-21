@@ -25,7 +25,7 @@ You have to go at least once. It's the biggest market in Pattaya and an experien
 
 ## Should you haggle?
 
-These days, more stalls put the price on the product, which I prefer, and then there's less room to haggle. If there's no price, then yes, haggle. Assume the first price they give you is them trying it on, and you can normally get a better deal.
+These days, more stalls put the price on the product, which I prefer, and then there's less room to haggle. If there's no price, then yes, [haggle](/articles/why-ive-stopped-haggling-in-thailand). Assume the first price they give you is them trying it on, and you can normally get a better deal.
 
 ## What about fake designer goods?
 
@@ -35,4 +35,4 @@ You don't see them nearly as much as you used to. The days of stalls everywhere 
 
 Enjoy the malls and the night market for what they are, a few hours out, but don't plan a trip around shopping. Spend the money on the food, the beaches and the day trips instead.
 
-For more, read [things to do in Pattaya](/articles/things-to-do-in-pattaya), [is Pattaya expensive?](/articles/is-pattaya-expensive) and [getting around Pattaya](/articles/getting-around-pattaya).
+For more, read [things to do in Pattaya](/articles/things-to-do-in-pattaya), [is Pattaya expensive?](/articles/is-pattaya-expensive) and [getting around Pattaya](/articles/getting-around-pattaya). And if your feet need a break after the markets, here's why I've become a convert to [the ฿60 massage chairs in the malls](/articles/are-massage-chairs-a-risk-to-thailands-masseuses).

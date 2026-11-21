@@ -41,3 +41,5 @@ Here's an example. Say a customer has a minor scrape and decides to handle it al
 For when the roads are worst, read [Pattaya traffic](/articles/pattaya-traffic).
 
 If you're visiting and want a car, [Pattaya Rent a Car](https://pattayarentacar.com) can help. And if you're heading out for golf, here's my [guide to golf in Pattaya](/articles/golf-in-pattaya).
+
+On why so many drivers here never learned properly, read [why Thailand doesn't have proper driving tests](/articles/why-thailand-doesnt-have-proper-driving-tests).

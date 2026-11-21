@@ -31,4 +31,4 @@ I was walking around Chatuchak Market in Bangkok recently and noticed that most 
 
 So haggling matters less than it used to. And when you do get the chance, it's worth asking whether the saving really means more to you than it does to them.
 
-See also: [cultural mistakes to avoid in Thailand](/articles/cultural-mistakes-in-thailand) and [is Pattaya expensive?](/articles/is-pattaya-expensive)
+See also: [cultural mistakes to avoid in Thailand](/articles/cultural-mistakes-in-thailand) and [is Pattaya expensive?](/articles/is-pattaya-expensive). If you want to know whether a price is fair, try my [fair price checker](/pattaya-prices).

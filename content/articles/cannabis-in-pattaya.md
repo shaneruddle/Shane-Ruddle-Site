@@ -35,3 +35,5 @@ Today most of those shops have gone. I'd say we're down from 30 or 40 to fewer t
 Know the rules before you do anything, because they've changed and they're now enforced. Recreational use isn't permitted: licensed shops can only sell with a prescription from a practitioner, and smoking in public can get you a heavy fine. Don't bring any into the country either, even from somewhere it's legal.
 
 And remember the smell travels. In one condo I stayed in, a neighbour was told not to smoke in his room, so he moved to his balcony, and with the wind blowing the wrong way you could smell it in the rooms above. The building now has signs up everywhere, as many do.
+
+More on that side of condo life in [living with condo neighbours in Pattaya](/articles/living-with-condo-neighbours-in-pattaya).

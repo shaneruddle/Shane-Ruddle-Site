@@ -44,3 +44,5 @@ I found one with rooms right next door. With the exchange rate back then, it was
 I was enjoying myself far too much to go home. I had family in the UK, but I hadn't started a career. I knew that if I went back, I'd end up with a career, a mortgage and eventually kids, and I'd never do it. I was lucky to have no ties, excuse the pun, so I stayed as long as I could.
 
 Then I got a job, and it went from there. That first job was at 15 Palms on Koh Chang, but that's a story for another day. More in [Koh Chang from Pattaya](/articles/koh-chang-from-pattaya), [what I'd tell my younger self](/articles/what-id-tell-my-younger-self) and [the day I shot 64 at Royal Lakeside](/articles/the-day-i-shot-64-at-royal-lakeside).
+
+Before any of that, there was [the ring of fire on Koh Phangan that changed Thailand for me](/articles/the-ring-of-fire-that-changed-thailand-for-me).

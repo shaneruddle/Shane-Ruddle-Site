@@ -61,4 +61,6 @@ Would I do it all again? Absolutely. I'd do plenty of it differently, starting w
 
 If you're thinking of starting or buying a business in Pattaya, read [what I tell everyone who asks](/articles/starting-or-buying-a-business-in-pattaya) or try my [business reality check](/business-in-pattaya), and if you want to swap notes, [get in touch](/contact).
 
+If you're working for someone else and want to make the same jump, read [from employee to owner: it doesn't happen overnight](/articles/from-employee-to-owner).
+
 Want more stories like this? [Join my newsletter](/newsletter).

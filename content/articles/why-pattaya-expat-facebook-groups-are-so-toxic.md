@@ -34,3 +34,5 @@ If you feel you have to reply, remember who you're really talking to. Don't try 
 ## My advice to newcomers
 
 Join them. There's useful information on there, it's a good way to find out what's going on, and you'll find some valid points of view. But take everything with a pinch of salt, and look at who is commenting rather than just what they're saying. More in [my first month in Pattaya](/articles/first-month-in-pattaya), [making friends in Pattaya](/articles/making-friends-in-pattaya) and [why some expats turn bitter about Thailand](/articles/why-some-expats-turn-bitter-about-thailand).
+
+Before you take anything on there as gospel, read [who should you take Thailand advice from?](/articles/who-should-you-take-thailand-advice-from)

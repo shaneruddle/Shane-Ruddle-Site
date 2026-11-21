@@ -55,4 +55,6 @@ From 12 cars at a driving range to nearly a hundred on the road, Pattaya Rent a 
 
 If you're visiting Pattaya and need a car, [come and see us at Pattaya Rent a Car](https://pattayarentacar.com).
 
+Trust doesn't always work out: read [the rental car left at the Malaysian border](/articles/the-rental-car-left-at-the-malaysian-border) and [the romance scam that cost us a truck](/articles/the-romance-scam-that-cost-us-a-truck).
+
 Want more stories like this? [Join my newsletter](/newsletter).

@@ -35,4 +35,4 @@ The numbers, for prices, taxis and markets. That said, most Thais can do numbers
 
 After that, the basic courtesies: please, thank you, excuse me and the other everyday niceties. As I wrote in [the cultural mistakes foreigners make in Thailand](/articles/cultural-mistakes-in-thailand), even a little Thai shows people you're not just a tourist.
 
-For more, read [what I wish I'd known before moving to Thailand](/articles/what-i-wish-id-known-before-moving-to-thailand) and [retiring in Pattaya](/articles/retiring-in-pattaya).
+For more, read [what I wish I'd known before moving to Thailand](/articles/what-i-wish-id-known-before-moving-to-thailand) and [retiring in Pattaya](/articles/retiring-in-pattaya). And for how simple instructions still get lost, read [seven newspapers and the wrong Green Valley](/articles/seven-newspapers-and-the-wrong-green-valley).

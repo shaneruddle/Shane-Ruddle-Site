@@ -25,4 +25,6 @@ If you think AI is too complicated or not relevant to your business, think back 
 
 Start simple. Just chat with ChatGPT or Claude, try their voice mode, and use them to search for things. The point at first isn't to automate anything. It's to understand what AI can do and how quickly things are changing.
 
+For what this means for young people starting out, read [why Gen Z is angry](/articles/why-gen-z-is-angry). And not everything should be automated: read [why I won't put digital ordering screens in my restaurants](/articles/why-i-wont-put-digital-screens-in-my-restaurants).
+
 Next in this series: [the biggest mistakes people make with AI](/articles/biggest-mistakes-people-make-with-ai) and [AI for property agents](/articles/ai-for-property-agents-in-pattaya). And for the people side, [getting my staff to use AI](/articles/getting-my-staff-to-use-ai).

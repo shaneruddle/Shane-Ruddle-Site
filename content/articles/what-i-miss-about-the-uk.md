@@ -41,4 +41,4 @@ None of this means I want to go back. I don't miss grey skies for months at a ti
 
 If you're thinking of moving to Thailand, expect to miss some odd things. For me, it's not the big things. It's cold mornings, a decent ready meal, and a pint at the club after a round.
 
-See also: [why everyone who leaves Thailand comes back](/articles/why-everyone-who-leaves-thailand-comes-back).
+See also: [why everyone who leaves Thailand comes back](/articles/why-everyone-who-leaves-thailand-comes-back). And on the time of year I miss home most, read [Christmas in Pattaya](/articles/christmas-in-pattaya).

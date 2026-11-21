@@ -46,3 +46,5 @@ If getting the club and the yardage right matters to you, work it out yourself. 
 Absolutely, and for golf I'd pick it over [Phuket](/articles/pattaya-vs-phuket). It's different from most places. The caddie culture isn't unique to Thailand, but Pattaya is a great place to experience it. Choose the right days and courses and golf here is very reasonable, and at certain times of year you'll have the course almost to yourself. If you fancy a golf trip further afield, the courses around [Kanchanaburi](/articles/kanchanaburi-from-pattaya) are beautiful and excellent value.
 
 If you're coming out for golf and need a car to get to the courses, [Pattaya Rent a Car](https://pattayarentacar.com) can help.
+
+For more on golf here, read why I think [caddies in Thailand should be optional](/articles/caddies-in-thailand-should-be-optional) and [how a monthly golf day built my business network](/articles/how-a-monthly-golf-day-built-my-business-network).

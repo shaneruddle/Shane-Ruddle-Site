@@ -25,4 +25,6 @@ I work on a multiple of two to four times annual profit. Where a business sits i
 
 The longer a business has been going, the bigger its customer base usually is and the more it has proved it can last. A place that's been trading for many years is worth closer to four times profit. A newer one, with less of a track record, is worth closer to two.
 
+If the business is losing money, read [why it's so hard to sell a business that isn't making money](/articles/why-its-hard-to-sell-a-business-that-isnt-making-money).
+
 This is part of my series on buying a business in Pattaya: [why buy rather than start](/articles/why-buy-a-business-in-pattaya), how to value a business, [leases, landlords and paperwork](/articles/business-leases-and-landlords-in-pattaya) and [taking over: the first few months](/articles/taking-over-a-business-in-pattaya). For the basics, including foreign ownership rules, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya).

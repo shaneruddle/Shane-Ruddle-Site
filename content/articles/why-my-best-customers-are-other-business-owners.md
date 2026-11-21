@@ -34,3 +34,5 @@ What they want is to be treated with respect, and to have their own friendliness
 Now I think about it, it isn't just Pattaya Rent a Car. The customers we most like serving in the restaurants, and the clients we most enjoy working with in property, so often turn out to run businesses of their own.
 
 My guess is that they know what it takes. They know what it's like to deal with the public, to pay staff and to keep the lights on. So they're patient, they're fair, and they want you to succeed. If you run a business, it's worth remembering that the next time you're on the other side of the counter. More in [how I run seven businesses](/articles/how-i-run-seven-businesses).
+
+The opposite is the customer who name-drops me for a discount. More in [real friends don't ask for a discount](/articles/real-friends-dont-ask-for-a-discount).

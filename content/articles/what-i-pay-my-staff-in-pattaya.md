@@ -35,4 +35,4 @@ Wages are set by the local market, like anywhere else. Paying what's fair here, 
 
 I understand why the numbers surprise people. But the right question isn't "would I live on that back home?" It's "is this fair for here, and is it a good job by local standards?" That's the standard I try to hold myself to.
 
-See also: [managing Thai staff](/articles/managing-thai-staff) and [hiring and firing in Pattaya](/articles/hiring-and-firing-in-pattaya).
+See also: [managing Thai staff](/articles/managing-thai-staff) and [hiring and firing in Pattaya](/articles/hiring-and-firing-in-pattaya). And on the bonus that nearly got me punched, read [the day I almost got beaten up by my staff member's boyfriend](/articles/the-day-i-almost-got-beaten-up-by-my-staff-members-boyfriend). If you'd like to work for one of my businesses, see [working in Pattaya](/work-in-pattaya).

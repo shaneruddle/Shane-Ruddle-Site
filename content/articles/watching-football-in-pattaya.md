@@ -30,4 +30,4 @@ For a really big match, yes, if there are a few of you. On your own you don't ne
 
 Every bar has better and worse spots, too, so if you want one of the good ones, booking is definitely worth it.
 
-For more, read [running a restaurant and bar in Pattaya](/articles/running-a-restaurant-and-bar-in-pattaya) and [a night out in Pattaya beyond Walking Street](/articles/nightlife-in-pattaya).
+For more, read [running a restaurant and bar in Pattaya](/articles/running-a-restaurant-and-bar-in-pattaya) and [a night out in Pattaya beyond Walking Street](/articles/nightlife-in-pattaya). If you'd rather play, read [playing football in Pattaya](/articles/playing-football-in-pattaya).

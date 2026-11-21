@@ -36,3 +36,5 @@ Most of all, I think there'll be a lot more clarity, and that's the key.
 ## The other side
 
 This is speculation. Thailand hasn't announced any plan to raise the 49% condo quota or change land ownership as part of joining the OECD, and accession doesn't require a country to let foreigners own land. The crackdown can also be explained simply: enforcing laws that were already there. And some people argue that Thai property should stay mainly in Thai hands, whatever the OECD says. More in [the Pattaya property market](/articles/pattaya-property-market).
+
+For what's happening in the courts, read [the Hua Hin nominee cases](/articles/the-hua-hin-nominee-cases).

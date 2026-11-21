@@ -35,3 +35,5 @@ The pace is another one. Here it's very much "tomorrow, tomorrow". In the West, 
 Try to [learn some of the language](/articles/learning-thai). You don't need to be fluent. Basic Thai won't earn you special respect or different treatment, but it tells people around you that you're not a tourist. You've chosen Thailand and settled here. It just makes living here that little bit easier.
 
 For the visa side, read [visas in Pattaya](/articles/thai-visas-in-pattaya) or my page on the [retirement visa](/thai-visas/retirement-visa), and for where to live, [the best area to live in Pattaya](/articles/best-area-to-live-in-pattaya). Don't forget [healthcare and insurance](/articles/healthcare-in-pattaya) either, or [making friends](/articles/making-friends-in-pattaya).
+
+If you're still working here, read [your retirement is your responsibility](/articles/your-retirement-is-your-responsibility).

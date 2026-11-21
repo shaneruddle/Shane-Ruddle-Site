@@ -44,3 +44,5 @@ I welcome competition, and I don't much mind how close it is. As long as people 
 My old boss, Dave, runs the Sportsman on Soi 13. He had the chance to buy the restaurant right opposite, which was really his only competition on that street. I convinced him to do it. My pitch was simple: if you don't buy it and someone else does, and they do a better job than you, they'll take some of your market share. Even if it's a bit too much work right now, it's the wise move.
 
 He bought it, and I know he doesn't regret it. More in [from bar manager to 7 businesses](/articles/bar-manager-to-7-businesses) and [valuing a business in Pattaya](/articles/valuing-a-business-in-pattaya).
+
+The latest example is coffee: read [why coffee shops are the new beer bars in Pattaya](/articles/coffee-shops-are-the-new-beer-bars-in-pattaya).

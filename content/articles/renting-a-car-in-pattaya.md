@@ -38,3 +38,5 @@ Some customers say it wasn't their fault: they were just driving along. That's t
 Go to a reputable company. It's a no-brainer. I don't understand why anyone would save a few thousand baht by renting from someone whose core business isn't car rental. If you break down or have an accident in the middle of nowhere, and the person you rented from has no experience dealing with it, I can assure you you'll wish you'd gone to a proper company.
 
 If you'd like a car, [Pattaya Rent a Car](https://pattayarentacar.com) can help. For more, read [driving in Pattaya](/articles/driving-in-pattaya), [buying vs renting a car in Thailand](/articles/buying-vs-renting-a-car-in-thailand) and [the best day trips from Pattaya](/articles/best-day-trips-from-pattaya).
+
+On why we sometimes turn customers away, read [first impressions work both ways](/articles/first-impressions-work-both-ways).

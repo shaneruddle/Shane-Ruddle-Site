@@ -48,4 +48,4 @@ There are real arguments against. Many Thais worry about jobs, rising property p
 
 None of the options is ideal. But if births keep falling, Thailand will need more young, settled people from somewhere. Families who want to make a life here, and whose children already think of it as home, are the obvious place to start.
 
-See also: [is Pattaya good for families?](/articles/is-pattaya-good-for-families) and [where Pattaya is heading](/articles/where-pattaya-is-heading).
+See also: [is Pattaya good for families?](/articles/is-pattaya-good-for-families) and [where Pattaya is heading](/articles/where-pattaya-is-heading). On the young people already here, read [why Gen Z is angry](/articles/why-gen-z-is-angry). If you're moving with children, start with my [international schools chooser](/international-schools-pattaya).

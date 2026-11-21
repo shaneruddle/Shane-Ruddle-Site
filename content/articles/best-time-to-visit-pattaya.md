@@ -31,3 +31,5 @@ Not bad at all. On a typical day it rains for less than 45 minutes, and within a
 You can get unlucky. Some visitors hit a two-week spell with heavy rain and occasional flooding. But that's the exception, not the rule.
 
 Whenever you come, getting around is easier with your own wheels: read [what I tell every Pattaya Rent a Car customer about driving here](/articles/driving-in-pattaya). If golf is on the plan, low season is great value too: see my [guide to golf in Pattaya](/articles/golf-in-pattaya).
+
+If you're coming in high season, read [the unwritten rules first-timers don't know](/articles/high-season-in-pattaya-the-unwritten-rules), and if it's over the festive period, [what Christmas in Pattaya is really like](/articles/christmas-in-pattaya).

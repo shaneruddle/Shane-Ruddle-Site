@@ -39,3 +39,5 @@ Most of the time I stay friendly with the people I let go. I've even rehired a f
 ## My rule: hire slow, fire fast
 
 Take your time hiring, and don't be won over by a good interview. When it's clearly not working, act quickly. And don't hire someone hoping they'll change; it's [one mistake I'd never make again](/articles/things-id-never-do-again-in-business). More in [hiring foreign staff in Pattaya](/articles/hiring-foreign-staff-in-pattaya).
+
+On hiring on experience and nothing else, read [in Pattaya, nobody really notices](/articles/in-pattaya-nobody-really-notices). And for why explaining any change to pay matters, read [the day I almost got beaten up by my staff member's boyfriend](/articles/the-day-i-almost-got-beaten-up-by-my-staff-members-boyfriend).

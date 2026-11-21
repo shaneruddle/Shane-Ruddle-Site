@@ -47,4 +47,4 @@ Thailand is a wonderful place to visit and to live. But the roads are chaotic an
 
 Expect the unexpected, and get home safely.
 
-See also: [driving in Pattaya](/articles/driving-in-pattaya) and [my tips for the road in Pattaya](/articles/my-tips-for-the-road-in-pattaya).
+See also: [driving in Pattaya](/articles/driving-in-pattaya) and [my tips for the road in Pattaya](/articles/my-tips-for-the-road-in-pattaya). And for what I think the city should do about it, read [Pattaya needs barriers at its pedestrian crossings](/articles/pattaya-needs-barriers-at-its-pedestrian-crossings).

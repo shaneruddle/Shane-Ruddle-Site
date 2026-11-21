@@ -35,4 +35,4 @@ We've had angry customers over the years who missed out on their dream property.
 - **A real office.** Somewhere you can walk in and sit down.
 - **Social proof.** Check their reviews, their website and their social media, the same way you'd check any company.
 
-More in [the Pattaya property market](/articles/pattaya-property-market) and [off-plan vs resale condos](/articles/off-plan-vs-resale-condos-in-pattaya).
+More in [the Pattaya property market](/articles/pattaya-property-market) and [off-plan vs resale condos](/articles/off-plan-vs-resale-condos-in-pattaya). And if a seller turns down your terms, read [don't blame the agent when the seller says no](/articles/dont-blame-the-agent-when-the-seller-says-no).

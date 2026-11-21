@@ -27,4 +27,4 @@ The spice. Thai food is naturally spicy, and even if you eat spicy food back hom
 
 Definitely try Thai food. It's something I wish I'd done more. I like my creature comforts, and the restaurants I go to often offer Western food too, so I usually pick that. But if you get into Thai food, it's one of the best cuisines in the world, right up there with Indian and Mexican.
 
-For more, read [where a restaurant owner eats in Pattaya](/articles/where-a-restaurant-owner-eats-in-pattaya) and [eating healthily in Pattaya](/articles/eating-healthily-in-pattaya).
+For more, read [where a restaurant owner eats in Pattaya](/articles/where-a-restaurant-owner-eats-in-pattaya) and [eating healthily in Pattaya](/articles/eating-healthily-in-pattaya). Once you're ready for the carts, read [Pattaya's street food carts](/articles/pattayas-street-food-carts).

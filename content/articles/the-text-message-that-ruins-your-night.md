@@ -36,3 +36,5 @@ Talking about it helps sometimes too, depending on who you talk to. But mostly i
 ## If you're in the middle of one
 
 If you've just had that message and you're lying awake, you probably don't have the full picture yet. Get the facts, make a plan, and give it a few days. It's very likely not as bad as it feels tonight. More in [why the owner isn't the best person to fix your problem](/articles/why-the-owner-isnt-the-best-person-to-fix-your-problem) and [do I ever switch off?](/articles/do-i-ever-switch-off)
+
+And for when it's more than one bad night, read [some days I feel like jacking it all in](/articles/some-days-i-feel-like-jacking-it-all-in).

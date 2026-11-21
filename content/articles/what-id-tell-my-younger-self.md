@@ -32,3 +32,5 @@ Coming here was one of the best decisions I've ever made, even though I never re
 I often tell people that if they love a month or two here as tourists, living here is even better. As a tourist everything is new, but you don't really know your way around or how things work. Living here has its downsides, but on the whole it just keeps getting better.
 
 For the rest of my story, read [from bar manager to seven businesses](/articles/bar-manager-to-7-businesses) and [what I wish I'd known before moving to Thailand](/articles/what-i-wish-id-known-before-moving-to-thailand). And for the advice others gave me, read [the best business advice I've been given](/articles/best-business-advice-ive-been-given).
+
+One night I'd warn him about is in [the ring of fire that changed Thailand for me](/articles/the-ring-of-fire-that-changed-thailand-for-me).

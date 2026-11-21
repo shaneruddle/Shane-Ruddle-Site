@@ -6,7 +6,7 @@ date: 2026-11-01
 updated: 2026-11-07
 ---
 
-If you live in Thailand and you're here to stay, get a Thai driving licence. With your licence from home, there's no driving test: you watch a video and do a few quick physical tests at the licence office. An agent will hold your hand through it for around ฿2,500 to ฿3,000. As the owner of a car rental company, I get asked about Thai driving licences a lot. Here's how it works.
+If you live in Thailand and you're here to stay, get a Thai driving licence. With your licence from home, there's [no driving test](/articles/why-thailand-doesnt-have-proper-driving-tests): you watch a video and do a few quick physical tests at the licence office. An agent will hold your hand through it for around ฿2,500 to ฿3,000. As the owner of a car rental company, I get asked about Thai driving licences a lot. Here's how it works.
 
 ## When do you need a Thai licence?
 

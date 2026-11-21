@@ -36,3 +36,5 @@ But projects do fail. The best-known example here is the Waterfront tower on Bea
 ## Pick a developer with a track record
 
 Go with a reputable developer that has several finished projects behind it, such as the Riviera Group, Global Top Group or Raimon Land. A developer with no history is more likely to run late or not finish at all.
+
+For what can go wrong even with a finished building, read [what the Waterfront condo teaches off-plan buyers](/articles/what-the-waterfront-condo-teaches-off-plan-buyers).

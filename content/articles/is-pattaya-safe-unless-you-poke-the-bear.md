@@ -34,3 +34,5 @@ There's another side to it too. In my experience, consequences don't always foll
 If you just walk away from situations and take the high road, you'll almost never have any trouble here.
 
 That takes practice, especially when you're not the one in the wrong. Someone cuts you up, flicks litter, or pushes in, and every instinct says to call it out. Don't. Let it go, and get on with your day. More in [cultural mistakes in Thailand](/articles/cultural-mistakes-in-thailand), [my tips for the road in Pattaya](/articles/my-tips-for-the-road-in-pattaya) and [how my mindset in Thailand has changed](/articles/how-my-mindset-in-thailand-has-changed).
+
+For the other side of this, read [why some expats get away with being bullies](/articles/why-some-expats-get-away-with-being-bullies).

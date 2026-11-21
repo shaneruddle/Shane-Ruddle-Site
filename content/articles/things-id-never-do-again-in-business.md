@@ -38,3 +38,5 @@ I've hired people believing they were where they were through bad luck, or becau
 ## One I break: stick to what you know
 
 I'd tell most people without business experience to stick to what they know. Funnily enough, I've gone into businesses I knew nothing about several times and done well. I feel I've got enough experience now to learn the ropes of almost anything quickly. But if you're starting out, stick to what you know. For other people's mistakes, read [the worst business deals I've seen in Pattaya](/articles/worst-business-deals-ive-seen-in-pattaya).
+
+For the ventures that didn't work at all, read [my business failures](/articles/my-business-failures).

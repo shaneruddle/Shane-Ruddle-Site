@@ -40,3 +40,5 @@ Don't believe everything you're told. Don't assume someone knows more about how 
 If you come across someone with a good reputation for being honest in business, don't throw that away because something feels off or someone else tells you otherwise. Don't assume the worst of people, but don't assume the best of them either.
 
 If you're buying a business, check the lease properly: how long it runs, whether it's registered, and what happens if the building is sold. More in [business leases and landlords in Pattaya](/articles/business-leases-and-landlords-in-pattaya) and [valuing a business in Pattaya](/articles/valuing-a-business-in-pattaya).
+
+More in [three landlord tricks every business owner should know](/articles/three-landlord-tricks-every-business-owner-in-pattaya-should-know), and for another buyer who blamed me, [when you sell a business, you don't own what happens next](/articles/when-you-sell-a-business-you-dont-own-what-happens-next).

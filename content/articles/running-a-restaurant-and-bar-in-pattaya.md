@@ -40,3 +40,5 @@ Don't go it alone. Team up with somebody who's already doing it, or has done it 
 For the wider picture, read my advice on [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya), how I went [from bar manager to seven businesses](/articles/bar-manager-to-7-businesses), and [where a restaurant owner eats in Pattaya](/articles/where-a-restaurant-owner-eats-in-pattaya).
 
 Want to work in the trade rather than own a business? Read [working in hospitality in Pattaya](/articles/working-in-hospitality-in-pattaya). For the drinking-hours side, read [alcohol rules in Thailand](/articles/alcohol-rules-in-thailand).
+
+On card fees, read [should restaurants charge extra for credit cards?](/articles/should-restaurants-charge-extra-for-credit-cards), and on technology, [why I won't put digital ordering screens in my restaurants](/articles/why-i-wont-put-digital-screens-in-my-restaurants).

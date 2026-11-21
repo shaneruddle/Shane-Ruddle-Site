@@ -23,7 +23,7 @@ The biggest change was around the greens. A lot of greens here are elevated. In 
 
 The greens here are very grainy. You can read a putt as breaking right to left, but if the grain runs the other way it holds the ball up. You only really learn that with local knowledge.
 
-That's where caddies come in. In the UK we don't have them. Here, they're compulsory at most courses. For higher handicappers, a caddy definitely helps. At my level, the main help was reading those grainy greens, and a good caddy is worth their weight in gold.
+That's where caddies come in. In the UK we don't have them. Here, [they're compulsory at most courses](/articles/caddies-in-thailand-should-be-optional). For higher handicappers, a caddy definitely helps. At my level, the main help was reading those grainy greens, and a good caddy is worth their weight in gold.
 
 Unfortunately, most aren't good. Many are just bag carriers, which is fine. They're someone to chat to, and you can practise a bit of Thai with them, which is fun at first. But a poor caddy can make for a long, dull round.
 

@@ -40,3 +40,5 @@ It depends on the business. In a restaurant with foreign customers, I think you 
 If customers aren't spending hours building a relationship with the place, I'd lean towards a Thai manager. They're cheaper to hire and cheaper to let go if it doesn't work out, and a really good one is extremely loyal. That's not me being unfair, it's how the market works. The minimum wage in Chonburi is ฿400 a day, roughly ฿10,000 to ฿12,000 a month, while a foreigner's work permit generally requires a salary of at least ฿50,000. You can pay either more, of course, but foreign staff generally cost much more.
 
 So it comes down to the type of business and your appetite for salaries. More in [hiring foreign staff in Pattaya](/articles/hiring-foreign-staff-in-pattaya) and [why good managers are hard to find](/articles/why-good-managers-are-hard-to-find-in-pattaya).
+
+For actual numbers, read [what I pay my staff in Pattaya](/articles/what-i-pay-my-staff-in-pattaya).

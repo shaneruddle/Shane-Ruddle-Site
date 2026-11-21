@@ -50,3 +50,5 @@ In a restaurant or bar, the main way to grow your pay is a profit share. I offer
 If you're settled here and looking, [send me your CV](/work-in-pattaya). I know a lot of owners who are often hiring.
 
 This is the first in a series on working in Pattaya. Next, read [teaching English in Pattaya](/articles/teaching-english-in-pattaya) [working in hospitality in Pattaya](/articles/working-in-hospitality-in-pattaya) [working remotely in Pattaya](/articles/working-remotely-in-pattaya) and [setting up your own business](/articles/setting-up-a-business-in-pattaya). For more, read [hiring foreign staff in Pattaya](/articles/hiring-foreign-staff-in-pattaya) and [visas in Pattaya](/articles/thai-visas-in-pattaya).
+
+Once you're working here, read [why messing up a job makes the next one much harder](/articles/mess-up-a-job-in-pattaya) and [why your retirement is your responsibility](/articles/your-retirement-is-your-responsibility).

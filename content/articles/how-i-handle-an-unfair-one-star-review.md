@@ -26,3 +26,5 @@ Like I always do, I wrote my reply for everyone reading it, not just for him. I 
 It's like someone seeing fish and chips on the menu at ฿350, asking to pay ฿150, then leaving one star because you said no. Thankfully it's only a very small percentage of customers.
 
 **Check the reviewer's history.** I always look at what else they've reviewed. It's amazing how often someone who leaves us one star has given one star to almost everyone. More in [the customer isn't always right](/articles/the-customer-isnt-always-right) and [why my best customers are other business owners](/articles/why-my-best-customers-are-other-business-owners).
+
+And sometimes a bad review is a price worth paying: read [some customers aren't worth keeping](/articles/some-customers-arent-worth-keeping).

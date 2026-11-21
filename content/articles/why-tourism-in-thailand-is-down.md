@@ -49,3 +49,5 @@ I'd also run campaigns on safety, because Thailand is extremely safe, certainly 
 Ups and downs are normal, even in a good year. Ride out the lows, aim to break even, make the most of the high season, and save some of that money for the next quiet spell.
 
 Years ago I bumped into another business owner who was also very quiet. He told me he quite enjoyed it, because it gave him time to do all the jobs in his business he never usually had time for. That's always stuck with me. Don't waste the quiet times. Use them. More in [how my businesses got through COVID](/articles/how-my-businesses-got-through-covid). One fix that keeps being floated is a casino resort; here's [why I don't think it will happen](/articles/casinos-in-pattaya).
+
+For the latest figures and why safety matters most, read [Thailand's tourism numbers aren't the whole story](/articles/thailands-tourism-numbers-arent-the-whole-story-safety-is).

@@ -32,3 +32,5 @@ In restaurants, it's a staffing problem. When a lot of people arrive in a short 
 ## Why it matters
 
 Any business wants a fairly steady cycle, a bit up and a bit down. Huge swings make it very hard to manage. My advice: book early if you're visiting over the peak, and if you run a business here, plan for a short, intense high season and a long quiet one. More in [the best time to visit Pattaya](/articles/best-time-to-visit-pattaya).
+
+If you're visiting in the busy months, read [high season in Pattaya: the unwritten rules](/articles/high-season-in-pattaya-the-unwritten-rules).

@@ -34,3 +34,5 @@ We had one just recently at one of my venues. A group of four came in, and one o
 ## Don't let it get to you
 
 If you recognise yourself in any of this, stop looking outward. Take responsibility, remember why you came, and change the way you think about the things you can't change. More in [living in Pattaya](/articles/living-in-pattaya) and [why Pattaya's expat Facebook groups are so toxic](/articles/why-pattaya-expat-facebook-groups-are-so-toxic). For my own turnaround, read [how my mindset in Thailand has changed](/articles/how-my-mindset-in-thailand-has-changed), and for the opposite of bitter, [what I admire about some expats](/articles/what-i-admire-about-some-expats).
+
+And if you're tempted to leave, read [why everyone who leaves Thailand comes back](/articles/why-everyone-who-leaves-thailand-comes-back).

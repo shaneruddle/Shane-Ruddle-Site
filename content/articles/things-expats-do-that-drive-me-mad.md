@@ -28,3 +28,5 @@ Fair play to anyone who tries to speak Thai. But it annoys me when someone's Tha
 If you're at a beach bar or on Koh Chang, I get it. But in Pattaya, even close to the beach, it doesn't take much to work out which restaurants are fine with no shirt and which aren't. Most aren't. It's mainly men.
 
 Last week in Terminal 21 I saw a young foreign woman walking round the shopping centre in a bikini. That's a major no-no here, especially with families and children around and people eating. Nobody said anything, because Thais are very tolerant and avoid confrontation, so she probably had no idea. But plenty of people would have been thinking it was inappropriate. More in [cultural mistakes in Thailand](/articles/cultural-mistakes-in-thailand).
+
+And for the ones who push their luck further, read [why some expats get away with being bullies](/articles/why-some-expats-get-away-with-being-bullies).

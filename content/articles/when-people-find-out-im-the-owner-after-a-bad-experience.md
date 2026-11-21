@@ -42,3 +42,5 @@ If you have multiple businesses or a lot of staff, you have to shrug a lot of it
 Food in particular is very individual. Ten people can order exactly the same meal, and two of them might not like it. Maybe they chose the wrong dish, didn't realise what they were ordering, or something else was affecting how it tasted. So take a lot of feedback, not all of it, with a pinch of salt.
 
 I'd like to think people who've been here a while understand that I can't possibly know everything that goes on in my businesses, or be responsible for everyone's actions. More in [how I handle an unfair one-star review](/articles/how-i-handle-an-unfair-one-star-review) and [the customer isn't always right](/articles/the-customer-isnt-always-right).
+
+And on the people who use my name to ask for money off, read [real friends don't ask for a discount](/articles/real-friends-dont-ask-for-a-discount).

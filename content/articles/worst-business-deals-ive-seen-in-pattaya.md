@@ -30,3 +30,5 @@ It looks like poor judgement of character, but really it's not knowing people we
 Take it slow and don't rush into anything. Ask around. Work out who the person is before you worry about the deal they're offering.
 
 I'd go further: back the person, not the idea. If you find someone with a reputation for being trustworthy, that's who you should invest or start a business with, even if their idea isn't brilliant. A trustworthy person with an average idea is a far better bet than someone with a fantastic idea and no track record of being trusted. A good idea can be fixed. A bad partner can't. For what I'd do with the money instead, read [what I'd do with ฿1 million in Pattaya](/articles/what-id-do-with-1-million-baht-in-pattaya).
+
+For a broker who learned the hard way, read [the broker who ripped off his future competitor](/articles/the-broker-who-ripped-off-his-future-competitor).

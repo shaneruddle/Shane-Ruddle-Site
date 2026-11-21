@@ -33,4 +33,4 @@ For smaller restaurants and bars, it's all networking. As I wrote in [finding a 
 
 Even if they're happy with their staff and not hiring, they'll know someone who is, sooner or later. So leave them something: your number on a piece of paper, or a copy of your CV. I guarantee that as the months go by, you'll get a call.
 
-For more, read [running a restaurant and bar in Pattaya](/articles/running-a-restaurant-and-bar-in-pattaya), [managing Thai staff](/articles/managing-thai-staff) and [from bar manager to seven businesses](/articles/bar-manager-to-7-businesses).
+For more, read [running a restaurant and bar in Pattaya](/articles/running-a-restaurant-and-bar-in-pattaya), [managing Thai staff](/articles/managing-thai-staff) and [from bar manager to seven businesses](/articles/bar-manager-to-7-businesses). If you'd like to own a business one day, read [from employee to owner](/articles/from-employee-to-owner), and if a job doesn't work out, read [how to leave it the right way](/articles/mess-up-a-job-in-pattaya).

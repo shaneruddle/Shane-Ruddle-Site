@@ -37,4 +37,4 @@ That's lower than the 10% many people aim for, and I think it's down to convenie
 
 Tipping isn't compulsory here, but it's appreciated, and it's part of how things work in Pattaya. If the service is good, around 10% in a restaurant is about right. If you want a particular person to get it, hand it to them directly.
 
-See also: [high season in Pattaya: the unwritten rules first-timers don't know](/articles/high-season-in-pattaya-the-unwritten-rules) and [running a restaurant and bar in Pattaya](/articles/running-a-restaurant-and-bar-in-pattaya).
+See also: [high season in Pattaya: the unwritten rules first-timers don't know](/articles/high-season-in-pattaya-the-unwritten-rules) and [running a restaurant and bar in Pattaya](/articles/running-a-restaurant-and-bar-in-pattaya). To check what things should cost before you go, use my [fair price checker](/pattaya-prices).

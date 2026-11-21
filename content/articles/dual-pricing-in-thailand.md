@@ -28,3 +28,5 @@ What's perfectly normal is giving a discount to a certain group. At Hemingways L
 I don't think it stops anyone coming. If dual pricing alone stops you visiting a country, maybe you need to take a look at yourself. But it leaves a sour taste, a bit like the long immigration queue when you first arrive. It's not a good first impression, and it's one more small thing on top of everything else. More in [why tourism in Thailand is down](/articles/why-tourism-in-thailand-is-down).
 
 For me it's a PR problem more than anything. Thailand can look after its own taxpayers without it, so it's completely unnecessary. It's on my list in [if I were mayor of Pattaya](/articles/if-i-were-mayor-of-pattaya) too.
+
+On other pricing questions, read [should restaurants charge extra for credit cards?](/articles/should-restaurants-charge-extra-for-credit-cards) and [why I've stopped haggling in Thailand](/articles/why-ive-stopped-haggling-in-thailand).

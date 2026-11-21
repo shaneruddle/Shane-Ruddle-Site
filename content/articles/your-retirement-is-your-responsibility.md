@@ -45,4 +45,4 @@ The crux of it is this. When you build your life in Thailand, the responsibility
 
 I'm not a financial adviser, and this isn't financial advice. It's just what I've seen in 20-odd years here.
 
-See also: [do retirees leave Pattaya?](/articles/do-retirees-leave-pattaya) and [is Pattaya expensive?](/articles/is-pattaya-expensive)
+See also: [do retirees leave Pattaya?](/articles/do-retirees-leave-pattaya) and [is Pattaya expensive?](/articles/is-pattaya-expensive). To see what life here costs month to month, try my [cost of living calculator](/cost-of-living-calculator).

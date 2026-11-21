@@ -37,4 +37,4 @@ A generic coffee shop is very competitive, and there's a good chance it will fai
 
 The beer bar was the easy way into business in Pattaya. The coffee shop is the new version, but it's only worth doing if you give people a reason to choose yours.
 
-See also: [why the restaurant business is the toughest](/articles/why-the-restaurant-business-is-the-toughest) and [setting up a business in Pattaya](/articles/setting-up-a-business-in-pattaya).
+See also: [why the restaurant business is the toughest](/articles/why-the-restaurant-business-is-the-toughest) and [setting up a business in Pattaya](/articles/setting-up-a-business-in-pattaya). Before you sign a lease, run your idea through my [business reality check](/business-in-pattaya).

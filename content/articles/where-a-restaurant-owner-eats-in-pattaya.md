@@ -36,3 +36,5 @@ As a restaurant owner, these are the three things I notice.
 For what eating out costs as part of everyday life here, see [Is Pattaya Expensive?](/articles/is-pattaya-expensive), and for the business side of restaurants, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya).
 
 New to Thai food? Read [what to try first](/articles/thai-food-for-newcomers).
+
+And if you're wondering what to leave, read [tipping in Pattaya](/articles/tipping-in-pattaya).

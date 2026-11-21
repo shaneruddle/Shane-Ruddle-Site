@@ -47,3 +47,5 @@ If you rent a condo in Thailand, expect thin walls and some noise, and expect to
 - **The Tourist Police (1155) or police (191)** if things escalate
 
 There's always a path to peace. Use it.
+
+To pick the right part of town before you choose a building, see my [Pattaya areas guide](/areas).

@@ -48,3 +48,5 @@ Getting bad advice, whether from an estate agent or sometimes even a lawyer. The
 There are real risks. Get a second opinion, and don't assume that advice is sound just because it comes from a lawyer.
 
 If you'd rather own something outright, a condo is the route the law allows foreigners. I've covered that in [buying a condo in Pattaya as a foreigner](/articles/buying-a-condo-in-pattaya). And if you're looking for a house to rent, [East Coast Real Estate](https://thaiproperty.com) can show you what's available. On whether the rules should change, read [99-year leases and the condo quota](/articles/foreign-ownership-99-year-leases-and-condo-quota).
+
+If you're buying with a Thai wife or girlfriend, read [buying a house in Thailand with a Thai partner](/articles/buying-a-house-in-thailand-with-a-thai-partner) first.

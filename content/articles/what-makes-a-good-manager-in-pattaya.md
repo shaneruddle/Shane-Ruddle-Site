@@ -37,4 +37,4 @@ I can understand the temptation to go over the top. With a child who runs across
 
 Be adaptable, give the staff time to trust you, earn their respect by growing the business, and keep a level head, even when it's hard.
 
-For more, read [why good managers are hard to find in Pattaya](/articles/why-good-managers-are-hard-to-find-in-pattaya) and [hiring and firing](/articles/hiring-and-firing-in-pattaya).
+For more, read [why good managers are hard to find in Pattaya](/articles/why-good-managers-are-hard-to-find-in-pattaya) and [hiring and firing](/articles/hiring-and-firing-in-pattaya). On who pays when staff get it wrong, and why written procedures matter, read [what I've only just learned about my staff's mistakes](/articles/i-only-just-learned-this-about-my-staffs-mistakes).

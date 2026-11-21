@@ -12,7 +12,7 @@ Kanchanaburi, west of Bangkok, is a must if you love history, and a lovely trip 
 
 It's about three and a half to four hours' drive from Pattaya. I've done it by minibus and by car, and I'd rent a car.
 
-The last time I took a minibus, the driver went too fast all the way there and all the way back. That's common here. Minibus drivers in Thailand tend to drive aggressively and always seem to be in a rush, probably because the sooner they arrive, the sooner they can pick up the next fare. A really good driver can double as a guide, but that's rare. I just don't feel safe in them, and I prefer the freedom to go at my own pace and change the plan for the day.
+The last time I took a minibus, [the driver went too fast all the way there and all the way back](/articles/minibuses-in-thailand-speak-up). That's common here. Minibus drivers in Thailand tend to drive aggressively and always seem to be in a rush, probably because the sooner they arrive, the sooner they can pick up the next fare. A really good driver can double as a guide, but that's rare. I just don't feel safe in them, and I prefer the freedom to go at my own pace and change the plan for the day.
 
 You also need a car once you're there, because the sights are spread out.
 

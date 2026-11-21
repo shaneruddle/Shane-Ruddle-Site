@@ -42,3 +42,5 @@ But so is your downside. Your staff get paid whether the month was good or bad. 
 That's the real point. Over the year, the business has to make sure the owner takes home a lot more than the employees. That isn't greed. It's payment for all the unwritten expenses and the unwritten risk that nobody sees, and that employees understandably never think about.
 
 If you're running a business and that isn't happening, something needs to change. And if you're an employee wondering why the owner takes so much, it's because they're the one carrying the risk when things go wrong. More in [paying for my staff's mistakes](/articles/paying-for-my-staffs-mistakes).
+
+For the days it all feels too much, read [some days I feel like jacking it all in](/articles/some-days-i-feel-like-jacking-it-all-in).

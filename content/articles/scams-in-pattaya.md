@@ -48,3 +48,5 @@ So now I don't lend money. I'm honest about it. I tell people I've been asked be
 ## My advice: don't believe everything you hear
 
 People come and go in Pattaya, and a lot of stories get told. Many people arrive with a past nobody knows about, so it's easy to reinvent yourself. I think it starts in the bars, telling stories to Thais, who tend to be trusting, and it carries over when they meet other foreigners. Most of the stories are harmless, but some aren't. Just don't believe everything you hear.
+
+Some scams are real, though. Read [the romance scam that cost us a truck](/articles/the-romance-scam-that-cost-us-a-truck) and [what happened when we tried to get it back](/articles/trying-to-get-our-stolen-truck-back).

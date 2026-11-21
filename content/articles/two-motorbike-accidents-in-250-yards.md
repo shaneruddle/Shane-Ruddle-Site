@@ -41,4 +41,4 @@ If you've never ridden a motorbike before, don't learn in Thailand. And even if 
 
 I've written before about [crossing the road](/articles/expect-the-unexpected-crossing-the-road-in-pattaya) and about [minibuses](/articles/minibuses-in-thailand-speak-up). This is the same story. Thailand is a wonderful place, but the roads are where it can go badly wrong. If you're not experienced, don't ride. If you do, ride as if every car on the road hasn't seen you.
 
-See also: [my tips for the road in Pattaya](/articles/my-tips-for-the-road-in-pattaya).
+See also: [my tips for the road in Pattaya](/articles/my-tips-for-the-road-in-pattaya). And on the next risk coming, read [if electric motorbikes take off in Thailand](/articles/if-electric-motorbikes-take-off-in-thailand).

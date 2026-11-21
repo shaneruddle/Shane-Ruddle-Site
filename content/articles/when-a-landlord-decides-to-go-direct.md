@@ -41,4 +41,4 @@ For that, the landlord keeps our contract and a middleman to deal with problems,
 
 The trouble is, a lot of owners and tenants don't think about any of this until the problems start. By then, it's usually too late.
 
-More on [renting a condo in Pattaya](/articles/renting-a-condo-in-pattaya).
+More on [renting a condo in Pattaya](/articles/renting-a-condo-in-pattaya). And for why a good agent is really a mediator, read [sometimes it's better to pay to keep the peace](/articles/sometimes-its-better-to-pay-to-keep-the-peace).

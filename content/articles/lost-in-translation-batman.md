@@ -32,3 +32,5 @@ In every one of my businesses, there's a foreign manager who runs things and han
 ## My advice
 
 Assume you don't know the full picture, because you probably don't. Have someone you trust on the team who understands the language and the culture, and listen to them. It will save you a lot of confusion, and maybe a good member of staff. More in [what makes a good manager in Pattaya](/articles/what-makes-a-good-manager-in-pattaya) and [managing foreign staff vs Thai staff](/articles/managing-foreign-staff-vs-thai-staff).
+
+For two more, one funny and one not, read [seven newspapers and the wrong Green Valley](/articles/seven-newspapers-and-the-wrong-green-valley).

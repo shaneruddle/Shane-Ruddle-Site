@@ -26,3 +26,5 @@ There are people everywhere. The pavements are full of stalls and tents you have
 But it's Thailand, and it feels alive. After a few days of near-silence in China, walking back into the noise of Bangkok felt like coming home.
 
 I'm sure Thailand will go electric eventually, and the air will be better for it. I just hope it never gets so quiet that it loses that buzz, the kind you get from [Pattaya's baht buses](/articles/pattayas-baht-buses) and [street food carts](/articles/pattayas-street-food-carts).
+
+I've written more about what that silence could mean on Thai roads in [if electric motorbikes take off in Thailand, make them noisy](/articles/if-electric-motorbikes-take-off-in-thailand).

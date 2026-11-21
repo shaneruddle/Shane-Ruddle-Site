@@ -45,3 +45,5 @@ They market themselves. We found early on that leads agents generate themselves 
 Be patient, and understand as much as you can about the industry before you decide, because it's very different from what you probably imagine. Talk to other agents, Thai and foreign, and get a real sense of what the business involves.
 
 If you're interested in working with us, get in touch with [Alan Bolton Property Consultants](https://pattaya-property.net) or [East Coast Real Estate](https://thaiproperty.com). For more, read [the Pattaya property market right now](/articles/pattaya-property-market) and [hiring foreign staff in Pattaya](/articles/hiring-foreign-staff-in-pattaya).
+
+If you're thinking of opening your own, read [why starting a real estate agency is harder than it looks](/articles/why-starting-a-real-estate-agency-is-harder-than-it-looks), and for what rival owners won't tell you, [friendly but guarded](/articles/friendly-but-guarded).

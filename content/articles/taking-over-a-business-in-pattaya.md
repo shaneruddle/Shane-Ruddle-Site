@@ -45,4 +45,6 @@ The businesses advertised on Facebook or through agents usually aren't the best 
 
 If you're new and those opportunities aren't coming your way, get to know other business owners. Friends you play padel with are great for other reasons, but if you want to buy a business here, the people who hear about the quiet sales are other owners. And if you're the one thinking of selling, [here's how I buy businesses quietly](/business-in-pattaya/sell-your-business).
 
+If you're wondering why property agencies rarely handle these deals, read [why my agencies have never sold businesses](/articles/why-my-agencies-have-never-sold-businesses).
+
 This is part of my series on buying a business in Pattaya: [why buy rather than start](/articles/why-buy-a-business-in-pattaya), [how to value a business](/articles/valuing-a-business-in-pattaya), [leases, landlords and paperwork](/articles/business-leases-and-landlords-in-pattaya) and taking over: the first few months. For the basics, including foreign ownership rules, read [starting or buying a business in Pattaya](/articles/starting-or-buying-a-business-in-pattaya).

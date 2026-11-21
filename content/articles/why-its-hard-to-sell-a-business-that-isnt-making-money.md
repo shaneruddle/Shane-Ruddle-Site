@@ -37,3 +37,5 @@ It isn't deceitful. If I offer a partnership, I genuinely mean it. But once you'
 ## The lesson
 
 If you're selling a business that's struggling, expect it to be hard, and expect some of the hardest part to be in your own head. Start quietly, with people you trust, and only go public when you have to. More in [why the restaurant business is the toughest I've been in](/articles/why-the-restaurant-business-is-the-toughest).
+
+If you're thinking of selling, read my page on [selling your business in Pattaya](/business-in-pattaya/sell-your-business).

@@ -56,3 +56,5 @@ Some people lend their Thai partners the money for their shares. My view is that
 Supporters of the crackdown say the rules exist to keep Thai land in Thai hands, and that nominee structures have pushed up prices and skirted the law for decades. Lawyers point out that "nobody has lost their house yet" isn't a legal defence, and that penalties can include fines and prison. Both are fair points, and why anyone in this position should get proper advice.
 
 For my theory on why this is happening now, read [is the nominee crackdown really about the OECD?](/articles/is-the-nominee-crackdown-really-about-the-oecd)
+
+For the latest court cases, read [the Hua Hin nominee cases](/articles/the-hua-hin-nominee-cases), and for why the uncertainty is the real worry, [the scariest part of Thai law](/articles/the-scariest-part-of-thai-law).

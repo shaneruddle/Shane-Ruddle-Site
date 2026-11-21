@@ -39,3 +39,5 @@ I think the next couple of years will be uncertain, and a lot of people are hold
 Long term, though, I think Pattaya has an awful lot of growth in it. (More in [where Pattaya is heading](/articles/where-pattaya-is-heading).) There's still a lot of development going on, plenty of empty plots still to be developed, and derelict or underused buildings now being knocked down and redeveloped.
 
 If you're buying, read my guide to [buying a condo in Pattaya](/articles/buying-a-condo-in-pattaya). If you're selling, read [selling a condo in Pattaya](/articles/selling-a-condo-in-pattaya), and if you're letting, [renting out your condo](/articles/renting-out-your-condo-in-pattaya). To register what you're looking for, contact [Alan Bolton Property Consultants](https://pattaya-property.net) or [East Coast Real Estate](https://thaiproperty.com). And if you're worried about all the new building, read [is Pattaya overbuilt?](/articles/is-pattaya-overbuilt)
+
+For why buyers have gone quiet, read [confidence has gone from Thailand's property market](/articles/confidence-has-gone-from-thailands-property-market).

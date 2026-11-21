@@ -21,3 +21,5 @@ I can still switch off partly, and travel is how I do it. They say a change is a
 ## The double-edged sword
 
 The phone, the notifications and the internet are the reason I can never fully switch off. They're also the reason I can travel at all. Because I can work from anywhere, I can go away or change location far more often than I could if I had to be in Pattaya to keep things running. More in [how I run seven businesses](/articles/how-i-run-seven-businesses).
+
+AI has made that harder in a way I didn't expect: read [AI took the boring work, and my brain lost its rest](/articles/ai-took-the-boring-work-and-my-brain-lost-its-rest).

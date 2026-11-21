@@ -38,4 +38,4 @@ Do try a motorbike taxi and a baht bus at least once, just for the experience. Y
 
 If you're staying longer, say a month, and want to explore, renting a car is the best option. [Pattaya Rent a Car](https://pattayarentacar.com) can help.
 
-For more, read [scooter or car in Pattaya](/articles/scooter-or-car-in-pattaya), [Bangkok airport to Pattaya](/articles/bangkok-airport-to-pattaya) and [is Pattaya safe?](/articles/is-pattaya-safe)
+For more, read [scooter or car in Pattaya](/articles/scooter-or-car-in-pattaya), [Bangkok airport to Pattaya](/articles/bangkok-airport-to-pattaya) and [is Pattaya safe?](/articles/is-pattaya-safe). For my honest view of the [baht buses](/articles/pattayas-baht-buses), and how to get a minibus driver to slow down, read [speak up or end up in a ditch](/articles/minibuses-in-thailand-speak-up).
