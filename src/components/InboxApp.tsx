@@ -8,7 +8,7 @@ import {
 import {
   Loader2, Sun, Hourglass, Plus, Pin, Settings, Mic, ListChecks, SlidersHorizontal, Search, ArrowUp, Check, Lightbulb, StickyNote, Flag, Repeat as RepeatIcon,
   MapPin, GripVertical, Bell, CalendarDays, User, ChevronLeft, ChevronRight, X, Sparkles, Scissors, RotateCcw, Archive, Trash2, CloudOff, Cloud, Download, LogOut, History, Folder, HeartHandshake, Images,
-  Camera, Menu, LayoutDashboard, MessageCircle, Activity, Globe, BookOpen, MessageCircleQuestion, Building2, ArrowUpRight,
+  Camera, Menu, LayoutDashboard, MessageCircle, Activity, Globe, BookOpen, MessageCircleQuestion, Building2, ArrowUpRight, Link2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { bkkToday, bkkNowTime, addDays, nextDue, repeatLabel, type Repeat, type RepeatFreq } from '../../server/reminderDates';
@@ -89,6 +89,9 @@ const AREA_BRANDS: [RegExp, string, string][] = [
 const shortName = (a: Area) => a.short || a.name;
 // How many Today entries the home card shows before "+N more".
 const TODAY_CARD_ROWS = 6;
+// Web links in an item's words, so they can be tapped (the text boxes themselves can't hold links).
+const linksIn = (...texts: (string | null | undefined)[]) => [...new Set(texts.join('\n').match(/https?:\/\/[^\s<>"]+/g) || [])].map(u => u.replace(/[.,;:!?)\]]+$/, ''));
+const linkLabel = (u: string) => { try { const x = new URL(u); return (x.hostname.replace(/^www\./, '') + x.pathname.replace(/\/$/, '')).slice(0, 48); } catch { return u.slice(0, 48); } };
 const isOpen = (i: Item) => i.status !== 'done' && i.status !== 'archived';
 const isTaskOpen = (i: Item) => i.kind === 'task' && isOpen(i);
 
@@ -540,6 +543,7 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
             <div className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gold/15 text-[12px] text-gold-deep font-medium"><Scissors className="w-3 h-3" /> Looks like {i.ai.split.length} things. Tap to split</div>
           )}
         </button>
+        {(() => { const link = linksIn(i.title, i.body)[0]; return link && <a href={link} target="_blank" rel="noreferrer" aria-label="Open link" className="shrink-0 mt-0.5 w-8 h-8 -mr-1 rounded-full flex items-center justify-center text-gold-deep active:bg-black/5"><Link2 className="w-4 h-4" /></a>; })()}
         {i.photo?.thumb && <button onClick={() => openItem(i)} aria-label="Open photo" className="shrink-0"><img src={i.photo.thumb} alt="" className={`w-12 h-12 rounded-lg object-cover ${done ? 'opacity-40' : ''}`} /></button>}
         {i.flagged && <Flag className="w-4 h-4 mt-1 text-orange-500 fill-orange-500 shrink-0" />}
       </>
@@ -1461,6 +1465,15 @@ function ItemSheet({ item, openedVersion, places, areas, now, onClose, onSave, o
           <textarea value={f.title || ''} onChange={e => set({ title: e.target.value })} rows={Math.min(5, Math.max(1, Math.ceil((f.title || '').length / 30)))} className="w-full px-3 py-3 bg-transparent border-0 text-[18px] font-medium leading-snug focus:ring-0 resize-none" />
           <div className="mx-3 border-t border-black/[0.07]" />
           <textarea value={f.body || ''} onChange={e => set({ body: e.target.value })} placeholder="Notes" rows={3} className="w-full px-3 py-3 bg-transparent border-0 text-[15px] focus:ring-0 resize-y" />
+          {linksIn(f.title, f.body).length > 0 && (
+            <div className="px-3 pb-3 flex flex-wrap gap-2">
+              {linksIn(f.title, f.body).map(u => (
+                <a key={u} href={u} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 max-w-full px-3 py-1.5 rounded-full bg-gold/15 text-[13px] text-gold-deep font-medium">
+                  <Link2 className="w-3.5 h-3.5 shrink-0" /><span className="truncate">{linkLabel(u)}</span>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
         {item.raw && item.raw !== f.title && (
           <p className="mt-2 px-1 text-[13px] text-black/45"><span className="font-semibold">You said:</span> “{item.raw}”</p>
