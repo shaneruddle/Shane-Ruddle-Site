@@ -1,6 +1,7 @@
 ---
 title: "Working Remotely in Pattaya: Visas, Where to Work and Tax"
-description: "Working remotely from Pattaya: who does it, the DTV visa, where people work, local clients, tax and the real downsides."
+seoTitle: "Is It Legal to Work Remotely in Thailand? DTV, Tax and Clients"
+description: "Can you legally work remotely in Thailand? The DTV visa, why local clients need a work permit, tax, and where remote workers in Pattaya actually work."
 category: My Advice
 date: 2026-11-03
 ---

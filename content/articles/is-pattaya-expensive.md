@@ -1,5 +1,6 @@
 ---
 title: "Is Pattaya Expensive? What It Really Costs to Live Here"
+seoTitle: "Is Pattaya Expensive? Holiday and Living Costs Compared (2026)"
 description: "Is Pattaya expensive? Real monthly costs for a single person and a family, from rent and eating out to school fees, and what's cheaper or dearer than expected."
 category: My Advice
 date: 2026-10-29
@@ -15,7 +16,11 @@ Take a single man living in a one-bed condo. Here's roughly what it looks like:
 - **Food:** a meal costs a couple of hundred baht, or about ฿300 with a drink. Eat out every meal and that's around ฿1,000 a day, so about ฿30,000 a month. Cook some of your own meals and it drops a lot.
 - **Getting around:** a few thousand baht a month to rent a motorbike. Buy one and getting around becomes very cheap.
 
-That comes to roughly ฿50,000 to ฿55,000 a month, eating out every day. To work out your own figure, by area, home and how you like to live, try my [Pattaya cost of living calculator](/cost-of-living-calculator).
+Add bills and the odd night out and that comes to roughly ฿50,000 to ฿60,000 a month, eating out every day. To work out your own figure, by area, home and how you like to live, try my [Pattaya cost of living calculator](/cost-of-living-calculator).
+
+## Is Pattaya expensive for a holiday?
+
+Not if you eat and drink where locals do. A meal costs a couple of hundred baht, or about ฿300 with a drink. A large Chang at my Hemingways sports bars is ฿105. A baht bus around town is ฿15, and a taxi from Bangkok airport is around ฿1,500 one way. Prices go up where tourists cluster, so check before you sit down. My [Pattaya price checker](/pattaya-prices) shows what's fair for the things visitors pay for most.
 
 ## How much does it cost for a family?
 

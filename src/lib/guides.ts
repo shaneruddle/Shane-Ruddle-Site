@@ -58,7 +58,7 @@ export const GUIDES: Guide[] = [
       },
       {
         q: "How much does it cost to live in Pattaya?",
-        a: "For a single person in a one-bed condo, roughly ฿50,000 to ฿55,000 a month, eating out every day: around ฿18,000 rent, ฿30,000 food and a few thousand to get around.",
+        a: "For a single person in a one-bed condo, roughly ฿50,000 to ฿60,000 a month, eating out every day: around ฿18,000 rent, ฿30,000 food, a few thousand to get around, plus bills and the odd night out.",
         slug: "is-pattaya-expensive",
       },
       {
@@ -154,8 +154,8 @@ export const GUIDES: Guide[] = [
     slug: "pattaya-for-families",
     name: "Pattaya for families",
     planning: "Moving with my family",
-    title: "Pattaya for families: a parent's guide",
-    metaTitle: "Pattaya for Families: Safety, Schools, Areas and Costs | Shane Ruddle",
+    title: "Moving to Pattaya with children: a parent's guide",
+    metaTitle: "Moving to Pattaya With Children: Schools, Areas and Costs | Shane Ruddle",
     description:
       "I'm raising my kids in Pattaya. Safety, international schools and fees, the best area for families, costs, healthcare and what there is for kids to do.",
     intro:

@@ -1,7 +1,7 @@
 ---
 title: "Buying a Condo in Pattaya as a Foreigner: What I Tell Every Buyer"
-seoTitle: "Buying a Condo in Pattaya as a Foreigner (2026 Guide)"
-description: "Can foreigners own a condo in Thailand? Yes. How the 49% rule works, the buying steps and fees, off-plan vs resale, and how to buy smart in Pattaya."
+seoTitle: "How to Buy a Condo in Pattaya: Steps, Fees and Mistakes (2026)"
+description: "How to buy a condo in Pattaya, step by step: the fees, off-plan vs resale, the mistakes foreign buyers make and how the 49% rule works in practice."
 category: Property
 date: 2026-10-29
 ---
@@ -10,7 +10,7 @@ The question I hear more than any other from foreign buyers is a simple one: can
 
 ## Can foreigners own a condo in Thailand?
 
-Yes, but it has to be a condo unit in a development. (Houses are different, because foreigners can't own land; I explain why I'd [rent a house instead](/articles/buying-a-house-in-pattaya).) Within any condo building, foreigners can own up to 49% of the total floor area.
+Yes, but it has to be a condo unit in a development. (Houses are different, because foreigners can't own land; I explain why I'd [rent a house instead](/articles/buying-a-house-in-pattaya).) Within any condo building, foreigners can own up to 49% of the total floor area. (The short answer is in [can a foreigner buy a condo in Thailand?](/questions/can-a-foreigner-buy-a-condo-in-thailand))
 
 That last part catches a lot of people out. Most assume that if a building has 100 units, 49 of them can be sold to foreigners and the other 51 have to go to Thai buyers. It doesn't work like that. The foreign quota is counted per square metre, not per unit. So in a building with a mix of studios and big penthouses, the number of units left in the foreign quota depends on their size, not just how many there are.
 

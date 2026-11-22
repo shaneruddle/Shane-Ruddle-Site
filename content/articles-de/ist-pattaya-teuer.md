@@ -16,7 +16,7 @@ Nehmen wir einen alleinstehenden Mann in einer Eigentumswohnung mit einem Schlaf
 - **Essen:** Eine Mahlzeit kostet ein paar hundert Baht, mit Getränk etwa ฿300. Wer jede Mahlzeit auswärts isst, kommt auf rund ฿1.000 am Tag, also etwa ฿30.000 im Monat. Wer zum Teil selbst kocht, zahlt deutlich weniger.
 - **Fortbewegung:** ein paar tausend Baht im Monat für ein Mietmotorrad. Wer eines kauft, kommt sehr günstig herum.
 
-Das ergibt grob ฿50.000 bis ฿55.000 im Monat, wenn man jeden Tag auswärts isst. Ihren eigenen Betrag nach Gegend, Wohnung und Lebensstil berechnen Sie mit meinem [Lebenshaltungskosten-Rechner](/de/lebenshaltungskosten-rechner), in Euro oder Franken.
+Mit Nebenkosten und gelegentlichem Ausgehen ergibt das grob ฿50.000 bis ฿60.000 im Monat, wenn man jeden Tag auswärts isst. Ihren eigenen Betrag nach Gegend, Wohnung und Lebensstil berechnen Sie mit meinem [Lebenshaltungskosten-Rechner](/de/lebenshaltungskosten-rechner), in Euro oder Franken.
 
 ## Was kostet es für eine Familie?
 

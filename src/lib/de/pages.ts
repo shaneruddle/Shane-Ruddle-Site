@@ -52,7 +52,7 @@ export const DE_MOVING_FAQS: { q: string; a: string; href: string }[] = [
   },
   {
     q: "Was kostet das Leben in Pattaya?",
-    a: "Für eine alleinstehende Person in einem Condo mit einem Schlafzimmer grob ฿50.000 bis ฿55.000 im Monat, bei täglichem Essen gehen: etwa ฿18.000 Miete, ฿30.000 Essen und ein paar tausend für die Fortbewegung.",
+    a: "Für eine alleinstehende Person in einem Condo mit einem Schlafzimmer grob ฿50.000 bis ฿60.000 im Monat, bei täglichem Essen gehen: etwa ฿18.000 Miete, ฿30.000 Essen, ein paar tausend für die Fortbewegung, dazu Nebenkosten und gelegentliches Ausgehen.",
     href: DE_CALCULATOR,
   },
   {

@@ -31,7 +31,7 @@ function CountryView({ c }: { c: CountryGuide }) {
         <div className="max-w-7xl mx-auto">
           <a href={MOVE_PATH} onClick={handleLinkClick} className="inline-flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.3em] mb-6 text-gold hover:text-white transition-colors">
             <img src={c.flag} alt="" width={36} height={24} className="w-9 h-6 rounded-[3px] object-cover" />
-            Moving to Thailand
+            How to move to Thailand
           </a>
           <h1 className="font-serif font-normal text-[2.6rem] sm:text-6xl lg:text-7xl leading-[1.04] tracking-tight mb-6 max-w-5xl">
             Moving to Thailand from <span className="italic text-gold">{c.name}</span>

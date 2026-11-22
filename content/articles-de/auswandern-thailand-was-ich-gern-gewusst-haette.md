@@ -6,7 +6,7 @@ date: 2026-11-02
 en: what-i-wish-id-known-before-moving-to-thailand
 ---
 
-Ich bin jetzt seit rund 20 Jahren in Thailand. Rückblickend gibt es ein paar Dinge, die ich gern gewusst hätte, als ich ankam. Hier geht es um meine Erfahrungen und die Nachteile. Den kompletten Ratgeber zum Auswandern nach Thailand mit Voraussetzungen, Kosten und Visum finden Sie in meinem [Auswandern-Ratgeber](/de/auswandern-nach-pattaya).
+Ich bin jetzt seit rund 20 Jahren in Thailand. Rückblickend gibt es ein paar Dinge, die ich gern gewusst hätte, als ich ankam. Hier geht es um meine Erfahrungen und die Nachteile. Voraussetzungen, Kosten und Visum stehen in meinem Ratgeber [Auswandern nach Thailand](/de/auswandern-nach-pattaya).
 
 ## Was habe ich erwartet, und was habe ich vorgefunden?
 
