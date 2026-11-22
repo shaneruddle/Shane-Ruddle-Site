@@ -47,6 +47,8 @@ Read the policy before you buy, not when you claim. The things I'd look at:
 
 A local broker can compare policies for you, and doesn't usually cost you anything extra.
 
+Most policies don't cover long-term care in a home. If you're thinking further ahead, I've written about [care homes in Pattaya](/articles/care-homes-in-pattaya) and what they cost.
+
 ## Who do we insure with?
 
 My whole family is insured with Pacific Cross, an international insurer, through a local broker, Macallan Insurance, founded by Jack Levy. Most of my friends insure through Jack's company too.

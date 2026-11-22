@@ -19,6 +19,7 @@ Pattaya is the cheapest of the usual places Westerners retire to, with a lot mor
 | Health insurance | Essential. A standard hospital visit is ฿2,000 to ฿3,000 |
 | Where retirees live | Jomtien first, East Pattaya for more space |
 | Paperwork | 90-day reports and a yearly extension at Jomtien immigration |
+| Care later in life | Care homes cost about ฿30,000 to ฿80,000 a month. See [care homes in Pattaya](/articles/care-homes-in-pattaya) |
 
 ## Why do retirees choose Thailand?
 

@@ -105,7 +105,7 @@ export const GUIDES: Guide[] = [
       {
         title: "Visas, money and healthcare",
         blurb: "The paperwork and practicalities to sort out first.",
-        slugs: ["thai-visas-in-pattaya", "tm30-and-90-day-report-pattaya", "banking-in-thailand-for-foreigners", "healthcare-in-pattaya"],
+        slugs: ["thai-visas-in-pattaya", "tm30-and-90-day-report-pattaya", "banking-in-thailand-for-foreigners", "healthcare-in-pattaya", "care-homes-in-pattaya"],
       },
       {
         title: "Settling in",
