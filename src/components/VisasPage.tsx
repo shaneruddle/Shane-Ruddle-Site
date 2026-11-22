@@ -21,6 +21,7 @@ import AskShane from "./AskShane";
 import { AskFloatButton, AskOffer } from "./AskNudge";
 import { CURRENCIES } from "../lib/costOfLiving";
 import NewsletterSignup from "./NewsletterSignup";
+import { AdminCalendar, RetirementMoneyCheck } from "./ExpatTools";
 import EmailMyResult from "./EmailMyResult";
 
 import Noindex from "./Noindex";
@@ -427,6 +428,38 @@ function CostTable({ visa }: { visa: ThaiVisa }) {
   );
 }
 
+// A comparison table (e.g. Non-O vs O-A vs O-X): one column per option, one row per attribute.
+function CompareTable({ compare }: { compare: NonNullable<ThaiVisa["compare"]> }) {
+  return (
+    <section>
+      <h2 className="font-serif text-3xl md:text-4xl leading-tight mb-2">{compare.title}</h2>
+      <p className="text-black/55 mb-6">As of {RULES_AS_OF}. Check the current rules before you apply.</p>
+      <div className="overflow-x-auto bg-white border border-black/[0.08] rounded-[1.25rem]">
+        <table className="w-full text-left text-[15px]">
+          <thead>
+            <tr className="border-b border-black/[0.08] text-[11px] uppercase tracking-[0.16em] text-black/45">
+              <th scope="col" className="px-5 py-4 font-semibold"></th>
+              {compare.columns.map((c) => (
+                <th key={c} scope="col" className="px-5 py-4 font-semibold">{c}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {compare.rows.map((row) => (
+              <tr key={row.label} className="border-b last:border-0 border-black/[0.06] align-top">
+                <th scope="row" className="px-5 py-4 font-medium text-ink whitespace-nowrap">{row.label}</th>
+                {row.cells.map((c, i) => (
+                  <td key={i} className="px-5 py-4 text-black/70 min-w-[10rem]">{c}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 function VisaView({ visa }: { visa: ThaiVisa }) {
   const articles = visa.articles.map((s) => ARTICLES.get(s)).filter((a): a is NonNullable<typeof a> => !!a);
   const others = VISAS.filter((v) => v.id !== visa.id);
@@ -480,6 +513,10 @@ function VisaView({ visa }: { visa: ThaiVisa }) {
           </section>
 
           {visa.costs && <CostTable visa={visa} />}
+
+          {visa.compare && <CompareTable compare={visa.compare} />}
+
+          {visa.id === "retirement" && <RetirementMoneyCheck />}
 
           <section className="grid md:grid-cols-2 gap-4 md:gap-5">
             <div className="p-7 md:p-8 bg-white border border-black/[0.08] rounded-[1.25rem]">
@@ -553,6 +590,8 @@ function VisaView({ visa }: { visa: ThaiVisa }) {
               Take the visa finder <ArrowRight className="w-4 h-4" />
             </a>
           </section>
+
+          {(visa.id === "retirement" || visa.id === "dtv" || visa.id === "education" || visa.id === "marriage") && <AdminCalendar source={`visa_${visa.slug}`} />}
 
           <section>
             <h2 className="font-serif text-3xl md:text-4xl leading-tight mb-8">Short answers</h2>

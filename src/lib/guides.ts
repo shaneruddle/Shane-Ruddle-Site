@@ -105,18 +105,19 @@ export const GUIDES: Guide[] = [
       {
         title: "Visas, money and healthcare",
         blurb: "The paperwork and practicalities to sort out first.",
-        slugs: ["thai-visas-in-pattaya", "banking-in-thailand-for-foreigners", "healthcare-in-pattaya"],
+        slugs: ["thai-visas-in-pattaya", "tm30-and-90-day-report-pattaya", "banking-in-thailand-for-foreigners", "healthcare-in-pattaya"],
       },
       {
         title: "Settling in",
         blurb: "Fitting in, and what changes if you're retiring or working online.",
-        slugs: ["learning-thai", "cultural-mistakes-in-thailand", "retiring-in-pattaya", "pattaya-for-digital-nomads"],
+        slugs: ["thai-sim-card-and-internet-pattaya", "learning-thai", "cultural-mistakes-in-thailand", "retiring-in-pattaya", "pattaya-for-digital-nomads"],
       },
       {
         title: "Getting around",
         blurb: "Arriving, driving, and whether to rent or buy a car.",
         slugs: [
           "bangkok-airport-to-pattaya",
+          "international-driving-permit-thailand",
           "driving-in-pattaya",
           "scooter-or-car-in-pattaya",
           "buying-vs-renting-a-car-in-thailand",

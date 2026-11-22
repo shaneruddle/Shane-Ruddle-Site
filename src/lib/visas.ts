@@ -56,6 +56,8 @@ export interface ThaiVisa {
   askTopic: AskTopic;
   /** Official page to check before applying. */
   officialUrl?: { label: string; url: string };
+  /** Optional side-by-side table of the variants of this visa (e.g. Non-O vs O-A vs O-X). */
+  compare?: { title: string; columns: string[]; rows: { label: string; cells: string[] }[] };
 }
 
 export const VISAS: ThaiVisa[] = [
@@ -123,11 +125,31 @@ export const VISAS: ThaiVisa[] = [
         a: "You apply for the O-A from your home country, and it needs health insurance and more paperwork up front. With the Non-O you come here, then extend it for a year at a time at immigration in Pattaya.",
       },
       {
+        q: "What is the Non-O visa in Thailand?",
+        a: "The Non-Immigrant O is the visa most retirees in Pattaya use. You get it, then extend it for a year at a time at the immigration office in Jomtien, as long as you're 50 or over and can show the money.",
+      },
+      {
+        q: "Do I need health insurance for a Thai retirement visa?",
+        a: "For the O-A and O-X, yes, with a set minimum cover. For the yearly Non-O extension it isn't usually required, but I'd never live here without it.",
+      },
+      {
         q: "Should I use a visa agent for my retirement visa?",
         a: "I would. There are plenty around Pattaya, and they make the whole experience a lot less painful.",
       },
     ],
-    articles: ["thai-visas-in-pattaya", "retiring-in-pattaya", "banking-in-thailand-for-foreigners", "healthcare-in-pattaya"],
+    compare: {
+      title: "Non-O vs O-A vs O-X: which retirement visa?",
+      columns: ["Non-Immigrant O (retirement)", "O-A", "O-X"],
+      rows: [
+        { label: "Where you apply", cells: ["Get the visa abroad or convert here, then extend each year at Jomtien immigration", "Thai embassy in your home country", "Thai embassy in your home country"] },
+        { label: "How long", cells: ["1 year at a time, renewed here", "1 year, can be extended here", "5 years, renewable once to 10 (check before applying)"] },
+        { label: "Money", cells: ["฿800,000 in a Thai bank, ฿65,000 a month, or a mix", "The same, shown before you arrive", "Much higher: about ฿3 million (check before applying)"] },
+        { label: "Health insurance", cells: ["Not required for the yearly extension (check before applying)", "Required, with a set minimum cover", "Required"] },
+        { label: "Who can get it", cells: ["Any nationality, aged 50+", "Any nationality, aged 50+", "Only some nationalities, including the UK, USA and Australia, aged 50+"] },
+        { label: "Best for", cells: ["Most retirees in Pattaya, with an agent", "People who want it sorted before they fly", "Wealthier retirees who want fewer renewals"] },
+      ],
+    },
+    articles: ["thai-visas-in-pattaya", "retiring-in-pattaya", "banking-in-thailand-for-foreigners", "healthcare-in-pattaya", "tm30-and-90-day-report-pattaya"],
     askTopic: "retiring",
     officialUrl: { label: "Thai e-Visa (official)", url: "https://www.thaievisa.go.th/" },
   },
@@ -137,7 +159,7 @@ export const VISAS: ThaiVisa[] = [
     name: "DTV (Destination Thailand Visa)",
     official: "Destination Thailand Visa (DTV)",
     tagline: "Five years for remote workers, with 180-day stays",
-    metaTitle: "DTV Visa Thailand 2026: Digital Nomad Visa Rules and the Catch",
+    metaTitle: "DTV Visa Thailand 2026: Requirements, Cost and the Catch",
     description:
       "The Destination Thailand Visa (DTV) explained by a 20-year Pattaya resident: 5 years, 180 days per entry, ฿500,000 savings, the August 2026 changes, and the catch.",
     fromShane: true,
@@ -189,11 +211,19 @@ export const VISAS: ThaiVisa[] = [
         a: "Only remotely, for clients or an employer outside Thailand. You can't work for a Thai company or run a business here.",
       },
       {
+        q: "How much does the DTV visa cost?",
+        a: "About ฿10,000 for the visa itself, set by each embassy, plus around ฿500,000 in savings to show. Extending a stay by 180 days at immigration in Jomtien is ฿1,900.",
+      },
+      {
+        q: "Can I extend my DTV in Pattaya?",
+        a: "Yes. You can extend each 180-day stay once, for another 180 days, at the immigration office in Jomtien, or leave Thailand and come back for a fresh 180 days.",
+      },
+      {
         q: "What's the catch with the DTV?",
         a: "It's essentially a long-term tourist visa. You're classed as a tourist, not an immigrant, so things like opening a bank account can be a problem, depending on the bank.",
       },
     ],
-    articles: ["thai-visas-in-pattaya", "pattaya-for-digital-nomads", "banking-in-thailand-for-foreigners"],
+    articles: ["thai-visas-in-pattaya", "pattaya-for-digital-nomads", "working-remotely-in-pattaya", "thai-sim-card-and-internet-pattaya", "banking-in-thailand-for-foreigners"],
     askTopic: "visa",
     officialUrl: { label: "Thai e-Visa (official)", url: "https://www.thaievisa.go.th/" },
   },

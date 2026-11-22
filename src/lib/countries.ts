@@ -162,6 +162,7 @@ export const COUNTRIES: CountryGuide[] = [
         ],
         links: [
           { label: "Getting a Thai driving licence", href: "/articles/thai-driving-licence" },
+          { label: "Do you need an International Driving Permit?", href: "/articles/international-driving-permit-thailand" },
           { label: "Driving in Pattaya", href: "/articles/driving-in-pattaya" },
         ],
       },
@@ -231,7 +232,7 @@ export const COUNTRIES: CountryGuide[] = [
     short: "USA",
     flag: "/images/flags/us.svg",
     currency: "USD",
-    metaTitle: "Moving to Thailand from the USA (2026): Visas, Social Security, Taxes, Medicare | Shane Ruddle",
+    metaTitle: "Moving to Thailand from the USA (2026): Living Here as an American | Shane Ruddle",
     description:
       "Moving or retiring to Thailand from the US: which visa Americans use, Social Security in Thailand, US and Thai tax (FEIE, FBAR, the 2024 rule), Medicare, flights and what Pattaya costs in dollars.",
     h1: "Moving to Thailand from the USA",
@@ -302,6 +303,7 @@ export const COUNTRIES: CountryGuide[] = [
         ],
         links: [
           { label: "Getting a Thai driving licence", href: "/articles/thai-driving-licence" },
+          { label: "Do you need an International Driving Permit?", href: "/articles/international-driving-permit-thailand" },
           { label: "Driving in Pattaya", href: "/articles/driving-in-pattaya" },
         ],
       },
@@ -352,11 +354,15 @@ export const COUNTRIES: CountryGuide[] = [
         a: `The retirement visa needs ${money(800000, "USD")} in a Thai bank, or ${money(65000, "USD")} a month income, or a mix. A comfortable single life in Pattaya is around ${comfortable("USD")} a month.`,
       },
       {
+        q: "What's it like living in Thailand as an American?",
+        a: "Easier than most expect. Your Social Security keeps paying, the cost of living is a fraction of most US cities, and Pattaya has everything from malls to international hospitals. The adjustments are driving on the left, filing US taxes from abroad, and paying for your own health insurance.",
+      },
+      {
         q: "Does Medicare cover me in Thailand?",
         a: "No. You need international health insurance. Think before dropping Part B, because rejoining later carries a permanent penalty.",
       },
     ],
-    articles: ["retiring-in-pattaya", "working-remotely-in-pattaya", "is-pattaya-expensive", "what-i-wish-id-known-before-moving-to-thailand"],
+    articles: ["retiring-in-pattaya", "working-remotely-in-pattaya", "is-pattaya-expensive", "what-i-wish-id-known-before-moving-to-thailand", "international-driving-permit-thailand", "thai-sim-card-and-internet-pattaya"],
     askTopic: "retiring",
     official: [
       { label: "Social Security outside the US (ssa.gov)", url: "https://www.ssa.gov/international/payments.html" },
@@ -442,6 +448,7 @@ export const COUNTRIES: CountryGuide[] = [
         ],
         links: [
           { label: "Getting a Thai driving licence", href: "/articles/thai-driving-licence" },
+          { label: "Do you need an International Driving Permit?", href: "/articles/international-driving-permit-thailand" },
           { label: "Driving in Pattaya", href: "/articles/driving-in-pattaya" },
         ],
       },

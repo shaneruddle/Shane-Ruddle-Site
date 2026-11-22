@@ -9,7 +9,7 @@ Moving to Pattaya is exciting, and there's a lot to sort out. Here's the order I
 
 ## Week one: your phone
 
-Get a Thai SIM and number first. It gets you online, and these days that's essential: for maps, paying for things, checking things and doing your research.
+Get a [Thai SIM and number](/articles/thai-sim-card-and-internet-pattaya) first. It gets you online, and these days that's essential: for maps, paying for things, checking things and doing your research.
 
 ## Rent first, and go below budget
 
@@ -21,7 +21,7 @@ For more, read [renting a condo in Pattaya](/articles/renting-a-condo-in-pattaya
 
 ## The admin
 
-Once [your visa is set up](/thai-visas), open a bank account. You don't need a certificate of residence unless the bank, or later the licence office, asks for one. More in [banking in Thailand](/articles/banking-in-thailand-for-foreigners) and [visas in Pattaya](/articles/thai-visas-in-pattaya).
+Once [your visa is set up](/thai-visas), open a bank account. You don't need a certificate of residence unless the bank, or later the licence office, asks for one. More in [banking in Thailand](/articles/banking-in-thailand-for-foreigners) and [visas in Pattaya](/articles/thai-visas-in-pattaya). Ask your landlord for the TM30 receipt when you move in, and put your first [90-day report](/articles/tm30-and-90-day-report-pattaya) in your calendar.
 
 Then [get a Thai driving licence](/articles/thai-driving-licence).
 

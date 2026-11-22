@@ -137,7 +137,7 @@ export const AREAS: PattayaArea[] = [
     slug: "pratumnak",
     name: "Pratumnak",
     tagline: "The quiet hill between town and Jomtien",
-    metaTitle: "Living in Pratumnak, Pattaya: Rents, Restaurants and Who It Suits (2026) | Shane Ruddle",
+    metaTitle: "Living on Pratumnak Hill, Pattaya: Rents, Restaurants and Who It Suits (2026) | Shane Ruddle",
     description:
       "Pratumnak Hill from someone who lives there: who it suits, what ฿20,000 a month rents, the best beach nearby, where to eat and why condo owners here are happy.",
     verdict: [

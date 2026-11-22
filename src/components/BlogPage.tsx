@@ -29,6 +29,7 @@ import BusinessCheckPromo, { BUSINESS_PROMO_ARTICLES } from './BusinessCheckProm
 import WorkPromo, { WORK_PROMO_ARTICLES } from './WorkPromo';
 import FuturePromo, { FUTURE_PROMO_ARTICLES } from './FuturePromo';
 import TripsPromo, { TRIPS_PROMO_ARTICLES } from './TripsPromo';
+import { AdminCalendar, ADMIN_CALENDAR_ARTICLES, DrivingLicenceCheck, LICENCE_CHECK_ARTICLES } from './ExpatTools';
 import PricesPromo, { PRICES_PROMO_ARTICLES } from './PricesPromo';
 import { SCHOOL_PROMO_ARTICLES } from '../lib/schools';
 import { VISA_PROMO_ARTICLES } from '../lib/visas';
@@ -171,6 +172,18 @@ export default function BlogPage({ onBack }: BlogPageProps) {
                 <Tag className="w-3 h-3" /> {tag.trim()}
               </span>
             ))}
+          </div>
+        )}
+
+        {LICENCE_CHECK_ARTICLES.has(selectedPost.slug || selectedPost.id) && (
+          <div className="mt-12">
+            <DrivingLicenceCheck source={`article_${selectedPost.slug || selectedPost.id}`} />
+          </div>
+        )}
+
+        {ADMIN_CALENDAR_ARTICLES.has(selectedPost.slug || selectedPost.id) && (
+          <div className="mt-12">
+            <AdminCalendar source={`article_${selectedPost.slug || selectedPost.id}`} />
           </div>
         )}
 

@@ -1,9 +1,10 @@
 ---
 title: "Pattaya for Digital Nomads and Remote Workers"
+seoTitle: "Pattaya for Digital Nomads (2026): DTV Visa, Internet and Costs"
 description: "Is Pattaya good for digital nomads? Internet, cost of living, how it compares with Bangkok and Chiang Mai, where nomads base themselves, and making friends."
 category: My Advice
 date: 2026-11-01
-updated: 2026-11-07
+updated: 2026-11-22
 ---
 
 Yes, Pattaya is a good base for working online. The internet is very good, in my experience it's cheaper than Bangkok or Chiang Mai, there's now a visa for remote workers in the DTV, and you get city life and beach life in one place. Most remote workers here simply work from their condo. People often ask me about it, so here's my view.
@@ -20,9 +21,21 @@ For me, Pattaya has the best of both. Chiang Mai is a very good city, but there 
 
 In my experience it's also cheaper than both, though that will depend on how you live.
 
+## Which visa do digital nomads use?
+
+The [Destination Thailand Visa (DTV)](/thai-visas/dtv-visa) was made for this. It lasts five years, with stays of up to 180 days per entry that you can extend once at the immigration office in Jomtien, and you need to show around ฿500,000 in savings and proof that you work for clients or an employer outside Thailand.
+
+Understand what it is, though: it's essentially a long-term tourist visa. You can't work for a Thai company, and some banks won't open an account for you on it. And if you spend 180 days or more here in a year, you become tax resident, so check with an accountant how the money you bring in is treated.
+
+## What does it cost to live here as a nomad?
+
+It depends how you live, but as a guide, I'd say ฿50,000 to ฿60,000 a month for a single person living comfortably. A one-bed condo is around ฿18,000 a month. Put your own numbers into my [cost of living calculator](/cost-of-living-calculator).
+
 ## Where do remote workers work?
 
-Nearly always from their condo. There are a few coworking spaces in Pattaya, but most people just work from home.
+Nearly always from their condo. There are a few coworking spaces in Pattaya, but most people just work from home, with the odd day in a café.
+
+That makes your internet the thing to get right. Fibre is widespread, and most condos are already wired, so ask the landlord or condo office what's included before you sign. Keep a phone hotspot as a backup. I've covered the setup in [getting a Thai SIM card and home internet](/articles/thai-sim-card-and-internet-pattaya).
 
 ## Where should you stay?
 
