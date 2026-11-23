@@ -8,6 +8,7 @@ import { handleLinkClick } from "../lib/navigation";
 import { trackEvent } from "../lib/analytics";
 import { applyPageMeta } from "../seo";
 import AskShane from "./AskShane";
+import ReadyPromo from "./ReadyPromo";
 import CountryPicker from "./CountryPicker";
 
 // "Moving to Thailand from <country>" (/move-to-thailand/from-the-uk etc.).
@@ -208,6 +209,8 @@ function CountryView({ c }: { c: CountryGuide }) {
                 </span>
               </p>
             </section>
+
+            <ReadyPromo source={`country_${c.id}`} />
 
             {articles.length > 0 && (
               <section>

@@ -145,6 +145,7 @@ const SITE_PAGES = [
   ["/pattaya-prices", "Fair price checker (what things should cost)"],
   ["/pattaya-future", "Pattaya future timeline (projects coming)"],
   ["/trips-from-pattaya", "Trips from Pattaya"],
+  ["/ready-for-pattaya", "Readiness score (am I ready to move?)"],
   ["/de", "German edition of the site"],
   ["https://pattayarentacar.com", "Pattaya Rent a Car (Shane's car rental company)"],
   ["https://eastcoastrealestate.com", "East Coast Real Estate (Shane's agency, rentals and sales)"],

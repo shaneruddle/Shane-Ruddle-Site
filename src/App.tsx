@@ -70,6 +70,7 @@ const PricesPage = lazy(() => import("./components/PricesPage"));
 const FuturePage = lazy(() => import("./components/FuturePage"));
 const PartnerPage = lazy(() => import("./components/PartnerPage"));
 const TripsPage = lazy(() => import("./components/TripsPage"));
+const ReadyPage = lazy(() => import("./components/ReadyPage"));
 const DeSite = lazy(() => import("./components/de/DeSite"));
 const GermanBanner = lazy(() => import("./components/de/GermanBanner"));
 const EmployeePortal = lazy(() => import("./components/EmployeePortal"));
@@ -249,7 +250,7 @@ const CompanyModal = ({ company, onClose }: { company: any, onClose: () => void 
 
 // URL routing. Each view has a real path so pages can be linked, shared and indexed.
 // Firebase Hosting rewrites every path to index.html, so the app resolves the view here.
-type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'schools' | 'move' | 'country' | 'questions' | 'business' | 'work' | 'prices' | 'future' | 'partner' | 'trips' | 'de' | 'privacy-policy' | 'terms-of-service';
+type View = 'home' | 'about' | 'businesses' | 'newsletter' | 'contact' | 'cost-calculator' | 'past-ventures' | 'portal' | 'blog' | 'guides' | 'areas' | 'visas' | 'schools' | 'move' | 'country' | 'questions' | 'business' | 'work' | 'prices' | 'future' | 'partner' | 'trips' | 'ready' | 'de' | 'privacy-policy' | 'terms-of-service';
 
 const VIEW_PATHS: Record<View, string> = {
   'home': '/',
@@ -274,6 +275,7 @@ const VIEW_PATHS: Record<View, string> = {
   'future': '/pattaya-future',
   'partner': '/partner',
   'trips': '/trips-from-pattaya',
+  'ready': '/ready-for-pattaya',
   'de': '/de',
   'privacy-policy': '/privacy',
   'terms-of-service': '/terms',
@@ -311,6 +313,7 @@ const FOOTER_COLUMNS: { title: string; links: { label: string; href: string }[] 
   { title: 'Moving here', links: [
     { label: 'Start here', href: '/guides' },
     { label: 'Plan my move', href: '/move-to-thailand' },
+    { label: 'Am I ready?', href: '/ready-for-pattaya' },
     { label: 'From the UK', href: '/move-to-thailand/from-the-uk' },
     { label: 'From the USA', href: '/move-to-thailand/from-the-usa' },
     { label: 'From Australia', href: '/move-to-thailand/from-australia' },
@@ -1294,6 +1297,13 @@ export default function App() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.25 }}>
                       <TripsPage />
+                    </motion.div>
+                  ) : view === 'ready' ? (
+                    <motion.div key="ready" initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <ReadyPage />
                     </motion.div>
                   ) : view === 'de' ? (
                     <motion.div key={currentPath} initial={{ opacity: 0 }}

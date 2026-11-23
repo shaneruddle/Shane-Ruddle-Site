@@ -28,6 +28,7 @@ import PricesPage from "../components/PricesPage";
 import FuturePage from "../components/FuturePage";
 import PartnerPage from "../components/PartnerPage";
 import TripsPage from "../components/TripsPage";
+import ReadyPage from "../components/ReadyPage";
 import { fallbackData } from "../types";
 import DeSite from "../components/de/DeSite";
 
@@ -47,6 +48,7 @@ export { PRICES_PATH, PRICES_META, PRICES_FAQS } from "../lib/prices";
 export { FUTURE_PATH, FUTURE_META, FUTURE_FAQS } from "../lib/future";
 export { PARTNER_PATH, PARTNER_META } from "../lib/partner";
 export { TRIPS_PATH, TRIPS_META, TRIPS_FAQS } from "../lib/trips";
+export { READY_PATH, READY_META, READY_FAQS } from "../lib/ready";
 export { SCHOOLS, SCHOOLS_META, SCHOOLS_FAQS, SCHOOLS_PATH, faqsForSchool } from "../lib/schools";
 export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema, fitTitle, fitDescription } from "../seo";
 export { EN_TO_DE, DE_TO_EN, DE_ARTICLE_LIST, DE_HOME, DE_ARTICLES, DE_CALCULATOR, DE_MOVING, DE_AREAS } from "../lib/de/site";
@@ -98,7 +100,7 @@ function Shell({ children }: { children: ReactNode }) {
       <main>{children}</main>
       <footer className="bg-ink text-white/60 px-6 md:px-12 py-12">
         <ul className="max-w-7xl mx-auto flex flex-wrap gap-6 text-sm">
-          {[...NAV, ["Plan my move", "/move-to-thailand"], ["Moving from the UK", "/move-to-thailand/from-the-uk"], ["Moving from the USA", "/move-to-thailand/from-the-usa"], ["Moving from Australia", "/move-to-thailand/from-australia"], ["Questions", "/questions"], ["Business check", "/business-in-pattaya"], ["Sell your business", "/business-in-pattaya/sell-your-business"], ["Work in Pattaya", "/work-in-pattaya"], ["Fair prices", "/pattaya-prices"], ["Trips from Pattaya", "/trips-from-pattaya"], ["Pattaya's future", "/pattaya-future"], ["Newsletter", "/newsletter"], ["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]].map(([label, href]) => (
+          {[...NAV, ["Plan my move", "/move-to-thailand"], ["Am I ready?", "/ready-for-pattaya"], ["Moving from the UK", "/move-to-thailand/from-the-uk"], ["Moving from the USA", "/move-to-thailand/from-the-usa"], ["Moving from Australia", "/move-to-thailand/from-australia"], ["Questions", "/questions"], ["Business check", "/business-in-pattaya"], ["Sell your business", "/business-in-pattaya/sell-your-business"], ["Work in Pattaya", "/work-in-pattaya"], ["Fair prices", "/pattaya-prices"], ["Trips from Pattaya", "/trips-from-pattaya"], ["Pattaya's future", "/pattaya-future"], ["Newsletter", "/newsletter"], ["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]].map(([label, href]) => (
             <li key={href}><a href={href}>{label}</a></li>
           ))}
         </ul>
@@ -218,6 +220,11 @@ export function renderCountry(path: string): string {
 /** /trips-from-pattaya (the trip finder, map and trip cards). */
 export function renderTrips(): string {
   return renderToString(<Shell><TripsPage /></Shell>);
+}
+
+/** /ready-for-pattaya (the readiness score's first step, the five areas and the FAQ). */
+export function renderReady(): string {
+  return renderToString(<Shell><ReadyPage /></Shell>);
 }
 
 /** /partner (business partner landing page for the Facebook ad; noindex, not in the sitemap). */

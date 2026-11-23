@@ -25,6 +25,7 @@ import { AskFloatButton } from './AskNudge';
 import VisaPromo from './VisaPromo';
 import SchoolsPromo from './SchoolsPromo';
 import MovePlannerPromo, { MOVE_PROMO_ARTICLES } from './MovePlannerPromo';
+import ReadyPromo, { READY_PROMO_ARTICLES } from './ReadyPromo';
 import BusinessCheckPromo, { BUSINESS_PROMO_ARTICLES } from './BusinessCheckPromo';
 import WorkPromo, { WORK_PROMO_ARTICLES } from './WorkPromo';
 import FuturePromo, { FUTURE_PROMO_ARTICLES } from './FuturePromo';
@@ -190,6 +191,12 @@ export default function BlogPage({ onBack }: BlogPageProps) {
         {SCHOOL_PROMO_ARTICLES.has(selectedPost.slug || selectedPost.id) && (
           <div className="mt-12">
             <SchoolsPromo source={`article_${selectedPost.slug || selectedPost.id}`} />
+          </div>
+        )}
+
+        {READY_PROMO_ARTICLES.has(selectedPost.slug || selectedPost.id) && (
+          <div className="mt-12">
+            <ReadyPromo source={`article_${selectedPost.slug || selectedPost.id}`} />
           </div>
         )}
 

@@ -580,6 +580,29 @@ write(ssr.TRIPS_PATH, page({
 }));
 urls.push({ loc: ssr.TRIPS_PATH });
 
+// ---- Are you ready for Pattaya? (readiness score) ----
+write(ssr.READY_PATH, page({
+  urlPath: ssr.READY_PATH,
+  ...ssr.READY_META,
+  body: ssr.renderReady(),
+  schemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "Pattaya Readiness Score",
+      url: SITE_URL + ssr.READY_PATH,
+      description: ssr.READY_META.description,
+      applicationCategory: "LifestyleApplication",
+      operatingSystem: "Any",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "THB" },
+      author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Shane Ruddle", url: SITE_URL },
+    },
+    faqSchema(ssr.READY_FAQS),
+    crumbs([["Home", "/"], ["Am I ready for Pattaya?", ssr.READY_PATH]]),
+  ],
+}));
+urls.push({ loc: ssr.READY_PATH });
+
 // ---- Pattaya's future (development timeline) ----
 write(ssr.FUTURE_PATH, page({
   urlPath: ssr.FUTURE_PATH,
