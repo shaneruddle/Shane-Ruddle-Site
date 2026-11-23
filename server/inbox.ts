@@ -281,4 +281,47 @@ export function registerInboxRoutes(app: Express, { getDb }: Deps) {
       res.status(500).json({ error: "Purge failed." });
     }
   });
+
+  // One-off (23 Nov 2026): the starter filters were created a second time, so every chip showed twice.
+  // For each name with more than one filter, keep the oldest, move every item from the copies onto it, then remove the copies.
+  app.post("/api/inbox/merge-duplicate-areas", async (req, res) => {
+    const given = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+    const expected = process.env.INSIGHTS_TOKEN || "";
+    if (!expected || given.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected))) return res.status(401).json({ error: "Unauthorised" });
+    const dry = req.query.dry === "1";
+    try {
+      const db = getDb();
+      const [areaSnap, itemSnap] = await Promise.all([db.collection("inbox_areas").get(), db.collection("inbox_items").get()]);
+      const byName = new Map<string, typeof areaSnap.docs>();
+      areaSnap.docs.forEach(d => { const k = String(d.get("name") || "").trim().toLowerCase(); if (k) byName.set(k, [...(byName.get(k) || []), d]); });
+      const groups = [...byName.values()].filter(g => g.length > 1).map(g => g.sort((a, b) => a.createTime.toMillis() - b.createTime.toMillis()));
+      const report = groups.map(([keep, ...dups]) => ({
+        name: keep.get("name"),
+        keep: { id: keep.id, created: keep.createTime.toDate().toISOString(), ...keep.data(), items: itemSnap.docs.filter(i => i.get("area") === keep.id).length },
+        remove: dups.map(d => ({ id: d.id, created: d.createTime.toDate().toISOString(), ...d.data(), items: itemSnap.docs.filter(i => i.get("area") === d.id).length })),
+      }));
+      let moved = 0, removed = 0;
+      if (!dry) {
+        for (const [keep, ...dups] of groups) {
+          const dupIds = new Set(dups.map(d => d.id));
+          const toMove = itemSnap.docs.filter(i => dupIds.has(String(i.get("area") || "")));
+          for (let i = 0; i < toMove.length; i += 400) {
+            const batch = db.batch();
+            toMove.slice(i, i + 400).forEach(d => batch.update(d.ref, { area: keep.id, version: FieldValue.increment(1) }));
+            await batch.commit();
+          }
+          moved += toMove.length;
+          const batch = db.batch();
+          dups.forEach(d => batch.delete(d.ref));
+          await batch.commit();
+          removed += dups.length;
+        }
+        if (moved || removed) await history(db, "-", "system", "merged duplicate filters", { moved, removed });
+      }
+      res.json({ dry, moved, removed, groups: report });
+    } catch (error) {
+      console.error("Inbox area merge failed:", error instanceof Error ? error.message : error);
+      res.status(500).json({ error: "Merge failed." });
+    }
+  });
 }

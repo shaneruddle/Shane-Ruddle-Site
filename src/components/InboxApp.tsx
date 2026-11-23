@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement, t
 import { Reorder, useDragControls } from 'motion/react';
 import { auth, db } from '../firebase';
 import {
-  collection, doc, onSnapshot, runTransaction, writeBatch, serverTimestamp, increment, updateDoc, query, where, orderBy, limit, getDocs, setDoc, deleteDoc,
+  collection, doc, onSnapshot, runTransaction, writeBatch, serverTimestamp, increment, updateDoc, query, where, orderBy, limit, getDocs, getDocsFromServer, setDoc, deleteDoc,
 } from 'firebase/firestore';
 import {
   Loader2, Sun, Hourglass, Plus, Pin, Settings, Mic, ListChecks, SlidersHorizontal, Search, ArrowUp, Check, Lightbulb, StickyNote, Flag, Repeat as RepeatIcon,
@@ -197,7 +197,11 @@ export default function InboxApp({ onExit, onCircle, onPhotos, onEnquiries, onPo
     seeded.current = true;
     (async () => {
       let current = areas;
+      // An empty list can be a phone with no signal, not a new account: only create the starter filters if the server
+      // really has none (otherwise they get made a second time and every chip shows twice, as on 23 Nov 2026).
       if (!current.length) {
+        const live = await getDocsFromServer(collection(db, 'inbox_areas')).catch(() => null);
+        if (!live || !live.empty) { seeded.current = false; return; }
         const batch = writeBatch(db);
         current = DEFAULT_AREAS.map((a, order) => {
           const ref = doc(collection(db, 'inbox_areas'));
