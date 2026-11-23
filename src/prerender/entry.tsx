@@ -50,6 +50,7 @@ export { PARTNER_PATH, PARTNER_META } from "../lib/partner";
 export { TRIPS_PATH, TRIPS_META, TRIPS_FAQS } from "../lib/trips";
 export { READY_PATH, READY_META, READY_FAQS } from "../lib/ready";
 export { SCHOOLS, SCHOOLS_META, SCHOOLS_FAQS, SCHOOLS_PATH, faqsForSchool } from "../lib/schools";
+export { POSTER_BY_PATH, posterSchema } from "../lib/posters";
 export { PAGE_META, SITE_URL, DEFAULT_OG_IMAGE, personSchema, websiteSchema, fitTitle, fitDescription } from "../seo";
 export { EN_TO_DE, DE_TO_EN, DE_ARTICLE_LIST, DE_HOME, DE_ARTICLES, DE_CALCULATOR, DE_MOVING, DE_AREAS } from "../lib/de/site";
 export { VISAS_DE, VISAS_META_DE, VISAS_FAQS_DE, VISAS_PATH_DE } from "../lib/de/visas";

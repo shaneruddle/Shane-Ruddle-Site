@@ -75,6 +75,8 @@ function page({ urlPath, title: fullTitle, description: fullDescription, body, o
   if (lang === "en") pageIndex.set(urlPath, { title: title.replace(/ \| Shane Ruddle$/, ""), description });
   const canonical = SITE_URL + (urlPath === "/" ? "/" : urlPath);
   const alternates = alternatesFor(urlPath);
+  // Pages with an infographic poster also describe it as an ImageObject (Google Images credit).
+  if (ssr.POSTER_BY_PATH[urlPath]) schemas = [...schemas, ssr.posterSchema(ssr.POSTER_BY_PATH[urlPath])];
   const head = [
     ...alternates.map(([hl, p]) => `<link rel="alternate" hreflang="${hl}" href="${esc(SITE_URL + (p === "/" ? "/" : p))}" />`),
     `<link rel="canonical" href="${esc(canonical)}" />`,

@@ -27,6 +27,7 @@ import EmailMyResult from "./EmailMyResult";
 import PattayaMap from "./PattayaMap";
 
 import Noindex from "./Noindex";
+import PosterFigure from "./PosterFigure";
 // Pattaya areas: /areas (interactive map + "which area suits you?" matcher) and /areas/<slug>.
 // Shared by the build-time prerender and the live app.
 
@@ -290,6 +291,10 @@ function AreasHub() {
           </div>
         </div>
       </section>
+
+      <div className="bg-paper px-6 md:px-12 py-16 md:py-24">
+        <PosterFigure id="areas" className="max-w-7xl mx-auto" />
+      </div>
 
       <section id="finder" className="bg-cream border-b border-cream-line py-16 md:py-24 px-6 md:px-12 scroll-mt-20">
         <div className="max-w-7xl mx-auto">

@@ -22,6 +22,7 @@ import { AskFloatButton, AskOffer } from "./AskNudge";
 import { CURRENCIES } from "../lib/costOfLiving";
 import NewsletterSignup from "./NewsletterSignup";
 import { AdminCalendar, RetirementMoneyCheck } from "./ExpatTools";
+import PosterFigure from "./PosterFigure";
 import EmailMyResult from "./EmailMyResult";
 
 import Noindex from "./Noindex";
@@ -496,6 +497,7 @@ function VisaView({ visa }: { visa: ThaiVisa }) {
 
       <div className="bg-paper px-6 md:px-12 py-16 md:py-24">
         <div className="max-w-5xl mx-auto space-y-16 md:space-y-20">
+          {visa.id === "retirement" && <PosterFigure id="retirement" />}
           <section>
             <Eyebrow>What it is</Eyebrow>
             {visa.intro.map((p) => (

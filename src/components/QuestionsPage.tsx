@@ -21,6 +21,8 @@ import AskShane from "./AskShane";
 import QuestionCard from "./QuestionCard";
 
 import Noindex from "./Noindex";
+import PosterFigure from "./PosterFigure";
+import { POSTER_BY_PATH } from "../lib/posters";
 // Real questions, answered: /questions (searchable library) and /questions/<slug> (one answer per page).
 // Shared by the build-time prerender and the live app.
 
@@ -277,6 +279,8 @@ function QuestionView({ q }: { q: ShaneQuestion }) {
               Up to date as of {ANSWERS_AS_OF}. Rules in Thailand change often, so check the current position before you act.
             </p>
           </section>
+
+          {POSTER_BY_PATH[`${QUESTIONS_PATH}/${q.slug}`] && <PosterFigure id={POSTER_BY_PATH[`${QUESTIONS_PATH}/${q.slug}`].id} />}
 
           {q.guide && (
             <section className="space-y-10 md:space-y-12">

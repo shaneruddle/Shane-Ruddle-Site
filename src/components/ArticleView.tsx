@@ -9,6 +9,8 @@ import { handleLinkClick } from "../lib/navigation";
 import { topicForArticle } from "./AskShane";
 import { AskOffer } from "./AskNudge";
 import { relatedFor } from "../lib/relatedArticles";
+import PosterFigure from "./PosterFigure";
+import { POSTER_BY_PATH } from "../lib/posters";
 
 export interface ArticleViewProps {
   title: string;
@@ -35,6 +37,7 @@ export default function ArticleView({ title, body, category, createdAt, updatedA
   const guide = guideForArticle(slug);
   const asked = slug ? questionsForArticle(slug).slice(0, 4) : [];
   const more = relatedFor(slug);
+  const poster = slug ? POSTER_BY_PATH[`/articles/${slug}`] : undefined;
   const updated =
     updatedAt && createdAt && formatArticleDate(updatedAt) !== formatArticleDate(createdAt) && updatedAt > createdAt
       ? `Updated ${formatArticleDate(updatedAt)}`
@@ -64,6 +67,7 @@ export default function ArticleView({ title, body, category, createdAt, updatedA
         {imageUrl && (
           <img src={imageUrl} alt={photoByUrl(imageUrl)?.alt || title} width={1600} height={900} decoding="async" className="w-full aspect-[16/9] object-cover rounded-3xl mb-12" referrerPolicy="no-referrer" />
         )}
+        {poster && <PosterFigure id={poster.id} stacked className="mb-14" />}
         <div className="markdown-body text-black/70 font-light leading-relaxed text-lg">
           <ArticleMarkdown body={bodyTop} />
         </div>

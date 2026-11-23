@@ -25,6 +25,7 @@ import { handleLinkClick } from "../lib/navigation";
 import { trackEvent } from "../lib/analytics";
 import AskShane from "./AskShane";
 import EmailMyResult from "./EmailMyResult";
+import PosterFigure from "./PosterFigure";
 
 // /cost-of-living-calculator: interactive monthly budget for living in Pattaya. Shared by the
 // build-time prerender (default inputs) and the live app (inputs read from the URL, so results can be shared).
@@ -258,6 +259,10 @@ export default function CostCalculator() {
           </div>
         </div>
       </section>
+
+      <div className="px-6 md:px-12 pb-16 md:pb-24">
+        <PosterFigure id="cost" className="max-w-7xl mx-auto pt-14 md:pt-20 border-t border-black/[0.08]" />
+      </div>
 
       {/* Mobile: total always in view while choosing */}
       <button
