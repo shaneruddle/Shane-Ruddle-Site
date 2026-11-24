@@ -33,7 +33,7 @@ For a pie factory, the location was fine. For a cloud kitchen, it was wrong.
 
 It didn't end in one go. When COVID ended, people went back to restaurants and deliveries dropped off naturally. Then we sold the pie production and moved it out, and the facility didn't make sense to pay for with just the cloud kitchen.
 
-I'd bought The Golf Club bar by then, so I moved the cloud kitchen there. When I eventually [sold The Golf Club](/articles/selling-the-golf-club), that was the end of it.
+I'd bought The Golf Club bar by then, so I moved the cloud kitchen there. In the end I got out of it by selling it, around the time I [sold The Golf Club](/articles/selling-the-golf-club).
 
 ## Why it was my worst business
 
