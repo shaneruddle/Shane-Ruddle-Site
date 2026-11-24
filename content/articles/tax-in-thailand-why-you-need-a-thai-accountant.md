@@ -41,7 +41,7 @@ We pay these too, and they're the ones business owners often don't think about, 
 - **Stamp duty** on certain documents, such as leases and contracts
 - **Specific business tax** and transfer fees when property is sold
 
-One that catches people out is property tax on a building you rent. When you lease premises, you're not just paying the rent. Normally the landlord will expect you to pay the annual land and building tax to the government as well, so make sure you factor it in. I've written more about that in [three landlord tricks every business owner in Pattaya should know](/articles/three-landlord-tricks-every-business-owner-in-pattaya-should-know).
+One that catches people out is property tax on a building you rent. When you lease premises, you're not just paying the rent. Normally the landlord will expect you to pay the annual land and building tax to the government as well, so make sure you factor it in. It's one more thing to check before you sign, alongside [three landlord tricks every business owner in Pattaya should know](/articles/three-landlord-tricks-every-business-owner-in-pattaya-should-know).
 
 ## Getting advice in your own language
 
