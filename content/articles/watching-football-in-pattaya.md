@@ -1,12 +1,22 @@
 ---
-title: "Where to Watch the Football in Pattaya: Tips From a Sports Bar Owner"
-seoTitle: "Where to Watch Football in Pattaya: Sports Bar Owner's Tips"
-description: "Where to watch the Premier League in Pattaya: what makes a good sports bar, late kick-offs, multi-screen bars and when to book. From the owner of Hemingways."
+title: "Sports Bars in Pattaya: Where to Watch the Football, From a Bar Owner"
+seoTitle: "Sports Bars in Pattaya: Where to Watch the Football"
+description: "Sports bars in Pattaya: where to watch the Premier League, the best areas, what makes a good sports bar, late kick-offs and when to book. From the owner of three Hemingways."
 category: My Advice
 date: 2026-11-01
 ---
 
 I own three Hemingways in and around Pattaya, and showing live sport is a big part of what we do. Here's what I'd tell anyone wanting to watch a match here.
+
+## Where are the best sports bars in Pattaya?
+
+There are sports bars all over the city, but a few areas stand out:
+
+- **Soi Buakhao** is the most British part of Pattaya, with lots of sports bars and pubs showing the football at good prices.
+- **Jomtien** has grown a lot. When we opened Hemingways Jomtien eight or nine years ago, we were pretty much the first expat sports bar there doing it properly, and now there's plenty of choice.
+- **Hemingways Pattaya** and **Hemingways Lakeside** are our other two, both set up to show several games at once.
+
+I'm biased, of course, but the tips below apply wherever you watch.
 
 ## What makes a good sports bar?
 

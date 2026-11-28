@@ -1,6 +1,6 @@
 ---
 title: "Pattaya vs Hua Hin: Which Is Better?"
-description: "Pattaya vs Hua Hin compared by a Pattaya business owner: beaches, nightlife, golf, getting to Bangkok, and who should choose the quieter town."
+description: "Pattaya vs Hua Hin compared by a Pattaya business owner: is Hua Hin worth visiting, beaches, nightlife, golf, getting to Bangkok, and who should choose the quieter town."
 category: My Advice
 date: 2026-10-30
 ---
@@ -12,6 +12,10 @@ I've been to Hua Hin more than half a dozen times. It's a very nice town, but in
 Hua Hin is much quieter. The beaches are nice, with a long stretch of coastline, but that's really its main draw. There's no real nightlife and one small shopping centre. There are restaurants and some nice hotels, but nowhere near as many as in Pattaya.
 
 Less choice has an upside, though: fewer cars on the road, fewer people and a calmer feel. I can see the attraction.
+
+## Is Hua Hin worth visiting?
+
+Yes. I've been more than half a dozen times and it's a very nice town. Go for the long stretch of beach, a slower pace and some of the best golf in Thailand. Don't go expecting nightlife or much shopping, because there's very little of either. It's about three to three and a half hours from Bangkok by road, so it works well as a few days away rather than a day trip.
 
 ## Is Hua Hin or Pattaya better for golf?
 
