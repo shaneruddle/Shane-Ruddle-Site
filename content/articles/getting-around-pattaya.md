@@ -4,11 +4,17 @@ seoTitle: "Getting Around Pattaya Without a Car: Baht Buses and Bolt"
 description: "Getting around Pattaya: motorbike taxis, baht buses and how they really work, Bolt and Grab, and which to choose depending on how long you're staying."
 category: My Advice
 date: 2026-11-02
+updated: 2026-11-28
 ---
 
 You don't need a car to get around Pattaya. Here's how each option works, and which I'd use.
 
 > **What I'd do:** On a week's holiday, use Bolt or Grab so you know the price up front, and try a baht bus once (now ฿15 for most trips around town). Staying a month or more and want to explore? Rent a car.
+
+
+## How do you get around Pattaya?
+
+Four ways, none of them needing a car: motorbike taxis for quick hops on your own, baht buses (songthaews) for cheap rides along the main roads, Bolt or Grab when you want a fixed price up front, and a rental car if you're staying longer and want to explore.
 
 ## Motorbike taxis
 

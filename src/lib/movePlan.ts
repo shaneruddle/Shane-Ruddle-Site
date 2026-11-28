@@ -436,6 +436,16 @@ export function answersFromSearch(search: string): MoveAnswers {
 
 export const MOVE_FAQS: { q: string; a: string; href?: string }[] = [
   {
+    q: "How do I move to Thailand?",
+    a: "Four steps. Pick the visa that fits what you'll do here (a retirement visa if you're 50 or over, the DTV if you work online, a Non-B and work permit for a job or business). Make sure you have the money for that visa and to live. Choose the area that suits you. Then rent before you buy, and open a bank account once your visa is set up.",
+    href: `${VISAS_PATH}`,
+  },
+  {
+    q: "Can I move to Thailand?",
+    a: "Yes, most people can, as long as there's a visa that fits you: retirement if you're 50 or over and meet the money rules, the DTV if you work online, a work permit if you have a job or business here, or the Privilege (Elite) visa if you'd rather pay for a long stay.",
+    href: `${VISAS_PATH}`,
+  },
+  {
     q: "How do I move to Thailand from the UK?",
     a: "Pick the visa that fits what you'll do here (a retirement visa if you're 50 or over, the DTV if you work online, a Non-B and work permit for a job or business). Get health insurance, rent before you buy, then open a bank account and get a Thai driving licence in your first month.",
   },

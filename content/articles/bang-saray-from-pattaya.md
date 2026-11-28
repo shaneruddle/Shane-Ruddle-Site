@@ -4,9 +4,15 @@ seoTitle: "Bang Saray from Pattaya: Seafood, Navy Beach and a 10km Walk"
 description: "A Pattaya business owner on Bang Saray: a day trip just south of Pattaya, with seafood on the front, the Navy beach, a 10 km beach walk and nearby attractions."
 category: My Advice
 date: 2026-11-04
+updated: 2026-11-28
 ---
 
 Bang Saray is a day trip, not somewhere to stay. It's too close to Pattaya to bother with a hotel, and there aren't many places to stay anyway. But there's plenty to fill a day.
+
+
+## How far is Bang Saray from Pattaya?
+
+About 20 km south of central Pattaya along Sukhumvit Road, which is roughly a 25 to 30 minute drive, depending on traffic.
 
 ## The seafront
 

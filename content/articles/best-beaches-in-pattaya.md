@@ -3,9 +3,15 @@ title: "The Best Beaches In and Around Pattaya"
 description: "A Pattaya local's pick of the best beaches nearby: Dongtan Beach in town, the Navy Beach, Koh Lan, and quiet Koh Si Chang."
 category: My Advice
 date: 2026-10-30
+updated: 2026-11-28
 ---
 
 I'm not really a beach person, but after 20 years here I know where I'd go and where I'd send visitors.
+
+
+## Does Pattaya have nice beaches?
+
+Yes, but the best ones aren't in town. Pattaya Beach and Jomtien Beach are fine for convenience, Dongtan Beach is the nicer stretch close to the city, and the best beaches are a short trip away: the Navy Beach about 30 minutes' drive south, and the islands of Koh Lan and Koh Si Chang.
 
 ## Are Pattaya Beach and Jomtien Beach worth it?
 

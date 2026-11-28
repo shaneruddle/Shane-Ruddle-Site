@@ -4,9 +4,15 @@ seoTitle: "Is Weed Legal in Pattaya? The Cannabis Rules Now (2026)"
 description: "Is weed legal in Pattaya? Not for fun any more: since 2025 you need a prescription to buy cannabis, and smoking in public can cost up to ฿25,000."
 category: Pattaya News
 date: 2026-11-07
+updated: 2026-11-28
 ---
 
 When Thailand legalised cannabis in 2022, Pattaya changed almost overnight. Now it has swung back the other way: since 2025 you need a prescription to buy it, and smoking in public is banned, with fines of up to ฿25,000. Here's what I saw from the ground.
+
+
+## Is weed legal in Pattaya?
+
+Not for fun any more. Since 2025 licensed shops can only sell cannabis with a prescription from a practitioner, recreational use isn't permitted, and smoking in public is banned, with fines of up to ฿25,000. Don't bring any into the country either.
 
 ## Shops everywhere
 

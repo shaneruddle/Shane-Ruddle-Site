@@ -4,6 +4,7 @@ seoTitle: "Walking Street Pattaya: Is It Still Worth Visiting?"
 description: "Walking Street Pattaya after 20 years: how the crowd and the offer have changed, why it's worth a visit even if bars aren't your thing, and how safe it is."
 category: My Advice
 date: 2026-11-02
+updated: 2026-11-28
 ---
 
 Walking Street is probably Pattaya's most famous road. I've known it for over 20 years, and it's a very different place now.
@@ -18,9 +19,9 @@ Now the crowd is far more diverse, with visitors from all over Asia and beyond. 
 
 Absolutely. What's on offer has changed too. It used to be built around go-go bars and nightclubs, with a few restaurants. Now there's live music and a lot more restaurants, including some very good seafood places. You can have a really good night there without going near the go-go bars it was built around.
 
-## Is it safe?
+## Is Walking Street Pattaya safe?
 
-Very. Past midnight there are some drunk people, and occasionally a fight, but considering how many people are out drinking, it's maybe one or two a week. And I've not come across [the old rip-offs](/articles/scams-in-pattaya) people warn about.
+Yes, very. Past midnight there are some drunk people, and occasionally a fight, but considering how many people are out drinking, it's maybe one or two a week. And I've not come across [the old rip-offs](/articles/scams-in-pattaya) people warn about.
 
 There's a big security presence: tourist police, regular police, security guards, and doormen on most clubs. As I've written in [is Pattaya safe?](/articles/is-pattaya-safe), Thais are very tolerant of foreigners and rarely get involved unless they're seriously provoked. Unless you go looking for trouble, you won't find it. And if it found you unfairly, with so many guards, doormen and police around, it would be sorted out quickly.
 

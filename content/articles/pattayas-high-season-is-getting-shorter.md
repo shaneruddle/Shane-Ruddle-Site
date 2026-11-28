@@ -3,9 +3,15 @@ title: "Pattaya's High Season Is Getting Shorter"
 description: "Pattaya's high season has shrunk from seven months to about three and a half. Why it's happening and what it means for car rental and restaurants."
 category: Pattaya News
 date: 2026-11-09
+updated: 2026-11-28
 ---
 
 When I first came to Pattaya, high season ran from October to the end of April, about seven months. Today it feels like it runs from mid-December to the end of March. That's roughly half what it was. More in [why tourism in Thailand is down](/articles/why-tourism-in-thailand-is-down).
+
+
+## When is high season in Pattaya?
+
+Today it runs from about mid-December to the end of March, with the busiest weeks from mid-December to the end of January. Book cars and hotels early if you're coming then.
 
 ## How it used to be
 
